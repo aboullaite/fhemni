@@ -1,14 +1,14 @@
 <!doctype html>
 <html lang="ar" dir="rtl" data-theme="fhemni">
 <head>
-    <script src="/js/analytics.js"></script>
+    <script src="/js/analytics.js?v=20260906-2"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="A timestamped, evidence-aware Fhemni video briefing." data-i18n-content="analysis.description">
     <title>Understanding the video… — Fhemni</title>
     <link rel="icon" type="image/png" href="/assets/brand/fhemni-icon.png">
     <link rel="apple-touch-icon" href="/assets/brand/fhemni-icon.png">
-    <link rel="stylesheet" href="/css/dist.css">
+    <link rel="stylesheet" href="/css/dist.css?v=20260906-2">
 </head>
 <body class="analysis-page min-h-screen overflow-x-hidden bg-base-200 text-base-content font-sans rtl:font-arabic" data-i18n-page-title="analysis.pageTitle">
 <div class="ambient ambient-one"></div>
@@ -164,16 +164,28 @@
                         </div>
                     </div>
                     <div id="chatAuthGate" class="chat-auth-gate mx-5 mb-5 rounded-box border border-base-300 bg-base-100 p-6 text-center" hidden>
-                        <span class="badge badge-warning badge-sm mb-3 font-black uppercase tracking-wider" data-i18n="common.comingSoon">Coming soon</span>
+                        <span id="chatGateBadge" class="badge badge-warning badge-sm mb-3 font-black uppercase tracking-wider" data-i18n="common.comingSoon">Coming soon</span>
                         <strong id="chatGateTitle" data-i18n="analysis.chatComingSoonTitle">Ask the video</strong>
                         <p id="chatGateText" class="mx-auto mb-4 mt-2 max-w-xl text-sm text-base-content/65" data-i18n="analysis.chatPrivacy" hidden></p>
                         <a id="chatLoginLink" class="primary-button" href="/login" data-i18n="common.signIn">Sign in</a>
                     </div>
                     <form id="questionForm" class="question-form mx-5 mb-5 grid grid-cols-[1fr_auto] gap-2 rounded-box border border-base-300 bg-base-100 p-2 ps-4 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10">
-                        <textarea id="questionInput" class="textarea h-auto min-h-12 resize-none border-0 bg-transparent px-0 text-sm shadow-none outline-none focus:outline-none" rows="2" maxlength="1000" placeholder="What did the speaker say about…?" data-i18n-placeholder="analysis.questionPlaceholder" required></textarea>
-                        <button id="askButton" class="send-button btn btn-neutral btn-square self-end" type="submit" aria-label="Send question" data-i18n-aria-label="analysis.sendQuestion">
-                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                        <textarea id="questionInput" class="textarea h-auto min-h-12 w-full min-w-0 resize-none border-0 bg-transparent px-0 text-sm shadow-none outline-none focus:outline-none" rows="2" maxlength="600" placeholder="What did the speaker say about…?" data-i18n-placeholder="analysis.questionPlaceholder" required></textarea>
+                        <button id="askButton" class="send-button btn btn-circle btn-primary self-end shadow-md" type="submit" aria-label="Send question" data-i18n-aria-label="analysis.sendQuestion">
+                            <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
                         </button>
+                        <div id="chatQuota" class="col-span-full flex w-max max-w-full cursor-help items-center gap-2 rounded-full bg-base-200/70 px-2 py-1 text-base-content/55" role="group" aria-label="" hidden>
+                            <span class="text-[10px] font-black uppercase tracking-wide" data-i18n="analysis.chatUsageLabel">Usage</span>
+                            <div id="chatTokenProgress" class="relative grid size-8 shrink-0 place-items-center" role="progressbar" aria-valuemin="0" aria-valuemax="10000" aria-valuenow="0">
+                                <svg class="absolute inset-0 size-full -rotate-90" viewBox="0 0 48 48" aria-hidden="true">
+                                    <circle cx="24" cy="24" r="20" pathLength="100" fill="none" stroke-width="4" class="stroke-base-300"></circle>
+                                    <circle id="chatTokenRing" cx="24" cy="24" r="20" pathLength="100" fill="none" stroke-width="4" stroke-linecap="round" stroke-dasharray="100" stroke-dashoffset="100" class="stroke-primary transition-[stroke-dashoffset] duration-300"></circle>
+                                </svg>
+                                <span id="chatTokenPercent" class="relative text-[8px] font-black text-primary">0%</span>
+                            </div>
+                            <span aria-hidden="true" class="text-base-content/25">·</span>
+                            <span id="chatQuestionQuota" class="text-xs font-bold" aria-label=""></span>
+                        </div>
                     </form>
                 </section>
                 <aside class="ask-aside flex flex-col gap-7">
@@ -200,8 +212,9 @@
     <a class="footer-feedback-link" href="https://github.com/aboullaite/fhemni/issues" target="_blank" rel="noopener noreferrer" data-i18n="common.suggestFeature">Suggest a feature</a>
 </footer>
 
-<script src="/js/i18n.js?v=20260906-13" defer></script>
-<script src="/js/auth.js" defer></script>
-<script src="/js/analysis.js?v=20260906-4" defer></script>
+<script src="/js/i18n.js?v=20260906-19" defer></script>
+<script src="/js/auth.js?v=20260906-3" defer></script>
+<script src="/js/markdown.js?v=20260906-1" defer></script>
+<script src="/js/analysis.js?v=20260906-9" defer></script>
 </body>
 </html>

@@ -16,7 +16,7 @@ const state = {
 };
 
 const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
-const QUESTION_REQUEST_TIMEOUT_MS = 60_000;
+const QUESTION_REQUEST_TIMEOUT_MS = 40_000;
 
 function t(key, parameters = {}) {
     return window.FhemniI18n?.t(key, parameters) ?? key;
@@ -52,8 +52,14 @@ const elements = {
     questionForm: document.querySelector('#questionForm'),
     chatAuthGate: document.querySelector('#chatAuthGate'),
     chatLoginLink: document.querySelector('#chatLoginLink'),
+    chatGateBadge: document.querySelector('#chatGateBadge'),
     chatGateTitle: document.querySelector('#chatGateTitle'),
     chatGateText: document.querySelector('#chatGateText'),
+    chatQuota: document.querySelector('#chatQuota'),
+    chatQuestionQuota: document.querySelector('#chatQuestionQuota'),
+    chatTokenProgress: document.querySelector('#chatTokenProgress'),
+    chatTokenRing: document.querySelector('#chatTokenRing'),
+    chatTokenPercent: document.querySelector('#chatTokenPercent'),
     questionInput: document.querySelector('#questionInput'),
     askButton: document.querySelector('#askButton'),
     conversation: document.querySelector('#conversation'),
@@ -187,16 +193,62 @@ function configureChatAccess() {
     if (!elements.questionForm || !elements.chatAuthGate) return;
     const authenticated = Boolean(state.authSession?.authenticated);
     const chatEnabled = Boolean(state.meta?.chatEnabled);
-    const canChat = authenticated && chatEnabled;
+    const quota = state.authSession?.chatQuota;
+    const weeklyQuotaExhausted = authenticated && chatEnabled && quota && Number(quota.remaining) <= 0;
+    const dailyTokenQuotaExhausted = authenticated && chatEnabled && quota
+        && Number(quota.dailyOutputTokensRemaining) <= 0;
+    const quotaExhausted = weeklyQuotaExhausted || dailyTokenQuotaExhausted;
+    const canChat = authenticated && chatEnabled && !quotaExhausted;
     elements.questionForm.hidden = !canChat;
     elements.chatAuthGate.hidden = canChat;
     elements.chatLoginLink.hidden = authenticated || !chatEnabled;
-    elements.chatGateTitle.textContent = t(chatEnabled
-        ? 'analysis.signInToChat'
-        : 'analysis.chatComingSoonTitle');
+    elements.chatGateBadge.hidden = chatEnabled;
+    elements.chatQuota.hidden = !authenticated || !chatEnabled || !quota;
+    renderChatQuota(quota);
+    elements.chatGateTitle.textContent = dailyTokenQuotaExhausted
+        ? t('analysis.chatDailyTokenLimitTitle')
+        : (weeklyQuotaExhausted
+            ? t('analysis.chatQuotaUsedTitle')
+            : t(chatEnabled ? 'analysis.signInToChat' : 'analysis.chatComingSoonTitle'));
     elements.chatGateText.hidden = !chatEnabled;
-    elements.chatGateText.textContent = chatEnabled ? t('analysis.chatPrivacy') : '';
+    elements.chatGateText.textContent = dailyTokenQuotaExhausted
+        ? t('analysis.chatDailyTokenLimit')
+        : (weeklyQuotaExhausted
+            ? t('analysis.chatQuotaUsedText', { limit: quota.weeklyLimit })
+            : (chatEnabled ? t('analysis.chatPrivacy') : ''));
     elements.chatLoginLink.href = window.FhemniAuth.loginPage(window.location.pathname);
+}
+
+function renderChatQuota(quota) {
+    if (!quota) return;
+    const dailyLimit = Math.max(0, Number(quota.dailyOutputTokenLimit) || 0);
+    const dailyUsed = Math.max(0, Number(quota.dailyOutputTokensUsed) || 0);
+    const tokenPercent = dailyLimit > 0
+        ? Math.min(100, Math.round((dailyUsed / dailyLimit) * 100))
+        : 0;
+    const questionQuotaLabel = t('analysis.chatQuota', {
+        remaining: quota.remaining,
+        limit: quota.weeklyLimit
+    });
+    const usageSummary = t('analysis.chatUsageSummary', {
+        percent: tokenPercent,
+        remaining: quota.remaining,
+        limit: quota.weeklyLimit
+    });
+    elements.chatQuestionQuota.textContent = t('analysis.chatQuestionsCompact', {
+        remaining: quota.remaining,
+        limit: quota.weeklyLimit
+    });
+    elements.chatQuestionQuota.setAttribute('aria-label', questionQuotaLabel);
+    elements.chatQuota.setAttribute('aria-label', usageSummary);
+    elements.chatQuota.title = usageSummary;
+    elements.chatTokenPercent.textContent = `${tokenPercent}%`;
+    elements.chatTokenRing.setAttribute('stroke-dashoffset', String(100 - tokenPercent));
+    elements.chatTokenProgress.setAttribute('aria-valuemax', String(dailyLimit));
+    elements.chatTokenProgress.setAttribute('aria-valuenow', String(Math.min(dailyUsed, dailyLimit)));
+    elements.chatTokenProgress.setAttribute('aria-label', t('analysis.chatTokenProgress', {
+        percent: tokenPercent
+    }));
 }
 
 async function loadAnalysis() {
@@ -210,6 +262,7 @@ async function loadAnalysis() {
     showOnly('progress');
     try {
         const snapshot = await request(`/api/analyses/${state.analysisId}`);
+        trackAnalysisView(snapshot);
         if (snapshot.status === 'COMPLETED') {
             renderResult(snapshot);
         } else if (snapshot.status === 'FAILED') {
@@ -225,6 +278,17 @@ async function loadAnalysis() {
     } catch (error) {
         showRequestError(error);
     }
+}
+
+function trackAnalysisView(snapshot) {
+    window.FhemniAnalytics?.trackEvent('analysis_view', {
+        analysis_id: snapshot.id || state.analysisId,
+        video_id: snapshot.videoId,
+        analysis_status: String(snapshot.status || '').toLowerCase(),
+        output_language: String(snapshot.language || '').toLowerCase(),
+        published: snapshot.published === true,
+        demo: snapshot.demo === true
+    });
 }
 
 function subscribe(id) {
@@ -483,11 +547,31 @@ async function askQuestion(event) {
         appendAssistantMessage(answer);
     } catch (error) {
         thinking.remove();
-        appendAssistantMessage({ answer: error.message, sources: [] }, true);
+        appendAssistantMessage({ answer: chatErrorMessage(error), sources: [] }, true);
     } finally {
+        await refreshChatQuota();
         elements.askButton.disabled = false;
-        elements.questionInput.focus();
+        if (!elements.questionForm.hidden) elements.questionInput.focus();
     }
+}
+
+async function refreshChatQuota() {
+    try {
+        state.authSession = await window.FhemniAuth.refreshSession();
+    } catch (_) { /* retain the last known quota */ }
+    configureChatAccess();
+}
+
+function chatErrorMessage(error) {
+    if (error.code === 'CHAT_WEEKLY_LIMIT') {
+        return t('analysis.chatQuotaUsedText', {
+            limit: state.authSession?.chatQuota?.weeklyLimit || 5
+        });
+    }
+    if (error.code === 'CHAT_HOURLY_LIMIT') return t('analysis.chatHourlyLimit');
+    if (error.code === 'CHAT_DAILY_LIMIT') return t('analysis.chatDailyLimit');
+    if (error.code === 'CHAT_DAILY_TOKEN_LIMIT') return t('analysis.chatDailyTokenLimit');
+    return error.message;
 }
 
 function renderConversation(conversation) {
@@ -517,7 +601,7 @@ function appendAssistantMessage(answer, error = false) {
     element.innerHTML = `
         <div class="chat-image avatar"><div class="size-8 overflow-hidden rounded-xl shadow-md"><img class="size-full object-contain" src="/assets/brand/fhemni-icon.png" alt=""></div></div>
         <div class="chat-bubble max-w-[82%] text-sm text-base-content ${error ? 'message-error chat-bubble-error' : 'bg-primary/10'}">
-            <p class="m-0 whitespace-pre-wrap">${renderTimestamps(answer.answer || '')}</p>
+            <div class="chat-markdown space-y-3">${window.FhemniMarkdown.render(answer.answer || '')}</div>
             ${sources ? `<div class="message-sources mt-3 border-t border-base-300 pt-2">${sources}</div>` : ''}
         </div>`;
     elements.conversation.append(element);
@@ -724,12 +808,15 @@ async function request(url, options = {}, timeoutMs = DEFAULT_REQUEST_TIMEOUT_MS
         const response = await fetch(url, { ...securedOptions, signal: controller.signal });
         if (!response.ok) {
             let message = t('common.requestFailed', { status: response.status });
+            let errorCode = null;
             try {
                 const problem = await response.json();
                 message = problem.detail || problem.message || message;
+                errorCode = problem.code || null;
             } catch (_) { /* keep the HTTP message */ }
             const error = new Error(message);
             error.status = response.status;
+            error.code = errorCode;
             throw error;
         }
         return await response.json();
@@ -765,15 +852,6 @@ function safeUrl(value) {
     } catch (_) {
         return '';
     }
-}
-
-function renderTimestamps(value) {
-    return escapeHtml(value).replace(/\[(\d{1,2}):([0-5]\d)(?::([0-5]\d))?\]/g, (match, first, second, third) => {
-        const seconds = third === undefined
-            ? Number(first) * 60 + Number(second)
-            : Number(first) * 3600 + Number(second) * 60 + Number(third);
-        return `<button class="timestamp-button btn btn-primary btn-soft btn-xs h-auto min-h-7 font-mono font-extrabold" type="button" data-seconds="${seconds}">${match}</button>`;
-    });
 }
 
 function formatTime(value) {

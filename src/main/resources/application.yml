@@ -38,15 +38,18 @@ fhemni:
       client-secret: ${GITHUB_CLIENT_SECRET:}
   gemini:
     api-key: ${GEMINI_API_KEY:}
+    # Non-secret generation label. Change it whenever the API key or its Google project changes.
+    credential-version: ${GEMINI_CREDENTIAL_VERSION:local}
     model: ${GEMINI_MODEL:gemini-3.8-flash}
     fact-check-model: ${GEMINI_FACT_CHECK_MODEL:gemini-3.8-flash}
     base-url: https://generativelanguage.googleapis.com
     api-version: v1beta
     analysis-read-timeout: ${GEMINI_ANALYSIS_TIMEOUT:PT12M}
-    question-read-timeout: ${GEMINI_QUESTION_TIMEOUT:PT45S}
+    question-read-timeout: ${GEMINI_QUESTION_TIMEOUT:PT30S}
     fact-check-read-timeout: ${GEMINI_FACT_CHECK_TIMEOUT:PT90S}
-    analysis-max-output-tokens: ${GEMINI_ANALYSIS_MAX_OUTPUT_TOKENS:8192}
-    question-max-output-tokens: ${GEMINI_QUESTION_MAX_OUTPUT_TOKENS:2048}
+    analysis-max-output-tokens: ${GEMINI_ANALYSIS_MAX_OUTPUT_TOKENS:16384}
+    context-max-output-tokens: ${GEMINI_CONTEXT_MAX_OUTPUT_TOKENS:16384}
+    question-max-output-tokens: ${GEMINI_QUESTION_MAX_OUTPUT_TOKENS:16384}
     fact-check-max-output-tokens: ${GEMINI_FACT_CHECK_MAX_OUTPUT_TOKENS:8192}
   cost-control:
     analysis-enabled: ${FHEMNI_ANALYSIS_ENABLED:true}
@@ -54,14 +57,16 @@ fhemni:
     analysis-concurrency: ${FHEMNI_ANALYSIS_CONCURRENCY:1}
     analysis-queue-capacity: ${FHEMNI_ANALYSIS_QUEUE_CAPACITY:2}
     max-daily-analyses: ${FHEMNI_MAX_DAILY_ANALYSES:5}
-    max-daily-questions: ${FHEMNI_MAX_DAILY_QUESTIONS:50}
-    max-daily-questions-per-user: ${FHEMNI_MAX_DAILY_QUESTIONS_PER_USER:5}
+    max-hourly-chat-rounds: ${FHEMNI_MAX_HOURLY_CHAT_ROUNDS:50}
+    max-daily-chat-rounds: ${FHEMNI_MAX_DAILY_CHAT_ROUNDS:500}
+    max-weekly-chat-rounds-per-user: ${FHEMNI_MAX_WEEKLY_CHAT_ROUNDS_PER_USER:5}
+    max-daily-chat-output-tokens-per-user: ${FHEMNI_MAX_DAILY_CHAT_OUTPUT_TOKENS_PER_USER:10000}
   sessions:
     max: ${FHEMNI_MAX_SESSIONS:250}
     retention: ${FHEMNI_SESSION_RETENTION:PT6H}
     cleanup-interval-ms: ${FHEMNI_CLEANUP_INTERVAL_MS:300000}
-    max-conversation-turns: ${FHEMNI_MAX_CONVERSATION_TURNS:40}
-    max-provider-conversation-turns: ${FHEMNI_MAX_PROVIDER_CONVERSATION_TURNS:8}
+    max-conversation-turns: ${FHEMNI_MAX_CONVERSATION_TURNS:10}
+    max-provider-conversation-turns: ${FHEMNI_MAX_PROVIDER_CONVERSATION_TURNS:5}
     max-user-conversations: ${FHEMNI_MAX_USER_CONVERSATIONS:1000}
     max-subscribers-per-analysis: ${FHEMNI_MAX_SUBSCRIBERS:16}
   catalog:
@@ -69,6 +74,8 @@ fhemni:
     oembed-timeout: ${YOUTUBE_OEMBED_TIMEOUT:PT5S}
     import-concurrency: ${FHEMNI_CATALOG_IMPORT_CONCURRENCY:3}
     batch-analysis-timeout: ${FHEMNI_CATALOG_BATCH_ANALYSIS_TIMEOUT:PT30M}
+    # One-off maintenance switch for rebuilding published Gemini video contexts after key/project rotation.
+    context-migration-enabled: ${FHEMNI_CONTEXT_MIGRATION_ENABLED:false}
   suggestions:
     max-submissions-per-window: ${FHEMNI_SUGGESTION_LIMIT:10}
     window: ${FHEMNI_SUGGESTION_WINDOW:PT1H}

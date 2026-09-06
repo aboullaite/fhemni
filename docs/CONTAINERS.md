@@ -24,6 +24,11 @@ chmod 444 .secrets/*
 
 Add a Gemini key or OAuth values only to the corresponding ignored file. Never
 put them in `.env.container`, `compose.yaml`, an image build argument, or Git.
+`GEMINI_CREDENTIAL_VERSION` is a non-secret cache-generation label: change it
+whenever the Gemini key belongs to a different Google project. Existing public
+reports remain unchanged, while chat stays unavailable for them until an admin
+temporarily enables `FHEMNI_CONTEXT_MIGRATION_ENABLED` and runs the one-off
+migration shown in the admin catalogue.
 
 Start the stack:
 

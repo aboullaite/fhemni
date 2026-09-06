@@ -2,6 +2,8 @@ package dev.maboullaite.fhemni.web;
 
 import java.util.List;
 
+import dev.maboullaite.fhemni.cost.AiUsageGuard;
+import dev.maboullaite.fhemni.cost.AiUsageGuard.ChatQuota;
 import dev.maboullaite.fhemni.identity.AppUser;
 import dev.maboullaite.fhemni.identity.CurrentUserService;
 import dev.maboullaite.fhemni.identity.OAuthProviderCatalog;
@@ -18,10 +20,15 @@ public class AuthController {
 
     private final CurrentUserService currentUser;
     private final OAuthProviderCatalog providers;
+    private final AiUsageGuard usageGuard;
 
-    public AuthController(CurrentUserService currentUser, OAuthProviderCatalog providers) {
+    public AuthController(
+            CurrentUserService currentUser,
+            OAuthProviderCatalog providers,
+            AiUsageGuard usageGuard) {
         this.currentUser = currentUser;
         this.providers = providers;
+        this.usageGuard = usageGuard;
     }
 
     @GetMapping("/session")
@@ -39,7 +46,8 @@ public class AuthController {
                 response,
                 providers.options(),
                 csrfToken.getHeaderName(),
-                csrfToken.getToken());
+                csrfToken.getToken(),
+                user == null ? null : usageGuard.chatQuota(user.id()));
     }
 
     public record SessionResponse(
@@ -47,7 +55,8 @@ public class AuthController {
             UserResponse user,
             List<ProviderOption> providers,
             String csrfHeader,
-            String csrfToken) {
+            String csrfToken,
+            ChatQuota chatQuota) {
     }
 
     public record UserResponse(

@@ -30,7 +30,7 @@ public class AnalysisRevisionRepository {
             ar.id, ar.youtube_video_id, ar.video_url, ar.output_language,
             ar.status, ar.progress, ar.progress_message, ar.demo,
             ar.model, ar.prompt_version, ar.fact_check_model, ar.fact_check_prompt_version,
-            ar.provider_interaction_id,
+            ar.provider_interaction_id, ar.provider_credential_version,
             ar.report_json, ar.error, ar.created_at,
             CASE WHEN cv.published_analysis_id = ar.id
                        AND cv.status = 'PUBLISHED'
@@ -52,17 +52,20 @@ public class AnalysisRevisionRepository {
             String model,
             String promptVersion,
             String factCheckModel,
-            String factCheckPromptVersion) {
+            String factCheckPromptVersion,
+            String credentialVersion) {
         jdbc.sql("""
                         INSERT INTO analysis_revisions (
                             id, youtube_video_id, video_url, output_language,
                             status, progress, progress_message, demo,
                             model, prompt_version, fact_check_model, fact_check_prompt_version,
+                            provider_credential_version,
                             created_at, updated_at
                         ) VALUES (
                             :id, :youtubeVideoId, :videoUrl, :outputLanguage,
                             :status, :progress, :progressMessage, :demo,
                             :model, :promptVersion, :factCheckModel, :factCheckPromptVersion,
+                            :credentialVersion,
                             :createdAt, :updatedAt
                         )
                         """)
@@ -78,6 +81,7 @@ public class AnalysisRevisionRepository {
                 .param("promptVersion", normalized(promptVersion))
                 .param("factCheckModel", normalized(factCheckModel))
                 .param("factCheckPromptVersion", normalized(factCheckPromptVersion))
+                .param("credentialVersion", normalized(credentialVersion))
                 .param("createdAt", utc(snapshot.createdAt()))
                 .param("updatedAt", utc(snapshot.createdAt()))
                 .update();
@@ -345,7 +349,8 @@ public class AnalysisRevisionRepository {
                 resultSet.getString("model"),
                 resultSet.getString("prompt_version"),
                 resultSet.getString("fact_check_model"),
-                resultSet.getString("fact_check_prompt_version"));
+                resultSet.getString("fact_check_prompt_version"),
+                resultSet.getString("provider_credential_version"));
     }
 
     private PublicationState publicationState(UUID analysisId, ResultSet resultSet) throws SQLException {
@@ -395,7 +400,8 @@ public class AnalysisRevisionRepository {
             String model,
             String promptVersion,
             String factCheckModel,
-            String factCheckPromptVersion) {
+            String factCheckPromptVersion,
+            String credentialVersion) {
     }
 
     public record RevisionSummary(

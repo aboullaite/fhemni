@@ -61,6 +61,7 @@ public class AnalysisService {
     private final ExecutorService executor;
     private final AiUsageGuard usageGuard;
     private final AnalysisRevisionRepository revisions;
+    private final VideoContextRepository videoContexts;
     private final int maxSessions;
     private final Duration sessionRetention;
     private final int maxConversationTurns;
@@ -75,10 +76,11 @@ public class AnalysisService {
             @Qualifier("analysisExecutor") ExecutorService analysisExecutor,
             AiUsageGuard usageGuard,
             AnalysisRevisionRepository revisions,
+            VideoContextRepository videoContexts,
             @Value("${fhemni.sessions.max:250}") int maxSessions,
             @Value("${fhemni.sessions.retention:PT6H}") Duration sessionRetention,
-            @Value("${fhemni.sessions.max-conversation-turns:40}") int maxConversationTurns,
-            @Value("${fhemni.sessions.max-provider-conversation-turns:8}") int maxProviderConversationTurns,
+            @Value("${fhemni.sessions.max-conversation-turns:10}") int maxConversationTurns,
+            @Value("${fhemni.sessions.max-provider-conversation-turns:5}") int maxProviderConversationTurns,
             @Value("${fhemni.sessions.max-user-conversations:1000}") int maxUserConversations) {
         if (maxSessions < 1 || maxConversationTurns < 1 || maxProviderConversationTurns < 1
                 || maxUserConversations < 1
@@ -91,6 +93,7 @@ public class AnalysisService {
         this.executor = analysisExecutor;
         this.usageGuard = usageGuard;
         this.revisions = revisions;
+        this.videoContexts = videoContexts;
         this.maxSessions = maxSessions;
         this.sessionRetention = sessionRetention;
         this.maxConversationTurns = maxConversationTurns;
@@ -143,7 +146,8 @@ public class AnalysisService {
             revisions.create(
                     session.snapshot(),
                     gateway.model(), gateway.promptVersion(),
-                    gateway.factCheckModel(), gateway.factCheckPromptVersion());
+                    gateway.factCheckModel(), gateway.factCheckPromptVersion(),
+                    gateway.credentialVersion());
             revisionCreated = true;
             publish(session, AnalysisStatus.QUEUED, 2, "Video accepted");
             Reservation admittedReservation = reservation;
@@ -213,8 +217,8 @@ public class AnalysisService {
         if (question == null || question.isBlank()) {
             throw new IllegalArgumentException("Write a question to continue.");
         }
-        if (question.length() > 1_000) {
-            throw new IllegalArgumentException("Keep questions under 1,000 characters.");
+        if (question.length() > 600) {
+            throw new IllegalArgumentException("Keep questions under 600 characters.");
         }
 
         AnalysisSession session = session(id);
@@ -222,7 +226,18 @@ public class AnalysisService {
         if (snapshot.status() != AnalysisStatus.COMPLETED || snapshot.report() == null) {
             throw new IllegalStateException("Wait for the video analysis to finish before asking questions.");
         }
-        UserConversationState conversation = conversation(id, userId, session.analysisInteractionId());
+        String baseInteractionId = session.analysisInteractionId();
+        if (gateway.live()) {
+            Optional<VideoContextRepository.VideoContext> context = videoContexts.find(
+                    snapshot.videoId(), snapshot.language(),
+                    gateway.model(), gateway.contextPromptVersion(), gateway.credentialVersion());
+            if (context.isEmpty()) {
+                throw new IllegalStateException(
+                        "This episode is being prepared for video chat. Please try again later.");
+            }
+            baseInteractionId = context.get().interactionId();
+        }
+        UserConversationState conversation = conversation(id, userId, baseInteractionId);
         conversation.lock();
         session.beginQuestion();
         Reservation reservation = null;
@@ -250,6 +265,9 @@ public class AnalysisService {
                     Instant.now());
             conversation.add(answer, result.interactionId());
             return answer;
+        } catch (GeminiApiException exception) {
+            usageGuard.failed(reservation, exception.usage());
+            throw exception;
         } catch (RuntimeException exception) {
             usageGuard.failed(reservation);
             throw exception;
@@ -312,6 +330,14 @@ public class AnalysisService {
             analysisUsage = analysis.usage();
             usageGuard.succeeded(analysisReservation, analysisUsage);
             analysisReservation = null;
+            try {
+                videoContexts.save(
+                        input.videoId(), input.language(),
+                        gateway.model(), gateway.contextPromptVersion(), gateway.credentialVersion(),
+                        analysis.interactionId());
+            } catch (RuntimeException exception) {
+                log.error("Could not persist the reusable video context for analysis {}", input.id(), exception);
+            }
 
             publish(session, AnalysisStatus.FACT_CHECKING, 68, "Checking factual claims against external evidence");
             if (gateway.live() && analysis.report().claims().stream()

@@ -53,6 +53,7 @@ class AnalysisPartialUsageTest {
         when(gateway.promptVersion()).thenReturn("analysis-prompt");
         when(gateway.factCheckModel()).thenReturn("fact-model");
         when(gateway.factCheckPromptVersion()).thenReturn("fact-prompt");
+        when(gateway.credentialVersion()).thenReturn("credential-test");
         when(revisions.findReusable(
                 anyString(), any(), anyString(), anyString(), anyString(), anyString(), eq(false)))
                 .thenReturn(Optional.empty());
@@ -71,6 +72,7 @@ class AnalysisPartialUsageTest {
 
         AnalysisService service = new AnalysisService(
                 new YouTubeUrlParser(), gateway, events, executor, usageGuard, revisions,
+                mock(VideoContextRepository.class),
                 10, Duration.ofHours(1), 10, 4, 10);
 
         AnalysisSnapshot result = service.create("https://youtu.be/n5B3boj2MFM", "ary");

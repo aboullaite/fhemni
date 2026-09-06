@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 import dev.maboullaite.fhemni.analysis.AnalysisRevisionRepository;
+import dev.maboullaite.fhemni.analysis.VideoContextRepository;
 import dev.maboullaite.fhemni.identity.ExternalIdentityProfile;
 import dev.maboullaite.fhemni.identity.UserAccountRepository;
 import dev.maboullaite.fhemni.model.AnalysisSnapshot;
@@ -46,6 +47,9 @@ class AnalysisPublicationIntegrationTest {
     private AnalysisRevisionRepository revisions;
 
     @Autowired
+    private VideoContextRepository videoContexts;
+
+    @Autowired
     private UserAccountRepository users;
 
     @Test
@@ -77,8 +81,13 @@ class AnalysisPublicationIntegrationTest {
                 List.of(new Chapter("المقدمة", 0, "بداية الحلقة")),
                 List.of(),
                 List.of("شنو هي الخلاصة؟"));
-        revisions.create(queued, "gemini-test", "prompt-test", "fact-model-test", "fact-prompt-test");
+        revisions.create(
+                queued, "gemini-test", "prompt-test", "fact-model-test", "fact-prompt-test",
+                "credential-test");
         revisions.complete(analysisId, report, "interaction-test");
+        videoContexts.save(
+                queued.videoId(), queued.language(),
+                "gemini-test", "context-prompt-test", "credential-test", "interaction-test");
 
         assertThat(revisions.findReusable(
                 queued.videoId(), queued.language(),
@@ -92,6 +101,10 @@ class AnalysisPublicationIntegrationTest {
                 queued.videoId(), queued.language(),
                 "gemini-test", "prompt-test", "fact-model-test", "new-fact-prompt", false))
                 .isEmpty();
+        assertThat(revisions.findReusable(
+                queued.videoId(), queued.language(),
+                "gemini-test", "prompt-test", "fact-model-test", "fact-prompt-test", false))
+                .isPresent();
 
         mvc.perform(get("/api/analyses/{id}", analysisId))
                 .andExpect(status().isNotFound());
@@ -113,6 +126,29 @@ class AnalysisPublicationIntegrationTest {
         mvc.perform(get("/api/catalog/videos/episode-n5B3boj2MFM"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("PUBLISHED"))
+                .andExpect(jsonPath("$.publishedAnalysisId").value(analysisId.toString()));
+
+        assertThat(videoContexts.countMissingPublished(
+                "gemini-test", "context-prompt-test", "credential-test")).isZero();
+        assertThat(videoContexts.countMissingPublished(
+                "gemini-test", "context-prompt-test", "next-credential")).isOne();
+        assertThat(videoContexts.findMissingPublished(
+                "gemini-test", "context-prompt-test", "next-credential", 10))
+                .singleElement()
+                .satisfies(candidate -> {
+                    assertThat(candidate.publishedAnalysisId()).isEqualTo(analysisId);
+                    assertThat(candidate.youtubeVideoId()).isEqualTo("n5B3boj2MFM");
+                    assertThat(candidate.language()).isEqualTo(OutputLanguage.DARIJA);
+                });
+
+        videoContexts.save(
+                queued.videoId(), queued.language(),
+                "gemini-test", "context-prompt-test", "next-credential", "interaction-next");
+
+        assertThat(videoContexts.countMissingPublished(
+                "gemini-test", "context-prompt-test", "next-credential")).isZero();
+        mvc.perform(get("/api/catalog/videos/episode-n5B3boj2MFM"))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.publishedAnalysisId").value(analysisId.toString()));
 
         mvc.perform(post("/api/admin/analyses/reprocess")
