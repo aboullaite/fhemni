@@ -47,8 +47,8 @@ fhemni:
     analysis-read-timeout: ${GEMINI_ANALYSIS_TIMEOUT:PT12M}
     question-read-timeout: ${GEMINI_QUESTION_TIMEOUT:PT30S}
     fact-check-read-timeout: ${GEMINI_FACT_CHECK_TIMEOUT:PT90S}
-    analysis-max-output-tokens: ${GEMINI_ANALYSIS_MAX_OUTPUT_TOKENS:8192}
-    context-max-output-tokens: ${GEMINI_CONTEXT_MAX_OUTPUT_TOKENS:2048}
+    analysis-max-output-tokens: ${GEMINI_ANALYSIS_MAX_OUTPUT_TOKENS:16384}
+    context-max-output-tokens: ${GEMINI_CONTEXT_MAX_OUTPUT_TOKENS:16384}
     question-max-output-tokens: ${GEMINI_QUESTION_MAX_OUTPUT_TOKENS:16384}
     fact-check-max-output-tokens: ${GEMINI_FACT_CHECK_MAX_OUTPUT_TOKENS:8192}
   cost-control:

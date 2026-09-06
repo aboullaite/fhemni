@@ -63,8 +63,8 @@ public class VideoIntelligenceGateway {
             SpringAiFactCheckClient factCheckClient,
             ObjectMapper mapper,
             @Value("${fhemni.gemini.credential-version:local}") String credentialVersion,
-            @Value("${fhemni.gemini.analysis-max-output-tokens:8192}") int analysisMaxOutputTokens,
-            @Value("${fhemni.gemini.context-max-output-tokens:2048}") int contextMaxOutputTokens,
+            @Value("${fhemni.gemini.analysis-max-output-tokens:16384}") int analysisMaxOutputTokens,
+            @Value("${fhemni.gemini.context-max-output-tokens:16384}") int contextMaxOutputTokens,
             @Value("${fhemni.gemini.question-max-output-tokens:16384}") int questionMaxOutputTokens) {
         if (analysisMaxOutputTokens < 512 || contextMaxOutputTokens < 256 || questionMaxOutputTokens < 128) {
             throw new IllegalArgumentException("Gemini output token limits are too small");
