@@ -85,7 +85,7 @@ class SecurityIntegrationTest {
         mvc.perform(get("/js/i18n.js"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("landing.headline")))
-                .andExpect(content().string(containsString("'landing.promiseAsk': 'Jump to the moment'")))
+                .andExpect(content().string(containsString("'landing.promiseAsk': 'Ask the video'")))
                 .andExpect(content().string(containsString("ar: {")));
 
         mvc.perform(get("/css/dist.css"))
