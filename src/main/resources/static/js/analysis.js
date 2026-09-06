@@ -580,7 +580,7 @@ function appendAssistantMessage(answer, error = false) {
     element.innerHTML = `
         <div class="chat-image avatar"><div class="size-8 overflow-hidden rounded-xl shadow-md"><img class="size-full object-contain" src="/assets/brand/fhemni-icon.png" alt=""></div></div>
         <div class="chat-bubble max-w-[82%] text-sm text-base-content ${error ? 'message-error chat-bubble-error' : 'bg-primary/10'}">
-            <p class="m-0 whitespace-pre-wrap">${renderTimestamps(answer.answer || '')}</p>
+            <div class="chat-markdown space-y-3">${window.FhemniMarkdown.render(answer.answer || '')}</div>
             ${sources ? `<div class="message-sources mt-3 border-t border-base-300 pt-2">${sources}</div>` : ''}
         </div>`;
     elements.conversation.append(element);
@@ -831,15 +831,6 @@ function safeUrl(value) {
     } catch (_) {
         return '';
     }
-}
-
-function renderTimestamps(value) {
-    return escapeHtml(value).replace(/\[(\d{1,2}):([0-5]\d)(?::([0-5]\d))?\]/g, (match, first, second, third) => {
-        const seconds = third === undefined
-            ? Number(first) * 60 + Number(second)
-            : Number(first) * 3600 + Number(second) * 60 + Number(third);
-        return `<button class="timestamp-button btn btn-primary btn-soft btn-xs h-auto min-h-7 font-mono font-extrabold" type="button" data-seconds="${seconds}">${match}</button>`;
-    });
 }
 
 function formatTime(value) {
