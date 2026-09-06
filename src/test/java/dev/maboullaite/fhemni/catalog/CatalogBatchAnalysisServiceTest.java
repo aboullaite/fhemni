@@ -61,6 +61,35 @@ class CatalogBatchAnalysisServiceTest {
         verify(analyses, never()).create(eq(completedVideo.canonicalUrl()), any());
     }
 
+    @Test
+    void forceReprocessesTheLatestFailedEpisode() {
+        CatalogVideoRepository catalog = mock(CatalogVideoRepository.class);
+        AnalysisRevisionRepository revisions = mock(AnalysisRevisionRepository.class);
+        AnalysisService analyses = mock(AnalysisService.class);
+        ExecutorService executor = mock(ExecutorService.class);
+        CatalogVideo failedVideo = video("TMgYfNkfF14", "Failed episode");
+        when(catalog.findAll(500)).thenReturn(List.of(failedVideo));
+        when(revisions.latestByVideo()).thenReturn(Map.of(
+                failedVideo.youtubeVideoId(),
+                new RevisionSummary(
+                        UUID.randomUUID(), failedVideo.youtubeVideoId(), OutputLanguage.DARIJA,
+                        AnalysisStatus.FAILED, Instant.now(), false)));
+        when(analyses.reprocess(eq(failedVideo.canonicalUrl()), eq("ary")))
+                .thenReturn(completedAnalysis(failedVideo));
+
+        CatalogBatchAnalysisService service = new CatalogBatchAnalysisService(
+                catalog, revisions, analyses, executor, Duration.ofMinutes(30));
+        ArgumentCaptor<Runnable> work = ArgumentCaptor.forClass(Runnable.class);
+
+        service.start("ary", 20);
+        verify(executor).execute(work.capture());
+        work.getValue().run();
+
+        assertEquals(BatchState.COMPLETED, service.latest().state());
+        verify(analyses).reprocess(failedVideo.canonicalUrl(), "ary");
+        verify(analyses, never()).create(eq(failedVideo.canonicalUrl()), any());
+    }
+
     private CatalogVideo video(String youtubeId, String title) {
         Instant now = Instant.now();
         return new CatalogVideo(

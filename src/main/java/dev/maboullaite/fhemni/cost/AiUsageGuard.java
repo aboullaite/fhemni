@@ -73,6 +73,11 @@ public class AiUsageGuard {
         }
     }
 
+    public Reservation reserveFactCheck(UUID analysisId, String model) {
+        return new Reservation(repository.reserve(
+                AiOperation.FACT_CHECK, null, analysisId, model, clock.instant()));
+    }
+
     public Reservation reserveQuestion(UUID analysisId, UUID userId, AiOperation operation, String model) {
         if (!chatEnabled) {
             throw new AiBudgetExceededException("Video chat is disabled until the owner enables its production budget.");

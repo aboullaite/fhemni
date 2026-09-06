@@ -147,11 +147,14 @@
 
             const analyze = document.createElement('button');
             analyze.type = 'button';
-            const forceReprocess = video.latestAnalysisStatus === 'COMPLETED';
-            analyze.className = forceReprocess
+            const hasPreviousAttempt = Boolean(video.latestAnalysisId);
+            const forceReprocess = hasPreviousAttempt;
+            analyze.className = video.latestAnalysisStatus === 'COMPLETED'
                 ? 'secondary-button admin-analyze-button'
                 : 'primary-button admin-analyze-button';
-            analyze.textContent = t(forceReprocess ? 'admin.reprocessAnalysis' : 'admin.runAnalysis');
+            analyze.textContent = t(video.latestAnalysisStatus === 'COMPLETED'
+                ? 'admin.reprocessAnalysis'
+                : 'admin.runAnalysis');
             analyze.disabled = batchRunning || !analysisAvailable;
             if (!analysisAvailable) analyze.title = t('admin.analysisUnavailable');
             analyze.addEventListener('click', () => launchAnalysis(
@@ -179,7 +182,8 @@
             showFeedback(t('admin.analysisUnavailable'), true);
             return;
         }
-        if (forceReprocess && !window.confirm(t('admin.confirmReprocess', {
+        if (forceReprocess && video.latestAnalysisStatus === 'COMPLETED'
+                && !window.confirm(t('admin.confirmReprocess', {
             language: outputLanguage.selectedOptions[0]?.textContent || outputLanguage.value
         }))) return;
         const originalLabel = analyzeButton.textContent;

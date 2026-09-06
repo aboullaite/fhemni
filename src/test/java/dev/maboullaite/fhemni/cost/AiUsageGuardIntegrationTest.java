@@ -36,6 +36,8 @@ class AiUsageGuardIntegrationTest {
         UUID firstAnalysis = UUID.randomUUID();
         var first = guard.reserveAnalysis(firstAnalysis, "test-model");
         guard.succeeded(first, new AiUsage(100, 20, 40, 5, 0, 2));
+        var factCheck = guard.reserveFactCheck(firstAnalysis, "fact-check-model");
+        guard.succeeded(factCheck, new AiUsage(80, 10, 0, 0, 0, 1));
         guard.reserveAnalysis(UUID.randomUUID(), "test-model");
 
         assertThatThrownBy(() -> guard.reserveAnalysis(UUID.randomUUID(), "test-model"))
@@ -45,6 +47,9 @@ class AiUsageGuardIntegrationTest {
                 .param("id", first.id()).query(String.class).single()).isEqualTo("SUCCEEDED");
         assertThat(jdbc.sql("SELECT input_tokens FROM ai_usage_events WHERE id = :id")
                 .param("id", first.id()).query(Integer.class).single()).isEqualTo(100);
+        assertThat(jdbc.sql("SELECT operation || ':' || model FROM ai_usage_events WHERE id = :id")
+                .param("id", factCheck.id()).query(String.class).single())
+                .isEqualTo("FACT_CHECK:fact-check-model");
 
         var user = users.recordLogin(new ExternalIdentityProfile(
                 "test", "cost-user", null, "Cost User", null, false, null), false);
