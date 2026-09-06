@@ -59,9 +59,11 @@
                 return;
             }
             const user = current.user;
-            const avatar = safeUrl(user.avatarUrl)
-                ? `<img src="${escapeHtml(user.avatarUrl)}" alt="">`
-                : `<span>${escapeHtml(initials(user.displayName))}</span>`;
+            const fallbackInitials = escapeHtml(initials(user.displayName));
+            const hasAvatar = safeUrl(user.avatarUrl);
+            const avatar = hasAvatar
+                ? `<img src="${escapeHtml(user.avatarUrl)}" alt="" referrerpolicy="no-referrer" data-account-avatar-image><span hidden data-account-avatar-fallback>${fallbackInitials}</span>`
+                : `<span data-account-avatar-fallback>${fallbackInitials}</span>`;
             container.innerHTML = `
                 <div class="account-menu">
                     <div class="account-avatar">${avatar}</div>
@@ -69,6 +71,14 @@
                     ${user.role === 'ADMIN' ? `<a class="auth-link compact" href="/admin">${escapeHtml(t('common.admin'))}</a>` : ''}
                     <button class="auth-link compact" type="button" data-sign-out>${escapeHtml(t('common.signOut'))}</button>
                 </div>`;
+            const avatarImage = container.querySelector('[data-account-avatar-image]');
+            const showAvatarFallback = () => {
+                const fallback = container.querySelector('[data-account-avatar-fallback]');
+                avatarImage?.remove();
+                if (fallback) fallback.hidden = false;
+            };
+            avatarImage?.addEventListener('error', showAvatarFallback, { once: true });
+            if (avatarImage?.complete && avatarImage.naturalWidth === 0) showAvatarFallback();
             container.querySelector('[data-sign-out]')?.addEventListener('click', event => {
                 event.currentTarget.disabled = true;
                 signOut().catch(() => {
