@@ -300,29 +300,38 @@ public class AnalysisService {
         }
     }
 
-    private void analyze(AnalysisSession session, Reservation reservation) {
-        AiUsage consumedUsage = AiUsage.empty();
+    private void analyze(AnalysisSession session, Reservation analysisReservation) {
+        Reservation factCheckReservation = null;
+        AiUsage analysisUsage = AiUsage.empty();
+        AiUsage factCheckUsage = AiUsage.empty();
         try {
             AnalysisSnapshot input = session.snapshot();
             publish(session, AnalysisStatus.ANALYZING, 12, "Gemini is exploring the video timeline");
             GatewayAnalysisResult analysis = gateway.analyze(
                     input.videoUrl(), input.videoId(), input.language());
-            consumedUsage = AiUsage.empty().plus(analysis.usage());
+            analysisUsage = analysis.usage();
+            usageGuard.succeeded(analysisReservation, analysisUsage);
+            analysisReservation = null;
 
             publish(session, AnalysisStatus.FACT_CHECKING, 68, "Checking factual claims against external evidence");
+            if (gateway.live() && analysis.report().claims().stream()
+                    .anyMatch(claim -> claim.kind() == ClaimKind.FACT)) {
+                factCheckReservation = usageGuard.reserveFactCheck(input.id(), gateway.factCheckModel());
+            }
             GatewayFactCheckResult factChecks = gateway.factCheck(
                     analysis.report().claims(), input.language());
-            consumedUsage = consumedUsage.plus(factChecks.usage());
+            factCheckUsage = factChecks.usage();
+            usageGuard.succeeded(factCheckReservation, factCheckUsage);
+            factCheckReservation = null;
             VideoReport report = analysis.report().withClaims(
                     mergeAssessments(analysis.report().claims(), factChecks.assessments()));
 
             revisions.complete(input.id(), report, analysis.interactionId());
             session.complete(report, analysis.interactionId());
-            usageGuard.succeeded(reservation, consumedUsage);
-            reservation = null;
             eventHub.publish(input.id(), new AnalysisEvent(AnalysisStatus.COMPLETED, 100, "Analysis complete"));
         } catch (RuntimeException exception) {
-            usageGuard.failed(reservation, consumedUsage);
+            usageGuard.failed(analysisReservation, analysisUsage);
+            usageGuard.failed(factCheckReservation, factCheckUsage);
             log.warn("Analysis failed: {}", exception.getMessage());
             String message = friendlyError(exception);
             session.fail(message);

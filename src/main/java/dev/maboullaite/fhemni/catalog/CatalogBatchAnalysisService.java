@@ -71,7 +71,7 @@ public class CatalogBatchAnalysisService {
                 created.complete();
             } else {
                 try {
-                    executor.execute(() -> process(created, pending));
+                    executor.execute(() -> process(created, pending, latestByVideo));
                 } catch (RuntimeException exception) {
                     created.fail("The catalogue batch worker is unavailable. Please retry later.");
                     throw exception;
@@ -91,11 +91,17 @@ public class CatalogBatchAnalysisService {
         return revision == null || revision.status() == AnalysisStatus.FAILED;
     }
 
-    private void process(BatchRun run, List<CatalogVideo> videos) {
+    private void process(
+            BatchRun run,
+            List<CatalogVideo> videos,
+            Map<String, RevisionSummary> latestByVideo) {
         try {
             for (CatalogVideo video : videos) {
                 run.begin(video.title());
-                AnalysisSnapshot analysis = analyses.create(video.canonicalUrl(), run.language().code());
+                RevisionSummary previous = latestByVideo.get(video.youtubeVideoId());
+                AnalysisSnapshot analysis = previous != null && previous.status() == AnalysisStatus.FAILED
+                        ? analyses.reprocess(video.canonicalUrl(), run.language().code())
+                        : analyses.create(video.canonicalUrl(), run.language().code());
                 run.analysisStarted(analysis.id());
                 AnalysisSnapshot terminal = awaitTerminal(analysis);
                 if (terminal.status() == AnalysisStatus.FAILED) {
