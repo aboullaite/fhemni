@@ -7,9 +7,18 @@
 
     function session() {
         if (!sessionPromise) {
-            sessionPromise = fetchJson('/api/auth/session', 10_000);
+            sessionPromise = loadSession();
         }
         return sessionPromise;
+    }
+
+    function refreshSession() {
+        sessionPromise = loadSession();
+        return sessionPromise;
+    }
+
+    function loadSession() {
+        return fetchJson('/api/auth/session', 10_000);
     }
 
     async function withCsrf(options = {}) {
@@ -107,7 +116,7 @@
             .replaceAll("'", '&#039;');
     }
 
-    window.FhemniAuth = { session, withCsrf, signOut, loginPage };
+    window.FhemniAuth = { session, refreshSession, withCsrf, signOut, loginPage };
     document.addEventListener('DOMContentLoaded', renderNavigation);
     document.addEventListener('fhemni:localechange', renderNavigation);
 })();

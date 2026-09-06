@@ -77,8 +77,8 @@ public class AnalysisService {
             AnalysisRevisionRepository revisions,
             @Value("${fhemni.sessions.max:250}") int maxSessions,
             @Value("${fhemni.sessions.retention:PT6H}") Duration sessionRetention,
-            @Value("${fhemni.sessions.max-conversation-turns:40}") int maxConversationTurns,
-            @Value("${fhemni.sessions.max-provider-conversation-turns:8}") int maxProviderConversationTurns,
+            @Value("${fhemni.sessions.max-conversation-turns:10}") int maxConversationTurns,
+            @Value("${fhemni.sessions.max-provider-conversation-turns:5}") int maxProviderConversationTurns,
             @Value("${fhemni.sessions.max-user-conversations:1000}") int maxUserConversations) {
         if (maxSessions < 1 || maxConversationTurns < 1 || maxProviderConversationTurns < 1
                 || maxUserConversations < 1
@@ -213,8 +213,8 @@ public class AnalysisService {
         if (question == null || question.isBlank()) {
             throw new IllegalArgumentException("Write a question to continue.");
         }
-        if (question.length() > 1_000) {
-            throw new IllegalArgumentException("Keep questions under 1,000 characters.");
+        if (question.length() > 600) {
+            throw new IllegalArgumentException("Keep questions under 600 characters.");
         }
 
         AnalysisSession session = session(id);

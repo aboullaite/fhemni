@@ -43,6 +43,28 @@ A completed revision is reused only when the video, language, prompt versions,
 model identities, and live/demo mode match. Reprocessing creates a new draft and
 does not replace the published revision until explicit publication.
 
+Reuse is checked before reserving AI usage. Repeated submissions return the
+stored revision, while duplicate in-flight requests on the single application
+instance join the existing session. Opening a catalogue report never starts a
+new Gemini analysis.
+
+## Chat cost boundary
+
+Chat is protected independently from analysis:
+
+- only authenticated users can submit questions;
+- each submitted question is one billable chat round, whether it succeeds or
+  the provider fails after accepting it;
+- the default allowance is five rounds per user per Monday-to-Monday UTC week;
+- global ceilings default to 50 rounds per UTC hour and 500 per UTC day;
+- question text, provider context depth, response tokens, and request time are
+  bounded;
+- the production kill switch remains authoritative regardless of the UI.
+
+Chat answers are intentionally not shared or cached across users. They may
+depend on private conversation context, while the underlying published video
+analysis remains the reusable shared artifact.
+
 ## Application modules
 
 - `catalog`: catalogue metadata, suggestions, votes, and batch selection

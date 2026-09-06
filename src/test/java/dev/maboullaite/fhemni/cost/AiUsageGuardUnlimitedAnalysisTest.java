@@ -29,6 +29,7 @@ class AiUsageGuardUnlimitedAnalysisTest {
                 false,
                 0,
                 10,
+                10,
                 5);
 
         guard.reserveAnalysis(UUID.randomUUID(), "test-model");

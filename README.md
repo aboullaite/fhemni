@@ -16,6 +16,7 @@ episode by episode.
 - source-grounded claim checking
 - community suggestions and voting
 - review-before-publication workflow
+- optional authenticated video Q&A with weekly usage limits
 
 ## Run locally
 

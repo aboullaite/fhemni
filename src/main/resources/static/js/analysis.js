@@ -16,7 +16,7 @@ const state = {
 };
 
 const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
-const QUESTION_REQUEST_TIMEOUT_MS = 60_000;
+const QUESTION_REQUEST_TIMEOUT_MS = 40_000;
 
 function t(key, parameters = {}) {
     return window.FhemniI18n?.t(key, parameters) ?? key;
@@ -52,8 +52,10 @@ const elements = {
     questionForm: document.querySelector('#questionForm'),
     chatAuthGate: document.querySelector('#chatAuthGate'),
     chatLoginLink: document.querySelector('#chatLoginLink'),
+    chatGateBadge: document.querySelector('#chatGateBadge'),
     chatGateTitle: document.querySelector('#chatGateTitle'),
     chatGateText: document.querySelector('#chatGateText'),
+    chatQuota: document.querySelector('#chatQuota'),
     questionInput: document.querySelector('#questionInput'),
     askButton: document.querySelector('#askButton'),
     conversation: document.querySelector('#conversation'),
@@ -187,15 +189,24 @@ function configureChatAccess() {
     if (!elements.questionForm || !elements.chatAuthGate) return;
     const authenticated = Boolean(state.authSession?.authenticated);
     const chatEnabled = Boolean(state.meta?.chatEnabled);
-    const canChat = authenticated && chatEnabled;
+    const quota = state.authSession?.chatQuota;
+    const quotaExhausted = authenticated && chatEnabled && quota && Number(quota.remaining) <= 0;
+    const canChat = authenticated && chatEnabled && !quotaExhausted;
     elements.questionForm.hidden = !canChat;
     elements.chatAuthGate.hidden = canChat;
     elements.chatLoginLink.hidden = authenticated || !chatEnabled;
-    elements.chatGateTitle.textContent = t(chatEnabled
-        ? 'analysis.signInToChat'
-        : 'analysis.chatComingSoonTitle');
+    elements.chatGateBadge.hidden = chatEnabled;
+    elements.chatQuota.hidden = !canChat || !quota;
+    elements.chatQuota.textContent = quota
+        ? t('analysis.chatQuota', { remaining: quota.remaining, limit: quota.weeklyLimit })
+        : '';
+    elements.chatGateTitle.textContent = quotaExhausted
+        ? t('analysis.chatQuotaUsedTitle')
+        : t(chatEnabled ? 'analysis.signInToChat' : 'analysis.chatComingSoonTitle');
     elements.chatGateText.hidden = !chatEnabled;
-    elements.chatGateText.textContent = chatEnabled ? t('analysis.chatPrivacy') : '';
+    elements.chatGateText.textContent = quotaExhausted
+        ? t('analysis.chatQuotaUsedText', { limit: quota.weeklyLimit })
+        : (chatEnabled ? t('analysis.chatPrivacy') : '');
     elements.chatLoginLink.href = window.FhemniAuth.loginPage(window.location.pathname);
 }
 
@@ -483,11 +494,30 @@ async function askQuestion(event) {
         appendAssistantMessage(answer);
     } catch (error) {
         thinking.remove();
-        appendAssistantMessage({ answer: error.message, sources: [] }, true);
+        appendAssistantMessage({ answer: chatErrorMessage(error), sources: [] }, true);
     } finally {
+        await refreshChatQuota();
         elements.askButton.disabled = false;
-        elements.questionInput.focus();
+        if (!elements.questionForm.hidden) elements.questionInput.focus();
     }
+}
+
+async function refreshChatQuota() {
+    try {
+        state.authSession = await window.FhemniAuth.refreshSession();
+    } catch (_) { /* retain the last known quota */ }
+    configureChatAccess();
+}
+
+function chatErrorMessage(error) {
+    if (error.code === 'CHAT_WEEKLY_LIMIT') {
+        return t('analysis.chatQuotaUsedText', {
+            limit: state.authSession?.chatQuota?.weeklyLimit || 5
+        });
+    }
+    if (error.code === 'CHAT_HOURLY_LIMIT') return t('analysis.chatHourlyLimit');
+    if (error.code === 'CHAT_DAILY_LIMIT') return t('analysis.chatDailyLimit');
+    return error.message;
 }
 
 function renderConversation(conversation) {
@@ -724,12 +754,15 @@ async function request(url, options = {}, timeoutMs = DEFAULT_REQUEST_TIMEOUT_MS
         const response = await fetch(url, { ...securedOptions, signal: controller.signal });
         if (!response.ok) {
             let message = t('common.requestFailed', { status: response.status });
+            let errorCode = null;
             try {
                 const problem = await response.json();
                 message = problem.detail || problem.message || message;
+                errorCode = problem.code || null;
             } catch (_) { /* keep the HTTP message */ }
             const error = new Error(message);
             error.status = response.status;
+            error.code = errorCode;
             throw error;
         }
         return await response.json();

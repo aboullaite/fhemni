@@ -43,7 +43,7 @@ class GeminiInteractionsClient {
             @Value("${fhemni.gemini.base-url:https://generativelanguage.googleapis.com}") String baseUrl,
             @Value("${fhemni.gemini.api-version:v1beta}") String apiVersion,
             @Value("${fhemni.gemini.analysis-read-timeout:PT12M}") Duration analysisReadTimeout,
-            @Value("${fhemni.gemini.question-read-timeout:PT45S}") Duration questionReadTimeout) {
+            @Value("${fhemni.gemini.question-read-timeout:PT30S}") Duration questionReadTimeout) {
         this.apiKey = apiKey == null ? "" : apiKey.strip();
         this.model = model == null ? "" : model.strip();
         validateTimeout(analysisReadTimeout);

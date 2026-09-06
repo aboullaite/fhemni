@@ -16,8 +16,9 @@ import org.springframework.jdbc.core.simple.JdbcClient;
         "fhemni.gemini.api-key=",
         "fhemni.cost-control.chat-enabled=true",
         "fhemni.cost-control.max-daily-analyses=2",
-        "fhemni.cost-control.max-daily-questions=10",
-        "fhemni.cost-control.max-daily-questions-per-user=1",
+        "fhemni.cost-control.max-hourly-chat-rounds=10",
+        "fhemni.cost-control.max-daily-chat-rounds=100",
+        "fhemni.cost-control.max-weekly-chat-rounds-per-user=1",
         "spring.datasource.url=jdbc:h2:mem:cost-guard-test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"
 })
 class AiUsageGuardIntegrationTest {
@@ -57,6 +58,6 @@ class AiUsageGuardIntegrationTest {
         assertThatThrownBy(() -> guard.reserveQuestion(
                 firstAnalysis, user.id(), AiOperation.CHAT_CHECK, "test-model"))
                 .isInstanceOf(AiBudgetExceededException.class)
-                .hasMessageContaining("daily question allowance");
+                .hasMessageContaining("weekly chat allowance");
     }
 }
