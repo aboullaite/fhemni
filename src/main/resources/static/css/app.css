@@ -111,7 +111,7 @@ body {
 }
 
 button, input, select, textarea { font: inherit; }
-button { color: inherit; }
+button:not(.btn) { color: inherit; }
 
 .ambient {
     position: fixed;
