@@ -1,0 +1,75 @@
+spring:
+  application:
+    name: fhemni
+  config:
+    import: "optional:file:.env[.properties]"
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: ${JDBC_DATABASE_URL:jdbc:h2:file:./data/fhemni;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH}
+    username: ${JDBC_DATABASE_USERNAME:sa}
+    password: ${JDBC_DATABASE_PASSWORD:}
+    hikari:
+      maximum-pool-size: ${JDBC_MAX_POOL_SIZE:5}
+      minimum-idle: ${JDBC_MIN_IDLE:1}
+  flyway:
+    enabled: true
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+    include-exception: false
+
+fhemni:
+  analytics:
+    measurement-id: ${FHEMNI_ANALYTICS_ID:}
+  auth:
+    admin-identities: ${FHEMNI_ADMIN_IDENTITIES:}
+    bootstrap-admin-email: ${FHEMNI_BOOTSTRAP_ADMIN_EMAIL:}
+    google:
+      client-id: ${GOOGLE_CLIENT_ID:}
+      client-secret: ${GOOGLE_CLIENT_SECRET:}
+    github:
+      client-id: ${GITHUB_CLIENT_ID:}
+      client-secret: ${GITHUB_CLIENT_SECRET:}
+  gemini:
+    api-key: ${GEMINI_API_KEY:}
+    model: ${GEMINI_MODEL:gemini-3.8-flash}
+    fact-check-model: ${GEMINI_FACT_CHECK_MODEL:gemini-3.8-flash}
+    base-url: https://generativelanguage.googleapis.com
+    api-version: v1beta
+    analysis-read-timeout: ${GEMINI_ANALYSIS_TIMEOUT:PT12M}
+    question-read-timeout: ${GEMINI_QUESTION_TIMEOUT:PT45S}
+    fact-check-read-timeout: ${GEMINI_FACT_CHECK_TIMEOUT:PT90S}
+    analysis-max-output-tokens: ${GEMINI_ANALYSIS_MAX_OUTPUT_TOKENS:8192}
+    question-max-output-tokens: ${GEMINI_QUESTION_MAX_OUTPUT_TOKENS:2048}
+    fact-check-max-output-tokens: ${GEMINI_FACT_CHECK_MAX_OUTPUT_TOKENS:8192}
+  cost-control:
+    analysis-enabled: ${FHEMNI_ANALYSIS_ENABLED:true}
+    chat-enabled: ${FHEMNI_CHAT_ENABLED:false}
+    analysis-concurrency: ${FHEMNI_ANALYSIS_CONCURRENCY:1}
+    analysis-queue-capacity: ${FHEMNI_ANALYSIS_QUEUE_CAPACITY:2}
+    max-daily-analyses: ${FHEMNI_MAX_DAILY_ANALYSES:5}
+    max-daily-questions: ${FHEMNI_MAX_DAILY_QUESTIONS:50}
+    max-daily-questions-per-user: ${FHEMNI_MAX_DAILY_QUESTIONS_PER_USER:5}
+  sessions:
+    max: ${FHEMNI_MAX_SESSIONS:250}
+    retention: ${FHEMNI_SESSION_RETENTION:PT6H}
+    cleanup-interval-ms: ${FHEMNI_CLEANUP_INTERVAL_MS:300000}
+    max-conversation-turns: ${FHEMNI_MAX_CONVERSATION_TURNS:40}
+    max-provider-conversation-turns: ${FHEMNI_MAX_PROVIDER_CONVERSATION_TURNS:8}
+    max-user-conversations: ${FHEMNI_MAX_USER_CONVERSATIONS:1000}
+    max-subscribers-per-analysis: ${FHEMNI_MAX_SUBSCRIBERS:16}
+  catalog:
+    oembed-url: ${YOUTUBE_OEMBED_URL:https://www.youtube.com/oembed}
+    oembed-timeout: ${YOUTUBE_OEMBED_TIMEOUT:PT5S}
+    import-concurrency: ${FHEMNI_CATALOG_IMPORT_CONCURRENCY:3}
+    batch-analysis-timeout: ${FHEMNI_CATALOG_BATCH_ANALYSIS_TIMEOUT:PT30M}
+  suggestions:
+    max-submissions-per-window: ${FHEMNI_SUGGESTION_LIMIT:10}
+    window: ${FHEMNI_SUGGESTION_WINDOW:PT1H}
+    max-tracked-clients: ${FHEMNI_SUGGESTION_MAX_CLIENTS:10000}

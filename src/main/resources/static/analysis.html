@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en" data-theme="fhemni">
+<head>
+    <script src="/js/analytics.js"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A timestamped, evidence-aware Fhemni video briefing." data-i18n-content="analysis.description">
+    <title>Understanding the video… — Fhemni</title>
+    <link rel="icon" type="image/png" href="/assets/brand/fhemni-icon.png">
+    <link rel="apple-touch-icon" href="/assets/brand/fhemni-icon.png">
+    <link rel="stylesheet" href="/css/dist.css">
+</head>
+<body class="analysis-page min-h-screen overflow-x-hidden bg-base-200 text-base-content font-sans rtl:font-arabic" data-i18n-page-title="analysis.pageTitle">
+<div class="ambient ambient-one"></div>
+<div class="ambient ambient-two"></div>
+
+<header class="site-header">
+    <a class="brand" href="/" aria-label="Fhemni home" data-i18n-aria-label="common.brandHome">
+        <img class="brand-logo brand-logo-full" src="/assets/brand/fhemni-logo.png" alt="">
+        <img class="brand-logo brand-logo-icon" src="/assets/brand/fhemni-icon.png" alt="">
+    </a>
+    <div class="header-actions">
+        <label class="site-language">
+            <span class="sr-only" data-i18n="common.siteLanguage">Website language</span>
+            <select data-site-language data-i18n-aria-label="common.siteLanguage" aria-label="Website language">
+                <option value="en">EN</option>
+                <option value="fr">FR</option>
+                <option value="ar">الدارجة</option>
+            </select>
+        </label>
+        <div id="modeBadge" class="mode-badge loading" data-i18n="common.checkingConnection">Checking connection…</div>
+        <div id="authNav"></div>
+    </div>
+</header>
+
+<main>
+    <section id="progressPanel" class="progress-panel grid min-h-[calc(100vh-145px)] grid-cols-1 items-center justify-items-center gap-9 py-16 text-center md:grid-cols-[12rem_minmax(0,1fr)] md:gap-16 md:px-[5%] md:py-20 md:text-start" aria-live="polite">
+        <div class="progress-orbit relative grid size-48 place-items-center md:size-52" aria-hidden="true">
+            <span class="absolute inset-0 animate-spin rounded-full border border-primary/20 [animation-duration:13s]"></span>
+            <span class="absolute inset-5 animate-spin rounded-full border border-dashed border-primary/30 [animation-direction:reverse] [animation-duration:9s]"></span>
+            <span class="absolute inset-10 animate-spin rounded-full border border-secondary/35 [animation-duration:7s]"></span>
+            <div class="progress-brand grid size-20 place-items-center overflow-hidden rounded-3xl shadow-xl md:size-24"><img class="size-full object-contain" src="/assets/brand/fhemni-icon.png" alt=""></div>
+        </div>
+        <div class="progress-copy w-full max-w-2xl">
+            <div class="eyebrow justify-center md:justify-start rtl:md:justify-end"><span></span><span class="eyebrow-text" data-i18n="analysis.investigation">Investigation in progress</span></div>
+            <h1 id="progressMessage" class="my-3 text-[clamp(2rem,4vw,3.5rem)]! leading-[1.08]! tracking-[-.035em]! rtl:font-arabic" data-i18n="analysis.openingVideo">Opening the video…</h1>
+            <p id="progressHint" class="text-base-content/65" data-i18n="analysis.progressHint">This can take a few minutes.</p>
+            <progress id="progressBar" class="progress progress-primary mt-10 h-2 w-full" value="2" max="100"></progress>
+            <div class="progress-labels mt-2 flex justify-between text-xs text-base-content/60"><span id="progressStage" class="capitalize" data-i18n="analysis.stage.QUEUED">Queued</span><strong id="progressPercent">2%</strong></div>
+        </div>
+    </section>
+
+    <section id="errorPanel" class="error-panel alert alert-error my-24 flex items-center gap-4 rounded-box border-error/30 bg-error/10 text-base-content" hidden role="alert">
+        <div class="error-icon grid size-10 shrink-0 place-items-center rounded-full bg-error font-black text-error-content">!</div>
+        <div class="min-w-0">
+            <strong id="errorTitle" data-i18n="analysis.failedTitle">We couldn’t finish this analysis.</strong>
+            <p id="errorMessage" class="mb-0 mt-1 text-base-content/65"></p>
+        </div>
+        <a id="analysisErrorAction" class="secondary-button ms-auto shrink-0" href="/videos" data-i18n="video.back">Back to the catalogue</a>
+    </section>
+
+    <section id="results" class="results pb-24 pt-8" hidden>
+        <div id="demoNotice" class="demo-notice alert alert-warning mb-6 items-start rounded-box border-warning/30 bg-warning/10 text-sm text-base-content" hidden>
+            <strong class="shrink-0 text-warning" data-i18n="analysis.demoMode">Demo mode</strong>
+            <span data-i18n="analysis.demoNotice">This preview shows the complete interface with placeholder content. Connect Gemini for real video analysis and source checking.</span>
+        </div>
+
+        <section id="publicationPanel" class="mb-6 flex flex-col items-start justify-between gap-4 rounded-box border border-primary/25 bg-primary/8 p-5 sm:flex-row sm:items-center" hidden>
+            <div>
+                <div class="section-kicker" data-i18n="analysis.publicationKicker">Editorial publication</div>
+                <strong id="publicationTitle" class="mt-1 block text-base"></strong>
+                <p id="publicationText" class="mb-0 mt-1 text-sm text-base-content/65"></p>
+            </div>
+            <div class="flex shrink-0 flex-wrap gap-2">
+                <button id="publishButton" class="primary-button" type="button" data-i18n="analysis.publishButton">Publish to catalogue</button>
+                <a id="publicEpisodeLink" class="secondary-button" href="/videos" data-i18n="analysis.viewPublicEpisode" hidden>View public episode</a>
+            </div>
+        </section>
+
+        <div class="result-heading mb-6 flex flex-col items-start justify-between gap-5 sm:flex-row sm:gap-8">
+            <div class="min-w-0">
+                <div class="eyebrow"><span></span><span class="eyebrow-text" data-i18n="analysis.videoBriefing">Video briefing</span></div>
+                <h1 id="reportTitle" class="mb-0 mt-2 max-w-4xl text-[clamp(1.75rem,3vw,2.75rem)]! leading-[1.15]! tracking-[-.025em]! rtl:font-arabic"></h1>
+            </div>
+            <a id="analyzeAnotherLink" class="secondary-button shrink-0 sm:mt-6" href="/admin" data-i18n="analysis.analyzeAnother" hidden>Analyze another</a>
+        </div>
+
+        <div class="video-summary-grid grid items-start gap-5 lg:grid-cols-[1.42fr_1fr]">
+            <div class="video-frame-wrap card overflow-hidden border border-base-300 bg-base-100/90 shadow-lg">
+                <iframe id="videoPlayer" class="aspect-video w-full border-0 bg-fhemni-dark" title="Analyzed YouTube video" data-i18n-title="analysis.playerTitle" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                <div class="video-caption flex items-center gap-2 px-4 py-3 text-xs text-base-content/60"><span class="live-dot size-2 rounded-full bg-secondary"></span><span data-i18n="analysis.timestampHint">Click any timestamp to revisit the evidence</span></div>
+            </div>
+            <article id="summaryCard" class="summary-card card border border-base-300 bg-base-100/90 shadow-lg">
+                <div class="card-body gap-0 p-6 md:p-7">
+                    <div class="section-kicker" data-i18n="analysis.inBrief">In brief</div>
+                    <p id="reportSummary" class="mb-0 mt-4 text-base leading-relaxed rtl:font-arabic"></p>
+                </div>
+            </article>
+        </div>
+
+        <nav class="tabs tabs-box mt-9 mb-6 w-fit max-w-full flex-nowrap overflow-x-auto bg-base-300/55 p-1" role="tablist" aria-label="Analysis sections" data-i18n-aria-label="analysis.sections">
+            <button class="tab tab-active active shrink-0 font-bold" role="tab" aria-selected="true" data-tab="overview" type="button" data-i18n="analysis.overview">Overview</button>
+            <button class="tab shrink-0 font-bold" role="tab" aria-selected="false" data-tab="claims" type="button"><span data-i18n="analysis.claims">Claims</span> <span id="claimCount" class="tab-count badge badge-sm ms-1 border-0 bg-base-content/10">0</span></button>
+            <button class="tab shrink-0 font-bold" role="tab" aria-selected="false" data-tab="ask" type="button" data-i18n="analysis.askFhemni">Ask Fhemni</button>
+        </nav>
+
+        <div id="overviewTab" class="tab-panel active" role="tabpanel">
+            <div class="content-grid grid gap-5 lg:grid-cols-[minmax(0,1.6fr)_minmax(300px,.8fr)]">
+                <article class="content-card narrative-card card border border-base-300 bg-base-100/90 shadow-lg">
+                    <div class="card-body p-6 md:p-8">
+                    <div class="section-kicker" data-i18n="analysis.fullPicture">The full picture</div>
+                    <h2 class="mb-4 mt-2 font-serif text-3xl font-medium leading-tight rtl:font-arabic" data-i18n="analysis.whatDiscussed">What was discussed</h2>
+                    <p id="detailedSummary" class="whitespace-pre-wrap text-base-content/75"></p>
+                    <div class="participants-block mt-8 border-t border-base-300 pt-6">
+                        <div class="section-kicker" data-i18n="analysis.people">People in this video</div>
+                        <div id="participants" class="participants mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2"></div>
+                    </div>
+                    </div>
+                </article>
+                <aside class="content-card chapters-card card border border-base-300 bg-base-100/90 shadow-lg">
+                    <div class="card-body p-6 md:p-8">
+                    <div class="section-kicker" data-i18n="analysis.timeline">Timeline</div>
+                    <h2 class="mb-4 mt-2 font-serif text-3xl font-medium leading-tight rtl:font-arabic" data-i18n="analysis.chapters">Chapters</h2>
+                    <div id="chapters" class="chapters flex flex-col"></div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+
+        <div id="claimsTab" class="tab-panel hidden" role="tabpanel">
+            <div class="claims-intro mb-6 flex flex-col items-start justify-between gap-5 lg:flex-row lg:items-end lg:gap-8">
+                <div>
+                    <div class="section-kicker" data-i18n="analysis.evidenceKicker">Evidence, not a scorecard</div>
+                    <h2 class="mb-3 mt-2 font-serif text-3xl font-medium leading-tight rtl:font-arabic" data-i18n="analysis.claimsTitle">Claims and positions</h2>
+                    <p class="mb-0 max-w-3xl text-base-content/65" data-i18n="analysis.claimsIntro">Review the claims and their sources.</p>
+                </div>
+                <div class="claim-filters flex flex-wrap justify-start gap-2 lg:justify-end" role="group" aria-label="Filter claims" data-i18n-aria-label="analysis.filterClaims">
+                    <button class="filter btn btn-primary btn-sm active" data-filter="ALL" type="button" data-i18n="analysis.all">All</button>
+                    <button class="filter btn btn-ghost btn-sm" data-filter="FACT" type="button" data-i18n="analysis.facts">Facts</button>
+                    <button class="filter btn btn-ghost btn-sm" data-filter="PROPOSAL" type="button" data-i18n="analysis.proposals">Proposals</button>
+                    <button class="filter btn btn-ghost btn-sm" data-filter="OPINION" type="button" data-i18n="analysis.opinions">Opinions</button>
+                </div>
+            </div>
+            <div id="claimsList" class="claims-list grid grid-cols-1 gap-4 lg:grid-cols-2"></div>
+        </div>
+
+        <div id="askTab" class="tab-panel hidden" role="tabpanel">
+            <div class="ask-layout grid gap-5 lg:grid-cols-[minmax(0,1.65fr)_minmax(260px,.7fr)]">
+                <section class="chat-card card min-h-[620px] overflow-hidden border border-base-300 bg-base-100/90 shadow-lg">
+                    <div class="chat-heading flex flex-col items-start justify-between gap-4 border-b border-base-300 px-6 py-5 sm:flex-row sm:items-center">
+                        <div>
+                            <div class="section-kicker" data-i18n="analysis.groundedConversation">Grounded conversation</div>
+                            <h2 class="mb-0 mt-2 font-serif text-3xl font-medium leading-tight rtl:font-arabic" data-i18n="analysis.askVideo">Ask the video</h2>
+                        </div>
+                        <div class="question-mode tabs tabs-box bg-base-300/60 p-1" role="tablist" aria-label="Answer mode" data-i18n-aria-label="analysis.answerMode">
+                            <button class="mode-option tab tab-active active text-xs font-black" role="tab" aria-selected="true" data-mode="VIDEO" type="button" data-i18n="analysis.videoOnly">Video only</button>
+                            <button class="mode-option tab text-xs font-black" role="tab" aria-selected="false" data-mode="CHECK" type="button" data-i18n="analysis.checkSources">Check sources</button>
+                        </div>
+                    </div>
+                    <div id="conversation" class="conversation flex max-h-[520px] flex-1 flex-col gap-3 overflow-y-auto p-5 sm:p-6">
+                        <div class="assistant-message welcome-message chat chat-start rtl:chat-end">
+                            <div class="chat-image avatar"><div class="size-8 overflow-hidden rounded-xl shadow-md"><img class="size-full object-contain" src="/assets/brand/fhemni-icon.png" alt=""></div></div>
+                            <div class="chat-bubble max-w-[82%] bg-primary/10 text-sm text-base-content"><p class="m-0 whitespace-pre-wrap" data-i18n="analysis.welcome">Ask about a claim, number, topic, or moment.</p></div>
+                        </div>
+                    </div>
+                    <div id="chatAuthGate" class="chat-auth-gate mx-5 mb-5 rounded-box border border-base-300 bg-base-100 p-6 text-center" hidden>
+                        <span class="badge badge-warning badge-sm mb-3 font-black uppercase tracking-wider" data-i18n="common.comingSoon">Coming soon</span>
+                        <strong id="chatGateTitle" data-i18n="analysis.chatComingSoonTitle">Ask the video</strong>
+                        <p id="chatGateText" class="mx-auto mb-4 mt-2 max-w-xl text-sm text-base-content/65" data-i18n="analysis.chatPrivacy" hidden></p>
+                        <a id="chatLoginLink" class="primary-button" href="/login" data-i18n="common.signIn">Sign in</a>
+                    </div>
+                    <form id="questionForm" class="question-form mx-5 mb-5 grid grid-cols-[1fr_auto] gap-2 rounded-box border border-base-300 bg-base-100 p-2 ps-4 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10">
+                        <textarea id="questionInput" class="textarea h-auto min-h-12 resize-none border-0 bg-transparent px-0 text-sm shadow-none outline-none focus:outline-none" rows="2" maxlength="1000" placeholder="What did the speaker say about…?" data-i18n-placeholder="analysis.questionPlaceholder" required></textarea>
+                        <button id="askButton" class="send-button btn btn-neutral btn-square self-end" type="submit" aria-label="Send question" data-i18n-aria-label="analysis.sendQuestion">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                        </button>
+                    </form>
+                </section>
+                <aside class="ask-aside flex flex-col gap-7">
+                    <div class="trust-card card border border-base-300 bg-base-100/90 shadow-lg">
+                        <div class="card-body p-6">
+                        <div class="trust-icon grid size-10 place-items-center rounded-xl bg-primary/10 text-2xl text-primary">◎</div>
+                        <h3 id="modeExplanationTitle" class="mb-2 mt-4 text-base font-bold" data-i18n="analysis.videoAnswerTitle">Video-only answer</h3>
+                        <p id="modeExplanation" class="m-0 text-sm text-base-content/65" data-i18n="analysis.videoAnswerText">Answers use this episode and include timestamps.</p>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="section-kicker" data-i18n="analysis.goodQuestions">Good questions to start</div>
+                        <div id="suggestedQuestions" class="suggested-questions mt-3 flex flex-col gap-2"></div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <img class="footer-logo" src="/assets/brand/fhemni-logo.png" alt="Fhemni — فهّمني">
+    <span data-i18n="common.footer">© 2026 Mohammed Aboullaite</span>
+    <a class="footer-feedback-link" href="https://github.com/aboullaite/fhemni/issues" target="_blank" rel="noopener noreferrer" data-i18n="common.suggestFeature">Suggest a feature</a>
+</footer>
+
+<script src="/js/i18n.js?v=20260906-11" defer></script>
+<script src="/js/auth.js" defer></script>
+<script src="/js/analysis.js?v=20260906-4" defer></script>
+</body>
+</html>

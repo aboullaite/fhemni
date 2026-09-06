@@ -1,0 +1,12 @@
+.git
+.github
+.idea
+.tailwind
+.env
+.env.*
+.secrets
+secrets
+data
+target
+*.iml
+.DS_Store

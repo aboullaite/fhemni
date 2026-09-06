@@ -1,0 +1,17 @@
+* text=auto eol=lf
+
+mvnw text eol=lf
+mvnw.cmd text eol=crlf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.otf binary
+*.ttf binary
+*.woff binary
+*.woff2 binary
+
+src/main/resources/static/css/dist.css linguist-generated=true

@@ -1,0 +1,32 @@
+name: Bug report
+description: Report reproducible incorrect behavior
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not include credentials, personal data, private videos, or security vulnerabilities.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the behavior and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How can it be reproduced?
+      description: Use a public or synthetic example and include the relevant page.
+    validations:
+      required: true
+  - type: input
+    id: revision
+    attributes:
+      label: Revision
+      description: Commit SHA or branch, if known.
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Java version, browser, operating system, and database type when relevant.

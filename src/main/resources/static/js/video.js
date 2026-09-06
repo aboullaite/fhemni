@@ -1,0 +1,55 @@
+(function () {
+    let video;
+
+    function t(key, parameters = {}) {
+        return window.FhemniI18n?.t(key, parameters) ?? key;
+    }
+
+    async function load() {
+        const slug = decodeURIComponent(window.location.pathname.split('/').filter(Boolean).at(-1) || '');
+        try {
+            video = await window.FhemniCatalog.requestJson(`/api/catalog/videos/${encodeURIComponent(slug)}`);
+            render();
+            document.querySelector('#videoLoading').hidden = true;
+            document.querySelector('#videoDetail').hidden = false;
+        } catch (error) {
+            document.querySelector('#videoLoading').hidden = true;
+            const panel = document.querySelector('#videoError');
+            panel.textContent = error.message;
+            panel.hidden = false;
+        }
+    }
+
+    function render() {
+        document.querySelector('#videoTitle').textContent = video.title;
+        document.querySelector('#videoShow').textContent = video.showName || video.authorName;
+        document.querySelector('#videoMeta').textContent = [
+            video.authorName,
+            window.FhemniCatalog.formatDate(video.publishedOn),
+            languageLabel(video.sourceLanguage)
+        ].filter(Boolean).join(' · ');
+        const status = document.querySelector('#videoStatus');
+        status.className = `catalog-status ${String(video.status).toLowerCase()}`;
+        status.textContent = window.FhemniCatalog.statusLabel(video.status);
+        document.querySelector('#videoFrame').src = `${video.embedUrl}?rel=0`;
+        document.querySelector('#youtubeLink').href = video.canonicalUrl;
+        const ready = video.status === 'PUBLISHED' && Boolean(video.publishedAnalysisId);
+        document.querySelector('#videoStateKicker').textContent = t(ready ? 'video.readyKicker' : 'video.cataloguedKicker');
+        document.querySelector('#videoStateTitle').textContent = t(ready ? 'video.readyTitle' : 'video.awaitingTitle');
+        document.querySelector('#videoStateText').textContent = t(ready ? 'video.readyText' : 'video.awaitingText');
+        const analysisLink = document.querySelector('#readAnalysis');
+        analysisLink.hidden = !ready;
+        if (ready) analysisLink.href = `/analyses/${encodeURIComponent(video.publishedAnalysisId)}`;
+        document.title = `${video.title} — Fhemni`;
+    }
+
+    function languageLabel(code) {
+        const labels = { ar: 'catalog.darija', ary: 'catalog.darija', fr: 'catalog.french', en: 'catalog.english' };
+        return t(labels[code] || code);
+    }
+
+    document.addEventListener('DOMContentLoaded', load);
+    document.addEventListener('fhemni:localechange', () => {
+        if (video) render();
+    });
+})();

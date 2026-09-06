@@ -1,0 +1,29 @@
+spring:
+  datasource:
+    url: ${JDBC_DATABASE_URL}
+    username: ${JDBC_DATABASE_USERNAME}
+    password: ${JDBC_DATABASE_PASSWORD}
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+server:
+  forward-headers-strategy: framework
+  shutdown: graceful
+  compression:
+    enabled: true
+    min-response-size: 1024
+    mime-types: application/json,text/html,text/css,text/javascript,application/javascript,image/svg+xml
+  servlet:
+    session:
+      timeout: 8h
+      cookie:
+        name: FHEMNI_SESSION
+        http-only: true
+        secure: true
+        same-site: lax
+
+fhemni:
+  cost-control:
+    # Production AI spend is opt-in. Set both variables deliberately after configuring a project spend cap.
+    analysis-enabled: ${FHEMNI_ANALYSIS_ENABLED:false}
+    chat-enabled: ${FHEMNI_CHAT_ENABLED:false}

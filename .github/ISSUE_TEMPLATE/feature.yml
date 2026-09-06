@@ -1,0 +1,24 @@
+name: Feature proposal
+description: Suggest a focused improvement to Fhemni
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed outcome
+      description: Describe the smallest useful behavior, not only an implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Examples or evidence
+      description: Add public links, mockups, or comparable behavior when helpful.

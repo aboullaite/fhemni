@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en" data-theme="fhemni">
+<head>
+    <script src="/js/analytics.js"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Explore clear, timestamped briefings of Moroccan public-affairs videos." data-i18n-content="landing.description">
+    <title>Fhemni — Follow the whole conversation</title>
+    <link rel="icon" type="image/png" href="/assets/brand/fhemni-icon.png">
+    <link rel="apple-touch-icon" href="/assets/brand/fhemni-icon.png">
+    <link rel="stylesheet" href="/css/dist.css">
+</head>
+<body class="public-page" data-i18n-page-title="landing.pageTitle">
+<div class="ambient ambient-one"></div>
+<div class="ambient ambient-two"></div>
+
+<header class="site-header public-header">
+    <a class="brand" href="/" aria-label="Fhemni home" data-i18n-aria-label="common.brandHome">
+        <img class="brand-logo brand-logo-full" src="/assets/brand/fhemni-logo.png" alt="">
+        <img class="brand-logo brand-logo-icon" src="/assets/brand/fhemni-icon.png" alt="">
+    </a>
+    <nav class="primary-nav" aria-label="Primary navigation" data-i18n-aria-label="common.primaryNavigation">
+        <a href="/videos" data-i18n="common.catalogue">Catalogue</a>
+        <a href="/community" data-i18n="common.community">Community</a>
+        <a href="#how-it-works" data-i18n="common.howItWorks">How it works</a>
+    </nav>
+    <div class="header-actions">
+        <label class="site-language">
+            <span class="sr-only" data-i18n="common.siteLanguage">Website language</span>
+            <select data-site-language data-i18n-aria-label="common.siteLanguage" aria-label="Website language">
+                <option value="en">EN</option>
+                <option value="fr">FR</option>
+                <option value="ar">الدارجة</option>
+            </select>
+        </label>
+        <div id="authNav"></div>
+    </div>
+</header>
+
+<main>
+    <section class="product-hero">
+        <div class="product-hero-copy">
+            <div class="eyebrow"><span></span><span class="eyebrow-text" data-i18n="landing.eyebrow">Moroccan public conversations, made clear</span></div>
+            <h1><span data-i18n="landing.headline">Morocco is talking.</span><br><em data-i18n="landing.headlineEmphasis">Keep up with every episode.</em></h1>
+            <p data-i18n="landing.intro">Read concise briefings, check claims, and jump to the exact moment.</p>
+            <div class="hero-actions">
+                <a class="primary-button button-link" href="/videos">
+                    <span data-i18n="landing.exploreCatalogue">Explore the catalogue</span>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+                </a>
+            </div>
+        </div>
+
+        <aside class="promise-card" id="how-it-works">
+            <div class="section-kicker" data-i18n="landing.promiseKicker">In every briefing</div>
+            <ol>
+                <li><span>01</span><div><strong data-i18n="landing.promiseUnderstand">Read the essentials</strong><p data-i18n="landing.promiseUnderstandText">Summary, people, topics, and timestamps.</p></div></li>
+                <li><span>02</span><div><strong data-i18n="landing.promiseCheck">Check the claims</strong><p data-i18n="landing.promiseCheckText">Factual statements are checked independently.</p></div></li>
+                <li><span>03</span><div><strong data-i18n="landing.promiseAsk">Jump to the moment</strong><p data-i18n="landing.promiseAskText">Private questions grounded in the video and its sources are coming soon.</p></div></li>
+            </ol>
+        </aside>
+    </section>
+
+    <section class="featured-section" aria-labelledby="featuredTitle">
+        <div class="section-heading">
+            <div>
+                <div class="section-kicker" data-i18n="landing.featuredKicker">From the catalogue</div>
+                <h2 id="featuredTitle" data-i18n="landing.featuredTitle">Recent public-affairs episodes</h2>
+            </div>
+            <a class="text-link" href="/videos" data-i18n="landing.viewAll">View all episodes</a>
+        </div>
+        <div id="featuredVideos" class="catalog-grid" aria-live="polite">
+            <div class="catalog-loading" data-i18n="catalog.loading">Loading the catalogue…</div>
+        </div>
+    </section>
+
+    <section class="editorial-note">
+        <strong data-i18n="landing.neutralTitle">See the claim. Check the source.</strong>
+        <p data-i18n="landing.neutralText">Every check links back to the video and its evidence.</p>
+    </section>
+</main>
+
+<footer>
+    <img class="footer-logo" src="/assets/brand/fhemni-logo.png" alt="Fhemni — فهّمني">
+    <span data-i18n="common.footer">© 2026 Mohammed Aboullaite</span>
+    <a class="footer-feedback-link" href="https://github.com/aboullaite/fhemni/issues" target="_blank" rel="noopener noreferrer" data-i18n="common.suggestFeature">Suggest a feature</a>
+</footer>
+
+<script src="/js/i18n.js?v=20260906-11" defer></script>
+<script src="/js/auth.js" defer></script>
+<script src="/js/catalog-ui.js" defer></script>
+<script src="/js/landing.js" defer></script>
+</body>
+</html>

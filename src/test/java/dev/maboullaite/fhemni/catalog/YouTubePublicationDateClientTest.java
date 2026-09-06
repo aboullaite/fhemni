@@ -1,0 +1,69 @@
+package dev.maboullaite.fhemni.catalog;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.util.concurrent.Executors;
+
+import com.sun.net.httpserver.HttpServer;
+import org.junit.jupiter.api.Test;
+
+class YouTubePublicationDateClientTest {
+
+    @Test
+    void readsThePublicationDateFromPublicWatchPageMetadata() throws IOException {
+        byte[] response = """
+                <html><head>
+                <meta itemprop="datePublished" content="2026-09-02T15:00:30-07:00">
+                <meta itemprop="uploadDate" content="2026-09-02T15:00:30-07:00">
+                </head></html>
+                """.getBytes(StandardCharsets.UTF_8);
+        HttpServer server = server(response, 200);
+        var executor = Executors.newVirtualThreadPerTaskExecutor();
+        server.setExecutor(executor);
+        server.start();
+        try {
+            var client = new YouTubePublicationDateClient(
+                    Duration.ofSeconds(2),
+                    "http://127.0.0.1:" + server.getAddress().getPort() + "/watch?v=");
+
+            assertThat(client.fetch("n5B3boj2MFM")).isEqualTo(LocalDate.of(2026, 9, 2));
+        } finally {
+            server.stop(0);
+            executor.close();
+        }
+    }
+
+    @Test
+    void failsWhenYoutubeDoesNotExposeADate() throws IOException {
+        HttpServer server = server("<html></html>".getBytes(StandardCharsets.UTF_8), 200);
+        server.start();
+        try {
+            var client = new YouTubePublicationDateClient(
+                    Duration.ofSeconds(2),
+                    "http://127.0.0.1:" + server.getAddress().getPort() + "/watch?v=");
+
+            assertThatThrownBy(() -> client.fetch("n5B3boj2MFM"))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("publication date");
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    private HttpServer server(byte[] response, int status) throws IOException {
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/watch", exchange -> {
+            exchange.getResponseHeaders().set("Content-Type", "text/html; charset=utf-8");
+            exchange.sendResponseHeaders(status, response.length);
+            exchange.getResponseBody().write(response);
+            exchange.close();
+        });
+        return server;
+    }
+}

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en" data-theme="fhemni">
+<head>
+    <script src="/js/analytics.js"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Suggest and rank the public videos Fhemni should understand next." data-i18n-content="community.description">
+    <title>Community requests — Fhemni</title>
+    <link rel="icon" type="image/png" href="/assets/brand/fhemni-icon.png">
+    <link rel="stylesheet" href="/css/dist.css">
+</head>
+<body class="public-page" data-i18n-page-title="community.pageTitle">
+<div class="ambient ambient-one"></div>
+<div class="ambient ambient-two"></div>
+
+<header class="site-header public-header">
+    <a class="brand" href="/" aria-label="Fhemni home" data-i18n-aria-label="common.brandHome">
+        <img class="brand-logo brand-logo-full" src="/assets/brand/fhemni-logo.png" alt="">
+        <img class="brand-logo brand-logo-icon" src="/assets/brand/fhemni-icon.png" alt="">
+    </a>
+    <nav class="primary-nav" aria-label="Primary navigation" data-i18n-aria-label="common.primaryNavigation">
+        <a href="/videos" data-i18n="common.catalogue">Catalogue</a>
+        <a class="active" href="/community" data-i18n="common.community">Community</a>
+        <a href="/#how-it-works" data-i18n="common.howItWorks">How it works</a>
+    </nav>
+    <div class="header-actions">
+        <label class="site-language"><span class="sr-only" data-i18n="common.siteLanguage">Website language</span><select data-site-language data-i18n-aria-label="common.siteLanguage" aria-label="Website language"><option value="en">EN</option><option value="fr">FR</option><option value="ar">الدارجة</option></select></label>
+        <div id="authNav"></div>
+    </div>
+</header>
+
+<main class="community-page">
+    <section class="catalog-hero community-hero">
+        <div class="eyebrow"><span></span><span class="eyebrow-text" data-i18n="community.eyebrow">Community picks</span></div>
+        <h1 data-i18n="community.title">Choose the next episode.</h1>
+        <p data-i18n="community.intro">Add a YouTube link or vote.</p>
+        <a class="text-link" href="/videos" data-i18n="community.browseCatalogue">Browse episodes</a>
+    </section>
+
+    <section class="suggestion-panel community-suggestion-panel" aria-labelledby="suggestionTitle">
+        <div class="suggestion-copy">
+            <h2 id="suggestionTitle" data-i18n="suggestion.title">Add a YouTube link.</h2>
+        </div>
+        <form id="videoSuggestionForm" class="suggestion-form" hidden>
+            <label class="sr-only" for="videoSuggestionUrl" data-i18n="suggestion.label">YouTube video URL</label>
+            <div class="suggestion-input-row">
+                <input id="videoSuggestionUrl" type="url" required maxlength="2048" autocomplete="url" data-i18n-placeholder="suggestion.placeholder" placeholder="https://youtu.be/video-id">
+                <button id="videoSuggestionButton" class="primary-button" type="submit" data-i18n="suggestion.button">Suggest video</button>
+            </div>
+            <div id="videoSuggestionFeedback" class="suggestion-feedback" role="status" aria-live="polite" hidden></div>
+        </form>
+        <div id="suggestionAuthGate" class="suggestion-board-gate" hidden>
+            <strong data-i18n="suggestion.signInToSuggest">Sign in to suggest an episode</strong>
+            <a id="suggestionLoginLink" class="secondary-button" href="/login" data-i18n="common.signIn">Sign in</a>
+        </div>
+    </section>
+
+    <section id="suggestionCommunity" class="suggestion-community community-board-section" aria-labelledby="suggestionCommunityTitle" hidden>
+        <div class="section-heading">
+            <div>
+                <h2 id="suggestionCommunityTitle" data-i18n="suggestion.communityTitle">Vote for the next analysis.</h2>
+            </div>
+            <span id="suggestionCommunityCount"></span>
+        </div>
+        <div id="suggestionBoardGate" class="suggestion-board-gate" hidden>
+            <strong data-i18n="suggestion.signInTitle">Sign in to vote</strong>
+            <a id="suggestionBoardLoginLink" class="secondary-button" href="/login" data-i18n="common.signIn">Sign in</a>
+        </div>
+        <div id="suggestionBoard" class="suggestion-board" aria-live="polite" hidden></div>
+        <div id="suggestionVoteFeedback" class="suggestion-feedback" role="status" aria-live="polite" hidden></div>
+    </section>
+</main>
+
+<footer><img class="footer-logo" src="/assets/brand/fhemni-logo.png" alt="Fhemni — فهّمني"><span data-i18n="common.footer">© 2026 Mohammed Aboullaite</span><a class="footer-feedback-link" href="https://github.com/aboullaite/fhemni/issues" target="_blank" rel="noopener noreferrer" data-i18n="common.suggestFeature">Suggest a feature</a></footer>
+<script src="/js/i18n.js?v=20260906-12" defer></script><script src="/js/auth.js" defer></script><script src="/js/catalog-ui.js?v=20260906-2" defer></script><script src="/js/suggestions.js?v=20260906-5" defer></script>
+</body>
+</html>

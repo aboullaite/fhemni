@@ -1,0 +1,91 @@
+name: fhemni
+
+services:
+  database:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    env_file: ${FHEMNI_ENV_FILE:-.env.container}
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    volumes:
+      # PostgreSQL 18+ stores data in a version-specific subdirectory here.
+      - postgres-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: 512m
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: ${FHEMNI_ENV_FILE:-.env.container}
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_CONFIG_IMPORT: configtree:/run/secrets/
+    secrets:
+      - source: postgres_password
+        target: JDBC_DATABASE_PASSWORD
+      - source: gemini_api_key
+        target: GEMINI_API_KEY
+      - source: google_client_id
+        target: GOOGLE_CLIENT_ID
+      - source: google_client_secret
+        target: GOOGLE_CLIENT_SECRET
+      - source: admin_identities
+        target: FHEMNI_ADMIN_IDENTITIES
+    depends_on:
+      database:
+        condition: service_healthy
+    ports:
+      - "${FHEMNI_BIND_ADDRESS:-127.0.0.1}:${FHEMNI_HOST_PORT:-8080}:8080"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 768m
+    stop_grace_period: 45s
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -c
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/8080 &&
+          printf 'GET /healthz HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 &&
+          head -n 1 <&3 | grep -q ' 200 '
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  postgres-data:
+
+secrets:
+  postgres_password:
+    file: ${FHEMNI_SECRETS_DIR:-.secrets}/postgres_password
+  gemini_api_key:
+    file: ${FHEMNI_SECRETS_DIR:-.secrets}/gemini_api_key
+  google_client_id:
+    file: ${FHEMNI_SECRETS_DIR:-.secrets}/google_client_id
+  google_client_secret:
+    file: ${FHEMNI_SECRETS_DIR:-.secrets}/google_client_secret
+  admin_identities:
+    file: ${FHEMNI_SECRETS_DIR:-.secrets}/admin_identities

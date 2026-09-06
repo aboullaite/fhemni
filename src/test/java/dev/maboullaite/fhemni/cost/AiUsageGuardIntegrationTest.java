@@ -1,0 +1,57 @@
+package dev.maboullaite.fhemni.cost;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.util.UUID;
+
+import dev.maboullaite.fhemni.identity.ExternalIdentityProfile;
+import dev.maboullaite.fhemni.identity.UserAccountRepository;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.simple.JdbcClient;
+
+@SpringBootTest(properties = {
+        "fhemni.gemini.api-key=",
+        "fhemni.cost-control.chat-enabled=true",
+        "fhemni.cost-control.max-daily-analyses=2",
+        "fhemni.cost-control.max-daily-questions=10",
+        "fhemni.cost-control.max-daily-questions-per-user=1",
+        "spring.datasource.url=jdbc:h2:mem:cost-guard-test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"
+})
+class AiUsageGuardIntegrationTest {
+
+    @Autowired
+    private AiUsageGuard guard;
+
+    @Autowired
+    private UserAccountRepository users;
+
+    @Autowired
+    private JdbcClient jdbc;
+
+    @Test
+    void durablyLimitsAttemptsAndRecordsReturnedUsage() {
+        UUID firstAnalysis = UUID.randomUUID();
+        var first = guard.reserveAnalysis(firstAnalysis, "test-model");
+        guard.succeeded(first, new AiUsage(100, 20, 40, 5, 0, 2));
+        guard.reserveAnalysis(UUID.randomUUID(), "test-model");
+
+        assertThatThrownBy(() -> guard.reserveAnalysis(UUID.randomUUID(), "test-model"))
+                .isInstanceOf(AiBudgetExceededException.class)
+                .hasMessageContaining("daily analysis budget");
+        assertThat(jdbc.sql("SELECT status FROM ai_usage_events WHERE id = :id")
+                .param("id", first.id()).query(String.class).single()).isEqualTo("SUCCEEDED");
+        assertThat(jdbc.sql("SELECT input_tokens FROM ai_usage_events WHERE id = :id")
+                .param("id", first.id()).query(Integer.class).single()).isEqualTo(100);
+
+        var user = users.recordLogin(new ExternalIdentityProfile(
+                "test", "cost-user", null, "Cost User", null, false, null), false);
+        guard.reserveQuestion(firstAnalysis, user.id(), AiOperation.CHAT_VIDEO, "test-model");
+        assertThatThrownBy(() -> guard.reserveQuestion(
+                firstAnalysis, user.id(), AiOperation.CHAT_CHECK, "test-model"))
+                .isInstanceOf(AiBudgetExceededException.class)
+                .hasMessageContaining("daily question allowance");
+    }
+}
