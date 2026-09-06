@@ -2,6 +2,7 @@ package dev.maboullaite.fhemni.web;
 
 import java.util.NoSuchElementException;
 
+import dev.maboullaite.fhemni.cost.AiBudgetExceededException;
 import dev.maboullaite.fhemni.gemini.GeminiApiException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpHeaders;
@@ -37,6 +38,13 @@ public class ApiExceptionHandler {
     @ExceptionHandler(AuthenticationCredentialsNotFoundException.class)
     ProblemDetail unauthorized(AuthenticationCredentialsNotFoundException exception) {
         return problem(HttpStatus.UNAUTHORIZED, exception.getMessage());
+    }
+
+    @ExceptionHandler(AiBudgetExceededException.class)
+    ResponseEntity<ProblemDetail> aiBudgetExceeded(AiBudgetExceededException exception) {
+        ProblemDetail detail = problem(HttpStatus.TOO_MANY_REQUESTS, exception.getMessage());
+        detail.setProperty("code", exception.code());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(detail);
     }
 
     @ExceptionHandler(SuggestionRateLimitException.class)

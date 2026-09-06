@@ -115,6 +115,10 @@ class VideoSuggestionIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.user.displayName").value("Mohammed"))
                 .andExpect(jsonPath("$.user.role").value("USER"))
+                .andExpect(jsonPath("$.chatQuota.weeklyLimit").value(5))
+                .andExpect(jsonPath("$.chatQuota.used").value(0))
+                .andExpect(jsonPath("$.chatQuota.remaining").value(5))
+                .andExpect(jsonPath("$.chatQuota.resetsAt").isNotEmpty())
                 .andExpect(jsonPath("$.user.canChat").doesNotExist())
                 .andExpect(jsonPath("$.user.email").doesNotExist());
         mvc.perform(get("/api/suggestions").with(oauth2Login()))

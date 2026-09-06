@@ -11,6 +11,7 @@ import com.google.genai.Client;
 import com.google.genai.errors.ApiException;
 import com.google.genai.gaos.models.interactions.CreateModelInteraction;
 import com.google.genai.gaos.models.interactions.Interaction;
+import com.google.genai.gaos.models.interactions.InteractionStatus;
 import com.google.genai.gaos.models.interactions.ModelOutputStep;
 import com.google.genai.gaos.models.interactions.TextContent;
 import com.google.genai.gaos.models.interactions.URLCitation;
@@ -43,7 +44,7 @@ class GeminiInteractionsClient {
             @Value("${fhemni.gemini.base-url:https://generativelanguage.googleapis.com}") String baseUrl,
             @Value("${fhemni.gemini.api-version:v1beta}") String apiVersion,
             @Value("${fhemni.gemini.analysis-read-timeout:PT12M}") Duration analysisReadTimeout,
-            @Value("${fhemni.gemini.question-read-timeout:PT45S}") Duration questionReadTimeout) {
+            @Value("${fhemni.gemini.question-read-timeout:PT30S}") Duration questionReadTimeout) {
         this.apiKey = apiKey == null ? "" : apiKey.strip();
         this.model = model == null ? "" : model.strip();
         validateTimeout(analysisReadTimeout);
@@ -87,6 +88,13 @@ class GeminiInteractionsClient {
                     .create(null, CreateInteractionRequestBody.of(request), options)
                     .interaction()
                     .orElseThrow(() -> new GeminiApiException("Gemini returned an empty response"));
+            InteractionStatus status = interaction.status().orElse(null);
+            if (!InteractionStatus.COMPLETED.equals(status)) {
+                String value = status == null ? "unknown" : status.value();
+                throw new GeminiApiException(
+                        "Gemini interaction did not complete (status: " + value + ")",
+                        extractUsage(interaction));
+            }
             String output = interaction.outputText()
                     .filter(text -> !text.isBlank())
                     .orElseGet(() -> extractOutputText(interaction));

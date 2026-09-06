@@ -50,6 +50,22 @@ public class AiUsageRepository {
                 .single();
     }
 
+    public long sumQuestionOutputTokensForUser(UUID userId, Instant fromInclusive, Instant toExclusive) {
+        return jdbc.sql("""
+                        SELECT COALESCE(SUM(output_tokens), 0)
+                          FROM ai_usage_events
+                         WHERE operation IN ('CHAT_VIDEO', 'CHAT_CHECK')
+                           AND user_id = :userId
+                           AND requested_at >= :fromInclusive
+                           AND requested_at < :toExclusive
+                        """)
+                .param("userId", userId)
+                .param("fromInclusive", utc(fromInclusive))
+                .param("toExclusive", utc(toExclusive))
+                .query(Long.class)
+                .single();
+    }
+
     public UUID reserve(AiOperation operation, UUID userId, UUID analysisId, String model, Instant requestedAt) {
         UUID id = UUID.randomUUID();
         jdbc.sql("""

@@ -85,7 +85,7 @@ class SecurityIntegrationTest {
         mvc.perform(get("/js/i18n.js"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("landing.headline")))
-                .andExpect(content().string(containsString("'landing.promiseAsk': 'Jump to the moment'")))
+                .andExpect(content().string(containsString("'landing.promiseAsk': 'Ask the video'")))
                 .andExpect(content().string(containsString("ar: {")));
 
         mvc.perform(get("/css/dist.css"))
@@ -176,6 +176,20 @@ class SecurityIntegrationTest {
 
         mvc.perform(get("/admin.html").with(user("member").roles("USER")))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void protectsTheOneOffContextMigrationAsAnAdminApi() throws Exception {
+        mvc.perform(get("/api/admin/catalog/context-migration"))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/admin/catalog/context-migration")
+                        .with(user("member").roles("USER")))
+                .andExpect(status().isForbidden());
+        mvc.perform(get("/api/admin/catalog/context-migration")
+                        .with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.enabled").value(false))
+                .andExpect(jsonPath("$.pending").value(0));
     }
 
     @Test

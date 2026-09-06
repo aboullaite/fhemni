@@ -88,7 +88,7 @@ class PersonCatalogServiceTest {
                         List.of(),
                         false,
                         null),
-                "test-model", "test-prompt", "test-fact-model", "test-fact-prompt");
+                "test-model", "test-prompt", "test-fact-model", "test-fact-prompt", "test-credential");
         revisions.complete(draftId, new VideoReport(
                 "Draft episode",
                 "Draft summary.",
@@ -211,7 +211,7 @@ class PersonCatalogServiceTest {
                         List.of(),
                         false,
                         null),
-                "test-model", "test-prompt", "test-fact-model", "test-fact-prompt");
+                "test-model", "test-prompt", "test-fact-model", "test-fact-prompt", "test-credential");
         revisions.complete(analysisId, report, "interaction-test");
         jdbc.sql("""
                         UPDATE catalog_videos

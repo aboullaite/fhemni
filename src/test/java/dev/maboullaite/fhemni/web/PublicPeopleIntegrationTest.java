@@ -67,7 +67,7 @@ class PublicPeopleIntegrationTest {
                         List.of(),
                         false,
                         null),
-                "test-model", "test-prompt", "test-fact-model", "test-fact-prompt");
+                "test-model", "test-prompt", "test-fact-model", "test-fact-prompt", "test-credential");
         revisions.complete(analysisId, new VideoReport(
                 "Episode with guests",
                 "Summary.",
