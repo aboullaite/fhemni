@@ -56,6 +56,10 @@ const elements = {
     chatGateTitle: document.querySelector('#chatGateTitle'),
     chatGateText: document.querySelector('#chatGateText'),
     chatQuota: document.querySelector('#chatQuota'),
+    chatQuestionQuota: document.querySelector('#chatQuestionQuota'),
+    chatTokenProgress: document.querySelector('#chatTokenProgress'),
+    chatTokenRing: document.querySelector('#chatTokenRing'),
+    chatTokenPercent: document.querySelector('#chatTokenPercent'),
     questionInput: document.querySelector('#questionInput'),
     askButton: document.querySelector('#askButton'),
     conversation: document.querySelector('#conversation'),
@@ -199,10 +203,8 @@ function configureChatAccess() {
     elements.chatAuthGate.hidden = canChat;
     elements.chatLoginLink.hidden = authenticated || !chatEnabled;
     elements.chatGateBadge.hidden = chatEnabled;
-    elements.chatQuota.hidden = !canChat || !quota;
-    elements.chatQuota.textContent = quota
-        ? t('analysis.chatQuota', { remaining: quota.remaining, limit: quota.weeklyLimit })
-        : '';
+    elements.chatQuota.hidden = !authenticated || !chatEnabled || !quota;
+    renderChatQuota(quota);
     elements.chatGateTitle.textContent = dailyTokenQuotaExhausted
         ? t('analysis.chatDailyTokenLimitTitle')
         : (weeklyQuotaExhausted
@@ -215,6 +217,29 @@ function configureChatAccess() {
             ? t('analysis.chatQuotaUsedText', { limit: quota.weeklyLimit })
             : (chatEnabled ? t('analysis.chatPrivacy') : ''));
     elements.chatLoginLink.href = window.FhemniAuth.loginPage(window.location.pathname);
+}
+
+function renderChatQuota(quota) {
+    if (!quota) return;
+    const dailyLimit = Math.max(0, Number(quota.dailyOutputTokenLimit) || 0);
+    const dailyUsed = Math.max(0, Number(quota.dailyOutputTokensUsed) || 0);
+    const tokenPercent = dailyLimit > 0
+        ? Math.min(100, Math.round((dailyUsed / dailyLimit) * 100))
+        : 0;
+    const questionQuotaLabel = t('analysis.chatQuota', {
+        remaining: quota.remaining,
+        limit: quota.weeklyLimit
+    });
+    elements.chatQuestionQuota.textContent = `${quota.remaining}/${quota.weeklyLimit}`;
+    elements.chatQuestionQuota.setAttribute('aria-label', questionQuotaLabel);
+    elements.chatQuestionQuota.title = questionQuotaLabel;
+    elements.chatTokenPercent.textContent = `${tokenPercent}%`;
+    elements.chatTokenRing.setAttribute('stroke-dashoffset', String(100 - tokenPercent));
+    elements.chatTokenProgress.setAttribute('aria-valuemax', String(dailyLimit));
+    elements.chatTokenProgress.setAttribute('aria-valuenow', String(Math.min(dailyUsed, dailyLimit)));
+    elements.chatTokenProgress.setAttribute('aria-label', t('analysis.chatTokenProgress', {
+        percent: tokenPercent
+    }));
 }
 
 async function loadAnalysis() {
