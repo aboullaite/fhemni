@@ -241,7 +241,7 @@ function renderChatQuota(quota) {
     });
     elements.chatQuestionQuota.setAttribute('aria-label', questionQuotaLabel);
     elements.chatQuota.setAttribute('aria-label', usageSummary);
-    elements.chatQuota.dataset.tip = usageSummary;
+    elements.chatQuota.title = usageSummary;
     elements.chatTokenPercent.textContent = `${tokenPercent}%`;
     elements.chatTokenRing.setAttribute('stroke-dashoffset', String(100 - tokenPercent));
     elements.chatTokenProgress.setAttribute('aria-valuemax', String(dailyLimit));
