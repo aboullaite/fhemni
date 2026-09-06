@@ -30,6 +30,21 @@ public class PageController {
         return "redirect:/videos";
     }
 
+    @GetMapping({"/parties", "/parties/"})
+    public String partiesPage() {
+        return "forward:/parties.html";
+    }
+
+    @GetMapping({"/people/{slug}", "/people/{slug}/"})
+    public String personPage(@PathVariable String slug) {
+        return "forward:/person.html";
+    }
+
+    @GetMapping({"/parties/{code}", "/parties/{code}/"})
+    public String partyPage(@PathVariable String code) {
+        return "forward:/party.html";
+    }
+
     @GetMapping({"/community", "/community/"})
     public String communityPage() {
         return "forward:/community.html";

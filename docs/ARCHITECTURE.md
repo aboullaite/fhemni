@@ -45,7 +45,8 @@ does not replace the published revision until explicit publication.
 
 ## Application modules
 
-- `catalog`: catalogue metadata, suggestions, votes, and batch selection
+- `catalog`: catalogue metadata, suggestions, votes, batch selection, and the
+  public party sheets aggregated from published analyses
 - `analysis`: lifecycle, durable revisions, conversations, and progress events
 - `gemini`: provider clients, schemas, prompts, and usage extraction
 - `identity`: OAuth/OIDC users, roles, and authorization helpers
@@ -57,6 +58,14 @@ does not replace the published revision until explicit publication.
 
 - A statement in a video is evidence of what was said, not proof it is true.
 - Public readers can access only the explicitly published revision.
+- Guest and party sheets are computed only from explicitly published revisions.
+  Speaker-to-party affiliations come from a database-backed editorial directory
+  (Flyway-seeded from verified sources, changes reviewed like code);
+  unaffiliated speakers never appear on party sheets, and passages shown side
+  by side are never labelled as contradictions.
+- Member names follow the site language using the verified French/Arabic
+  spellings; unverified names are shown exactly as written in the episode.
+  Statements keep their exact wording from the episode.
 - Only authenticated users can submit or vote on suggestions.
 - Only administrators can create, reprocess, review, or publish analyses.
 - Provider keys remain server-side and are never returned to browser code.

@@ -1,0 +1,228 @@
+package dev.maboullaite.fhemni.catalog;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.UUID;
+
+import dev.maboullaite.fhemni.analysis.AnalysisRevisionRepository;
+import dev.maboullaite.fhemni.model.AnalysisSnapshot;
+import dev.maboullaite.fhemni.model.AnalysisStatus;
+import dev.maboullaite.fhemni.model.Chapter;
+import dev.maboullaite.fhemni.model.Claim;
+import dev.maboullaite.fhemni.model.ClaimKind;
+import dev.maboullaite.fhemni.model.ClaimVerdict;
+import dev.maboullaite.fhemni.model.OutputLanguage;
+import dev.maboullaite.fhemni.model.Participant;
+import dev.maboullaite.fhemni.model.VideoReport;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.simple.JdbcClient;
+
+@SpringBootTest(properties = {
+        "fhemni.gemini.api-key=",
+        "spring.datasource.url=jdbc:h2:mem:person-catalog-test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"
+})
+class PersonCatalogServiceTest {
+
+    @Autowired
+    private PersonCatalogService service;
+
+    @Autowired
+    private AnalysisRevisionRepository revisions;
+
+    @Autowired
+    private JdbcClient jdbc;
+
+    @BeforeEach
+    void publishTwoEpisodesAndKeepADraftPrivate() {
+        publish("n5B3boj2MFM", new VideoReport(
+                "Episode one",
+                "Summary one.",
+                "Details one.",
+                List.of(new Participant("Driss El Azami", "Guest")),
+                List.of(
+                        new Chapter("Introduction", 0, "Opening"),
+                        new Chapter("Budget debate", 300, "Money talk")),
+                List.of(
+                        new Claim("c1", "The national deficit fell while desalination plants multiplied.", "Driss El Azami", 350,
+                                ClaimKind.FACT, ClaimVerdict.SUPPORTED, "Confirmed by official data.", "HIGH", List.of()),
+                        new Claim("c2", "I believe the reform will succeed.", "Nizar Baraka", 120,
+                                ClaimKind.OPINION, ClaimVerdict.NOT_APPLICABLE, "", "", List.of())),
+                List.of()));
+        publish("14IF32HrTBs", new VideoReport(
+                "Episode two",
+                "Summary two.",
+                "Details two.",
+                List.of(new Participant("إدريس الأزمي", "ضيف")),
+                List.of(
+                        new Chapter("المقدمة", 0, "البداية"),
+                        new Chapter("Budget debate", 100, "Money talk")),
+                List.of(
+                        new Claim("c3", "The national deficit rose although desalination plants multiplied.", "إدريس الأزمي", 200,
+                                ClaimKind.FACT, ClaimVerdict.CONTRADICTED, "Denied by official data.", "HIGH", List.of()),
+                        new Claim("c4", "Desalination plants need national budget oversight.", "Nizar Baraka", 150,
+                                ClaimKind.FACT, ClaimVerdict.NEEDS_CONTEXT, "Needs context.", "MEDIUM", List.of())),
+                List.of()));
+
+        // A completed draft that is never published must stay invisible.
+        UUID draftId = UUID.randomUUID();
+        revisions.create(
+                new AnalysisSnapshot(
+                        draftId,
+                        "https://www.youtube.com/watch?v=quf5ok_tkB4",
+                        "quf5ok_tkB4",
+                        OutputLanguage.DARIJA,
+                        AnalysisStatus.QUEUED,
+                        2,
+                        "Video accepted",
+                        false,
+                        Instant.now(),
+                        null,
+                        null,
+                        List.of(),
+                        false,
+                        null),
+                "test-model", "test-prompt", "test-fact-model", "test-fact-prompt");
+        revisions.complete(draftId, new VideoReport(
+                "Draft episode",
+                "Draft summary.",
+                "Draft details.",
+                List.of(new Participant("Draft Only Person", "Guest")),
+                List.of(),
+                List.of(),
+                List.of()), "interaction-draft");
+    }
+
+    @Test
+    void aggregatesAppearancesAcrossPublishedEpisodesOnly() {
+        var summaries = service.searchPeople("", null);
+
+        assertThat(summaries).extracting(PersonCatalogService.PersonSummary::slug)
+                .contains("driss-el-azami", "nizar-baraka")
+                .doesNotContain("draft-only-person");
+
+        var azami = summaries.stream()
+                .filter(summary -> summary.slug().equals("driss-el-azami"))
+                .findFirst()
+                .orElseThrow();
+        assertThat(azami.partyCode()).isEqualTo("PJD");
+        assertThat(azami.appearances()).isEqualTo(2);
+        assertThat(azami.claims()).isEqualTo(2);
+        assertThat(azami.displayName()).isEqualTo("Driss El Azami");
+        assertThat(azami.displayNameAr()).isEqualTo("إدريس الأزمي");
+        assertThat(azami.spellings()).contains("Driss El Azami", "إدريس الأزمي");
+    }
+
+    @Test
+    void searchesByNameInFrenchOrArabicAndFiltersByParty() {
+        assertThat(service.searchPeople("azami", null))
+                .extracting(PersonCatalogService.PersonSummary::slug)
+                .containsExactly("driss-el-azami");
+        assertThat(service.searchPeople("الأزمي", null))
+                .extracting(PersonCatalogService.PersonSummary::slug)
+                .containsExactly("driss-el-azami");
+        assertThat(service.searchPeople("", "PJD"))
+                .extracting(PersonCatalogService.PersonSummary::slug)
+                .contains("driss-el-azami")
+                .doesNotContain("nizar-baraka");
+        assertThat(service.searchPeople("nobody matches this", null)).isEmpty();
+    }
+
+    @Test
+    void buildsAGuestSheetWithTopicsAndPassagesToCompare() {
+        var profile = service.person("driss-el-azami");
+
+        assertThat(profile.episodes()).hasSize(2);
+        assertThat(profile.claims()).hasSize(2);
+        assertThat(profile.person().topics()).contains("Budget debate");
+
+        // Same speaker, different episodes, different independent assessments.
+        assertThat(profile.comparisons()).hasSizeGreaterThanOrEqualTo(1);
+        var pair = profile.comparisons().get(0);
+        assertThat(pair.first().episodeSlug()).isNotEqualTo(pair.second().episodeSlug());
+        assertThat(pair.first().verdict()).isNotEqualTo(pair.second().verdict());
+    }
+
+    @Test
+    void pairsStatementsWithOtherGuestsOnTheSameTopic() {
+        var profile = service.person("driss-el-azami");
+
+        assertThat(profile.crossComparisons()).hasSize(1);
+        var pair = profile.crossComparisons().get(0);
+        assertThat(pair.topic()).isEqualTo("Budget debate");
+        assertThat(pair.firstSpeaker().slug()).isEqualTo("driss-el-azami");
+        assertThat(pair.secondSpeaker().slug()).isEqualTo("nizar-baraka");
+        assertThat(pair.secondSpeaker().partyCode()).isEqualTo("PI");
+        assertThat(pair.first().episodeSlug()).isNotEqualTo(pair.second().episodeSlug());
+    }
+
+    @Test
+    void buildsPartySheetsFromPublishedEpisodes() {
+        var parties = service.parties();
+        assertThat(parties).extracting(PersonCatalogService.PartySummary::code)
+                .contains("RNI", "PAM", "PI", "PJD", "USFP", "PPS", "MP", "FGD", "UC", "MDS", "PSU", "FFD");
+
+        var pjd = service.party("pjd");
+        assertThat(pjd.members()).isEqualTo(1);
+        assertThat(pjd.topMembers().get(0).slug()).isEqualTo("driss-el-azami");
+        assertThat(pjd.recentClaims()).hasSize(2);
+    }
+
+    @Test
+    void rejectsUnknownGuestsAndParties() {
+        assertThatThrownBy(() -> service.person("no-such-guest"))
+                .isInstanceOf(NoSuchElementException.class);
+        assertThatThrownBy(() -> service.party("XX"))
+                .isInstanceOf(NoSuchElementException.class);
+    }
+
+    @Test
+    void hidesUnaffiliatedGuestsFromPartySheets() {
+        assertThat(service.parties())
+                .extracting(PersonCatalogService.PartySummary::code)
+                .doesNotContain("UNKNOWN", "IND");
+        assertThatThrownBy(() -> service.party("UNKNOWN"))
+                .isInstanceOf(NoSuchElementException.class);
+        assertThatThrownBy(() -> service.party("IND"))
+                .isInstanceOf(NoSuchElementException.class);
+    }
+
+    private void publish(String youtubeVideoId, VideoReport report) {
+        UUID analysisId = UUID.randomUUID();
+        revisions.create(
+                new AnalysisSnapshot(
+                        analysisId,
+                        "https://www.youtube.com/watch?v=" + youtubeVideoId,
+                        youtubeVideoId,
+                        OutputLanguage.DARIJA,
+                        AnalysisStatus.QUEUED,
+                        2,
+                        "Video accepted",
+                        false,
+                        Instant.now(),
+                        null,
+                        null,
+                        List.of(),
+                        false,
+                        null),
+                "test-model", "test-prompt", "test-fact-model", "test-fact-prompt");
+        revisions.complete(analysisId, report, "interaction-test");
+        jdbc.sql("""
+                        UPDATE catalog_videos
+                           SET status = 'PUBLISHED',
+                               short_summary = :summary,
+                               published_analysis_id = :analysisId
+                         WHERE youtube_video_id = :youtubeVideoId
+                        """)
+                .param("summary", report.summary())
+                .param("analysisId", analysisId)
+                .param("youtubeVideoId", youtubeVideoId)
+                .update();
+    }
+}

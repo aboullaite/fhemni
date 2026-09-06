@@ -31,7 +31,7 @@
         const status = document.querySelector('#videoStatus');
         status.className = `catalog-status ${String(video.status).toLowerCase()}`;
         status.textContent = window.FhemniCatalog.statusLabel(video.status);
-        document.querySelector('#videoFrame').src = `${video.embedUrl}?rel=0`;
+        document.querySelector('#videoFrame').src = embedUrl(video.embedUrl);
         document.querySelector('#youtubeLink').href = video.canonicalUrl;
         const ready = video.status === 'PUBLISHED' && Boolean(video.publishedAnalysisId);
         document.querySelector('#videoStateKicker').textContent = t(ready ? 'video.readyKicker' : 'video.cataloguedKicker');
@@ -46,6 +46,15 @@
     function languageLabel(code) {
         const labels = { ar: 'catalog.darija', ary: 'catalog.darija', fr: 'catalog.french', en: 'catalog.english' };
         return t(labels[code] || code);
+    }
+
+    function embedUrl(base) {
+        const parameters = new URLSearchParams({ rel: '0' });
+        const start = Math.floor(Number(new URLSearchParams(window.location.search).get('t')));
+        if (Number.isFinite(start) && start > 0) {
+            parameters.set('start', String(start));
+        }
+        return `${base}?${parameters}`;
     }
 
     document.addEventListener('DOMContentLoaded', load);
