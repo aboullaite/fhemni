@@ -989,9 +989,7 @@
         } catch (_) { /* storage can be disabled */ }
         if (SUPPORTED.includes(stored)) return stored;
 
-        const preferred = navigator.languages?.[0] || navigator.language || 'en';
-        const base = preferred.toLowerCase().split('-')[0];
-        return SUPPORTED.includes(base) ? base : 'en';
+        return 'ar';
     }
 
     function translate(key, parameters = {}) {
