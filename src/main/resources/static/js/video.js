@@ -10,6 +10,7 @@
         try {
             video = await window.FhemniCatalog.requestJson(`/api/catalog/videos/${encodeURIComponent(slug)}`);
             render();
+            trackVideoView();
             document.querySelector('#videoLoading').hidden = true;
             document.querySelector('#videoDetail').hidden = false;
         } catch (error) {
@@ -46,6 +47,16 @@
     function languageLabel(code) {
         const labels = { ar: 'catalog.darija', ary: 'catalog.darija', fr: 'catalog.french', en: 'catalog.english' };
         return t(labels[code] || code);
+    }
+
+    function trackVideoView() {
+        window.FhemniAnalytics?.trackEvent('video_view', {
+            video_id: video.youtubeVideoId,
+            video_slug: video.slug,
+            video_status: String(video.status || '').toLowerCase(),
+            source_language: video.sourceLanguage,
+            analysis_available: video.status === 'PUBLISHED' && Boolean(video.publishedAnalysisId)
+        });
     }
 
     document.addEventListener('DOMContentLoaded', load);

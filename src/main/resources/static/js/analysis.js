@@ -262,6 +262,7 @@ async function loadAnalysis() {
     showOnly('progress');
     try {
         const snapshot = await request(`/api/analyses/${state.analysisId}`);
+        trackAnalysisView(snapshot);
         if (snapshot.status === 'COMPLETED') {
             renderResult(snapshot);
         } else if (snapshot.status === 'FAILED') {
@@ -277,6 +278,17 @@ async function loadAnalysis() {
     } catch (error) {
         showRequestError(error);
     }
+}
+
+function trackAnalysisView(snapshot) {
+    window.FhemniAnalytics?.trackEvent('analysis_view', {
+        analysis_id: snapshot.id || state.analysisId,
+        video_id: snapshot.videoId,
+        analysis_status: String(snapshot.status || '').toLowerCase(),
+        output_language: String(snapshot.language || '').toLowerCase(),
+        published: snapshot.published === true,
+        demo: snapshot.demo === true
+    });
 }
 
 function subscribe(id) {
