@@ -14,6 +14,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 
 @SpringBootTest(properties = {
         "fhemni.gemini.api-key=",
+        "fhemni.cost-control.analysis-enabled=true",
         "fhemni.cost-control.chat-enabled=true",
         "fhemni.cost-control.max-daily-analyses=2",
         "fhemni.cost-control.max-hourly-chat-rounds=10",

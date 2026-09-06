@@ -250,6 +250,9 @@ public class AnalysisService {
                     Instant.now());
             conversation.add(answer, result.interactionId());
             return answer;
+        } catch (GeminiApiException exception) {
+            usageGuard.failed(reservation, exception.usage());
+            throw exception;
         } catch (RuntimeException exception) {
             usageGuard.failed(reservation);
             throw exception;

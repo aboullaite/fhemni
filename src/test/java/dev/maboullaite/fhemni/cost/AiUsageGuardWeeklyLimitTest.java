@@ -96,6 +96,24 @@ class AiUsageGuardWeeklyLimitTest {
         verify(repository, never()).reserve(any(), any(), any(), any(), any());
     }
 
+    @Test
+    void rejectsTheNextQuestionAfterAnAnswerCrossesTheDailyTokenLimit() {
+        AiUsageRepository repository = mock(AiUsageRepository.class);
+        UUID userId = UUID.randomUUID();
+        when(repository.countGlobal(HOUR_START, NEXT_HOUR, false)).thenReturn(12L);
+        when(repository.countGlobal(DAY_START, NEXT_DAY, false)).thenReturn(80L);
+        when(repository.sumQuestionOutputTokensForUser(userId, DAY_START, NEXT_DAY)).thenReturn(10_250L);
+        AiUsageGuard guard = guard(repository);
+
+        assertThatThrownBy(() -> guard.reserveQuestion(
+                UUID.randomUUID(), userId, AiOperation.CHAT_VIDEO, "test-model"))
+                .isInstanceOfSatisfying(AiBudgetExceededException.class, exception ->
+                        assertThat(exception.code()).isEqualTo("CHAT_DAILY_TOKEN_LIMIT"));
+
+        verify(repository, never()).countQuestionsForUser(any(), any(), any());
+        verify(repository, never()).reserve(any(), any(), any(), any(), any());
+    }
+
     private static AiUsageGuard guard(AiUsageRepository repository) {
         return new AiUsageGuard(repository, SUNDAY, true, true, 5, 50, 500, 5);
     }

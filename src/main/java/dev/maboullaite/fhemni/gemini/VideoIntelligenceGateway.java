@@ -18,6 +18,7 @@ import com.google.genai.gaos.models.interactions.ResponseFormat;
 import com.google.genai.gaos.models.interactions.TextContent;
 import com.google.genai.gaos.models.interactions.TextResponseFormat;
 import com.google.genai.gaos.models.interactions.TextResponseFormatMimeType;
+import com.google.genai.gaos.models.interactions.ThinkingLevel;
 import com.google.genai.gaos.models.interactions.VideoContent;
 import dev.maboullaite.fhemni.model.Chapter;
 import dev.maboullaite.fhemni.model.Claim;
@@ -59,7 +60,7 @@ public class VideoIntelligenceGateway {
             SpringAiFactCheckClient factCheckClient,
             ObjectMapper mapper,
             @Value("${fhemni.gemini.analysis-max-output-tokens:8192}") int analysisMaxOutputTokens,
-            @Value("${fhemni.gemini.question-max-output-tokens:1024}") int questionMaxOutputTokens) {
+            @Value("${fhemni.gemini.question-max-output-tokens:16384}") int questionMaxOutputTokens) {
         if (analysisMaxOutputTokens < 512 || questionMaxOutputTokens < 128) {
             throw new IllegalArgumentException("Gemini output token limits are too small");
         }
@@ -147,6 +148,10 @@ public class VideoIntelligenceGateway {
         CreateModelInteraction.Builder request = baseRequest(
                         InteractionsInput.of(questionPrompt(question, mode, language, report)),
                         questionMaxOutputTokens)
+                .generationConfig(GenerationConfig.builder()
+                        .maxOutputTokens(questionMaxOutputTokens)
+                        .thinkingLevel(ThinkingLevel.LOW)
+                        .build())
                 .previousInteractionId(previousInteractionId);
         if (mode == QuestionMode.CHECK) {
             request.tools(List.of(new GoogleSearch()));
@@ -232,6 +237,7 @@ public class VideoIntelligenceGateway {
         return """
                 Respond in %s.
                 %s
+                Give a complete, focused answer. Avoid repetition and unnecessary preamble.
 
                 User question: %s
 

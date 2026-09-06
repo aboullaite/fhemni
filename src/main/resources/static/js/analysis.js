@@ -190,7 +190,10 @@ function configureChatAccess() {
     const authenticated = Boolean(state.authSession?.authenticated);
     const chatEnabled = Boolean(state.meta?.chatEnabled);
     const quota = state.authSession?.chatQuota;
-    const quotaExhausted = authenticated && chatEnabled && quota && Number(quota.remaining) <= 0;
+    const weeklyQuotaExhausted = authenticated && chatEnabled && quota && Number(quota.remaining) <= 0;
+    const dailyTokenQuotaExhausted = authenticated && chatEnabled && quota
+        && Number(quota.dailyOutputTokensRemaining) <= 0;
+    const quotaExhausted = weeklyQuotaExhausted || dailyTokenQuotaExhausted;
     const canChat = authenticated && chatEnabled && !quotaExhausted;
     elements.questionForm.hidden = !canChat;
     elements.chatAuthGate.hidden = canChat;
@@ -200,13 +203,17 @@ function configureChatAccess() {
     elements.chatQuota.textContent = quota
         ? t('analysis.chatQuota', { remaining: quota.remaining, limit: quota.weeklyLimit })
         : '';
-    elements.chatGateTitle.textContent = quotaExhausted
-        ? t('analysis.chatQuotaUsedTitle')
-        : t(chatEnabled ? 'analysis.signInToChat' : 'analysis.chatComingSoonTitle');
+    elements.chatGateTitle.textContent = dailyTokenQuotaExhausted
+        ? t('analysis.chatDailyTokenLimitTitle')
+        : (weeklyQuotaExhausted
+            ? t('analysis.chatQuotaUsedTitle')
+            : t(chatEnabled ? 'analysis.signInToChat' : 'analysis.chatComingSoonTitle'));
     elements.chatGateText.hidden = !chatEnabled;
-    elements.chatGateText.textContent = quotaExhausted
-        ? t('analysis.chatQuotaUsedText', { limit: quota.weeklyLimit })
-        : (chatEnabled ? t('analysis.chatPrivacy') : '');
+    elements.chatGateText.textContent = dailyTokenQuotaExhausted
+        ? t('analysis.chatDailyTokenLimit')
+        : (weeklyQuotaExhausted
+            ? t('analysis.chatQuotaUsedText', { limit: quota.weeklyLimit })
+            : (chatEnabled ? t('analysis.chatPrivacy') : ''));
     elements.chatLoginLink.href = window.FhemniAuth.loginPage(window.location.pathname);
 }
 
@@ -517,6 +524,7 @@ function chatErrorMessage(error) {
     }
     if (error.code === 'CHAT_HOURLY_LIMIT') return t('analysis.chatHourlyLimit');
     if (error.code === 'CHAT_DAILY_LIMIT') return t('analysis.chatDailyLimit');
+    if (error.code === 'CHAT_DAILY_TOKEN_LIMIT') return t('analysis.chatDailyTokenLimit');
     return error.message;
 }
 
