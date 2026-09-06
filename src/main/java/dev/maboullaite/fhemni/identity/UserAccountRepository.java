@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
@@ -129,7 +130,7 @@ public class UserAccountRepository {
             return updateExisting(existing.get(), profile, administrator);
         }
 
-        Instant now = Instant.now();
+        Instant now = databaseInstant();
         AppUser user = new AppUser(
                 UUID.randomUUID(),
                 profile.displayName(),
@@ -175,7 +176,7 @@ public class UserAccountRepository {
             AppUser existing,
             ExternalIdentityProfile profile,
             boolean administrator) {
-        Instant now = Instant.now();
+        Instant now = databaseInstant();
         UserRole role = administrator
                 ? UserRole.ADMIN
                 : existing.role() == UserRole.ADMIN ? UserRole.USER : existing.role();
@@ -229,6 +230,10 @@ public class UserAccountRepository {
 
     private static OffsetDateTime atUtc(Instant instant) {
         return instant.atOffset(ZoneOffset.UTC);
+    }
+
+    private static Instant databaseInstant() {
+        return Instant.now().truncatedTo(ChronoUnit.MICROS);
     }
 
     private static Instant instant(ResultSet resultSet, String column) throws SQLException {

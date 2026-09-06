@@ -52,7 +52,7 @@ public class YouTubeOEmbedClient implements VideoMetadataGateway {
             JsonNode payload = objectMapper.readTree(response.body());
             String title = requiredText(payload, "title");
             String author = requiredText(payload, "author_name");
-            String thumbnail = payload.path("thumbnail_url").asText("").strip();
+            String thumbnail = payload.path("thumbnail_url").asString("").strip();
             if (!isYouTubeThumbnail(thumbnail)) {
                 thumbnail = "https://i.ytimg.com/vi/" + youtubeVideoId + "/hqdefault.jpg";
             }
@@ -66,7 +66,7 @@ public class YouTubeOEmbedClient implements VideoMetadataGateway {
     }
 
     private String requiredText(JsonNode payload, String name) {
-        String value = payload.path(name).asText("").strip();
+        String value = payload.path(name).asString("").strip();
         if (value.isBlank()) {
             throw new IllegalStateException("YouTube returned incomplete video metadata.");
         }
