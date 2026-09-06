@@ -32,9 +32,10 @@ public class CatalogVideoRepository {
         this.jdbc = jdbc;
     }
 
-    public CatalogPage findPublic(String query, String language, int page, int size) {
+    public CatalogPage findPublic(
+            String query, String language, int page, int size, List<String> extraReportPatterns) {
         List<Object> parameters = new ArrayList<>();
-        String where = publicWhere(query, language, parameters);
+        String where = publicWhere(query, language, parameters, extraReportPatterns);
 
         JdbcClient.StatementSpec count = jdbc.sql("SELECT COUNT(*) FROM catalog_videos " + where);
         count = bind(count, parameters);
@@ -193,16 +194,35 @@ public class CatalogVideoRepository {
         return new SaveResult(true, video);
     }
 
-    private String publicWhere(String query, String language, List<Object> parameters) {
+    private String publicWhere(
+            String query, String language, List<Object> parameters, List<String> extraReportPatterns) {
         StringBuilder where = new StringBuilder("WHERE listed = TRUE");
         if (query != null && !query.isBlank()) {
             where.append(" AND (LOWER(title) LIKE ? ESCAPE '\\'"
                     + " OR LOWER(author_name) LIKE ? ESCAPE '\\'"
-                    + " OR LOWER(show_name) LIKE ? ESCAPE '\\')");
+                    + " OR LOWER(show_name) LIKE ? ESCAPE '\\'"
+                    + " OR EXISTS (SELECT 1 FROM analysis_revisions ar"
+                    + " WHERE ar.id = catalog_videos.published_analysis_id"
+                    + " AND (LOWER(ar.report_json) LIKE ? ESCAPE '\\'");
             String like = "%" + escapeLikePattern(query.strip().toLowerCase(Locale.ROOT)) + "%";
             parameters.add(like);
             parameters.add(like);
             parameters.add(like);
+            parameters.add(like);
+            // Bilingual person search: a French query must also match the Arabic
+            // spellings known for that guest (and vice versa). SQL LIKE cannot
+            // transliterate, so the caller expands directory matches into
+            // additional literal patterns over the published briefing.
+            if (extraReportPatterns != null) {
+                for (String extra : extraReportPatterns) {
+                    if (extra == null || extra.isBlank()) {
+                        continue;
+                    }
+                    where.append(" OR LOWER(ar.report_json) LIKE ? ESCAPE '\\'");
+                    parameters.add("%" + escapeLikePattern(extra.strip().toLowerCase(Locale.ROOT)) + "%");
+                }
+            }
+            where.append(")))");
         }
         if (language != null && !language.isBlank()) {
             where.append(" AND source_language = ?");
