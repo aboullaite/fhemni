@@ -230,9 +230,18 @@ function renderChatQuota(quota) {
         remaining: quota.remaining,
         limit: quota.weeklyLimit
     });
-    elements.chatQuestionQuota.textContent = `${quota.remaining}/${quota.weeklyLimit}`;
+    const usageSummary = t('analysis.chatUsageSummary', {
+        percent: tokenPercent,
+        remaining: quota.remaining,
+        limit: quota.weeklyLimit
+    });
+    elements.chatQuestionQuota.textContent = t('analysis.chatQuestionsCompact', {
+        remaining: quota.remaining,
+        limit: quota.weeklyLimit
+    });
     elements.chatQuestionQuota.setAttribute('aria-label', questionQuotaLabel);
-    elements.chatQuestionQuota.title = questionQuotaLabel;
+    elements.chatQuota.setAttribute('aria-label', usageSummary);
+    elements.chatQuota.dataset.tip = usageSummary;
     elements.chatTokenPercent.textContent = `${tokenPercent}%`;
     elements.chatTokenRing.setAttribute('stroke-dashoffset', String(100 - tokenPercent));
     elements.chatTokenProgress.setAttribute('aria-valuemax', String(dailyLimit));

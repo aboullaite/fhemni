@@ -169,23 +169,24 @@
                         <p id="chatGateText" class="mx-auto mb-4 mt-2 max-w-xl text-sm text-base-content/65" data-i18n="analysis.chatPrivacy" hidden></p>
                         <a id="chatLoginLink" class="primary-button" href="/login" data-i18n="common.signIn">Sign in</a>
                     </div>
-                    <form id="questionForm" class="question-form mx-5 mb-2 grid grid-cols-[1fr_auto] gap-2 rounded-box border border-base-300 bg-base-100 p-2 ps-4 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10">
+                    <form id="questionForm" class="question-form mx-5 mb-5 grid grid-cols-[1fr_auto] gap-2 rounded-box border border-base-300 bg-base-100 p-2 ps-4 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10">
                         <textarea id="questionInput" class="textarea h-auto min-h-12 w-full min-w-0 resize-none border-0 bg-transparent px-0 text-sm shadow-none outline-none focus:outline-none" rows="2" maxlength="600" placeholder="What did the speaker say about…?" data-i18n-placeholder="analysis.questionPlaceholder" required></textarea>
                         <button id="askButton" class="send-button btn btn-circle btn-primary self-end shadow-md" type="submit" aria-label="Send question" data-i18n-aria-label="analysis.sendQuestion">
                             <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
                         </button>
-                    </form>
-                    <div id="chatQuota" class="mx-6 mb-5 flex items-center gap-2 text-base-content/55" hidden>
-                        <div id="chatTokenProgress" class="relative grid size-9 shrink-0 place-items-center" role="progressbar" aria-valuemin="0" aria-valuemax="10000" aria-valuenow="0">
-                            <svg class="absolute inset-0 size-full -rotate-90" viewBox="0 0 48 48" aria-hidden="true">
-                                <circle cx="24" cy="24" r="20" pathLength="100" fill="none" stroke-width="4" class="stroke-base-300"></circle>
-                                <circle id="chatTokenRing" cx="24" cy="24" r="20" pathLength="100" fill="none" stroke-width="4" stroke-linecap="round" stroke-dasharray="100" stroke-dashoffset="100" class="stroke-primary transition-[stroke-dashoffset] duration-300"></circle>
-                            </svg>
-                            <span id="chatTokenPercent" class="relative text-[9px] font-black text-primary">0%</span>
+                        <div id="chatQuota" class="tooltip tooltip-top col-span-full flex w-max max-w-full items-center gap-2 rounded-full bg-base-200/70 px-2 py-1 text-base-content/55" role="group" aria-label="" data-tip="" hidden>
+                            <span class="text-[10px] font-black uppercase tracking-wide" data-i18n="analysis.chatUsageLabel">Usage</span>
+                            <div id="chatTokenProgress" class="relative grid size-8 shrink-0 place-items-center" role="progressbar" aria-valuemin="0" aria-valuemax="10000" aria-valuenow="0">
+                                <svg class="absolute inset-0 size-full -rotate-90" viewBox="0 0 48 48" aria-hidden="true">
+                                    <circle cx="24" cy="24" r="20" pathLength="100" fill="none" stroke-width="4" class="stroke-base-300"></circle>
+                                    <circle id="chatTokenRing" cx="24" cy="24" r="20" pathLength="100" fill="none" stroke-width="4" stroke-linecap="round" stroke-dasharray="100" stroke-dashoffset="100" class="stroke-primary transition-[stroke-dashoffset] duration-300"></circle>
+                                </svg>
+                                <span id="chatTokenPercent" class="relative text-[8px] font-black text-primary">0%</span>
+                            </div>
+                            <span aria-hidden="true" class="text-base-content/25">·</span>
+                            <span id="chatQuestionQuota" class="text-xs font-bold" aria-label=""></span>
                         </div>
-                        <span aria-hidden="true" class="text-base-content/25">·</span>
-                        <span id="chatQuestionQuota" class="font-mono text-xs font-bold" aria-label=""></span>
-                    </div>
+                    </form>
                 </section>
                 <aside class="ask-aside flex flex-col gap-7">
                     <div class="trust-card card border border-base-300 bg-base-100/90 shadow-lg">
@@ -211,9 +212,9 @@
     <a class="footer-feedback-link" href="https://github.com/aboullaite/fhemni/issues" target="_blank" rel="noopener noreferrer" data-i18n="common.suggestFeature">Suggest a feature</a>
 </footer>
 
-<script src="/js/i18n.js?v=20260906-14" defer></script>
+<script src="/js/i18n.js?v=20260906-15" defer></script>
 <script src="/js/auth.js?v=20260906-2" defer></script>
 <script src="/js/markdown.js?v=20260906-1" defer></script>
-<script src="/js/analysis.js?v=20260906-6" defer></script>
+<script src="/js/analysis.js?v=20260906-7" defer></script>
 </body>
 </html>
