@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="src/main/resources/static/assets/brand/fhemni-logo.png" alt="Fhemni — فهّمني" width="420">
+  <img src="docs/assets/fhemni-readme-logo.png" alt="Fhemni — فهّمني" width="420">
 </p>
 
 # Fhemni — فهّمني
