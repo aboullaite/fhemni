@@ -16,12 +16,20 @@
     const batchLanguage = document.querySelector('#batchAnalysisLanguage');
     const batchButton = document.querySelector('#batchAnalysisButton');
     const batchFeedback = document.querySelector('#batchAnalysisFeedback');
+    const contextMigrationPanel = document.querySelector('#contextMigrationPanel');
+    const contextMigrationButton = document.querySelector('#contextMigrationButton');
+    const contextMigrationFeedback = document.querySelector('#contextMigrationFeedback');
     let videos = [];
     let suggestions = [];
     let analysisAvailable = false;
     let batchRunning = false;
     let batchStatus = null;
     let batchPollTimer = null;
+    let contextMigrationEnabled = false;
+    let contextMigrationPending = 0;
+    let contextMigrationStatus = null;
+    let contextMigrationRunning = false;
+    let contextMigrationPollTimer = null;
 
     function t(key, parameters = {}) {
         return window.FhemniI18n?.t(key, parameters) ?? key;
@@ -100,8 +108,8 @@
         list.replaceChildren();
         count.textContent = t('catalog.episodeCount', { count: videos.length });
         const pendingCount = pendingVideos().length;
-        batchButton.disabled = batchRunning || !analysisAvailable || pendingCount === 0;
-        batchLanguage.disabled = batchRunning || !analysisAvailable || pendingCount === 0;
+        batchButton.disabled = batchRunning || contextMigrationRunning || !analysisAvailable || pendingCount === 0;
+        batchLanguage.disabled = batchRunning || contextMigrationRunning || !analysisAvailable || pendingCount === 0;
         batchButton.textContent = batchRunning
             ? t('admin.batchRunning')
             : t('admin.runBatchCount', { count: pendingCount });
@@ -155,7 +163,7 @@
             analyze.textContent = t(video.latestAnalysisStatus === 'COMPLETED'
                 ? 'admin.reprocessAnalysis'
                 : 'admin.runAnalysis');
-            analyze.disabled = batchRunning || !analysisAvailable;
+            analyze.disabled = batchRunning || contextMigrationRunning || !analysisAvailable;
             if (!analysisAvailable) analyze.title = t('admin.analysisUnavailable');
             analyze.addEventListener('click', () => launchAnalysis(
                 video, outputLanguage, analyze, forceReprocess));
@@ -310,6 +318,100 @@
         window.clearTimeout(batchPollTimer);
         if (!batchRunning) return;
         batchPollTimer = window.setTimeout(loadBatchStatus, 4_000);
+    }
+
+    async function loadContextMigrationStatus() {
+        try {
+            const overview = await window.FhemniCatalog.requestJson(
+                '/api/admin/catalog/context-migration', {}, 30_000);
+            contextMigrationEnabled = overview.enabled === true;
+            contextMigrationPending = overview.pending || 0;
+            contextMigrationStatus = overview.latest || null;
+            contextMigrationRunning = contextMigrationStatus?.state === 'RUNNING';
+            renderContextMigrationStatus();
+            renderVideos();
+            if (contextMigrationRunning) scheduleContextMigrationPoll();
+        } catch (error) {
+            if (contextMigrationRunning) {
+                showContextMigrationFeedback(t('admin.contextMigrationStatusFailed', {
+                    message: error.message
+                }), true);
+                scheduleContextMigrationPoll();
+            }
+        }
+    }
+
+    async function runContextMigration() {
+        if (!contextMigrationEnabled || contextMigrationRunning || !analysisAvailable
+                || contextMigrationPending === 0) return;
+        if (!window.confirm(t('admin.contextMigrationConfirm', { count: contextMigrationPending }))) return;
+
+        contextMigrationRunning = true;
+        renderContextMigrationStatus();
+        renderVideos();
+        try {
+            const options = await window.FhemniAuth.withCsrf({
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ maxItems: Math.min(100, contextMigrationPending) })
+            });
+            contextMigrationStatus = await window.FhemniCatalog.requestJson(
+                '/api/admin/catalog/context-migration', options, 30_000);
+            contextMigrationRunning = contextMigrationStatus?.state === 'RUNNING';
+            renderContextMigrationStatus();
+            if (contextMigrationRunning) scheduleContextMigrationPoll();
+        } catch (error) {
+            contextMigrationRunning = false;
+            showContextMigrationFeedback(t('admin.contextMigrationFailed', {
+                message: error.message
+            }), true);
+            renderContextMigrationStatus();
+            renderVideos();
+        }
+    }
+
+    function renderContextMigrationStatus() {
+        contextMigrationPanel.hidden = !contextMigrationEnabled;
+        if (!contextMigrationEnabled) return;
+        contextMigrationButton.disabled = contextMigrationRunning
+            || !analysisAvailable
+            || contextMigrationPending === 0;
+        contextMigrationButton.textContent = contextMigrationRunning
+            ? t('admin.contextMigrationRunning')
+            : t('admin.contextMigrationRunCount', { count: contextMigrationPending });
+        if (!contextMigrationStatus) return;
+
+        if (contextMigrationStatus.state === 'RUNNING') {
+            const current = Math.min(
+                contextMigrationStatus.completed + contextMigrationStatus.failed + 1,
+                contextMigrationStatus.total);
+            showContextMigrationFeedback(t('admin.contextMigrationProgress', {
+                current,
+                count: contextMigrationStatus.total,
+                title: contextMigrationStatus.currentVideoTitle || '…'
+            }), false);
+            return;
+        }
+        if (contextMigrationStatus.state === 'COMPLETED') {
+            showContextMigrationFeedback(t('admin.contextMigrationComplete', {
+                count: contextMigrationStatus.completed
+            }), false);
+            return;
+        }
+        showContextMigrationFeedback(t('admin.contextMigrationCompletedWithErrors', {
+            completed: contextMigrationStatus.completed,
+            failed: contextMigrationStatus.failed,
+            message: contextMigrationStatus.error || t('admin.batchEpisodeFailed')
+        }), true);
+    }
+
+    function scheduleContextMigrationPoll() {
+        window.clearTimeout(contextMigrationPollTimer);
+        if (!contextMigrationRunning) return;
+        contextMigrationPollTimer = window.setTimeout(async () => {
+            await loadContextMigrationStatus();
+            if (!contextMigrationRunning) await loadVideos();
+        }, 5_000);
     }
 
     function renderSuggestions() {
@@ -468,19 +570,28 @@
         catalogMetadataFeedback.hidden = false;
     }
 
+    function showContextMigrationFeedback(message, error) {
+        contextMigrationFeedback.className = `import-feedback ${error ? 'error' : 'success'}`;
+        contextMigrationFeedback.textContent = message;
+        contextMigrationFeedback.hidden = false;
+    }
+
     form.addEventListener('submit', importVideos);
     batchButton.addEventListener('click', runBatchAnalysis);
+    contextMigrationButton.addEventListener('click', runContextMigration);
     refreshSuggestionMetadata.addEventListener('click', refreshMissingSuggestionMetadata);
     refreshCatalogDates.addEventListener('click', refreshMissingCatalogDates);
     document.addEventListener('DOMContentLoaded', () => Promise.all([
         loadCapabilities(),
         loadVideos(),
         loadSuggestions(),
-        loadBatchStatus()
+        loadBatchStatus(),
+        loadContextMigrationStatus()
     ]));
     document.addEventListener('fhemni:localechange', () => {
         renderVideos();
         renderSuggestions();
         renderBatchStatus();
+        renderContextMigrationStatus();
     });
 })();

@@ -36,12 +36,19 @@ Flyway owns the schema. Local development uses file-backed H2 in PostgreSQL
 compatibility mode; PostgreSQL is supported for container deployments.
 
 Catalogue entries, external identities, suggestions, votes, AI usage records,
-and completed analysis revisions are durable. Follow-up conversation state is
-bounded and process-local. Restarting does not remove a published report.
+completed analysis revisions, and private Gemini video contexts are durable.
+Follow-up conversation state is bounded and process-local. Restarting does not
+remove a published report.
 
 A completed revision is reused only when the video, language, prompt versions,
 model identities, and live/demo mode match. Reprocessing creates a new draft and
 does not replace the published revision until explicit publication.
+
+Report reuse is independent from the Gemini credential. Chat contexts are keyed
+separately by video, language, model, context-prompt version, and a non-secret
+credential-generation label. Rotating to a key from another Google project can
+therefore rebuild chat contexts once without replacing reviewed public reports
+or repeating the independent fact-check stage.
 
 Reuse is checked before reserving AI usage. Repeated submissions return the
 stored revision, while duplicate in-flight requests on the single application

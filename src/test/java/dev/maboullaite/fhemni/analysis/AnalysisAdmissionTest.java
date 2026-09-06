@@ -41,6 +41,7 @@ class AnalysisAdmissionTest {
         when(gateway.promptVersion()).thenReturn("prompt-test");
         when(gateway.factCheckModel()).thenReturn("fact-model-test");
         when(gateway.factCheckPromptVersion()).thenReturn("fact-prompt-test");
+        when(gateway.credentialVersion()).thenReturn("credential-test");
         AnalysisSnapshot cached = new AnalysisSnapshot(
                 UUID.randomUUID(),
                 "https://www.youtube.com/watch?v=n5B3boj2MFM",
@@ -62,16 +63,17 @@ class AnalysisAdmissionTest {
                 "fact-model-test", "fact-prompt-test", false))
                 .thenReturn(Optional.of(new StoredRevision(
                         cached, "interaction-id", "gemini-test", "prompt-test",
-                        "fact-model-test", "fact-prompt-test")));
+                        "fact-model-test", "fact-prompt-test", "credential-test")));
         AnalysisService service = new AnalysisService(
                 new YouTubeUrlParser(), gateway, events, executor, usage, revisions,
+                mock(VideoContextRepository.class),
                 10, Duration.ofHours(1), 10, 4, 10);
 
         AnalysisSnapshot result = service.create("https://youtu.be/n5B3boj2MFM", "ary");
 
         assertThat(result.id()).isEqualTo(cached.id());
         verify(usage, never()).reserveAnalysis(any(), any());
-        verify(revisions, never()).create(any(AnalysisSnapshot.class), any(), any(), any(), any());
+        verify(revisions, never()).create(any(AnalysisSnapshot.class), any(), any(), any(), any(), any());
         verify(executor, never()).execute(any());
     }
 
@@ -87,6 +89,7 @@ class AnalysisAdmissionTest {
         when(gateway.promptVersion()).thenReturn("prompt-test");
         when(gateway.factCheckModel()).thenReturn("fact-model-test");
         when(gateway.factCheckPromptVersion()).thenReturn("fact-prompt-test");
+        when(gateway.credentialVersion()).thenReturn("credential-test");
         when(revisions.findReusable(
                 "n5B3boj2MFM", OutputLanguage.DARIJA,
                 "gemini-test", "prompt-test",
@@ -97,12 +100,13 @@ class AnalysisAdmissionTest {
 
         AnalysisService service = new AnalysisService(
                 new YouTubeUrlParser(), gateway, events, executor, usage, revisions,
+                mock(VideoContextRepository.class),
                 10, Duration.ofHours(1), 10, 4, 10);
 
         assertThrows(AiBudgetExceededException.class,
                 () -> service.create("https://youtu.be/n5B3boj2MFM", "ary"));
 
-        verify(revisions, never()).create(any(AnalysisSnapshot.class), any(), any(), any(), any());
+        verify(revisions, never()).create(any(AnalysisSnapshot.class), any(), any(), any(), any(), any());
         verify(executor, never()).execute(any());
     }
 
@@ -118,6 +122,7 @@ class AnalysisAdmissionTest {
         when(gateway.promptVersion()).thenReturn("new-analysis-prompt");
         when(gateway.factCheckModel()).thenReturn("new-fact-model");
         when(gateway.factCheckPromptVersion()).thenReturn("new-fact-prompt");
+        when(gateway.credentialVersion()).thenReturn("next-credential");
         when(revisions.findReusable(
                 "n5B3boj2MFM", OutputLanguage.DARIJA,
                 "new-analysis-model", "new-analysis-prompt",
@@ -127,13 +132,14 @@ class AnalysisAdmissionTest {
 
         AnalysisService service = new AnalysisService(
                 new YouTubeUrlParser(), gateway, events, executor, usage, revisions,
+                mock(VideoContextRepository.class),
                 10, Duration.ofHours(1), 10, 4, 10);
 
         assertThrows(IllegalStateException.class,
                 () -> service.create("https://youtu.be/n5B3boj2MFM", "ary"));
 
         verify(usage, never()).reserveAnalysis(any(), any());
-        verify(revisions, never()).create(any(AnalysisSnapshot.class), any(), any(), any(), any());
+        verify(revisions, never()).create(any(AnalysisSnapshot.class), any(), any(), any(), any(), any());
         verify(executor, never()).execute(any());
     }
 }

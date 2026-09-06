@@ -179,6 +179,20 @@ class SecurityIntegrationTest {
     }
 
     @Test
+    void protectsTheOneOffContextMigrationAsAnAdminApi() throws Exception {
+        mvc.perform(get("/api/admin/catalog/context-migration"))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/admin/catalog/context-migration")
+                        .with(user("member").roles("USER")))
+                .andExpect(status().isForbidden());
+        mvc.perform(get("/api/admin/catalog/context-migration")
+                        .with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.enabled").value(false))
+                .andExpect(jsonPath("$.pending").value(0));
+    }
+
+    @Test
     void servesAdministrationToAdministrators() throws Exception {
         mvc.perform(get("/admin").with(user("admin").roles("ADMIN")))
                 .andExpect(status().isOk())
