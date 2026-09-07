@@ -15,6 +15,10 @@ spring:
       minimum-idle: ${JDBC_MIN_IDLE:1}
   flyway:
     enabled: true
+  session:
+    jdbc:
+      # Flyway owns the schema so every environment uses the same reviewed migration.
+      initialize-schema: never
 
 server:
   port: ${PORT:8080}
@@ -23,6 +27,13 @@ server:
     include-binding-errors: never
     include-stacktrace: never
     include-exception: false
+  servlet:
+    session:
+      timeout: ${FHEMNI_LOGIN_SESSION_TIMEOUT:8h}
+      cookie:
+        name: FHEMNI_SESSION
+        http-only: true
+        same-site: lax
 
 fhemni:
   analytics:

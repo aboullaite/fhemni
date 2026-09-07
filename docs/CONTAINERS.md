@@ -3,6 +3,9 @@
 The included Compose file runs the Spring Boot application with PostgreSQL. It
 does not include a public reverse proxy or provider credentials.
 
+Flyway also creates the Spring Session tables in PostgreSQL. Login sessions
+therefore survive application-container replacement without requiring Redis.
+
 Copy the non-secret settings:
 
 ```bash

@@ -15,12 +15,8 @@ server:
     mime-types: application/json,text/html,text/css,text/javascript,application/javascript,image/svg+xml
   servlet:
     session:
-      timeout: 8h
       cookie:
-        name: FHEMNI_SESSION
-        http-only: true
         secure: true
-        same-site: lax
 
 fhemni:
   cost-control:
