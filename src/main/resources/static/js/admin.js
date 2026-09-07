@@ -19,6 +19,16 @@
     const contextMigrationPanel = document.querySelector('#contextMigrationPanel');
     const contextMigrationButton = document.querySelector('#contextMigrationButton');
     const contextMigrationFeedback = document.querySelector('#contextMigrationFeedback');
+    const refreshMetricsButton = document.querySelector('#refreshAdminMetrics');
+    const metricsFeedback = document.querySelector('#adminMetricsFeedback');
+    const registeredUsersMetric = document.querySelector('#registeredUsersMetric');
+    const registeredUsersDetail = document.querySelector('#registeredUsersDetail');
+    const chatRoundsMetric = document.querySelector('#chatRoundsMetric');
+    const chatRoundsDetail = document.querySelector('#chatRoundsDetail');
+    const chatTokensMetric = document.querySelector('#chatTokensMetric');
+    const chatTokensDetail = document.querySelector('#chatTokensDetail');
+    const allAiTokensMetric = document.querySelector('#allAiTokensMetric');
+    const allAiTokensDetail = document.querySelector('#allAiTokensDetail');
     let videos = [];
     let suggestions = [];
     let analysisAvailable = false;
@@ -30,9 +40,60 @@
     let contextMigrationStatus = null;
     let contextMigrationRunning = false;
     let contextMigrationPollTimer = null;
+    let metrics = null;
 
     function t(key, parameters = {}) {
         return window.FhemniI18n?.t(key, parameters) ?? key;
+    }
+
+    async function loadMetrics() {
+        refreshMetricsButton.disabled = true;
+        metricsFeedback.hidden = true;
+        try {
+            metrics = await window.FhemniCatalog.requestJson('/api/admin/metrics/overview');
+            renderMetrics();
+        } catch (error) {
+            metricsFeedback.textContent = t('admin.metricsFailed', { message: error.message });
+            metricsFeedback.hidden = false;
+        } finally {
+            refreshMetricsButton.disabled = false;
+        }
+    }
+
+    function renderMetrics() {
+        if (!metrics) return;
+        registeredUsersMetric.textContent = formatMetric(metrics.users.registered);
+        registeredUsersDetail.textContent = t('admin.metricsUsersDetail', {
+            newUsers: formatMetric(metrics.users.newLast24Hours),
+            activeUsers: formatMetric(metrics.users.activeLast24Hours)
+        });
+        chatRoundsMetric.textContent = formatMetric(metrics.chat.requests);
+        chatRoundsDetail.textContent = t('admin.metricsChatDetail', {
+            users: formatMetric(metrics.chat.users),
+            succeeded: formatMetric(metrics.chat.succeeded),
+            failed: formatMetric(metrics.chat.failed),
+            pending: formatMetric(metrics.chat.pending),
+            stale: formatMetric(metrics.chat.stale)
+        });
+        chatTokensMetric.textContent = formatMetric(metrics.chat.recordedTokens, true);
+        chatTokensDetail.textContent = t('admin.metricsTokenDetail', {
+            input: formatMetric(metrics.chat.inputTokens, true),
+            output: formatMetric(metrics.chat.outputTokens, true),
+            thought: formatMetric(metrics.chat.thoughtTokens, true)
+        });
+        allAiTokensMetric.textContent = formatMetric(metrics.allAi.recordedTokens, true);
+        allAiTokensDetail.textContent = t('admin.metricsAllAiDetail', {
+            requests: formatMetric(metrics.allAi.requests),
+            pending: formatMetric(metrics.allAi.pending),
+            stale: formatMetric(metrics.allAi.stale),
+            cached: formatMetric(metrics.allAi.cachedTokens, true)
+        });
+    }
+
+    function formatMetric(value, compact = false) {
+        return new Intl.NumberFormat(window.FhemniI18n?.locale() || 'en', compact
+            ? { notation: 'compact', maximumFractionDigits: 1 }
+            : undefined).format(Number(value) || 0);
     }
 
     async function loadVideos() {
@@ -579,10 +640,12 @@
     form.addEventListener('submit', importVideos);
     batchButton.addEventListener('click', runBatchAnalysis);
     contextMigrationButton.addEventListener('click', runContextMigration);
+    refreshMetricsButton.addEventListener('click', loadMetrics);
     refreshSuggestionMetadata.addEventListener('click', refreshMissingSuggestionMetadata);
     refreshCatalogDates.addEventListener('click', refreshMissingCatalogDates);
     document.addEventListener('DOMContentLoaded', () => Promise.all([
         loadCapabilities(),
+        loadMetrics(),
         loadVideos(),
         loadSuggestions(),
         loadBatchStatus(),
@@ -591,6 +654,7 @@
     document.addEventListener('fhemni:localechange', () => {
         renderVideos();
         renderSuggestions();
+        renderMetrics();
         renderBatchStatus();
         renderContextMigrationStatus();
     });
