@@ -1,7 +1,8 @@
 package dev.maboullaite.fhemni.web;
 
 import dev.maboullaite.fhemni.identity.LoginSuccessHandler;
-import jakarta.servlet.http.HttpServletRequest;
+import dev.maboullaite.fhemni.identity.LoginReturnTargetCookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -9,6 +10,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class PageController {
+
+    private final LoginReturnTargetCookie returnTarget;
+
+    public PageController(LoginReturnTargetCookie returnTarget) {
+        this.returnTarget = returnTarget;
+    }
 
     @GetMapping("/analyses/{analysisId}")
     public String analysisPage(@PathVariable String analysisId) {
@@ -43,9 +50,9 @@ public class PageController {
     @GetMapping("/login")
     public String login(
             @RequestParam(name = "continue", required = false) String returnTo,
-            HttpServletRequest request) {
+            HttpServletResponse response) {
         if (LoginSuccessHandler.safeLocalPath(returnTo)) {
-            request.getSession(true).setAttribute(LoginSuccessHandler.RETURN_TO_SESSION_ATTRIBUTE, returnTo);
+            returnTarget.save(response, returnTo);
         }
         return "forward:/login.html";
     }

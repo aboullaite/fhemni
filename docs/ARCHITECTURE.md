@@ -37,8 +37,11 @@ compatibility mode; PostgreSQL is supported for container deployments.
 
 Catalogue entries, external identities, suggestions, votes, AI usage records,
 completed analysis revisions, and private Gemini video contexts are durable.
-Follow-up conversation state is bounded and process-local. Restarting does not
-remove a published report.
+Login sessions are stored in the same database through Spring Session JDBC, so
+an application restart or traffic switch does not sign users out. Follow-up
+conversation state is bounded and process-local; it must move to shared storage
+before multiple application instances can serve chat traffic concurrently.
+Restarting does not remove a published report.
 
 A completed revision is reused only when the video, language, prompt versions,
 model identities, and live/demo mode match. Reprocessing creates a new draft and

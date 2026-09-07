@@ -1,6 +1,7 @@
 package dev.maboullaite.fhemni.identity;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -15,15 +16,30 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.session.web.http.CookieSerializer;
+import org.springframework.session.web.http.DefaultCookieSerializer;
 
 @Configuration
 @EnableWebSecurity
 @EnableConfigurationProperties(AuthProperties.class)
 public class SecurityConfiguration {
+
+    @Bean
+    CookieSerializer sessionCookieSerializer(
+            @Value("${server.servlet.session.cookie.secure:false}") boolean secure) {
+        DefaultCookieSerializer serializer = new DefaultCookieSerializer();
+        serializer.setCookieName("FHEMNI_SESSION");
+        serializer.setCookiePath("/");
+        serializer.setUseHttpOnlyCookie(true);
+        serializer.setUseSecureCookie(secure);
+        serializer.setSameSite("Lax");
+        return serializer;
+    }
 
     @Bean
     SecurityFilterChain securityFilterChain(
@@ -79,6 +95,9 @@ public class SecurityConfiguration {
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
                         .deleteCookies("JSESSIONID", "FHEMNI_SESSION"))
+                // Fhemni carries its small, validated return target separately. Avoid creating a
+                // database-backed session merely because an anonymous client requested /admin.
+                .requestCache(cache -> cache.requestCache(new NullRequestCache()))
                 .csrf(csrf -> csrf.csrfTokenRepository(csrfTokens))
                 .headers(headers -> headers
                         .contentSecurityPolicy(csp -> csp.policyDirectives("""
