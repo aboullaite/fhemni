@@ -157,13 +157,16 @@
                 actions.append(retry);
             }
             const publishable = programme.sourceVerified
-                && programme.promises.some(item => item.promise.status === 'PUBLISHED');
-            const publish = actionButton(t('admin.publishProgramme'), publishable,
-                () => publishResource(`/api/admin/programmes/${programme.id}/publish`, publish));
-            if (!publishable) publish.title = t('admin.programmePublishHint');
+                && programme.promises.length > 0
+                && programme.promises.every(item => item.promise.status === 'PUBLISHED'
+                    || item.assessments.some(assessment => ['DRAFT', 'PUBLISHED'].includes(assessment.status)));
+            const publish = actionButton(t('admin.publishAll'), publishable,
+                () => publishAll(programme, publish));
+            publish.className = 'primary-button programme-action programme-publish-all';
+            if (!publishable) publish.title = t('admin.publishAllHint');
             const discard = actionButton(t('admin.discardDraft'), true,
                 () => discardResource(`/api/admin/programmes/${programme.id}`, discard));
-            discard.className = 'text-button programme-action';
+            discard.className = 'secondary-button programme-action programme-action-danger';
             actions.append(publish, discard);
             article.append(actions);
         }
@@ -200,7 +203,7 @@
             if (!canPublish) publish.title = t('admin.promisePublishHint');
             const discard = actionButton(t('admin.discardDraft'), true,
                 () => discardResource(`/api/admin/programmes/promises/${item.promise.id}`, discard));
-            discard.className = 'text-button programme-action';
+            discard.className = 'secondary-button programme-action programme-action-danger';
             actions.append(publish, discard);
             row.append(actions);
         } else {
@@ -218,14 +221,34 @@
         card.className = 'programme-assessment-review';
         const heading = document.createElement('div');
         heading.className = 'programme-review-top';
-        const verdict = document.createElement('strong');
-        verdict.textContent = `${t(`promise.verdict.${assessment.verdict}`)} · v${assessment.revisionNumber}`;
-        heading.append(verdict, statusBadge(assessment.status));
+        const verdictLine = document.createElement('div');
+        verdictLine.className = 'programme-verdict-line';
+        const verdict = verdictBadge(assessment.verdict);
+        const revision = document.createElement('span');
+        revision.className = 'video-meta';
+        revision.textContent = `v${assessment.revisionNumber}`;
+        verdictLine.append(verdict, revision);
+        heading.append(verdictLine, statusBadge(assessment.status));
         card.append(heading);
-        appendOptional(card, t('admin.assessmentSummary'), localized(assessment.summary));
-        appendOptional(card, t('admin.requirements'), localized(assessment.requirements));
-        appendOptional(card, t('admin.assumptions'), localized(assessment.assumptions));
-        appendOptional(card, t('admin.calculation'), localized(assessment.calculationNotes));
+
+        const assessmentSummary = localized(assessment.summary);
+        if (assessmentSummary) {
+            const summary = document.createElement('p');
+            summary.className = 'programme-assessment-summary';
+            summary.dir = 'auto';
+            summary.textContent = assessmentSummary;
+            card.append(summary);
+        }
+
+        const details = document.createElement('details');
+        details.className = 'programme-assessment-details';
+        const detailsLabel = document.createElement('summary');
+        detailsLabel.textContent = t('admin.showAssessmentDetails');
+        const detailsBody = document.createElement('div');
+        detailsBody.className = 'programme-assessment-details-body';
+        appendOptional(detailsBody, t('admin.requirements'), localized(assessment.requirements));
+        appendOptional(detailsBody, t('admin.assumptions'), localized(assessment.assumptions));
+        appendOptional(detailsBody, t('admin.calculation'), localized(assessment.calculationNotes));
 
         const evidence = document.createElement('ul');
         evidence.className = 'programme-evidence-review';
@@ -244,7 +267,9 @@
             }
             evidence.append(row);
         });
-        card.append(evidence);
+        if (assessment.evidence.length) detailsBody.append(evidence);
+        details.append(detailsLabel, detailsBody);
+        card.append(details);
 
         if (assessment.status === 'DRAFT') {
             const actions = document.createElement('div');
@@ -253,11 +278,21 @@
                 () => publishResource(`/api/admin/programmes/assessments/${assessment.id}/publish`, publish));
             const discard = actionButton(t('admin.discardDraft'), true,
                 () => discardResource(`/api/admin/programmes/assessments/${assessment.id}`, discard));
-            discard.className = 'text-button programme-action';
+            discard.className = 'secondary-button programme-action programme-action-danger';
             actions.append(publish, discard);
             card.append(actions);
         }
         return card;
+    }
+
+    function verdictBadge(value) {
+        const badge = document.createElement('span');
+        badge.className = `feasibility-badge ${String(value).toLowerCase().replace('_', '-')}`;
+        badge.textContent = t(`promise.verdict.${value}`);
+        const description = t(`promise.verdictDescription.${value}`);
+        badge.title = description;
+        badge.setAttribute('aria-label', description);
+        return badge;
     }
 
     function appendOptional(parent, label, value) {
@@ -318,6 +353,17 @@
     async function publishResource(url, button) {
         if (!window.confirm(t('admin.publishConfirm'))) return;
         await postAction(url, button, t('admin.published'));
+    }
+
+    async function publishAll(programme, button) {
+        if (!window.confirm(t('admin.publishAllConfirm', {
+            party: programme.partyCode,
+            count: programme.promises.length
+        }))) return;
+        await postAction(
+            `/api/admin/programmes/${programme.id}/publish-all`,
+            button,
+            t('admin.publishedAll', { party: programme.partyCode }));
     }
 
     async function postAction(url, button, successMessage) {

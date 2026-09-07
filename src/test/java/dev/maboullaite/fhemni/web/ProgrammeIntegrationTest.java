@@ -2,8 +2,10 @@ package dev.maboullaite.fhemni.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -112,6 +114,36 @@ class ProgrammeIntegrationTest {
                 .andExpect(jsonPath("$.assessment.horizonYears").value(5))
                 .andExpect(jsonPath("$.assessment.evidence[0].publisher").value("HCP"));
 
+        var ppsProgramme = programmes.createProgramme(new DraftProgramme(
+                "PPS",
+                localized("برنامج التقدم والاشتراكية", "Programme du PPS", "PPS programme"),
+                localized("الخلاصة", "Le résumé", "The summary"),
+                "https://pps.ma/programme-2026",
+                "Official PPS programme",
+                "fr",
+                "Frozen PPS programme text.",
+                true));
+        var ppsPromise = programmes.createPromise(ppsProgramme.id(), new DraftPromise(
+                "pps-health-promise", "health",
+                localized("وعد الصحة", "Promesse santé", "Health promise"),
+                "A published health promise.", "Page 7", "Mechanism", "Financing"));
+        programmes.createAssessment(ppsPromise.promise().id(), assessment("https://www.hcp.ma/health"));
+        programmes.publishAll(ppsProgramme.id());
+
+        assertThat(programmes.featuredPublishedPromises(6))
+                .extracting(PartyProgrammeService.PublicPromiseHighlight::partyCode)
+                .contains("PAM", "PPS")
+                .doesNotHaveDuplicates();
+
+        mvc.perform(get("/api/catalog/promises?size=3"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(
+                        HttpHeaders.CACHE_CONTROL, org.hamcrest.Matchers.containsString("max-age=300")))
+                .andExpect(jsonPath("$[*].slug", org.hamcrest.Matchers.hasItem("million-net-jobs")))
+                .andExpect(jsonPath("$[*].partyCode", org.hamcrest.Matchers.hasItem("PAM")))
+                .andExpect(jsonPath("$[*].partyCode", org.hamcrest.Matchers.hasItem("PPS")))
+                .andExpect(jsonPath("$[*].verdict", org.hamcrest.Matchers.hasItem("HARD")));
+
         assertThatThrownBy(() -> programmes.createPromise(programme.id(), new DraftPromise(
                 "second-promise", "economy", localized("وعد", "Promesse", "Promise"),
                 "Text", "Page 1", "", "")))
@@ -123,7 +155,74 @@ class ProgrammeIntegrationTest {
                 .andExpect(forwardedUrl("/promise.html"));
         mvc.perform(get("/promise.html"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("promiseDetail")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("promiseDetail")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("promise-deep-dive")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("promise-ai-attribution")));
+    }
+
+    @Test
+    void publishesACompletePartyProgrammeAtomicallyAndRejectsAnIncompleteOne() throws Exception {
+        var programme = programmes.createProgramme(new DraftProgramme(
+                "RNI",
+                localized("برنامج التجمع", "Programme du RNI", "RNI programme"),
+                localized("الخلاصة", "Le résumé", "The summary"),
+                "https://rni.ma/programme-2026",
+                "Official RNI programme",
+                "fr",
+                "Frozen RNI programme text.",
+                true));
+        var first = programmes.createPromise(programme.id(), new DraftPromise(
+                "rni-first-promise", "economy", localized("الوعد اللول", "Première promesse", "First promise"),
+                "First exact promise.", "Page 4", "Mechanism", "Financing"));
+        programmes.createAssessment(first.promise().id(), assessment("https://www.hcp.ma/first"));
+        programmes.createPromise(programme.id(), new DraftPromise(
+                "rni-second-promise", "jobs", localized("الوعد الثاني", "Deuxième promesse", "Second promise"),
+                "Second exact promise.", "Page 8", "Mechanism", "Financing"));
+
+        assertThatThrownBy(() -> programmes.publishAll(programme.id()))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Every promise");
+        var untouched = programmes.adminProgrammes().stream()
+                .filter(item -> item.id().equals(programme.id()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(untouched.status().name()).isEqualTo("DRAFT");
+        assertThat(untouched.promises())
+                .allSatisfy(item -> assertThat(item.promise().status().name()).isEqualTo("DRAFT"));
+        assertThat(untouched.promises().getFirst().assessments().getFirst().status().name()).isEqualTo("DRAFT");
+
+        var second = untouched.promises().stream()
+                .filter(item -> item.promise().slug().equals("rni-second-promise"))
+                .findFirst()
+                .orElseThrow();
+        programmes.createAssessment(second.promise().id(), assessment("https://www.hcp.ma/second"));
+
+        mvc.perform(post("/api/admin/programmes/{programmeId}/publish-all", programme.id())
+                        .with(user("admin").roles("ADMIN"))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("PUBLISHED"))
+                .andExpect(jsonPath("$.promises.length()").value(2))
+                .andExpect(jsonPath("$.promises[0].promise.status").value("PUBLISHED"))
+                .andExpect(jsonPath("$.promises[1].promise.status").value("PUBLISHED"));
+
+        mvc.perform(get("/api/catalog/parties/RNI/programme"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.promises.length()").value(2));
+    }
+
+    private static DraftAssessment assessment(String evidenceUrl) {
+        return new DraftAssessment(
+                FeasibilityVerdict.HARD,
+                localized("ممكن ولكن صعيب", "Possible, mais difficile", "Possible, but hard"),
+                localized("خاص شروط", "Des conditions sont requises", "Conditions are required"),
+                localized("افتراض", "Hypothèse", "Assumption"),
+                localized("حساب", "Calcul", "Calculation"),
+                "fhemni-feasibility-v1",
+                LocalDate.of(2026, 9, 1),
+                List.of(new EvidenceDraft(
+                        "HCP", "Official indicator", evidenceUrl,
+                        LocalDate.of(2026, 8, 1), "Official baseline.")));
     }
 
     private static LocalizedText localized(String ar, String fr, String en) {

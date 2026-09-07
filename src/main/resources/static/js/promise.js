@@ -42,6 +42,9 @@
         const verdict = document.querySelector('#promiseVerdict');
         verdict.className = `feasibility-badge ${String(assessment.verdict).toLowerCase().replace('_', '-')}`;
         verdict.textContent = t(`promise.verdict.${assessment.verdict}`);
+        const verdictDescription = t(`promise.verdictDescription.${assessment.verdict}`);
+        verdict.title = verdictDescription;
+        verdict.setAttribute('aria-label', verdictDescription);
         document.querySelector('#promiseSummary').textContent = localized(assessment.summary);
         document.querySelector('#promiseRequirements').textContent = localized(assessment.requirements);
         document.querySelector('#promiseAssumptions').textContent = localized(assessment.assumptions);

@@ -100,6 +100,11 @@ public class AdminProgrammeController {
         return noStore(programmes.publishProgramme(programmeId));
     }
 
+    @PostMapping("/{programmeId}/publish-all")
+    public ResponseEntity<AdminProgrammeView> publishAll(@PathVariable UUID programmeId) {
+        return noStore(programmes.publishAll(programmeId));
+    }
+
     @PostMapping("/{programmeId}/verify-source")
     public ResponseEntity<AdminProgrammeView> verifySource(@PathVariable UUID programmeId) {
         return noStore(programmes.verifySource(programmeId));

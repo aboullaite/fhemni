@@ -1,15 +1,18 @@
 package dev.maboullaite.fhemni.web;
 
 import java.time.Duration;
+import java.util.List;
 
 import dev.maboullaite.fhemni.programme.PartyProgrammeService;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.PublicProgrammeView;
+import dev.maboullaite.fhemni.programme.PartyProgrammeService.PublicPromiseHighlight;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.PublicPromiseView;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -32,5 +35,11 @@ public class PublicProgrammeController {
     @GetMapping("/promises/{slug}")
     public ResponseEntity<PublicPromiseView> promise(@PathVariable String slug) {
         return ResponseEntity.ok().cacheControl(PUBLIC_CACHE).body(programmes.publishedPromise(slug));
+    }
+
+    @GetMapping("/promises")
+    public ResponseEntity<List<PublicPromiseHighlight>> promises(
+            @RequestParam(defaultValue = "3") int size) {
+        return ResponseEntity.ok().cacheControl(PUBLIC_CACHE).body(programmes.featuredPublishedPromises(size));
     }
 }

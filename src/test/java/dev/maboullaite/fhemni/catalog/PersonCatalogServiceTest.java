@@ -183,14 +183,14 @@ class PersonCatalogServiceTest {
     void buildsPartySheetsFromPublishedEpisodes() {
         var parties = service.parties();
         assertThat(parties).extracting(PersonCatalogService.PartySummary::code)
-                .contains("RNI", "PAM", "PI", "PJD", "USFP", "PPS", "MP", "FGD", "UC", "MDS", "PSU", "FFD");
+                .containsExactlyInAnyOrder("PI", "PJD");
 
         var pjd = service.party("pjd");
         assertThat(pjd.members()).isEqualTo(1);
-        assertThat(pjd.topMembers().get(0).slug()).isEqualTo("driss-el-azami");
         assertThat(pjd.appearances()).isEqualTo(2);
         assertThat(pjd.claims()).isEqualTo(2);
-        assertThat(pjd.recentClaims()).hasSize(2);
+        assertThat(pjd.episodes()).extracting(PersonCatalogService.EpisodeAppearance::slug)
+                .containsExactlyInAnyOrder("episode-n5B3boj2MFM", "episode-14IF32HrTBs");
     }
 
     @Test

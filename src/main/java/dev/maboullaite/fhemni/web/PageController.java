@@ -96,4 +96,9 @@ public class PageController {
     public String adminProgrammesPage() {
         return "forward:/admin-programmes.html";
     }
+
+    @GetMapping({"/admin/people", "/admin/people/"})
+    public String adminPeoplePage() {
+        return "forward:/admin-people.html";
+    }
 }

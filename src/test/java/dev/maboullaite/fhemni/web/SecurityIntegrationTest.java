@@ -85,7 +85,7 @@ class SecurityIntegrationTest {
         mvc.perform(get("/js/i18n.js"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("landing.headline")))
-                .andExpect(content().string(containsString("'landing.promiseAsk': 'Ask the video'")))
+                .andExpect(content().string(containsString("'landing.exploreChecks': 'Check party promises'")))
                 .andExpect(content().string(containsString("ar: {")));
 
         mvc.perform(get("/css/dist.css"))
@@ -200,7 +200,8 @@ class SecurityIntegrationTest {
 
         mvc.perform(get("/admin.html").with(user("admin").roles("ADMIN")))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("class=\"admin-hub-grid\"")));
+                .andExpect(content().string(containsString("class=\"admin-hub-grid\"")))
+                .andExpect(content().string(containsString("href=\"/parties\"")));
 
         mvc.perform(get("/admin/episodes").with(user("admin").roles("ADMIN")))
                 .andExpect(status().isOk())

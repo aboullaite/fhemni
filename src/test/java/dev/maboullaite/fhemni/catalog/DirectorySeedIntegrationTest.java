@@ -33,9 +33,15 @@ class DirectorySeedIntegrationTest {
         List<PoliticalParty> parties = partyRepository.findAll();
         assertThat(parties).extracting(PoliticalParty::code)
                 .containsExactly("RNI", "PAM", "PI", "PJD", "USFP", "PPS", "MP", "FGD",
-                        "UC", "FFD", "MDS", "PSU", "IND", "UNKNOWN");
+                        "UC", "FFD", "MDS", "PSU", "PE", "PML", "PVM", "ND", "PGV",
+                        "PEDD", "PUD", "PRV", "IND", "UNKNOWN");
         assertThat(parties).allSatisfy(party ->
                 assertThat(PartyDirectory.validColor(party.color())).isTrue());
+        assertThat(parties).allSatisfy(party -> {
+            assertThat(party.symbolLabelFr()).isNotBlank();
+            assertThat(party.symbolLabelAr()).isNotBlank();
+            assertThat(party.symbolAsset()).startsWith("/assets/parties/");
+        });
     }
 
     @Test

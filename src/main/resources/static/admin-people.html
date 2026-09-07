@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="fhemni">
+<head>
+    <script src="/js/analytics.js?v=20260906-2"></script>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
+    <title>Guests &amp; parties — Fhemni administration</title>
+    <link rel="icon" type="image/png" href="/assets/brand/fhemni-icon.png"><link rel="stylesheet" href="/css/dist.css?v=20260907-5">
+</head>
+<body class="admin-page" data-i18n-page-title="admin.peoplePageTitle">
+<div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+<header class="site-header public-header">
+    <a class="brand" href="/" aria-label="Fhemni home" data-i18n-aria-label="common.brandHome"><img class="brand-logo brand-logo-full" src="/assets/brand/fhemni-logo.png" alt="Fhemni"><img class="brand-logo brand-logo-icon" src="/assets/brand/fhemni-icon.png" alt="Fhemni"></a>
+    <nav class="primary-nav" aria-label="Primary navigation" data-i18n-aria-label="common.primaryNavigation"><a href="/videos" data-i18n="common.catalogue">Catalogue</a><a href="/parties" data-i18n="common.parties">Parties</a></nav>
+    <div class="header-actions"><label class="site-language"><span class="sr-only" data-i18n="common.siteLanguage">Website language</span><select data-site-language data-i18n-aria-label="common.siteLanguage" aria-label="Website language"><option value="en">EN</option><option value="fr">FR</option><option value="ar">الدارجة</option></select></label><div id="authNav"></div></div>
+</header>
+<main class="admin-dashboard">
+    <section class="admin-heading"><div class="eyebrow"><span></span><span class="eyebrow-text" data-i18n="admin.eyebrow">Restricted administration</span></div><h1 data-i18n="admin.peopleTitle">Guests &amp; parties.</h1><p data-i18n="admin.peopleIntro">Review names extracted from published episodes. Fhemni never guesses a political affiliation.</p></section>
+    <nav class="admin-section-nav" aria-label="Administration" data-i18n-aria-label="admin.navigation"><a href="/admin" data-i18n="admin.navOverview">Overview</a><a href="/admin/episodes" data-i18n="admin.navEpisodes">Episodes</a><a href="/admin/suggestions" data-i18n="admin.navSuggestions">Suggestions</a><a href="/admin/programmes" data-i18n="admin.navProgrammes">2026 programmes</a><a class="active" href="/admin/people" data-i18n="admin.navPeople">Guests &amp; parties</a></nav>
+
+    <div class="admin-directory-layout">
+        <section class="admin-panel" aria-labelledby="unmatchedTitle">
+            <div class="section-heading"><div><div class="section-kicker" data-i18n="admin.peopleQueueKicker">Extracted from episodes</div><h2 id="unmatchedTitle" data-i18n="admin.peopleQueueTitle">Needs review</h2></div><span id="unmatchedPeopleCount"></span></div>
+            <div id="unmatchedPeople" class="admin-person-list" aria-live="polite"><div class="catalog-loading" data-i18n="catalog.loading">Loading…</div></div>
+        </section>
+
+        <section class="admin-panel admin-next-step" aria-labelledby="affiliationEditorTitle">
+            <div class="section-kicker" data-i18n="admin.affiliationKicker">Guest mapping</div>
+            <h2 id="affiliationEditorTitle" data-i18n="admin.affiliationTitle">Connect a guest to a party</h2>
+            <p class="programme-source-help" data-i18n="admin.affiliationHelp">Choose the guest and their party.</p>
+            <form id="affiliationForm" class="admin-import-form">
+                <label><span data-i18n="admin.affiliationPerson">Guest</span><select id="affiliationPerson" required></select></label>
+                <label><span data-i18n="admin.affiliationParty">Party</span><select id="affiliationParty" required></select></label>
+                <section class="admin-guest-episodes" aria-labelledby="affiliationEpisodesTitle">
+                    <h3 id="affiliationEpisodesTitle" data-i18n="admin.affiliationEpisodes">Appears in</h3>
+                    <div id="affiliationEpisodes" class="admin-guest-episode-list" aria-live="polite"></div>
+                </section>
+                <div id="affiliationFeedback" class="import-feedback" role="status" hidden></div>
+                <div class="admin-form-footer"><button id="affiliationSave" class="primary-button" type="submit" data-i18n="admin.affiliationSave">Save mapping</button></div>
+            </form>
+        </section>
+    </div>
+
+    <section class="admin-suggestions" aria-labelledby="directoryTitle">
+        <div class="section-heading"><div><div class="section-kicker" data-i18n="admin.directoryKicker">Curated identities</div><h2 id="directoryTitle" data-i18n="admin.directoryTitle">Party-linked guests</h2></div><span id="directoryPeopleCount"></span></div>
+        <div id="directoryPeople" class="admin-person-list" aria-live="polite"></div>
+        <details class="admin-unaffiliated-group">
+            <summary><span data-i18n="admin.nonAffiliatedTitle">No party affiliation</span><span id="nonAffiliatedPeopleCount"></span></summary>
+            <p data-i18n="admin.nonAffiliatedHint">Reviewed guests who should stay outside the party directory.</p>
+            <div id="nonAffiliatedPeople" class="admin-person-list" aria-live="polite"></div>
+        </details>
+    </section>
+</main>
+<script src="/js/i18n.js?v=20260907-11" defer></script><script src="/js/auth.js?v=20260906-3" defer></script><script src="/js/catalog-ui.js?v=20260906-2" defer></script><script src="/js/people-ui.js?v=20260907-2" defer></script><script src="/js/admin-people.js?v=20260907-4" defer></script>
+</body></html>

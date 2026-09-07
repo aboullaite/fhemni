@@ -55,7 +55,8 @@ public class SecurityConfiguration {
                 PathPatternRequestMatcher.withDefaults().matcher("/admin.html"),
                 PathPatternRequestMatcher.withDefaults().matcher("/admin-episodes.html"),
                 PathPatternRequestMatcher.withDefaults().matcher("/admin-suggestions.html"),
-                PathPatternRequestMatcher.withDefaults().matcher("/admin-programmes.html"));
+                PathPatternRequestMatcher.withDefaults().matcher("/admin-programmes.html"),
+                PathPatternRequestMatcher.withDefaults().matcher("/admin-people.html"));
         AuthorizationManager<RequestAuthorizationContext> administrator = (authentication, context) -> {
             var principal = authentication.get();
             return new AuthorizationDecision(currentUser.isAdministrator(principal));
@@ -65,7 +66,8 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
                                 "/admin/**", "/admin.html", "/admin-episodes.html",
-                                "/admin-suggestions.html", "/admin-programmes.html", "/api/admin/**")
+                                "/admin-suggestions.html", "/admin-programmes.html", "/admin-people.html",
+                                "/api/admin/**")
                         .access(administrator)
                         .requestMatchers(HttpMethod.POST, "/api/analyses").access(administrator)
                         .requestMatchers(HttpMethod.GET, "/api/analyses/*").permitAll()

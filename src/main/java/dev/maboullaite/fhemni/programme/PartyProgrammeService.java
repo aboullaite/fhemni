@@ -187,9 +187,7 @@ public class PartyProgrammeService {
         PromiseAssessment assessment = repository.findAssessment(assessmentId)
                 .orElseThrow(() -> new NoSuchElementException("Assessment not found."));
         requireDraft(assessment.status(), "assessment");
-        if (assessment.evidence().isEmpty()) {
-            throw new IllegalStateException("An assessment needs evidence before publication.");
-        }
+        requirePublishableAssessment(assessment);
         repository.publishAssessment(assessment.id(), assessment.promiseId(), Instant.now());
         return repository.findAssessment(assessmentId).orElseThrow();
     }
@@ -207,6 +205,58 @@ public class PartyProgrammeService {
         PartyProgramme programme = programme(programmeId);
         requireDraft(programme.status(), "programme");
         repository.publishProgramme(programmeId, Instant.now());
+        return adminView(repository.findById(programmeId).orElseThrow());
+    }
+
+    @Transactional
+    public AdminProgrammeView publishAll(UUID programmeId) {
+        PartyProgramme programme = programme(programmeId);
+        requireDraft(programme.status(), "programme");
+        if (!programme.sourceVerified()) {
+            throw new IllegalStateException("Confirm the official 2026 source before publishing the programme.");
+        }
+
+        AdminProgrammeView view = adminView(programme);
+        if (view.promises().isEmpty()) {
+            throw new IllegalStateException("A programme needs at least one reviewed promise before publication.");
+        }
+
+        Map<UUID, PromiseAssessment> draftAssessments = new LinkedHashMap<>();
+        for (AdminPromiseView item : view.promises()) {
+            PartyPromise promise = item.promise();
+            if (promise.status() == EditorialStatus.PUBLISHED) {
+                continue;
+            }
+            requireDraft(promise.status(), "promise");
+            PromiseAssessment draft = item.assessments().stream()
+                    .filter(assessment -> assessment.status() == EditorialStatus.DRAFT)
+                    .findFirst()
+                    .orElse(null);
+            boolean alreadyAssessed = item.assessments().stream()
+                    .anyMatch(assessment -> assessment.status() == EditorialStatus.PUBLISHED);
+            if (draft == null && !alreadyAssessed) {
+                throw new IllegalStateException(
+                        "Every promise needs a reviewed assessment before publishing the programme.");
+            }
+            if (draft != null) {
+                requirePublishableAssessment(draft);
+                draftAssessments.put(promise.id(), draft);
+            }
+        }
+
+        Instant publishedAt = Instant.now();
+        for (AdminPromiseView item : view.promises()) {
+            PartyPromise promise = item.promise();
+            if (promise.status() == EditorialStatus.PUBLISHED) {
+                continue;
+            }
+            PromiseAssessment assessment = draftAssessments.get(promise.id());
+            if (assessment != null) {
+                repository.publishAssessment(assessment.id(), promise.id(), publishedAt);
+            }
+            repository.publishPromise(promise.id(), publishedAt);
+        }
+        repository.publishProgramme(programmeId, publishedAt);
         return adminView(repository.findById(programmeId).orElseThrow());
     }
 
@@ -264,6 +314,19 @@ public class PartyProgrammeService {
                 programme.termStartYear(), programme.termEndYear(), promise.topic(), promise.title(),
                 promise.promiseText(), promise.sourceLocator(), promise.mechanism(), promise.financing(),
                 programme.sourceUrl(), programme.sourceLabel(), assessment);
+    }
+
+    public List<PublicPromiseHighlight> featuredPublishedPromises(int requestedLimit) {
+        int limit = Math.min(Math.max(requestedLimit, 1), 6);
+        return repository.findFeaturedPublishedPromises(limit).stream()
+                .map(candidate -> {
+                    PartyPromise promise = candidate.promise();
+                    PromiseAssessment assessment = latestPublishedAssessment(promise.id());
+                    return new PublicPromiseHighlight(
+                            candidate.partyCode(), promise.slug(), promise.topic(), promise.title(),
+                            assessment.verdict(), assessment.summary(), assessment.dataCutoff());
+                })
+                .toList();
     }
 
     private AdminProgrammeView adminView(PartyProgramme programme) {
@@ -373,6 +436,12 @@ public class PartyProgrammeService {
         }
     }
 
+    private static void requirePublishableAssessment(PromiseAssessment assessment) {
+        if (assessment.evidence().isEmpty()) {
+            throw new IllegalStateException("An assessment needs evidence before publication.");
+        }
+    }
+
     public record DraftProgramme(
             String partyCode,
             LocalizedText title,
@@ -477,5 +546,15 @@ public class PartyProgrammeService {
             String programmeSourceUrl,
             String programmeSourceLabel,
             PromiseAssessment assessment) {
+    }
+
+    public record PublicPromiseHighlight(
+            String partyCode,
+            String slug,
+            String topic,
+            LocalizedText title,
+            FeasibilityVerdict verdict,
+            LocalizedText assessmentSummary,
+            LocalDate dataCutoff) {
     }
 }

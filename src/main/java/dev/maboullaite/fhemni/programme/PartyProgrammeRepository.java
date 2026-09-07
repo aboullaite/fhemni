@@ -173,6 +173,43 @@ public class PartyProgrammeRepository {
                 .optional();
     }
 
+    public List<PublishedPromise> findFeaturedPublishedPromises(int limit) {
+        return jdbc.sql("""
+                        WITH eligible AS (
+                            SELECT p.id, p.programme_id, p.slug, p.topic,
+                                   p.title_ar, p.title_fr, p.title_en,
+                                   p.promise_text, p.source_locator, p.mechanism, p.financing,
+                                   p.editorial_status, p.created_at, p.updated_at, p.published_at,
+                                   programme.party_code,
+                                   ROW_NUMBER() OVER (
+                                       PARTITION BY programme.party_code ORDER BY RANDOM()
+                                   ) AS promise_rank
+                              FROM party_promises p
+                              JOIN party_programmes programme ON programme.id = p.programme_id
+                             WHERE p.editorial_status = 'PUBLISHED'
+                               AND programme.editorial_status = 'PUBLISHED'
+                               AND EXISTS (
+                                   SELECT 1 FROM promise_assessments assessment
+                                    WHERE assessment.promise_id = p.id
+                                      AND assessment.editorial_status = 'PUBLISHED'
+                               )
+                        )
+                        SELECT id, programme_id, slug, topic,
+                               title_ar, title_fr, title_en,
+                               promise_text, source_locator, mechanism, financing,
+                               editorial_status, created_at, updated_at, published_at,
+                               party_code
+                          FROM eligible
+                         WHERE promise_rank = 1
+                         ORDER BY RANDOM()
+                         LIMIT :limit
+                        """)
+                .param("limit", limit)
+                .query((rs, rowNumber) -> new PublishedPromise(
+                        rs.getString("party_code"), mapPromise(rs, rowNumber)))
+                .list();
+    }
+
     public void insertPromise(PartyPromise promise) {
         jdbc.sql("""
                         INSERT INTO party_promises (
@@ -428,6 +465,9 @@ public class PartyProgrammeRepository {
                 instant(rs, "source_retrieved_at"), rs.getBoolean("source_verified"),
                 EditorialStatus.valueOf(rs.getString("editorial_status")),
                 instant(rs, "created_at"), instant(rs, "updated_at"), nullableInstant(rs, "published_at"));
+    }
+
+    public record PublishedPromise(String partyCode, PartyPromise promise) {
     }
 
     private PartyPromise mapPromise(ResultSet rs, int rowNumber) throws SQLException {

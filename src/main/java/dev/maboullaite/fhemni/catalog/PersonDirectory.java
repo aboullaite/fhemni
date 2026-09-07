@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.time.LocalDate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -71,6 +72,11 @@ public class PersonDirectory {
      * as written in the episode.
      */
     public ResolvedPerson resolve(String rawName) {
+        return resolve(rawName, LocalDate.now());
+    }
+
+    /** Resolves the affiliation that was valid on the episode publication date. */
+    public ResolvedPerson resolve(String rawName, LocalDate onDate) {
         if (rawName == null || rawName.isBlank()) {
             return new ResolvedPerson(
                     "unknown-speaker", "Intervenant non identifié", "متدخل غير معروف",
@@ -90,7 +96,7 @@ public class PersonDirectory {
             spellings.add(curated.displayNameAr());
             spellings.addAll(curated.aliases());
             return new ResolvedPerson(curated.slug(), curated.displayNameFr(), curated.displayNameAr(),
-                    curated.partyCode(), true, List.copyOf(spellings));
+                    curated.partyCodeAt(onDate), true, List.copyOf(spellings));
         }
         String canonical = stripHonorifics(display);
         if (canonical.isEmpty()) {
@@ -144,7 +150,30 @@ public class PersonDirectory {
             String displayNameFr,
             String displayNameAr,
             String partyCode,
-            List<String> aliases) {
+            List<String> aliases,
+            List<PersonAffiliation> affiliations) {
+
+        public CuratedPerson(
+                String slug,
+                String displayNameFr,
+                String displayNameAr,
+                String partyCode,
+                List<String> aliases) {
+            this(slug, displayNameFr, displayNameAr, partyCode, aliases,
+                    PartyDirectory.UNKNOWN.equals(partyCode)
+                            ? List.of()
+                            : List.of(new PersonAffiliation(
+                                    0, slug, partyCode, null, null, null,
+                                    "Test fixture", java.time.Instant.EPOCH)));
+        }
+
+        public String partyCodeAt(LocalDate date) {
+            return affiliations.stream()
+                    .filter(affiliation -> affiliation.activeOn(date))
+                    .reduce((first, second) -> second)
+                    .map(PersonAffiliation::partyCode)
+                    .orElse(PartyDirectory.UNKNOWN);
+        }
     }
 
     public record ResolvedPerson(
