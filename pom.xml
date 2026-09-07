@@ -34,7 +34,7 @@
     <properties>
         <java.version>26</java.version>
         <spring-ai.version>2.0.1</spring-ai.version>
-        <google-genai.version>1.68.0</google-genai.version>
+        <google-genai.version>1.70.0</google-genai.version>
     </properties>
 
     <dependencyManagement>
