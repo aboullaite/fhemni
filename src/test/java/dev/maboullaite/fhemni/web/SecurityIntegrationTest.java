@@ -200,7 +200,21 @@ class SecurityIntegrationTest {
 
         mvc.perform(get("/admin.html").with(user("admin").roles("ADMIN")))
                 .andExpect(status().isOk())
+                .andExpect(content().string(containsString("class=\"admin-hub-grid\"")));
+
+        mvc.perform(get("/admin/episodes").with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(forwardedUrl("/admin-episodes.html"));
+        mvc.perform(get("/admin-episodes.html").with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk())
                 .andExpect(content().string(containsString("id=\"catalogImportForm\"")));
+
+        mvc.perform(get("/admin/suggestions").with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(forwardedUrl("/admin-suggestions.html"));
+        mvc.perform(get("/admin/programmes").with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(forwardedUrl("/admin-programmes.html"));
     }
 
     @Test

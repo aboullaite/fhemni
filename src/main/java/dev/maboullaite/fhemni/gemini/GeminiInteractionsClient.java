@@ -1,6 +1,7 @@
 package dev.maboullaite.fhemni.gemini;
 
 import java.net.URI;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -20,6 +21,7 @@ import com.google.genai.gaos.models.operations.CreateInteractionRequestBody;
 import com.google.genai.gaos.utils.Options;
 import com.google.genai.gaos.utils.RetryConfig;
 import com.google.genai.types.HttpOptions;
+import com.google.genai.types.UploadFileConfig;
 import dev.maboullaite.fhemni.cost.AiUsage;
 import dev.maboullaite.fhemni.model.SourceReference;
 import jakarta.annotation.PreDestroy;
@@ -109,12 +111,44 @@ class GeminiInteractionsClient {
         } catch (ApiException exception) {
             throw new GeminiApiException(
                     "Gemini request failed (HTTP " + exception.code() + ")",
-                    exception);
+                    exception,
+                    exception.code());
         } catch (GeminiApiException exception) {
             throw exception;
         } catch (RuntimeException exception) {
             throw new GeminiApiException("Could not reach the Gemini API", exception);
         }
+    }
+
+    UploadedFile uploadPdf(InputStream input, long size, String displayName) {
+        if (!configured() || analysisClient == null) {
+            throw new IllegalStateException("Gemini API key is not configured");
+        }
+        try {
+            var file = analysisClient.files.upload(input, size, UploadFileConfig.builder()
+                    .mimeType("application/pdf")
+                    .displayName(displayName)
+                    .build());
+            return new UploadedFile(
+                    file.name().orElseThrow(() -> new GeminiApiException("Gemini uploaded a PDF without a file name")),
+                    file.uri().orElseThrow(() -> new GeminiApiException("Gemini uploaded a PDF without a file URI")));
+        } catch (ApiException exception) {
+            throw new GeminiApiException(
+                    "Gemini PDF upload failed (HTTP " + exception.code() + ")",
+                    exception,
+                    exception.code());
+        } catch (GeminiApiException exception) {
+            throw exception;
+        } catch (RuntimeException exception) {
+            throw new GeminiApiException("Could not upload the PDF to Gemini", exception);
+        }
+    }
+
+    void deleteFile(String name) {
+        if (analysisClient == null || name == null || name.isBlank()) {
+            return;
+        }
+        analysisClient.files.delete(name, null);
     }
 
     private Client googleClient(String baseUrl, String apiVersion, Duration timeout) {
@@ -205,5 +239,8 @@ class GeminiInteractionsClient {
         if (questionClient != null) {
             questionClient.close();
         }
+    }
+
+    record UploadedFile(String name, String uri) {
     }
 }

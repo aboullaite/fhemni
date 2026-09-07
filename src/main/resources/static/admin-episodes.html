@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="fhemni">
+<head>
+    <script src="/js/analytics.js?v=20260906-2"></script>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
+    <title>Episodes — Fhemni administration</title>
+    <link rel="icon" type="image/png" href="/assets/brand/fhemni-icon.png"><link rel="stylesheet" href="/css/dist.css?v=20260907-4">
+</head>
+<body class="admin-page" data-i18n-page-title="admin.episodesPageTitle">
+<div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+<header class="site-header public-header">
+    <a class="brand" href="/" aria-label="Fhemni home" data-i18n-aria-label="common.brandHome"><img class="brand-logo brand-logo-full" src="/assets/brand/fhemni-logo.png" alt="Fhemni"><img class="brand-logo brand-logo-icon" src="/assets/brand/fhemni-icon.png" alt="Fhemni"></a>
+    <nav class="primary-nav" aria-label="Primary navigation" data-i18n-aria-label="common.primaryNavigation"><a href="/videos" data-i18n="common.catalogue">Catalogue</a><a href="/community" data-i18n="common.community">Community</a></nav>
+    <div class="header-actions"><label class="site-language"><span class="sr-only" data-i18n="common.siteLanguage">Website language</span><select data-site-language data-i18n-aria-label="common.siteLanguage" aria-label="Website language"><option value="en">EN</option><option value="fr">FR</option><option value="ar">الدارجة</option></select></label><div id="authNav"></div></div>
+</header>
+<main class="admin-dashboard">
+    <section class="admin-heading"><div class="eyebrow"><span></span><span class="eyebrow-text" data-i18n="admin.eyebrow">Restricted administration</span></div><h1 data-i18n="admin.episodesTitle">Episodes.</h1><p data-i18n="admin.episodesIntro">Import is free. Analysis is a separate action that spends Gemini tokens.</p></section>
+    <nav class="admin-section-nav" aria-label="Administration" data-i18n-aria-label="admin.navigation"><a href="/admin" data-i18n="admin.navOverview">Overview</a><a class="active" href="/admin/episodes" data-i18n="admin.navEpisodes">Episodes</a><a href="/admin/suggestions" data-i18n="admin.navSuggestions">Suggestions</a><a href="/admin/programmes" data-i18n="admin.navProgrammes">2026 programmes</a></nav>
+
+    <section class="admin-panel">
+        <div class="section-kicker" data-i18n="admin.importKicker">Metadata import</div><h2 data-i18n="admin.importTitle">Add YouTube episodes</h2><p data-i18n="admin.importIntro">Paste up to 20 public links. Use one line per video. You may add its date after a vertical bar.</p>
+        <form id="catalogImportForm" class="admin-import-form">
+            <label><span data-i18n="admin.urls">YouTube URLs</span><textarea id="importUrls" required rows="6" data-i18n-placeholder="admin.urlsPlaceholder" placeholder="https://youtu.be/video-id | 2026-05-06"></textarea></label>
+            <div class="admin-form-row"><label><span data-i18n="admin.showName">Show name</span><input id="importShow" type="text" maxlength="200" value="ساعة الصراحة" dir="auto"></label><label><span data-i18n="admin.sourceLanguage">Video language</span><select id="importLanguage"><option value="ary" data-i18n="catalog.darija">Moroccan Darija</option><option value="fr" data-i18n="catalog.french">French</option><option value="en" data-i18n="catalog.english">English</option></select></label></div>
+            <div class="admin-form-footer"><p data-i18n="admin.costNote">This fetches YouTube oEmbed metadata only. Gemini is not called.</p><button id="importButton" class="primary-button" type="submit" data-i18n="admin.importButton">Import episodes</button></div>
+            <div id="importFeedback" class="import-feedback" role="status" hidden></div>
+        </form>
+    </section>
+
+    <section class="admin-catalogue">
+        <div class="section-heading"><div><div class="section-kicker" data-i18n="admin.catalogueKicker">Current inventory</div><h2 data-i18n="admin.catalogueTitle">Catalogued videos</h2></div><div class="admin-video-actions"><span id="adminCatalogCount"></span><button id="refreshCatalogDates" class="secondary-button" type="button" data-i18n="admin.refreshCatalogDates">Fetch missing dates</button></div></div>
+        <div id="catalogMetadataFeedback" class="import-feedback" role="status" hidden></div>
+        <div class="admin-form-footer admin-batch-tools"><p data-i18n="admin.batchIntro">Analyze every pending episode one at a time. Nothing is published automatically.</p><div class="admin-video-actions"><label class="sr-only" for="batchAnalysisLanguage" data-i18n="admin.outputLanguage">Briefing language</label><select id="batchAnalysisLanguage" class="admin-analysis-language"><option value="ary" data-i18n="catalog.darija">Moroccan Darija</option><option value="fr" data-i18n="catalog.french">French</option><option value="en" data-i18n="catalog.english">English</option></select><button id="batchAnalysisButton" class="primary-button" type="button" data-i18n="admin.runBatch">Analyze pending</button></div></div>
+        <div id="batchAnalysisFeedback" class="import-feedback" role="status" hidden></div>
+        <div id="contextMigrationPanel" class="admin-form-footer admin-batch-tools" hidden><div><div class="section-kicker" data-i18n="admin.contextMigrationKicker">One-off maintenance</div><p data-i18n="admin.contextMigrationIntro">Rebuild each published video context once after changing Gemini projects.</p></div><button id="contextMigrationButton" class="secondary-button" type="button" data-i18n="admin.contextMigrationRun">Migrate published videos</button></div>
+        <div id="contextMigrationFeedback" class="import-feedback" role="status" hidden></div>
+        <div id="adminCatalogList" class="admin-video-list" aria-live="polite"><div class="catalog-loading" data-i18n="catalog.loading">Loading…</div></div>
+    </section>
+</main>
+<script src="/js/i18n.js?v=20260907-4" defer></script><script src="/js/auth.js?v=20260906-3" defer></script><script src="/js/catalog-ui.js?v=20260906-2" defer></script><script src="/js/admin.js?v=20260907-4" defer></script>
+</body></html>

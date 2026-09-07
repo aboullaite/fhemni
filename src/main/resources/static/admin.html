@@ -7,7 +7,7 @@
     <meta name="robots" content="noindex,nofollow">
     <title>Administration — Fhemni</title>
     <link rel="icon" type="image/png" href="/assets/brand/fhemni-icon.png">
-    <link rel="stylesheet" href="/css/dist.css?v=20260906-2">
+    <link rel="stylesheet" href="/css/dist.css?v=20260907-4">
 </head>
 <body class="admin-page" data-i18n-page-title="admin.pageTitle">
 <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
@@ -21,114 +21,38 @@
 <main class="admin-dashboard">
     <section class="admin-heading">
         <div class="eyebrow"><span></span><span class="eyebrow-text" data-i18n="admin.eyebrow">Restricted administration</span></div>
-        <h1 data-i18n="admin.title">Build the public catalogue.</h1>
-        <p data-i18n="admin.intro">Import free YouTube metadata now. Gemini analysis remains a separate, deliberate action, so adding a video never creates an AI bill.</p>
+        <h1 data-i18n="admin.overviewTitle">Fhemni control room.</h1>
+        <p data-i18n="admin.overviewIntro">Choose one focused workspace. Public content is never changed without an explicit editorial action.</p>
     </section>
+
+    <nav class="admin-section-nav" aria-label="Administration" data-i18n-aria-label="admin.navigation">
+        <a class="active" href="/admin" data-i18n="admin.navOverview">Overview</a>
+        <a href="/admin/episodes" data-i18n="admin.navEpisodes">Episodes</a>
+        <a href="/admin/suggestions" data-i18n="admin.navSuggestions">Suggestions</a>
+        <a href="/admin/programmes" data-i18n="admin.navProgrammes">2026 programmes</a>
+    </nav>
 
     <section class="admin-metrics" aria-labelledby="adminMetricsTitle">
         <div class="section-heading">
-            <div>
-                <div class="section-kicker" data-i18n="admin.metricsKicker">Live usage</div>
-                <h2 id="adminMetricsTitle" data-i18n="admin.metricsTitle">Product pulse</h2>
-            </div>
+            <div><div class="section-kicker" data-i18n="admin.metricsKicker">Live usage</div><h2 id="adminMetricsTitle" data-i18n="admin.metricsTitle">Product pulse</h2></div>
             <button id="refreshAdminMetrics" class="secondary-button" type="button" data-i18n="admin.metricsRefresh">Refresh</button>
         </div>
         <div class="admin-metrics-grid" aria-live="polite">
-            <article class="admin-metric-card">
-                <span data-i18n="admin.metricsUsers">Registered users</span>
-                <strong id="registeredUsersMetric">—</strong>
-                <small id="registeredUsersDetail" data-i18n="admin.metricsLoading">Loading…</small>
-            </article>
-            <article class="admin-metric-card">
-                <span data-i18n="admin.metricsChatRounds">Chat rounds</span>
-                <strong id="chatRoundsMetric">—</strong>
-                <small id="chatRoundsDetail" data-i18n="admin.metricsLoading">Loading…</small>
-            </article>
-            <article class="admin-metric-card" data-i18n-title="admin.metricsTokenHint" title="Input, output, thinking, and tool-use counters. Cached tokens are shown separately.">
-                <span data-i18n="admin.metricsChatTokens">Chat tokens</span>
-                <strong id="chatTokensMetric">—</strong>
-                <small id="chatTokensDetail" data-i18n="admin.metricsLoading">Loading…</small>
-            </article>
-            <article class="admin-metric-card" data-i18n-title="admin.metricsTokenHint" title="Input, output, thinking, and tool-use counters. Cached tokens are shown separately.">
-                <span data-i18n="admin.metricsAllAiTokens">All AI tokens</span>
-                <strong id="allAiTokensMetric">—</strong>
-                <small id="allAiTokensDetail" data-i18n="admin.metricsLoading">Loading…</small>
-            </article>
+            <article class="admin-metric-card"><span data-i18n="admin.metricsUsers">Registered users</span><strong id="registeredUsersMetric">—</strong><small id="registeredUsersDetail" data-i18n="admin.metricsLoading">Loading…</small></article>
+            <article class="admin-metric-card"><span data-i18n="admin.metricsChatRounds">Chat rounds</span><strong id="chatRoundsMetric">—</strong><small id="chatRoundsDetail" data-i18n="admin.metricsLoading">Loading…</small></article>
+            <article class="admin-metric-card" data-i18n-title="admin.metricsTokenHint"><span data-i18n="admin.metricsChatTokens">Chat tokens</span><strong id="chatTokensMetric">—</strong><small id="chatTokensDetail" data-i18n="admin.metricsLoading">Loading…</small></article>
+            <article class="admin-metric-card" data-i18n-title="admin.metricsTokenHint"><span data-i18n="admin.metricsAllAiTokens">All AI tokens</span><strong id="allAiTokensMetric">—</strong><small id="allAiTokensDetail" data-i18n="admin.metricsLoading">Loading…</small></article>
         </div>
         <div id="adminMetricsFeedback" class="import-feedback error" role="status" hidden></div>
     </section>
 
-    <div class="admin-layout">
-        <section class="admin-panel">
-            <div class="section-kicker" data-i18n="admin.importKicker">Metadata import</div>
-            <h2 data-i18n="admin.importTitle">Add YouTube episodes</h2>
-            <p data-i18n="admin.importIntro">Paste up to 20 public links. Use one line per video. You may add its date after a vertical bar.</p>
-            <form id="catalogImportForm" class="admin-import-form">
-                <label><span data-i18n="admin.urls">YouTube URLs</span><textarea id="importUrls" required rows="8" data-i18n-placeholder="admin.urlsPlaceholder" placeholder="https://youtu.be/video-id | 2026-05-06"></textarea></label>
-                <div class="admin-form-row">
-                    <label><span data-i18n="admin.showName">Show name</span><input id="importShow" type="text" maxlength="200" value="ساعة الصراحة" dir="auto"></label>
-                    <label><span data-i18n="admin.sourceLanguage">Video language</span><select id="importLanguage"><option value="ary" data-i18n="catalog.darija">Moroccan Darija</option><option value="fr" data-i18n="catalog.french">French</option><option value="en" data-i18n="catalog.english">English</option></select></label>
-                </div>
-                <div class="admin-form-footer">
-                    <p data-i18n="admin.costNote">This fetches YouTube oEmbed metadata only. Gemini is not called.</p>
-                    <button id="importButton" class="primary-button" type="submit"><span data-i18n="admin.importButton">Import episodes</span></button>
-                </div>
-                <div id="importFeedback" class="import-feedback" role="status" hidden></div>
-            </form>
-        </section>
-
-        <aside class="admin-panel admin-next-step">
-            <div class="section-kicker" data-i18n="admin.nextKicker">Cost boundary</div>
-            <h2 data-i18n="admin.nextTitle">Cataloguing is not analyzing.</h2>
-            <p data-i18n="admin.nextText">Imported episodes appear publicly as awaiting analysis. A later processing queue will let you choose exactly which video spends Gemini tokens.</p>
-            <div class="cost-rule"><span>0</span><div><strong data-i18n="admin.geminiCalls">Gemini calls</strong><small data-i18n="admin.perImport">per catalogue import</small></div></div>
-        </aside>
-    </div>
-
-    <section class="admin-suggestions" aria-labelledby="adminSuggestionsTitle">
-        <div class="section-heading">
-            <div>
-                <div class="section-kicker" data-i18n="admin.suggestionsKicker">Community requests</div>
-                <h2 id="adminSuggestionsTitle" data-i18n="admin.suggestionsTitle">Suggested videos</h2>
-            </div>
-            <div class="admin-video-actions"><span id="adminSuggestionCount"></span><button id="refreshSuggestionMetadata" class="secondary-button" type="button" data-i18n="admin.refreshSuggestionMetadata">Fetch missing titles</button></div>
-        </div>
-        <p class="admin-suggestions-intro" data-i18n="admin.suggestionsIntro">Repeated links are combined and ranked by interest. Add one to the importer when you want to catalogue it.</p>
-        <div id="adminSuggestionFeedback" class="import-feedback" role="status" hidden></div>
-        <div id="adminSuggestionList" class="admin-suggestion-list" aria-live="polite"><div class="catalog-loading" data-i18n="catalog.loading">Loading…</div></div>
-    </section>
-
-    <section class="admin-catalogue">
-        <div class="section-heading">
-            <div><div class="section-kicker" data-i18n="admin.catalogueKicker">Current inventory</div><h2 data-i18n="admin.catalogueTitle">Catalogued videos</h2></div>
-            <div class="admin-video-actions"><span id="adminCatalogCount"></span><button id="refreshCatalogDates" class="secondary-button" type="button" data-i18n="admin.refreshCatalogDates">Fetch missing dates</button></div>
-        </div>
-        <div id="catalogMetadataFeedback" class="import-feedback" role="status" hidden></div>
-        <div class="admin-form-footer admin-batch-tools">
-            <p data-i18n="admin.batchIntro">Early catalogue tool: analyze every pending episode one at a time. Completed videos are skipped and nothing is published automatically.</p>
-            <div class="admin-video-actions">
-                <label class="sr-only" for="batchAnalysisLanguage" data-i18n="admin.outputLanguage">Briefing language</label>
-                <select id="batchAnalysisLanguage" class="admin-analysis-language" aria-label="Briefing language" data-i18n-aria-label="admin.outputLanguage">
-                    <option value="ary" data-i18n="catalog.darija">Moroccan Darija</option>
-                    <option value="fr" data-i18n="catalog.french">French</option>
-                    <option value="en" data-i18n="catalog.english">English</option>
-                </select>
-                <button id="batchAnalysisButton" class="primary-button" type="button" data-i18n="admin.runBatch">Analyze pending</button>
-            </div>
-        </div>
-        <div id="batchAnalysisFeedback" class="import-feedback" role="status" hidden></div>
-        <div id="contextMigrationPanel" class="admin-form-footer admin-batch-tools" hidden>
-            <div>
-                <div class="section-kicker" data-i18n="admin.contextMigrationKicker">One-off maintenance</div>
-                <p data-i18n="admin.contextMigrationIntro">After changing the Gemini key or Google project, rebuild each published video context once. Reviewed public reports are not replaced.</p>
-            </div>
-            <button id="contextMigrationButton" class="secondary-button" type="button" data-i18n="admin.contextMigrationRun">Migrate published videos</button>
-        </div>
-        <div id="contextMigrationFeedback" class="import-feedback" role="status" hidden></div>
-        <div id="adminCatalogList" class="admin-video-list" aria-live="polite"><div class="catalog-loading" data-i18n="catalog.loading">Loading the catalogue…</div></div>
+    <section class="admin-hub-grid">
+        <a class="admin-hub-card" href="/admin/episodes"><span>01</span><h2 data-i18n="admin.navEpisodes">Episodes</h2><p data-i18n="admin.episodesCard">Import YouTube metadata, run analyses, and review the catalogue.</p></a>
+        <a class="admin-hub-card" href="/admin/suggestions"><span>02</span><h2 data-i18n="admin.navSuggestions">Suggestions</h2><p data-i18n="admin.suggestionsCard">Moderate what the community wants Fhemni to cover next.</p></a>
+        <a class="admin-hub-card" href="/admin/programmes"><span>03</span><h2 data-i18n="admin.navProgrammes">2026 programmes</h2><p data-i18n="admin.programmesCard">Give Gemini one official URL, review the promises and feasibility, then publish.</p></a>
     </section>
 </main>
 
-<script src="/js/i18n.js?v=20260907-2" defer></script><script src="/js/auth.js?v=20260906-3" defer></script><script src="/js/catalog-ui.js?v=20260906-2" defer></script><script src="/js/admin.js?v=20260907-2" defer></script>
+<script src="/js/i18n.js?v=20260907-4" defer></script><script src="/js/auth.js?v=20260906-3" defer></script><script src="/js/catalog-ui.js?v=20260906-2" defer></script><script src="/js/admin.js?v=20260907-4" defer></script>
 </body>
 </html>

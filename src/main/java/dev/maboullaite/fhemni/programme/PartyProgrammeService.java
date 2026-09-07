@@ -1,0 +1,481 @@
+package dev.maboullaite.fhemni.programme;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.HexFormat;
+import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.regex.Pattern;
+
+import dev.maboullaite.fhemni.gemini.ProgrammeIntelligenceGateway.ExtractedPromise;
+import dev.maboullaite.fhemni.gemini.ProgrammeIntelligenceGateway.GeneratedAssessment;
+import dev.maboullaite.fhemni.gemini.ProgrammeIntelligenceGateway.ProgrammeExtraction;
+import dev.maboullaite.fhemni.programme.PartyProgramme.LocalizedText;
+import dev.maboullaite.fhemni.programme.PromiseAssessment.Evidence;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class PartyProgrammeService {
+
+    public static final int ELECTION_YEAR = 2026;
+    public static final int HORIZON_YEARS = 5;
+    private static final int TERM_END_YEAR = 2031;
+    private static final Pattern SLUG = Pattern.compile("[a-z0-9]+(?:-[a-z0-9]+)*");
+
+    private final PartyProgrammeRepository repository;
+
+    public PartyProgrammeService(PartyProgrammeRepository repository) {
+        this.repository = repository;
+    }
+
+    public List<AdminProgrammeView> adminProgrammes() {
+        return repository.findAll().stream().map(this::adminView).toList();
+    }
+
+    public Optional<AdminProgrammeView> programmeBySourceUrl(String sourceUrl) {
+        return repository.findBySourceUrl(sourceUrl).map(this::adminView);
+    }
+
+    @Transactional
+    public AdminProgrammeView saveGeneratedExtraction(String sourceUrl, ProgrammeExtraction extraction) {
+        if (extraction == null || !extraction.official2026Programme() || extraction.electionYear() != ELECTION_YEAR) {
+            throw new IllegalArgumentException("The URL must contain an official final programme for the 2026 election.");
+        }
+        List<ExtractedPromise> promises = extraction.promises() == null ? List.of() : extraction.promises();
+        if (promises.isEmpty() || promises.size() > 30) {
+            throw new IllegalArgumentException("Gemini must extract between 1 and 30 measurable promises.");
+        }
+        long distinctSlugs = promises.stream().map(ExtractedPromise::slug).distinct().count();
+        if (distinctSlugs != promises.size()) {
+            throw new IllegalArgumentException("Gemini returned duplicate promise slugs.");
+        }
+
+        AdminProgrammeView programme = createProgramme(new DraftProgramme(
+                extraction.partyCode(), extraction.title(), extraction.summary(), sourceUrl,
+                extraction.sourceLabel(), extraction.sourceLanguage(), extraction.sourceSnapshot(), false));
+        for (ExtractedPromise promise : promises) {
+            createPromise(programme.id(), new DraftPromise(
+                    promise.slug(), promise.topic(), promise.title(), promise.promiseText(),
+                    promise.sourceLocator(), promise.mechanism(), promise.financing()));
+        }
+        return adminView(repository.findById(programme.id()).orElseThrow());
+    }
+
+    @Transactional
+    public AdminProgrammeView saveGeneratedAssessments(
+            UUID programmeId,
+            List<GeneratedAssessment> generatedAssessments) {
+        AdminProgrammeView programme = adminView(programme(programmeId));
+        Map<String, AdminPromiseView> pending = new LinkedHashMap<>();
+        programme.promises().stream()
+                .filter(item -> item.assessments().isEmpty())
+                .forEach(item -> pending.put(item.promise().slug(), item));
+        List<GeneratedAssessment> assessments = generatedAssessments == null ? List.of() : generatedAssessments;
+        if (assessments.size() != pending.size()) {
+            throw new IllegalArgumentException("Gemini must assess every promise that is still awaiting review.");
+        }
+        for (GeneratedAssessment generated : assessments) {
+            AdminPromiseView promise = pending.remove(generated.promiseSlug());
+            if (promise == null) {
+                throw new IllegalArgumentException("Gemini returned an unknown or duplicate promise slug.");
+            }
+            createAssessment(promise.promise().id(), new DraftAssessment(
+                    generated.verdict(), generated.summary(), generated.requirements(), generated.assumptions(),
+                    generated.calculationNotes(), "fhemni-feasibility-v1", LocalDate.now(), generated.evidence()));
+        }
+        if (!pending.isEmpty()) {
+            throw new IllegalArgumentException("Gemini did not assess every promise.");
+        }
+        return adminView(repository.findById(programmeId).orElseThrow());
+    }
+
+    public List<ExtractedPromise> promisesAwaitingAssessment(AdminProgrammeView programme) {
+        return programme.promises().stream()
+                .filter(item -> item.assessments().isEmpty())
+                .map(item -> new ExtractedPromise(
+                        item.promise().slug(), item.promise().topic(), item.promise().title(),
+                        item.promise().promiseText(), item.promise().sourceLocator(),
+                        item.promise().mechanism(), item.promise().financing()))
+                .toList();
+    }
+
+    @Transactional
+    public AdminProgrammeView createProgramme(DraftProgramme draft) {
+        String partyCode = required(draft.partyCode(), "Party code", 10).toUpperCase(Locale.ROOT);
+        if (!repository.visiblePartyExists(partyCode)) {
+            throw new IllegalArgumentException("Choose a visible party from the curated directory.");
+        }
+        if (repository.findByParty(partyCode, ELECTION_YEAR).isPresent()) {
+            throw new IllegalStateException("That party already has a 2026 programme draft.");
+        }
+        String snapshot = required(draft.sourceSnapshot(), "Source snapshot", 2_000_000);
+        Instant now = Instant.now();
+        PartyProgramme programme = new PartyProgramme(
+                UUID.randomUUID(), partyCode, ELECTION_YEAR, ELECTION_YEAR, TERM_END_YEAR,
+                localized(draft.title(), "Title", 300), localized(draft.summary(), "Summary", 20_000),
+                httpsUrl(draft.sourceUrl(), "Programme source URL"),
+                required(draft.sourceLabel(), "Source label", 300),
+                required(draft.sourceLanguage(), "Source language", 12).toLowerCase(Locale.ROOT),
+                snapshot, sha256(snapshot), now, draft.sourceVerified(), EditorialStatus.DRAFT,
+                now, now, null);
+        repository.insertProgramme(programme);
+        return adminView(programme);
+    }
+
+    @Transactional
+    public AdminPromiseView createPromise(UUID programmeId, DraftPromise draft) {
+        PartyProgramme programme = programme(programmeId);
+        requireDraft(programme.status(), "programme");
+        String slug = required(draft.slug(), "Promise slug", 180).toLowerCase(Locale.ROOT);
+        if (!SLUG.matcher(slug).matches()) {
+            throw new IllegalArgumentException("Promise slug must contain lowercase letters, numbers and hyphens only.");
+        }
+        Instant now = Instant.now();
+        PartyPromise promise = new PartyPromise(
+                UUID.randomUUID(), programmeId, slug, required(draft.topic(), "Topic", 80),
+                localized(draft.title(), "Promise title", 300),
+                required(draft.promiseText(), "Exact promise wording", 30_000),
+                required(draft.sourceLocator(), "Source locator", 300),
+                text(draft.mechanism(), 30_000), text(draft.financing(), 30_000),
+                EditorialStatus.DRAFT, now, now, null);
+        repository.insertPromise(promise);
+        return adminPromiseView(promise);
+    }
+
+    @Transactional
+    public PromiseAssessment createAssessment(UUID promiseId, DraftAssessment draft) {
+        PartyPromise promise = promise(promiseId);
+        requireDraft(promise.status(), "promise");
+        if (draft.verdict() == null) {
+            throw new IllegalArgumentException("Choose a five-year feasibility verdict.");
+        }
+        if (draft.dataCutoff() == null || draft.dataCutoff().isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("Data cutoff must be today or earlier.");
+        }
+        List<EvidenceDraft> evidenceDrafts = draft.evidence() == null ? List.of() : draft.evidence();
+        if (evidenceDrafts.isEmpty() || evidenceDrafts.size() > 20) {
+            throw new IllegalArgumentException("An assessment needs between 1 and 20 evidence sources.");
+        }
+        List<Evidence> evidence = java.util.stream.IntStream.range(0, evidenceDrafts.size())
+                .mapToObj(index -> evidence(evidenceDrafts.get(index), index))
+                .toList();
+        PromiseAssessment assessment = new PromiseAssessment(
+                UUID.randomUUID(), promiseId, repository.nextAssessmentRevision(promiseId), HORIZON_YEARS,
+                draft.verdict(), localized(draft.summary(), "Assessment summary", 30_000),
+                localized(draft.requirements(), "Requirements", 30_000),
+                localized(draft.assumptions(), "Assumptions", 50_000),
+                localized(draft.calculationNotes(), "Calculation notes", 50_000),
+                required(draft.methodologyVersion(), "Methodology version", 40),
+                draft.dataCutoff(), EditorialStatus.DRAFT, Instant.now(), null, evidence);
+        repository.insertAssessment(assessment);
+        return assessment;
+    }
+
+    @Transactional
+    public PromiseAssessment publishAssessment(UUID assessmentId) {
+        PromiseAssessment assessment = repository.findAssessment(assessmentId)
+                .orElseThrow(() -> new NoSuchElementException("Assessment not found."));
+        requireDraft(assessment.status(), "assessment");
+        if (assessment.evidence().isEmpty()) {
+            throw new IllegalStateException("An assessment needs evidence before publication.");
+        }
+        repository.publishAssessment(assessment.id(), assessment.promiseId(), Instant.now());
+        return repository.findAssessment(assessmentId).orElseThrow();
+    }
+
+    @Transactional
+    public AdminPromiseView publishPromise(UUID promiseId) {
+        PartyPromise promise = promise(promiseId);
+        requireDraft(promise.status(), "promise");
+        repository.publishPromise(promiseId, Instant.now());
+        return adminPromiseView(repository.findPromise(promiseId).orElseThrow());
+    }
+
+    @Transactional
+    public AdminProgrammeView publishProgramme(UUID programmeId) {
+        PartyProgramme programme = programme(programmeId);
+        requireDraft(programme.status(), "programme");
+        repository.publishProgramme(programmeId, Instant.now());
+        return adminView(repository.findById(programmeId).orElseThrow());
+    }
+
+    @Transactional
+    public AdminProgrammeView verifySource(UUID programmeId) {
+        PartyProgramme programme = programme(programmeId);
+        requireDraft(programme.status(), "programme");
+        repository.verifySource(programmeId, Instant.now());
+        return adminView(repository.findById(programmeId).orElseThrow());
+    }
+
+    @Transactional
+    public void discardAssessment(UUID assessmentId) {
+        PromiseAssessment assessment = repository.findAssessment(assessmentId)
+                .orElseThrow(() -> new NoSuchElementException("Assessment not found."));
+        requireDraft(assessment.status(), "assessment");
+        repository.deleteDraftAssessment(assessmentId);
+    }
+
+    @Transactional
+    public void discardPromise(UUID promiseId) {
+        PartyPromise promise = promise(promiseId);
+        requireDraft(promise.status(), "promise");
+        repository.deleteDraftPromise(promiseId);
+    }
+
+    @Transactional
+    public void discardProgramme(UUID programmeId) {
+        PartyProgramme programme = programme(programmeId);
+        requireDraft(programme.status(), "programme");
+        repository.deleteDraftProgramme(programmeId);
+    }
+
+    public PublicProgrammeView publishedProgramme(String partyCode) {
+        PartyProgramme programme = repository.findPublishedByParty(
+                        required(partyCode, "Party code", 10).toUpperCase(Locale.ROOT), ELECTION_YEAR)
+                .orElseThrow(() -> new NoSuchElementException("No published 2026 programme was found for this party."));
+        List<PublicPromiseSummary> promises = repository.findPromises(programme.id(), true).stream()
+                .map(this::publicPromiseSummary)
+                .toList();
+        return new PublicProgrammeView(
+                programme.partyCode(), programme.electionYear(), programme.termStartYear(), programme.termEndYear(),
+                programme.title(), programme.summary(), programme.sourceUrl(), programme.sourceLabel(),
+                programme.sourceLanguage(), programme.sourceSha256(), programme.sourceRetrievedAt(),
+                programme.publishedAt(), promises);
+    }
+
+    public PublicPromiseView publishedPromise(String slug) {
+        PartyPromise promise = repository.findPublishedPromiseBySlug(required(slug, "Promise slug", 180))
+                .orElseThrow(() -> new NoSuchElementException("Published promise not found."));
+        PartyProgramme programme = repository.findById(promise.programmeId()).orElseThrow();
+        PromiseAssessment assessment = latestPublishedAssessment(promise.id());
+        return new PublicPromiseView(
+                promise.id(), promise.slug(), programme.partyCode(), programme.electionYear(),
+                programme.termStartYear(), programme.termEndYear(), promise.topic(), promise.title(),
+                promise.promiseText(), promise.sourceLocator(), promise.mechanism(), promise.financing(),
+                programme.sourceUrl(), programme.sourceLabel(), assessment);
+    }
+
+    private AdminProgrammeView adminView(PartyProgramme programme) {
+        List<AdminPromiseView> promises = repository.findPromises(programme.id(), false).stream()
+                .map(this::adminPromiseView)
+                .toList();
+        return new AdminProgrammeView(
+                programme.id(), programme.partyCode(), programme.electionYear(), programme.termStartYear(),
+                programme.termEndYear(), programme.title(), programme.summary(), programme.sourceUrl(),
+                programme.sourceLabel(), programme.sourceLanguage(), programme.sourceSha256(),
+                programme.sourceRetrievedAt(), programme.sourceVerified(), programme.status(),
+                programme.publishedAt(), promises);
+    }
+
+    private AdminPromiseView adminPromiseView(PartyPromise promise) {
+        return new AdminPromiseView(promise, repository.findAssessments(promise.id(), false));
+    }
+
+    private PublicPromiseSummary publicPromiseSummary(PartyPromise promise) {
+        PromiseAssessment assessment = latestPublishedAssessment(promise.id());
+        return new PublicPromiseSummary(
+                promise.slug(), promise.topic(), promise.title(), promise.promiseText(),
+                assessment.verdict(), assessment.summary(), assessment.dataCutoff());
+    }
+
+    private PromiseAssessment latestPublishedAssessment(UUID promiseId) {
+        return repository.findAssessments(promiseId, true).stream().findFirst()
+                .orElseThrow(() -> new IllegalStateException("A published promise is missing its assessment."));
+    }
+
+    private PartyProgramme programme(UUID id) {
+        return repository.findById(id).orElseThrow(() -> new NoSuchElementException("Programme not found."));
+    }
+
+    private PartyPromise promise(UUID id) {
+        return repository.findPromise(id).orElseThrow(() -> new NoSuchElementException("Promise not found."));
+    }
+
+    private Evidence evidence(EvidenceDraft draft, int sortOrder) {
+        if (draft == null) {
+            throw new IllegalArgumentException("Evidence cannot be empty.");
+        }
+        LocalDate publishedOn = draft.publishedOn();
+        if (publishedOn != null && publishedOn.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("Evidence publication date cannot be in the future.");
+        }
+        return new Evidence(
+                UUID.randomUUID(), required(draft.publisher(), "Evidence publisher", 200),
+                required(draft.title(), "Evidence title", 500), httpsUrl(draft.url(), "Evidence URL"),
+                publishedOn, text(draft.note(), 10_000), sortOrder);
+    }
+
+    private static LocalizedText localized(LocalizedText value, String field, int maxLength) {
+        if (value == null) {
+            throw new IllegalArgumentException(field + " is required in Darija, French and English.");
+        }
+        return new LocalizedText(
+                required(value.ar(), field + " (Darija)", maxLength),
+                required(value.fr(), field + " (French)", maxLength),
+                required(value.en(), field + " (English)", maxLength));
+    }
+
+    private static String required(String value, String field, int maxLength) {
+        String clean = value == null ? "" : value.strip();
+        if (clean.isEmpty()) {
+            throw new IllegalArgumentException(field + " is required.");
+        }
+        if (clean.length() > maxLength) {
+            throw new IllegalArgumentException(field + " must be under " + maxLength + " characters.");
+        }
+        return clean;
+    }
+
+    private static String text(String value, int maxLength) {
+        String clean = value == null ? "" : value.strip();
+        if (clean.length() > maxLength) {
+            throw new IllegalArgumentException("Text must be under " + maxLength + " characters.");
+        }
+        return clean;
+    }
+
+    private static String httpsUrl(String value, String field) {
+        String clean = required(value, field, 2_000);
+        try {
+            URI uri = new URI(clean);
+            if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null) {
+                throw new IllegalArgumentException(field + " must be an absolute HTTPS URL.");
+            }
+            return uri.toASCIIString();
+        } catch (URISyntaxException exception) {
+            throw new IllegalArgumentException(field + " is invalid.");
+        }
+    }
+
+    private static String sha256(String text) {
+        try {
+            return HexFormat.of().formatHex(
+                    MessageDigest.getInstance("SHA-256").digest(text.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException impossible) {
+            throw new IllegalStateException("SHA-256 is not available.", impossible);
+        }
+    }
+
+    private static void requireDraft(EditorialStatus status, String resource) {
+        if (status != EditorialStatus.DRAFT) {
+            throw new IllegalStateException("Published " + resource + " records are immutable.");
+        }
+    }
+
+    public record DraftProgramme(
+            String partyCode,
+            LocalizedText title,
+            LocalizedText summary,
+            String sourceUrl,
+            String sourceLabel,
+            String sourceLanguage,
+            String sourceSnapshot,
+            boolean sourceVerified) {
+    }
+
+    public record DraftPromise(
+            String slug,
+            String topic,
+            LocalizedText title,
+            String promiseText,
+            String sourceLocator,
+            String mechanism,
+            String financing) {
+    }
+
+    public record DraftAssessment(
+            FeasibilityVerdict verdict,
+            LocalizedText summary,
+            LocalizedText requirements,
+            LocalizedText assumptions,
+            LocalizedText calculationNotes,
+            String methodologyVersion,
+            LocalDate dataCutoff,
+            List<EvidenceDraft> evidence) {
+    }
+
+    public record EvidenceDraft(
+            String publisher,
+            String title,
+            String url,
+            LocalDate publishedOn,
+            String note) {
+    }
+
+    public record AdminProgrammeView(
+            UUID id,
+            String partyCode,
+            int electionYear,
+            int termStartYear,
+            int termEndYear,
+            LocalizedText title,
+            LocalizedText summary,
+            String sourceUrl,
+            String sourceLabel,
+            String sourceLanguage,
+            String sourceSha256,
+            Instant sourceRetrievedAt,
+            boolean sourceVerified,
+            EditorialStatus status,
+            Instant publishedAt,
+            List<AdminPromiseView> promises) {
+    }
+
+    public record AdminPromiseView(PartyPromise promise, List<PromiseAssessment> assessments) {
+    }
+
+    public record PublicProgrammeView(
+            String partyCode,
+            int electionYear,
+            int termStartYear,
+            int termEndYear,
+            LocalizedText title,
+            LocalizedText summary,
+            String sourceUrl,
+            String sourceLabel,
+            String sourceLanguage,
+            String sourceSha256,
+            Instant sourceRetrievedAt,
+            Instant publishedAt,
+            List<PublicPromiseSummary> promises) {
+    }
+
+    public record PublicPromiseSummary(
+            String slug,
+            String topic,
+            LocalizedText title,
+            String promiseText,
+            FeasibilityVerdict verdict,
+            LocalizedText assessmentSummary,
+            LocalDate dataCutoff) {
+    }
+
+    public record PublicPromiseView(
+            UUID id,
+            String slug,
+            String partyCode,
+            int electionYear,
+            int termStartYear,
+            int termEndYear,
+            String topic,
+            LocalizedText title,
+            String promiseText,
+            String sourceLocator,
+            String mechanism,
+            String financing,
+            String programmeSourceUrl,
+            String programmeSourceLabel,
+            PromiseAssessment assessment) {
+    }
+}

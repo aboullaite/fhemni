@@ -47,6 +47,7 @@
     }
 
     async function loadMetrics() {
+        if (!refreshMetricsButton) return;
         refreshMetricsButton.disabled = true;
         metricsFeedback.hidden = true;
         try {
@@ -97,6 +98,7 @@
     }
 
     async function loadVideos() {
+        if (!list) return;
         try {
             videos = await window.FhemniCatalog.requestJson('/api/admin/catalog/videos');
             renderVideos();
@@ -106,6 +108,7 @@
     }
 
     async function loadSuggestions() {
+        if (!suggestionList) return;
         try {
             suggestions = await window.FhemniCatalog.requestJson('/api/admin/suggestions');
             renderSuggestions();
@@ -115,6 +118,7 @@
     }
 
     async function loadCapabilities() {
+        if (!list) return;
         try {
             const meta = await window.FhemniCatalog.requestJson('/api/meta');
             analysisAvailable = meta.live === true && meta.analysisEnabled === true;
@@ -319,6 +323,7 @@
     }
 
     async function loadBatchStatus() {
+        if (!batchButton) return;
         try {
             const status = await window.FhemniCatalog.requestJson(
                 '/api/admin/catalog/analysis-batches/latest',
@@ -382,6 +387,7 @@
     }
 
     async function loadContextMigrationStatus() {
+        if (!contextMigrationPanel) return;
         try {
             const overview = await window.FhemniCatalog.requestJson(
                 '/api/admin/catalog/context-migration', {}, 30_000);
@@ -540,6 +546,10 @@
     }
 
     function addToImporter(youtubeUrl) {
+        if (!form || !urls) {
+            window.location.assign(`/admin/episodes?youtubeUrl=${encodeURIComponent(youtubeUrl)}`);
+            return;
+        }
         const lines = urls.value.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
         if (!lines.some(line => line.split('|')[0].trim() === youtubeUrl)) {
             lines.push(youtubeUrl);
@@ -637,25 +647,31 @@
         contextMigrationFeedback.hidden = false;
     }
 
-    form.addEventListener('submit', importVideos);
-    batchButton.addEventListener('click', runBatchAnalysis);
-    contextMigrationButton.addEventListener('click', runContextMigration);
-    refreshMetricsButton.addEventListener('click', loadMetrics);
-    refreshSuggestionMetadata.addEventListener('click', refreshMissingSuggestionMetadata);
-    refreshCatalogDates.addEventListener('click', refreshMissingCatalogDates);
-    document.addEventListener('DOMContentLoaded', () => Promise.all([
-        loadCapabilities(),
-        loadMetrics(),
-        loadVideos(),
-        loadSuggestions(),
-        loadBatchStatus(),
-        loadContextMigrationStatus()
-    ]));
+    form?.addEventListener('submit', importVideos);
+    batchButton?.addEventListener('click', runBatchAnalysis);
+    contextMigrationButton?.addEventListener('click', runContextMigration);
+    refreshMetricsButton?.addEventListener('click', loadMetrics);
+    refreshSuggestionMetadata?.addEventListener('click', refreshMissingSuggestionMetadata);
+    refreshCatalogDates?.addEventListener('click', refreshMissingCatalogDates);
+    document.addEventListener('DOMContentLoaded', () => {
+        if (urls) {
+            const suggestedUrl = new URLSearchParams(window.location.search).get('youtubeUrl');
+            if (suggestedUrl) urls.value = suggestedUrl;
+        }
+        return Promise.all([
+            loadCapabilities(),
+            loadMetrics(),
+            loadVideos(),
+            loadSuggestions(),
+            loadBatchStatus(),
+            loadContextMigrationStatus()
+        ]);
+    });
     document.addEventListener('fhemni:localechange', () => {
-        renderVideos();
-        renderSuggestions();
-        renderMetrics();
-        renderBatchStatus();
-        renderContextMigrationStatus();
+        if (list) renderVideos();
+        if (suggestionList) renderSuggestions();
+        if (refreshMetricsButton) renderMetrics();
+        if (batchButton) renderBatchStatus();
+        if (contextMigrationPanel) renderContextMigrationStatus();
     });
 })();

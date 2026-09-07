@@ -71,7 +71,7 @@
         community.hidden = false;
         boardGate.hidden = true;
         board.hidden = false;
-        if (boardLoginLink) boardLoginLink.href = window.FhemniAuth.loginPage(window.location.pathname);
+        if (boardLoginLink) boardLoginLink.href = window.FhemniAuth.loginPage(window.location.pathname, 'vote');
         await loadBoard();
     }
 
@@ -80,7 +80,7 @@
         form.hidden = !authenticated;
         if (suggestionAuthGate) suggestionAuthGate.hidden = authenticated;
         if (suggestionLoginLink) {
-            suggestionLoginLink.href = window.FhemniAuth.loginPage(window.location.pathname);
+            suggestionLoginLink.href = window.FhemniAuth.loginPage(window.location.pathname, 'suggest');
         }
     }
 

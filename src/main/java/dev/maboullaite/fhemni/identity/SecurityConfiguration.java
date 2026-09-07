@@ -52,7 +52,10 @@ public class SecurityConfiguration {
         RequestMatcher apiRequests = PathPatternRequestMatcher.withDefaults().matcher("/api/**");
         RequestMatcher adminPages = new OrRequestMatcher(
                 PathPatternRequestMatcher.withDefaults().matcher("/admin/**"),
-                PathPatternRequestMatcher.withDefaults().matcher("/admin.html"));
+                PathPatternRequestMatcher.withDefaults().matcher("/admin.html"),
+                PathPatternRequestMatcher.withDefaults().matcher("/admin-episodes.html"),
+                PathPatternRequestMatcher.withDefaults().matcher("/admin-suggestions.html"),
+                PathPatternRequestMatcher.withDefaults().matcher("/admin-programmes.html"));
         AuthorizationManager<RequestAuthorizationContext> administrator = (authentication, context) -> {
             var principal = authentication.get();
             return new AuthorizationDecision(currentUser.isAdministrator(principal));
@@ -61,7 +64,8 @@ public class SecurityConfiguration {
         http
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
-                                "/admin/**", "/admin.html", "/api/admin/**")
+                                "/admin/**", "/admin.html", "/admin-episodes.html",
+                                "/admin-suggestions.html", "/admin-programmes.html", "/api/admin/**")
                         .access(administrator)
                         .requestMatchers(HttpMethod.POST, "/api/analyses").access(administrator)
                         .requestMatchers(HttpMethod.GET, "/api/analyses/*").permitAll()
@@ -72,6 +76,7 @@ public class SecurityConfiguration {
                                 "/analyses/**", "/analysis.html",
                                 "/people/**", "/person.html",
                                 "/parties", "/parties/**", "/parties.html", "/party.html",
+                                "/promises/**", "/promise.html",
                                 "/catalog", "/catalog/**",
                                 "/community", "/community/", "/community.html",
                                 "/suggestions", "/suggestions/",
@@ -80,7 +85,9 @@ public class SecurityConfiguration {
                                 "/oauth2/**", "/login/oauth2/**", "/api/auth/session", "/healthz")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/catalog/videos/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/catalog/people/**", "/api/catalog/parties/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/catalog/people/**", "/api/catalog/parties/**", "/api/catalog/promises/**")
+                        .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/suggestions").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/suggestions/*/votes").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/suggestions").authenticated()

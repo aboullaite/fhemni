@@ -1,5 +1,6 @@
 (function () {
     let profile;
+    let programme;
 
     function t(key, parameters = {}) {
         return window.FhemniI18n?.t(key, parameters) ?? key;
@@ -13,6 +14,12 @@
         const code = decodeURIComponent(window.location.pathname.split('/').filter(Boolean).at(-1) || '');
         try {
             profile = await window.FhemniCatalog.requestJson(`/api/catalog/parties/${encodeURIComponent(code)}`);
+            try {
+                programme = await window.FhemniCatalog.requestJson(
+                    `/api/catalog/parties/${encodeURIComponent(code)}/programme`);
+            } catch (_) {
+                programme = null;
+            }
             render();
             document.querySelector('#partyLoading').hidden = true;
             document.querySelector('#partyDetail').hidden = false;
@@ -29,6 +36,7 @@
         const alt = (window.FhemniPeople.locale() === 'ar' ? profile.nameFr : profile.nameAr) || '';
         document.querySelector('#partyName').textContent = `${profile.code} · ${name}`;
         document.querySelector('#partyNameAlt').textContent = alt;
+        renderProgramme();
 
         const stats = document.querySelector('#partyStats');
         stats.replaceChildren();
@@ -92,6 +100,55 @@
         }
 
         document.title = `${profile.code} — Fhemni`;
+    }
+
+    function renderProgramme() {
+        const section = document.querySelector('#partyProgramme');
+        if (!programme) {
+            section.hidden = true;
+            return;
+        }
+        section.hidden = false;
+        document.querySelector('#partyProgrammeSummary').textContent = localized(programme.summary);
+        const source = document.querySelector('#partyProgrammeSource');
+        source.href = programme.sourceUrl;
+        source.title = programme.sourceLabel;
+        const grid = document.querySelector('#partyPromises');
+        grid.replaceChildren();
+        programme.promises.forEach(promise => grid.append(promiseCard(promise)));
+    }
+
+    function promiseCard(promise) {
+        const article = document.createElement('article');
+        article.className = 'promise-card';
+        const top = document.createElement('div');
+        top.className = 'promise-card-topline';
+        const topic = document.createElement('span');
+        topic.className = 'section-kicker';
+        topic.textContent = promise.topic;
+        const verdict = document.createElement('span');
+        verdict.className = `feasibility-badge ${String(promise.verdict).toLowerCase().replace('_', '-')}`;
+        verdict.textContent = t(`promise.verdict.${promise.verdict}`);
+        top.append(topic, verdict);
+        const title = document.createElement('h3');
+        const link = document.createElement('a');
+        link.href = `/promises/${encodeURIComponent(promise.slug)}`;
+        link.textContent = localized(promise.title);
+        title.append(link);
+        const summary = document.createElement('p');
+        summary.dir = 'auto';
+        summary.textContent = localized(promise.assessmentSummary);
+        const more = document.createElement('a');
+        more.className = 'text-link';
+        more.href = link.href;
+        more.textContent = t('programme.readAssessment');
+        article.append(top, title, summary, more);
+        return article;
+    }
+
+    function localized(value) {
+        const locale = window.FhemniPeople?.locale() || 'ar';
+        return value?.[locale] || value?.ar || value?.fr || value?.en || '';
     }
 
     function memberCard(member) {

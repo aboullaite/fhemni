@@ -6,6 +6,10 @@ spring:
   threads:
     virtual:
       enabled: true
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 26MB
   datasource:
     url: ${JDBC_DATABASE_URL:jdbc:h2:file:./data/fhemni;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH}
     username: ${JDBC_DATABASE_USERNAME:sa}

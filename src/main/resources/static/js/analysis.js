@@ -216,7 +216,7 @@ function configureChatAccess() {
         : (weeklyQuotaExhausted
             ? t('analysis.chatQuotaUsedText', { limit: quota.weeklyLimit })
             : (chatEnabled ? t('analysis.chatPrivacy') : ''));
-    elements.chatLoginLink.href = window.FhemniAuth.loginPage(window.location.pathname);
+    elements.chatLoginLink.href = window.FhemniAuth.loginPage(window.location.pathname, 'chat');
 }
 
 function renderChatQuota(quota) {
@@ -519,7 +519,7 @@ function renderClaim(claim) {
 async function askQuestion(event) {
     event.preventDefault();
     if (!state.authSession?.authenticated) {
-        window.location.assign(window.FhemniAuth.loginPage(window.location.pathname));
+        window.location.assign(window.FhemniAuth.loginPage(window.location.pathname, 'chat'));
         return;
     }
     if (!state.meta?.chatEnabled) {

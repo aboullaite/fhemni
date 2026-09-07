@@ -112,6 +112,14 @@ public class AiUsageGuard {
                 AiOperation.FACT_CHECK, null, analysisId, model, clock.instant()));
     }
 
+    public Reservation reserveEditorial(AiOperation operation, String model) {
+        if (operation != AiOperation.PROGRAMME_EXTRACTION
+                && operation != AiOperation.PROMISE_FEASIBILITY) {
+            throw new IllegalArgumentException("A programme editorial operation is required");
+        }
+        return new Reservation(repository.reserve(operation, null, null, model, clock.instant()));
+    }
+
     public Reservation reserveQuestion(UUID analysisId, UUID userId, AiOperation operation, String model) {
         if (!chatEnabled) {
             throw new AiBudgetExceededException(
