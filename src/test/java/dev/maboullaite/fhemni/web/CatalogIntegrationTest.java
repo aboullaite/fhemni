@@ -2,6 +2,7 @@ package dev.maboullaite.fhemni.web;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -16,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import dev.maboullaite.fhemni.analysis.AnalysisRevisionRepository;
 import dev.maboullaite.fhemni.catalog.VideoMetadataGateway;
 import dev.maboullaite.fhemni.catalog.VideoMetadataGateway.VideoMetadata;
 import dev.maboullaite.fhemni.catalog.VideoPublicationDateGateway;
@@ -23,13 +25,26 @@ import dev.maboullaite.fhemni.catalog.CatalogVideoRepository;
 import dev.maboullaite.fhemni.catalog.CatalogVideoRepository.ImportedCatalogVideo;
 import dev.maboullaite.fhemni.identity.ExternalIdentityProfile;
 import dev.maboullaite.fhemni.identity.UserAccountRepository;
+import dev.maboullaite.fhemni.model.AnalysisSnapshot;
+import dev.maboullaite.fhemni.model.AnalysisStatus;
+import dev.maboullaite.fhemni.model.Chapter;
+import dev.maboullaite.fhemni.model.Claim;
+import dev.maboullaite.fhemni.model.ClaimKind;
+import dev.maboullaite.fhemni.model.ClaimVerdict;
+import dev.maboullaite.fhemni.model.OutputLanguage;
+import dev.maboullaite.fhemni.model.Participant;
+import dev.maboullaite.fhemni.model.VideoReport;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -48,6 +63,12 @@ class CatalogIntegrationTest {
 
     @Autowired
     private UserAccountRepository users;
+
+    @Autowired
+    private AnalysisRevisionRepository revisions;
+
+    @Autowired
+    private JdbcClient jdbc;
 
     @MockitoBean
     private VideoMetadataGateway metadataGateway;
@@ -215,5 +236,80 @@ class CatalogIntegrationTest {
                 .andExpect(content().string(containsString("id=\"suggestionAuthGate\"")))
                 .andExpect(content().string(containsString("id=\"suggestionCommunity\"")))
                 .andExpect(content().string(containsString("/js/suggestions.js")));
+    }
+
+    @Test
+    void searchesPublishedBriefingsByGuestNameInFrenchOrArabic() throws Exception {
+        catalog.saveImported(new ImportedCatalogVideo(
+                "Guest000001",
+                "https://www.youtube.com/watch?v=Guest000001",
+                "حلقة خاصة",
+                "2MTV",
+                "https://i.ytimg.com/vi/Guest000001/hqdefault.jpg",
+                "ساعة الصراحة",
+                LocalDate.of(2026, 1, 5),
+                "ary"));
+
+        UUID analysisId = UUID.randomUUID();
+        revisions.create(
+                new AnalysisSnapshot(
+                        analysisId,
+                        "https://www.youtube.com/watch?v=Guest000001",
+                        "Guest000001",
+                        OutputLanguage.DARIJA,
+                        AnalysisStatus.QUEUED,
+                        2,
+                        "Video accepted",
+                        false,
+                        Instant.now(),
+                        null,
+                        null,
+                        List.of(),
+                        false,
+                        null),
+                "test-model", "test-prompt", "test-fact-model", "test-fact-prompt", "test-credential");
+        revisions.complete(analysisId, new VideoReport(
+                "Guest episode",
+                "Summary.",
+                "Details.",
+                List.of(new Participant("نزار بركة", "ضيف")),
+                List.of(new Chapter("المقدمة", 0, "البداية")),
+                List.of(new Claim("c1", "A checkable statement.", "نزار بركة", 60,
+                        ClaimKind.FACT, ClaimVerdict.SUPPORTED, "Supported by evidence.", "HIGH", List.of())),
+                List.of()), "interaction-test");
+        jdbc.sql("""
+                        UPDATE catalog_videos
+                           SET status = 'PUBLISHED',
+                               short_summary = :summary,
+                               published_analysis_id = :analysisId
+                         WHERE youtube_video_id = :youtubeVideoId
+                        """)
+                .param("summary", "Summary.")
+                .param("analysisId", analysisId)
+                .param("youtubeVideoId", "Guest000001")
+                .update();
+
+        // French query matches the Arabic briefing through the directory.
+        mvc.perform(get("/api/catalog/videos").param("q", "baraka"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[?(@.slug == 'episode-Guest000001')]", hasSize(1)));
+
+        // Arabic query matches the briefing text directly.
+        mvc.perform(get("/api/catalog/videos").param("q", "بركة"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[?(@.slug == 'episode-Guest000001')]", hasSize(1)));
+
+        mvc.perform(get("/api/catalog/videos").param("q", "nobody matches this"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(0));
+
+        // Punctuation-only queries normalize to nothing and must not expand
+        // to every known guest.
+        mvc.perform(get("/api/catalog/videos").param("q", "%"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(0));
+        mvc.perform(get("/api/catalog/videos").param("q", "_"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalElements").value(0));
     }
 }

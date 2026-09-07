@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="fhemni">
+<head>
+    <script src="/js/analytics.js"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Guests and recent statements for a political party." data-i18n-content="party.description">
+    <title>Party — Fhemni</title>
+    <link rel="icon" type="image/png" href="/assets/brand/fhemni-icon.png">
+    <link rel="stylesheet" href="/css/dist.css">
+</head>
+<body class="public-page" data-i18n-page-title="party.pageTitle">
+<div class="ambient ambient-one"></div>
+<div class="ambient ambient-two"></div>
+
+<header class="site-header public-header">
+    <a class="brand" href="/" aria-label="Fhemni home" data-i18n-aria-label="common.brandHome">
+        <img class="brand-logo brand-logo-full" src="/assets/brand/fhemni-logo.png" alt="">
+        <img class="brand-logo brand-logo-icon" src="/assets/brand/fhemni-icon.png" alt="">
+    </a>
+    <nav class="primary-nav" aria-label="Primary navigation" data-i18n-aria-label="common.primaryNavigation">
+        <a href="/videos" data-i18n="common.catalogue">Catalogue</a>
+        <a class="active" href="/parties" data-i18n="common.parties">Parties</a>
+        <a href="/community" data-i18n="common.community">Community</a>
+    </nav>
+    <div class="header-actions">
+        <label class="site-language"><span class="sr-only" data-i18n="common.siteLanguage">Website language</span><select data-site-language data-i18n-aria-label="common.siteLanguage" aria-label="Website language"><option value="en">EN</option><option value="fr">FR</option><option value="ar">الدارجة</option></select></label>
+        <div id="authNav"></div>
+    </div>
+</header>
+
+<main>
+    <div id="partyLoading" class="catalog-loading detail-loading" data-i18n="party.loading">Loading this party…</div>
+    <section id="partyDetail" class="video-detail" hidden>
+        <a class="back-link" href="/parties">← <span data-i18n="party.back">Back to parties</span></a>
+        <div class="video-detail-heading">
+            <div>
+                <h1 id="partyName" dir="auto"></h1>
+                <div id="partyNameAlt" class="video-meta" dir="auto"></div>
+                <div id="partyStats" class="person-stats"></div>
+            </div>
+        </div>
+
+        <section class="profile-section" aria-labelledby="partyMembersTitle">
+            <div class="catalog-result-heading"><h2 id="partyMembersTitle" data-i18n="party.members">Guests</h2><span id="partyMembersCount"></span></div>
+            <div id="partyMembers" class="catalog-grid"></div>
+        </section>
+
+        <section class="profile-section" aria-labelledby="partyStatementsTitle">
+            <div class="catalog-result-heading"><h2 id="partyStatementsTitle" data-i18n="party.recentStatements">Recent statements</h2></div>
+            <div id="partyStatements" class="catalog-grid"></div>
+        </section>
+    </section>
+    <section id="partyError" class="catalog-error detail-loading" hidden></section>
+</main>
+
+<footer><img class="footer-logo" src="/assets/brand/fhemni-logo.png" alt="Fhemni — فهّمني"><span data-i18n="common.footer">© 2026 Mohammed Aboullaite</span><a class="footer-feedback-link" href="https://github.com/aboullaite/fhemni/issues" target="_blank" rel="noopener noreferrer" data-i18n="common.suggestFeature">Suggest a feature</a></footer>
+<script src="/js/i18n.js?v=20260906-14" defer></script><script src="/js/auth.js" defer></script><script src="/js/catalog-ui.js?v=20260906-2" defer></script><script src="/js/people-ui.js?v=20260906-1" defer></script><script src="/js/party.js?v=20260906-1" defer></script>
+</body>
+</html>

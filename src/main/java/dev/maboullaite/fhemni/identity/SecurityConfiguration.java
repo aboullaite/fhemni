@@ -70,6 +70,8 @@ public class SecurityConfiguration {
                         .requestMatchers(
                                 "/", "/index.html", "/videos", "/videos/**",
                                 "/analyses/**", "/analysis.html",
+                                "/people/**", "/person.html",
+                                "/parties", "/parties/**", "/parties.html", "/party.html",
                                 "/catalog", "/catalog/**",
                                 "/community", "/community/", "/community.html",
                                 "/suggestions", "/suggestions/",
@@ -78,6 +80,7 @@ public class SecurityConfiguration {
                                 "/oauth2/**", "/login/oauth2/**", "/api/auth/session", "/healthz")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/catalog/videos/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/catalog/people/**", "/api/catalog/parties/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/suggestions").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/suggestions/*/votes").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/suggestions").authenticated()

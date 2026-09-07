@@ -83,6 +83,9 @@ fhemni:
     oembed-timeout: ${YOUTUBE_OEMBED_TIMEOUT:PT5S}
     import-concurrency: ${FHEMNI_CATALOG_IMPORT_CONCURRENCY:3}
     batch-analysis-timeout: ${FHEMNI_CATALOG_BATCH_ANALYSIS_TIMEOUT:PT30M}
+    people-max-comparisons: ${FHEMNI_CATALOG_PEOPLE_MAX_COMPARISONS:20}
+    party-max-claims: ${FHEMNI_CATALOG_PARTY_MAX_CLAIMS:50}
+    people-cache-ttl: ${FHEMNI_CATALOG_PEOPLE_CACHE_TTL:PT60S}
     # One-off maintenance switch for rebuilding published Gemini video contexts after key/project rotation.
     context-migration-enabled: ${FHEMNI_CONTEXT_MIGRATION_ENABLED:false}
   suggestions:

@@ -13,6 +13,7 @@ episode by episode.
 - Moroccan Darija, French, and English
 - public catalogue and stable episode pages
 - timestamped summaries, chapters, participants, and claims
+- party sheets with members and statements
 - source-grounded claim checking
 - community suggestions and voting
 - review-before-publication workflow

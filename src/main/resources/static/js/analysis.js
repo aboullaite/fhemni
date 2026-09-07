@@ -375,11 +375,8 @@ function renderResult(snapshot) {
             element.lang = reportLocale;
         });
 
-    elements.participants.innerHTML = report.participants.map(person => `
-        <div class="participant rounded-box border border-base-300 bg-base-100/70 px-3 py-2 text-xs">
-            <strong class="block text-sm">${escapeHtml(person.name)}</strong>
-            <span class="text-base-content/60">${escapeHtml(person.role)}</span>
-        </div>`).join('');
+    elements.participants.innerHTML = '';
+    renderParticipants(report.participants);
 
     elements.chapters.innerHTML = report.chapters.map(chapter => `
         <div class="chapter grid grid-cols-[3.5rem_1fr] gap-3 border-b border-base-300 py-3 last:border-b-0">
@@ -866,6 +863,90 @@ function formatTime(value) {
 function safeSeconds(value) {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? Math.max(0, Math.floor(parsed)) : 0;
+}
+
+let peopleDirectory = null;
+let peopleDirectoryPromise = null;
+
+function loadPeopleDirectory() {
+    if (peopleDirectory) return Promise.resolve(peopleDirectory);
+    if (!peopleDirectoryPromise) {
+        peopleDirectoryPromise = fetch('/api/catalog/people')
+            .then(response => (response.ok ? response.json() : []))
+            .then(list => {
+                peopleDirectory = Array.isArray(list) ? list : [];
+                return peopleDirectory;
+            })
+            .catch(() => {
+                peopleDirectory = [];
+                return peopleDirectory;
+            });
+    }
+    return peopleDirectoryPromise;
+}
+
+function normalizePersonName(value) {
+    return String(value ?? '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f\u064B-\u065F]/g, '')
+        .toLowerCase()
+        .replace(/[أإآ]/g, 'ا')
+        .replace(/ة/g, 'ه')
+        .replace(/ى/g, 'ي')
+        .replace(/[^a-z0-9\u0600-\u06FF]+/g, ' ')
+        .trim()
+        .replace(/\s+/g, ' ');
+}
+
+function findPersonEntry(name) {
+    if (!peopleDirectory || !peopleDirectory.length) return null;
+    const wanted = normalizePersonName(name);
+    if (!wanted) return null;
+    return peopleDirectory.find(person => {
+        const candidates = [
+            ...(Array.isArray(person.spellings) ? person.spellings : []),
+            person.displayName,
+            person.displayNameAr
+        ];
+        return candidates.some(candidate => candidate && normalizePersonName(candidate) === wanted);
+    }) || null;
+}
+
+function renderParticipants(participants) {
+    elements.participants.innerHTML = (participants || []).map(person => `
+        <div class="participant rounded-box border border-base-300 bg-base-100/70 px-3 py-2 text-xs" data-name="${escapeHtml(person.name)}">
+            <div class="participant-top">
+                <strong class="block text-sm" dir="auto">${escapeHtml(person.name)}</strong>
+            </div>
+            <span class="text-base-content/60" dir="auto">${escapeHtml(person.role)}</span>
+        </div>`).join('');
+    loadPeopleDirectory().then(() => {
+        if (!peopleDirectory.length) return;
+        elements.participants.querySelectorAll('.participant').forEach(card => {
+            const match = findPersonEntry(card.dataset.name);
+            if (!match) return;
+            const name = card.querySelector('strong');
+            if (name) {
+                const link = document.createElement('a');
+                link.className = 'text-link';
+                link.href = `/people/${encodeURIComponent(match.slug)}`;
+                link.dir = 'auto';
+                link.textContent = name.textContent;
+                name.replaceChildren(link);
+            }
+            if (match.partyCode === 'UNKNOWN') return;
+            const badge = document.createElement('a');
+            badge.className = `party-badge party-${match.partyCode}`;
+            badge.href = `/parties/${encodeURIComponent(match.partyCode)}`;
+            const dot = document.createElement('span');
+            dot.className = 'party-dot';
+            dot.setAttribute('aria-hidden', 'true');
+            const label = document.createElement('span');
+            label.textContent = match.partyCode;
+            badge.append(dot, label);
+            card.querySelector('.participant-top').append(badge);
+        });
+    });
 }
 
 function labelFor(value = '') {
