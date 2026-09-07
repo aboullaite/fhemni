@@ -56,6 +56,12 @@
         document.querySelector('#promiseDataCutoff').textContent = t('promise.dataCutoff', {
             date: formatDate(assessment.dataCutoff)
         });
+        const provider = ['gemini', 'openai', 'consensus', 'editorial'].includes(assessment.providerMode)
+            ? assessment.providerMode
+            : 'gemini';
+        document.querySelector('#promiseAiAttribution').textContent = t(`promise.aiAttribution.${provider}`, {
+            models: assessment.modelNames || 'Gemini 3.8 Flash'
+        });
         const evidence = document.querySelector('#promiseEvidence');
         evidence.replaceChildren();
         assessment.evidence.forEach(item => evidence.append(evidenceItem(item)));

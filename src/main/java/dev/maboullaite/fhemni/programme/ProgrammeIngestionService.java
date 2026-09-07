@@ -16,8 +16,8 @@ import dev.maboullaite.fhemni.cost.AiUsageGuard;
 import dev.maboullaite.fhemni.cost.AiUsageGuard.Reservation;
 import dev.maboullaite.fhemni.gemini.GeminiApiException;
 import dev.maboullaite.fhemni.gemini.ProgrammeIntelligenceGateway;
-import dev.maboullaite.fhemni.gemini.ProgrammeIntelligenceGateway.AssessmentResult;
 import dev.maboullaite.fhemni.gemini.ProgrammeIntelligenceGateway.ExtractionResult;
+import dev.maboullaite.fhemni.programme.ProgrammeFactCheckService.FactCheckResult;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.AdminProgrammeView;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,19 +26,25 @@ import org.springframework.web.multipart.MultipartFile;
 public class ProgrammeIngestionService {
 
     static final long MAX_PDF_BYTES = 25L * 1024 * 1024;
+    private static final int INGESTION_LOCK_STRIPES = 64;
     private static final Set<String> TRACKING_PARAMETERS = Set.of(
             "fbclid", "gclid", "dclid", "msclkid", "mc_cid", "mc_eid");
 
     private final ProgrammeIntelligenceGateway gateway;
+    private final ProgrammeFactCheckService factChecks;
     private final PartyProgrammeService programmes;
     private final AiUsageGuard usageGuard;
-    private final Object ingestionMonitor = new Object();
+    private final Object[] ingestionLocks = java.util.stream.IntStream.range(0, INGESTION_LOCK_STRIPES)
+            .mapToObj(ignored -> new Object())
+            .toArray();
 
     public ProgrammeIngestionService(
             ProgrammeIntelligenceGateway gateway,
+            ProgrammeFactCheckService factChecks,
             PartyProgrammeService programmes,
             AiUsageGuard usageGuard) {
         this.gateway = gateway;
+        this.factChecks = factChecks;
         this.programmes = programmes;
         this.usageGuard = usageGuard;
     }
@@ -58,38 +64,47 @@ public class ProgrammeIngestionService {
         if (!gateway.live()) {
             throw new IllegalStateException("Gemini must be configured before importing a party programme.");
         }
+        if (!factChecks.ready()) {
+            throw new IllegalStateException(
+                    "The credentials required by the selected programme fact-check mode are not configured.");
+        }
 
-        // Admin-only, deliberately serialized: this prevents two clicks from paying for the same URL concurrently.
-        synchronized (ingestionMonitor) {
+        // Same-source clicks share a bounded lock; unrelated parties can be imported independently.
+        synchronized (ingestionLock(sourceUrl)) {
             AdminProgrammeView programme = programmes.programmeBySourceUrl(sourceUrl).orElse(null);
             boolean extracted = false;
-            List<String> warnings = List.of();
+            List<String> warnings = programme == null ? List.of() : programme.extractionWarnings();
 
             if (programme == null) {
                 ExtractionResult extraction = extractionOperation.extract();
                 warnings = extraction.programme().warnings() == null
                         ? List.of()
                         : extraction.programme().warnings().stream().filter(value -> value != null && !value.isBlank()).toList();
-                programme = programmes.saveGeneratedExtraction(sourceUrl, extraction.programme());
+                programme = programmes.saveGeneratedExtraction(sourceUrl, extraction.programme(), warnings);
                 extracted = true;
             }
 
             var pendingPromises = programmes.promisesAwaitingAssessment(programme);
             boolean assessed = false;
             if (!pendingPromises.isEmpty()) {
+                FactCheckResult assessment;
                 try {
-                    AssessmentResult assessment = assess(sourceUrl, pendingPromises);
-                    programme = programmes.saveGeneratedAssessments(programme.id(), assessment.assessments());
-                    assessed = true;
-                } catch (GeminiApiException exception) {
+                    assessment = factChecks.assess(sourceUrl, pendingPromises);
+                } catch (ProgrammeFactCheckException exception) {
                     return new IngestionResult(
                             programme, false, extracted, false, warnings, true, "ASSESSMENT_RETRY_REQUIRED");
                 }
+                programme = programmes.saveGeneratedAssessments(programme.id(), assessment);
+                assessed = true;
             }
 
             return new IngestionResult(
                     programme, !extracted && !assessed, extracted, assessed, warnings, false, null);
         }
+    }
+
+    private Object ingestionLock(String sourceUrl) {
+        return ingestionLocks[Math.floorMod(sourceUrl.hashCode(), ingestionLocks.length)];
     }
 
     private ExtractionResult extract(String sourceUrl) {
@@ -119,23 +134,6 @@ public class ProgrammeIngestionService {
         } catch (IOException exception) {
             usageGuard.failed(reservation);
             throw new IllegalArgumentException("The uploaded PDF could not be read.", exception);
-        } catch (RuntimeException exception) {
-            usageGuard.failed(reservation);
-            throw exception;
-        }
-    }
-
-    private AssessmentResult assess(
-            String sourceUrl,
-            List<ProgrammeIntelligenceGateway.ExtractedPromise> promises) {
-        Reservation reservation = usageGuard.reserveEditorial(AiOperation.PROMISE_FEASIBILITY, gateway.model());
-        try {
-            AssessmentResult result = gateway.assess(sourceUrl, promises);
-            usageGuard.succeeded(reservation, result.usage());
-            return result;
-        } catch (GeminiApiException exception) {
-            usageGuard.failed(reservation, exception.usage());
-            throw exception;
         } catch (RuntimeException exception) {
             usageGuard.failed(reservation);
             throw exception;

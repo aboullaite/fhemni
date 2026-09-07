@@ -1,4 +1,6 @@
 (function () {
+    // Extraction (12m) plus three consensus passes (3 × 15m) can legitimately exceed ten minutes.
+    const INGESTION_TIMEOUT_MS = 65 * 60 * 1000;
     const ingestForm = document.querySelector('#programmeIngestForm');
     const sourceUrl = document.querySelector('#programmeSourceUrl');
     const pdf = document.querySelector('#programmePdf');
@@ -54,7 +56,7 @@
             const result = await window.FhemniCatalog.requestJson(
                 document ? '/api/admin/programmes/ingest-pdf' : '/api/admin/programmes/ingest',
                 options,
-                600_000);
+                INGESTION_TIMEOUT_MS);
             const message = result.assessmentPending
                 ? t('admin.programmeAssessmentPending', {
                     party: result.programme.partyCode,
@@ -333,7 +335,7 @@
                 body: JSON.stringify({ sourceUrl: programmeSourceUrl })
             });
             const result = await window.FhemniCatalog.requestJson(
-                '/api/admin/programmes/ingest', options, 600_000);
+                '/api/admin/programmes/ingest', options, INGESTION_TIMEOUT_MS);
             showFeedback(result.assessmentPending
                 ? t('admin.programmeAiTemporaryFailure')
                 : t('admin.programmeAssessmentRetried'), result.assessmentPending);

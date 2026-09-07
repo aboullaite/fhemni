@@ -7,7 +7,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,6 +18,8 @@ import dev.maboullaite.fhemni.programme.PartyProgramme.LocalizedText;
 import dev.maboullaite.fhemni.programme.PromiseAssessment.Evidence;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 @Repository
 public class PartyProgrammeRepository {
@@ -22,7 +27,14 @@ public class PartyProgrammeRepository {
     private static final String PROGRAMME_COLUMNS = """
             id, party_code, election_year, term_start_year, term_end_year,
             title_ar, title_fr, title_en, summary_ar, summary_fr, summary_en,
-            source_url, source_label, source_language, source_snapshot, source_sha256,
+            source_url, source_label, source_language, source_snapshot, extraction_warnings, source_sha256,
+            source_retrieved_at, source_verified, editorial_status,
+            created_at, updated_at, published_at
+            """;
+    private static final String PROGRAMME_PUBLIC_COLUMNS = """
+            id, party_code, election_year, term_start_year, term_end_year,
+            title_ar, title_fr, title_en, summary_ar, summary_fr, summary_en,
+            source_url, source_label, source_language, NULL AS source_snapshot, NULL AS extraction_warnings, source_sha256,
             source_retrieved_at, source_verified, editorial_status,
             created_at, updated_at, published_at
             """;
@@ -37,14 +49,16 @@ public class PartyProgrammeRepository {
             requirements_ar, requirements_fr, requirements_en,
             assumptions_ar, assumptions_fr, assumptions_en,
             calculation_notes_ar, calculation_notes_fr, calculation_notes_en,
-            methodology_version, data_cutoff,
+            methodology_version, provider_mode, model_names, data_cutoff,
             editorial_status, created_at, published_at
             """;
 
     private final JdbcClient jdbc;
+    private final ObjectMapper mapper;
 
-    public PartyProgrammeRepository(JdbcClient jdbc) {
+    public PartyProgrammeRepository(JdbcClient jdbc, ObjectMapper mapper) {
         this.jdbc = jdbc;
+        this.mapper = mapper;
     }
 
     public boolean visiblePartyExists(String partyCode) {
@@ -62,6 +76,13 @@ public class PartyProgrammeRepository {
 
     public Optional<PartyProgramme> findById(UUID id) {
         return jdbc.sql("SELECT " + PROGRAMME_COLUMNS + " FROM party_programmes WHERE id = :id")
+                .param("id", id)
+                .query(this::mapProgramme)
+                .optional();
+    }
+
+    public Optional<PartyProgramme> findSummaryById(UUID id) {
+        return jdbc.sql("SELECT " + PROGRAMME_PUBLIC_COLUMNS + " FROM party_programmes WHERE id = :id")
                 .param("id", id)
                 .query(this::mapProgramme)
                 .optional();
@@ -91,7 +112,7 @@ public class PartyProgrammeRepository {
                          WHERE party_code = :partyCode
                            AND election_year = :electionYear
                            AND editorial_status = 'PUBLISHED'
-                        """.formatted(PROGRAMME_COLUMNS))
+                        """.formatted(PROGRAMME_PUBLIC_COLUMNS))
                 .param("partyCode", partyCode)
                 .param("electionYear", electionYear)
                 .query(this::mapProgramme)
@@ -103,13 +124,13 @@ public class PartyProgrammeRepository {
                         INSERT INTO party_programmes (
                             id, party_code, election_year, term_start_year, term_end_year,
                             title_ar, title_fr, title_en, summary_ar, summary_fr, summary_en,
-                            source_url, source_label, source_language, source_snapshot, source_sha256,
+                            source_url, source_label, source_language, source_snapshot, extraction_warnings, source_sha256,
                             source_retrieved_at, source_verified, editorial_status,
                             created_at, updated_at, published_at
                         ) VALUES (
                             :id, :partyCode, :electionYear, :termStartYear, :termEndYear,
                             :titleAr, :titleFr, :titleEn, :summaryAr, :summaryFr, :summaryEn,
-                            :sourceUrl, :sourceLabel, :sourceLanguage, :sourceSnapshot, :sourceSha256,
+                            :sourceUrl, :sourceLabel, :sourceLanguage, :sourceSnapshot, :extractionWarnings, :sourceSha256,
                             :sourceRetrievedAt, :sourceVerified, :status,
                             :createdAt, :updatedAt, :publishedAt
                         )
@@ -129,6 +150,7 @@ public class PartyProgrammeRepository {
                 .param("sourceLabel", programme.sourceLabel())
                 .param("sourceLanguage", programme.sourceLanguage())
                 .param("sourceSnapshot", programme.sourceSnapshot(), Types.LONGVARCHAR)
+                .param("extractionWarnings", writeWarnings(programme.extractionWarnings()), Types.LONGVARCHAR)
                 .param("sourceSha256", programme.sourceSha256())
                 .param("sourceRetrievedAt", utc(programme.sourceRetrievedAt()))
                 .param("sourceVerified", programme.sourceVerified())
@@ -154,6 +176,13 @@ public class PartyProgrammeRepository {
                 .param("id", id)
                 .query(this::mapPromise)
                 .optional();
+    }
+
+    public boolean promiseSlugExists(String slug) {
+        return jdbc.sql("SELECT COUNT(*) FROM party_promises WHERE slug = :slug")
+                .param("slug", slug)
+                .query(Integer.class)
+                .single() > 0;
     }
 
     public Optional<PartyPromise> findPublishedPromiseBySlug(String slug) {
@@ -258,7 +287,7 @@ public class PartyProgrammeRepository {
                             requirements_ar, requirements_fr, requirements_en,
                             assumptions_ar, assumptions_fr, assumptions_en,
                             calculation_notes_ar, calculation_notes_fr, calculation_notes_en,
-                            methodology_version, data_cutoff,
+                            methodology_version, provider_mode, model_names, data_cutoff,
                             editorial_status, created_at, published_at
                         ) VALUES (
                             :id, :promiseId, :revisionNumber, :horizonYears, :verdict,
@@ -266,7 +295,7 @@ public class PartyProgrammeRepository {
                             :requirementsAr, :requirementsFr, :requirementsEn,
                             :assumptionsAr, :assumptionsFr, :assumptionsEn,
                             :calculationNotesAr, :calculationNotesFr, :calculationNotesEn,
-                            :methodologyVersion, :dataCutoff,
+                            :methodologyVersion, :providerMode, :modelNames, :dataCutoff,
                             :status, :createdAt, :publishedAt
                         )
                         """)
@@ -288,6 +317,8 @@ public class PartyProgrammeRepository {
                 .param("calculationNotesFr", assessment.calculationNotes().fr(), Types.LONGVARCHAR)
                 .param("calculationNotesEn", assessment.calculationNotes().en(), Types.LONGVARCHAR)
                 .param("methodologyVersion", assessment.methodologyVersion())
+                .param("providerMode", assessment.providerMode())
+                .param("modelNames", assessment.modelNames())
                 .param("dataCutoff", assessment.dataCutoff())
                 .param("status", assessment.status().name())
                 .param("createdAt", utc(assessment.createdAt()))
@@ -307,18 +338,33 @@ public class PartyProgrammeRepository {
     }
 
     public List<PromiseAssessment> findAssessments(UUID promiseId, boolean publishedOnly) {
+        return findAssessments(List.of(promiseId), publishedOnly).getOrDefault(promiseId, List.of());
+    }
+
+    public Map<UUID, List<PromiseAssessment>> findAssessments(
+            List<UUID> promiseIds,
+            boolean publishedOnly) {
+        if (promiseIds == null || promiseIds.isEmpty()) {
+            return Map.of();
+        }
         String publication = publishedOnly ? " AND editorial_status = 'PUBLISHED'" : "";
-        return jdbc.sql("SELECT " + ASSESSMENT_COLUMNS
-                        + " FROM promise_assessments WHERE promise_id = :promiseId"
+        List<PromiseAssessment> assessments = jdbc.sql("SELECT " + ASSESSMENT_COLUMNS
+                        + " FROM promise_assessments WHERE promise_id IN (:promiseIds)"
                         + publication + " ORDER BY revision_number DESC")
-                .param("promiseId", promiseId)
+                .param("promiseIds", promiseIds)
                 .query(this::mapAssessment)
-                .list().stream()
-                .map(this::withEvidence)
-                .toList();
+                .list();
+        Map<UUID, List<PromiseAssessment>> grouped = new LinkedHashMap<>();
+        promiseIds.forEach(id -> grouped.put(id, new ArrayList<>()));
+        for (PromiseAssessment assessment : withEvidence(assessments)) {
+            grouped.computeIfAbsent(assessment.promiseId(), ignored -> new ArrayList<>()).add(assessment);
+        }
+        grouped.replaceAll((ignored, values) -> List.copyOf(values));
+        return Map.copyOf(grouped);
     }
 
     public void publishAssessment(UUID assessmentId, UUID promiseId, Instant publishedAt) {
+        lockPromise(promiseId);
         jdbc.sql("""
                         UPDATE promise_assessments
                            SET editorial_status = 'SUPERSEDED'
@@ -337,6 +383,14 @@ public class PartyProgrammeRepository {
         if (updated != 1) {
             throw new IllegalStateException("Only a draft assessment can be published.");
         }
+    }
+
+    public void lockPromise(UUID promiseId) {
+        jdbc.sql("SELECT id FROM party_promises WHERE id = :promiseId FOR UPDATE")
+                .param("promiseId", promiseId)
+                .query(UUID.class)
+                .optional()
+                .orElseThrow(() -> new java.util.NoSuchElementException("Promise not found."));
     }
 
     public void publishPromise(UUID promiseId, Instant publishedAt) {
@@ -440,19 +494,35 @@ public class PartyProgrammeRepository {
     }
 
     private PromiseAssessment withEvidence(PromiseAssessment assessment) {
-        List<Evidence> evidence = jdbc.sql("""
-                        SELECT id, publisher, title, url, published_on, note, sort_order
-                          FROM promise_evidence WHERE assessment_id = :assessmentId
-                         ORDER BY sort_order
+        return withEvidence(List.of(assessment)).getFirst();
+    }
+
+    private List<PromiseAssessment> withEvidence(List<PromiseAssessment> assessments) {
+        if (assessments.isEmpty()) {
+            return List.of();
+        }
+        List<UUID> assessmentIds = assessments.stream().map(PromiseAssessment::id).toList();
+        Map<UUID, List<Evidence>> evidenceByAssessment = new LinkedHashMap<>();
+        jdbc.sql("""
+                        SELECT assessment_id, id, publisher, title, url, published_on, note, sort_order
+                          FROM promise_evidence WHERE assessment_id IN (:assessmentIds)
+                         ORDER BY assessment_id, sort_order
                         """)
-                .param("assessmentId", assessment.id())
-                .query(this::mapEvidence)
-                .list();
-        return new PromiseAssessment(
-                assessment.id(), assessment.promiseId(), assessment.revisionNumber(), assessment.horizonYears(),
-                assessment.verdict(), assessment.summary(), assessment.requirements(), assessment.assumptions(),
-                assessment.calculationNotes(), assessment.methodologyVersion(), assessment.dataCutoff(),
-                assessment.status(), assessment.createdAt(), assessment.publishedAt(), evidence);
+                .param("assessmentIds", assessmentIds)
+                .query((rs, rowNumber) -> new AssessmentEvidence(
+                        rs.getObject("assessment_id", UUID.class), mapEvidence(rs, rowNumber)))
+                .list()
+                .forEach(row -> evidenceByAssessment
+                        .computeIfAbsent(row.assessmentId(), ignored -> new ArrayList<>())
+                        .add(row.evidence()));
+        return assessments.stream().map(assessment -> new PromiseAssessment(
+                        assessment.id(), assessment.promiseId(), assessment.revisionNumber(), assessment.horizonYears(),
+                        assessment.verdict(), assessment.summary(), assessment.requirements(), assessment.assumptions(),
+                        assessment.calculationNotes(), assessment.methodologyVersion(), assessment.providerMode(),
+                        assessment.modelNames(), assessment.dataCutoff(), assessment.status(), assessment.createdAt(),
+                        assessment.publishedAt(), List.copyOf(evidenceByAssessment.getOrDefault(
+                                assessment.id(), List.of()))))
+                .toList();
     }
 
     private PartyProgramme mapProgramme(ResultSet rs, int rowNumber) throws SQLException {
@@ -461,13 +531,17 @@ public class PartyProgrammeRepository {
                 rs.getInt("term_start_year"), rs.getInt("term_end_year"),
                 localized(rs, "title"), localized(rs, "summary"),
                 rs.getString("source_url"), rs.getString("source_label"), rs.getString("source_language"),
-                rs.getString("source_snapshot"), rs.getString("source_sha256"),
+                rs.getString("source_snapshot"), readWarnings(rs.getString("extraction_warnings")),
+                rs.getString("source_sha256"),
                 instant(rs, "source_retrieved_at"), rs.getBoolean("source_verified"),
                 EditorialStatus.valueOf(rs.getString("editorial_status")),
                 instant(rs, "created_at"), instant(rs, "updated_at"), nullableInstant(rs, "published_at"));
     }
 
     public record PublishedPromise(String partyCode, PartyPromise promise) {
+    }
+
+    private record AssessmentEvidence(UUID assessmentId, Evidence evidence) {
     }
 
     private PartyPromise mapPromise(ResultSet rs, int rowNumber) throws SQLException {
@@ -487,6 +561,7 @@ public class PartyProgrammeRepository {
                 FeasibilityVerdict.valueOf(rs.getString("verdict")), localized(rs, "summary"),
                 localized(rs, "requirements"), localized(rs, "assumptions"),
                 localized(rs, "calculation_notes"), rs.getString("methodology_version"),
+                rs.getString("provider_mode"), rs.getString("model_names"),
                 rs.getObject("data_cutoff", LocalDate.class),
                 EditorialStatus.valueOf(rs.getString("editorial_status")),
                 instant(rs, "created_at"), nullableInstant(rs, "published_at"), List.of());
@@ -515,5 +590,24 @@ public class PartyProgrammeRepository {
     private static Instant nullableInstant(ResultSet rs, String column) throws SQLException {
         OffsetDateTime value = rs.getObject(column, OffsetDateTime.class);
         return value == null ? null : value.toInstant();
+    }
+
+    private String writeWarnings(List<String> warnings) {
+        try {
+            return mapper.writeValueAsString(warnings == null ? List.of() : warnings);
+        } catch (JacksonException exception) {
+            throw new IllegalStateException("Programme extraction warnings could not be stored.", exception);
+        }
+    }
+
+    private List<String> readWarnings(String json) {
+        if (json == null || json.isBlank()) {
+            return List.of();
+        }
+        try {
+            return List.of(mapper.readValue(json, String[].class));
+        } catch (JacksonException exception) {
+            throw new IllegalStateException("Stored programme extraction warnings could not be read.", exception);
+        }
     }
 }

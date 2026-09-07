@@ -139,7 +139,22 @@ class AdminPersonDirectoryIntegrationTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                { "partyCode": "PJD" }
+                                {
+                                  "partyCode": "PJD"
+                                }
+                                """))
+                .andExpect(status().isBadRequest());
+
+        mvc.perform(post("/api/admin/people/guest-to-review/affiliations")
+                        .with(user("admin").roles("ADMIN"))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "partyCode": "PJD",
+                                  "validFrom": "2026-01-01",
+                                  "validUntil": null
+                                }
                                 """))
                 .andExpect(status().isNoContent());
 

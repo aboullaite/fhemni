@@ -148,7 +148,7 @@ public class PersonCatalogService {
     public List<PartySummary> parties() {
         Loaded loaded = load();
         Map<String, Builder> people = loaded.people();
-        Set<String> partiesWithProgrammes = publishedProgrammePartyCodes();
+        Set<String> partiesWithProgrammes = loaded.publishedProgrammePartyCodes();
         List<PartySummary> result = new ArrayList<>();
         for (PoliticalParty party : loaded.parties().findAll()) {
             if (!party.visible()) {
@@ -174,7 +174,7 @@ public class PersonCatalogService {
         return result;
     }
 
-    private Set<String> publishedProgrammePartyCodes() {
+    private Set<String> loadPublishedProgrammePartyCodes() {
         return Set.copyOf(jdbc.sql("""
                         SELECT DISTINCT party_code
                           FROM party_programmes
@@ -199,7 +199,7 @@ public class PersonCatalogService {
                 .toList();
         // Distinct episodes: two same-party guests in one episode count once.
         List<EpisodeAppearance> partyEpisodes = partyEpisodes(people, party.code());
-        if (partyEpisodes.isEmpty() && !publishedProgrammePartyCodes().contains(party.code())) {
+        if (partyEpisodes.isEmpty() && !loaded.publishedProgrammePartyCodes().contains(party.code())) {
             throw new NoSuchElementException("This party page is not available yet.");
         }
         int appearances = partyEpisodes.size();
@@ -364,10 +364,14 @@ public class PersonCatalogService {
                         .addClaim(item, claim, identity.partyCode());
             }
         }
-        return new Loaded(directory, parties, people);
+        return new Loaded(directory, parties, people, loadPublishedProgrammePartyCodes());
     }
 
-    private record Loaded(PersonDirectory directory, PartyDirectory parties, Map<String, Builder> people) {
+    private record Loaded(
+            PersonDirectory directory,
+            PartyDirectory parties,
+            Map<String, Builder> people,
+            Set<String> publishedProgrammePartyCodes) {
     }
 
     private Builder builder(

@@ -1,6 +1,7 @@
 package dev.maboullaite.fhemni.programme;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 public record PartyProgramme(
@@ -15,6 +16,7 @@ public record PartyProgramme(
         String sourceLabel,
         String sourceLanguage,
         String sourceSnapshot,
+        List<String> extractionWarnings,
         String sourceSha256,
         Instant sourceRetrievedAt,
         boolean sourceVerified,

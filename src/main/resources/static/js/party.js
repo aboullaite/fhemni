@@ -13,13 +13,16 @@
     async function load() {
         const code = decodeURIComponent(window.location.pathname.split('/').filter(Boolean).at(-1) || '');
         try {
-            profile = await window.FhemniCatalog.requestJson(`/api/catalog/parties/${encodeURIComponent(code)}`);
-            try {
-                programme = await window.FhemniCatalog.requestJson(
-                    `/api/catalog/parties/${encodeURIComponent(code)}/programme`);
-            } catch (_) {
-                programme = null;
-            }
+            const programmeRequest = window.FhemniCatalog.requestJson(
+                `/api/catalog/parties/${encodeURIComponent(code)}/programme`)
+                .catch(error => {
+                    if (error.status === 404) return null;
+                    throw error;
+                });
+            [profile, programme] = await Promise.all([
+                window.FhemniCatalog.requestJson(`/api/catalog/parties/${encodeURIComponent(code)}`),
+                programmeRequest
+            ]);
             render();
             document.querySelector('#partyLoading').hidden = true;
             document.querySelector('#partyDetail').hidden = false;

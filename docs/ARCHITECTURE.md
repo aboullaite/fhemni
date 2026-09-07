@@ -30,6 +30,14 @@ interaction ID. Spring AI handles the independent evidence pass through
 This separation is intentional: video understanding answers “what was said?”,
 while fact checking asks “what does external evidence support?”.
 
+Party-programme feasibility has a separate provider boundary. The configured
+mode is `gemini`, `openai`, or `consensus`. Consensus runs an independent Gemini
+assessment, an independent OpenAI assessment with web search, and an OpenAI
+reconciliation that must resolve disagreements from cited evidence. The final
+draft records its methodology, mode, and model names before editorial review.
+Changing mode affects only future drafts; stored and published assessments keep
+their original attribution. OpenAI is never used for video analysis or chat.
+
 ## Persistence
 
 Flyway owns the schema. Local development uses file-backed H2 in PostgreSQL

@@ -8,6 +8,8 @@
     const form = document.querySelector('#affiliationForm');
     const personSelect = document.querySelector('#affiliationPerson');
     const partySelect = document.querySelector('#affiliationParty');
+    const validFromInput = document.querySelector('#affiliationValidFrom');
+    const validUntilInput = document.querySelector('#affiliationValidUntil');
     const episodesList = document.querySelector('#affiliationEpisodes');
     const saveButton = document.querySelector('#affiliationSave');
     const feedback = document.querySelector('#affiliationFeedback');
@@ -172,6 +174,9 @@
         const person = selectedPerson();
         const affiliation = currentAffiliation(person);
         partySelect.value = affiliation?.partyCode || 'UNKNOWN';
+        validFromInput.value = affiliation?.validFrom || '';
+        validUntilInput.value = affiliation?.validUntil || '';
+        syncPeriodInputs();
         feedback.hidden = true;
         showEpisodes(person);
     }
@@ -195,6 +200,9 @@
             if (request !== profileRequest || personSelect.value !== person.slug) return;
             episodesList.replaceChildren();
             (profile.episodes || []).forEach(episode => episodesList.append(episodeLink(episode)));
+            if (!validFromInput.value && partySelect.value !== 'UNKNOWN') {
+                validFromInput.value = earliestEpisodeDate(profile.episodes) || today();
+            }
             if (!profile.episodes?.length) {
                 loading.textContent = t('admin.affiliationEpisodesEmpty');
                 episodesList.append(loading);
@@ -208,6 +216,33 @@
                 ? t('admin.affiliationEpisodesEmpty')
                 : error.message;
             episodesList.append(message);
+        }
+    }
+
+    function earliestEpisodeDate(episodes) {
+        return (episodes || [])
+            .map(episode => episode.publishedOn)
+            .filter(Boolean)
+            .sort()[0] || '';
+    }
+
+    function today() {
+        const date = new Date();
+        const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+        return local.toISOString().slice(0, 10);
+    }
+
+    function syncPeriodInputs() {
+        const affiliated = partySelect.value !== 'UNKNOWN';
+        validFromInput.disabled = !affiliated;
+        validUntilInput.disabled = !affiliated;
+        validFromInput.required = affiliated;
+        if (!affiliated) {
+            validFromInput.value = '';
+            validUntilInput.value = '';
+        } else if (!validFromInput.value) {
+            const cached = profileCache.get(personSelect.value);
+            validFromInput.value = earliestEpisodeDate(cached?.episodes) || today();
         }
     }
 
@@ -246,7 +281,11 @@
         if (!person) return;
         saveButton.disabled = true;
         feedback.hidden = true;
-        const affiliation = { partyCode: partySelect.value };
+        const affiliation = {
+            partyCode: partySelect.value,
+            validFrom: validFromInput.value || null,
+            validUntil: validUntilInput.value || null
+        };
         try {
             let endpoint;
             let method;
@@ -294,6 +333,7 @@
 
     form.addEventListener('submit', save);
     personSelect.addEventListener('change', syncPartySelection);
+    partySelect.addEventListener('change', syncPeriodInputs);
     document.addEventListener('DOMContentLoaded', () => load());
     document.addEventListener('fhemni:localechange', () => render(personSelect.value));
 })();

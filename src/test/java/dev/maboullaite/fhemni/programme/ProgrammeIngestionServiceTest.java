@@ -24,7 +24,7 @@ class ProgrammeIngestionServiceTest {
 
     @Test
     void rejectsAFileThatOnlyPretendsToBeAPdf() {
-        var service = new ProgrammeIngestionService(null, null, null);
+        var service = new ProgrammeIngestionService(null, null, null, null);
         var document = new MockMultipartFile(
                 "document", "programme.pdf", "application/pdf", "not a pdf".getBytes());
 

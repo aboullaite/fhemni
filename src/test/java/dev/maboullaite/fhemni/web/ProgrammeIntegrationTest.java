@@ -60,11 +60,14 @@ class ProgrammeIntegrationTest {
                 "Programme électoral officiel 2026",
                 "fr",
                 "Frozen official programme text for editorial review.",
-                true));
+                true,
+                List.of("Page 14 was difficult to read.")));
         assertThat(programme.electionYear()).isEqualTo(2026);
         assertThat(programme.termStartYear()).isEqualTo(2026);
         assertThat(programme.termEndYear()).isEqualTo(2031);
         assertThat(programme.sourceSha256()).hasSize(64);
+        assertThat(programmes.programmeBySourceUrl("https://pam.ma/fr/programme-electoral/")
+                .orElseThrow().extractionWarnings()).containsExactly("Page 14 was difficult to read.");
 
         mvc.perform(get("/api/catalog/parties/PAM/programme"))
                 .andExpect(status().isNotFound());
@@ -113,6 +116,25 @@ class ProgrammeIntegrationTest {
                 .andExpect(jsonPath("$.partyCode").value("PAM"))
                 .andExpect(jsonPath("$.assessment.horizonYears").value(5))
                 .andExpect(jsonPath("$.assessment.evidence[0].publisher").value("HCP"));
+
+        var revisedAssessment = programmes.createAssessment(
+                promise.promise().id(),
+                assessment(FeasibilityVerdict.POSSIBLE, "https://www.hcp.ma/revised"));
+        programmes.publishAssessment(revisedAssessment.id());
+
+        var revisedPromise = programmes.adminProgrammes().stream()
+                .filter(item -> item.id().equals(programme.id()))
+                .flatMap(item -> item.promises().stream())
+                .filter(item -> item.promise().id().equals(promise.promise().id()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(revisedPromise.assessments())
+                .extracting(item -> item.status().name())
+                .containsExactly("PUBLISHED", "SUPERSEDED");
+        mvc.perform(get("/api/catalog/promises/million-net-jobs"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.assessment.verdict").value("POSSIBLE"))
+                .andExpect(jsonPath("$.assessment.revisionNumber").value(2));
 
         var ppsProgramme = programmes.createProgramme(new DraftProgramme(
                 "PPS",
@@ -174,6 +196,22 @@ class ProgrammeIntegrationTest {
         var first = programmes.createPromise(programme.id(), new DraftPromise(
                 "rni-first-promise", "economy", localized("الوعد اللول", "Première promesse", "First promise"),
                 "First exact promise.", "Page 4", "Mechanism", "Financing"));
+        mvc.perform(post("/api/admin/programmes/{programmeId}/promises", programme.id())
+                        .with(user("admin").roles("ADMIN"))
+                        .with(csrf())
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "slug": "rni-first-promise",
+                                  "topic": "economy",
+                                  "title": {"ar":"وعد","fr":"Promesse","en":"Promise"},
+                                  "promiseText": "Duplicate promise.",
+                                  "sourceLocator": "Page 5",
+                                  "mechanism": "Mechanism",
+                                  "financing": "Financing"
+                                }
+                                """))
+                .andExpect(status().isConflict());
         programmes.createAssessment(first.promise().id(), assessment("https://www.hcp.ma/first"));
         programmes.createPromise(programme.id(), new DraftPromise(
                 "rni-second-promise", "jobs", localized("الوعد الثاني", "Deuxième promesse", "Second promise"),
@@ -212,8 +250,12 @@ class ProgrammeIntegrationTest {
     }
 
     private static DraftAssessment assessment(String evidenceUrl) {
+        return assessment(FeasibilityVerdict.HARD, evidenceUrl);
+    }
+
+    private static DraftAssessment assessment(FeasibilityVerdict verdict, String evidenceUrl) {
         return new DraftAssessment(
-                FeasibilityVerdict.HARD,
+                verdict,
                 localized("ممكن ولكن صعيب", "Possible, mais difficile", "Possible, but hard"),
                 localized("خاص شروط", "Des conditions sont requises", "Conditions are required"),
                 localized("افتراض", "Hypothèse", "Assumption"),

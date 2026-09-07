@@ -18,6 +18,8 @@ public record PromiseAssessment(
         LocalizedText assumptions,
         LocalizedText calculationNotes,
         String methodologyVersion,
+        String providerMode,
+        String modelNames,
         LocalDate dataCutoff,
         EditorialStatus status,
         Instant createdAt,

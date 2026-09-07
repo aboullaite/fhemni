@@ -1,6 +1,7 @@
 package dev.maboullaite.fhemni.catalog;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -69,8 +70,9 @@ public class PersonDirectoryAdminService {
             catalogue.invalidateCache();
             return;
         }
+        AffiliationPeriod period = validatePeriod(command);
         people.insertAffiliation(
-                slug, partyCode, null, null, null, ADMIN_ASSIGNMENT, Instant.now());
+                slug, partyCode, period.validFrom(), period.validUntil(), null, ADMIN_ASSIGNMENT, Instant.now());
         catalogue.invalidateCache();
     }
 
@@ -81,7 +83,8 @@ public class PersonDirectoryAdminService {
         if (PartyDirectory.UNKNOWN.equals(partyCode)) {
             people.deleteAffiliation(id, slug);
         } else {
-            people.updateAffiliationParty(id, slug, partyCode, Instant.now());
+            AffiliationPeriod period = validatePeriod(command);
+            people.updateAffiliation(id, slug, partyCode, period.validFrom(), period.validUntil(), Instant.now());
         }
         catalogue.invalidateCache();
     }
@@ -96,6 +99,18 @@ public class PersonDirectoryAdminService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Select a known party."));
         return party.code();
+    }
+
+    private AffiliationPeriod validatePeriod(AffiliationCommand command) {
+        LocalDate validFrom = command.validFrom();
+        LocalDate validUntil = command.validUntil();
+        if (validFrom == null) {
+            throw new IllegalArgumentException("Choose when this affiliation started.");
+        }
+        if (validUntil != null && validUntil.isBefore(validFrom)) {
+            throw new IllegalArgumentException("The affiliation end date cannot be before its start date.");
+        }
+        return new AffiliationPeriod(validFrom, validUntil);
     }
 
     private List<String> aliases(List<String> provided, String displayNameFr, String displayNameAr) {
@@ -139,6 +154,9 @@ public class PersonDirectoryAdminService {
             AffiliationCommand affiliation) {
     }
 
-    public record AffiliationCommand(String partyCode) {
+    public record AffiliationCommand(String partyCode, LocalDate validFrom, LocalDate validUntil) {
+    }
+
+    private record AffiliationPeriod(LocalDate validFrom, LocalDate validUntil) {
     }
 }

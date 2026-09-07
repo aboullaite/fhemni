@@ -134,18 +134,24 @@ public class DirectoryPersonRepository {
                 .update();
     }
 
-    public void updateAffiliationParty(
+    public void updateAffiliation(
             long id,
             String personSlug,
             String partyCode,
+            LocalDate validFrom,
+            LocalDate validUntil,
             Instant verifiedAt) {
         int updated = jdbc.sql("""
                         UPDATE person_affiliations
                            SET party_code = :partyCode,
+                               valid_from = :validFrom,
+                               valid_until = :validUntil,
                                verified_at = :verifiedAt
                          WHERE id = :id AND person_slug = :personSlug
                         """)
                 .param("partyCode", partyCode)
+                .param("validFrom", validFrom, java.sql.Types.DATE)
+                .param("validUntil", validUntil, java.sql.Types.DATE)
                 .param("verifiedAt", verifiedAt)
                 .param("id", id)
                 .param("personSlug", personSlug)
