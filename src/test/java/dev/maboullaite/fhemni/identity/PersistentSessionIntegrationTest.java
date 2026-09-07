@@ -4,12 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,8 +32,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest(properties = {
         "fhemni.gemini.api-key=",
-        "fhemni.auth.google.client-id=",
-        "fhemni.auth.google.client-secret=",
+        "fhemni.auth.google.client-id=test-client",
+        "fhemni.auth.google.client-secret=test-secret",
         "fhemni.auth.github.client-id=",
         "fhemni.auth.github.client-secret=",
         "spring.datasource.url=jdbc:h2:mem:persistent-session-test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"
@@ -48,17 +50,43 @@ class PersistentSessionIntegrationTest {
     @Autowired
     private MockMvc mvc;
 
+    @BeforeEach
+    void clearSessions() {
+        jdbc.sql("DELETE FROM spring_session").update();
+    }
+
     @Test
-    void browserRequestsUseTheStableDatabaseBackedCookie() throws Exception {
+    void anonymousAdminRedirectDoesNotCreateADatabaseSession() throws Exception {
         mvc.perform(get("/admin"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login?continue=/admin"))
+                .andExpect(header().doesNotExist(HttpHeaders.SET_COOKIE));
+
+        assertThat(sessionCount()).isZero();
+    }
+
+    @Test
+    void displayingLoginStoresTheReturnTargetWithoutCreatingASession() throws Exception {
+        mvc.perform(get("/login").param("continue", "/admin"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(
+                        HttpHeaders.SET_COOKIE,
+                        containsString(LoginReturnTargetCookie.COOKIE_NAME + "=")))
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("HttpOnly")))
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("SameSite=Lax")));
+
+        assertThat(sessionCount()).isZero();
+    }
+
+    @Test
+    void startingOAuthUsesTheStableDatabaseBackedCookie() throws Exception {
+        mvc.perform(get("/oauth2/authorization/google"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("FHEMNI_SESSION=")))
                 .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("HttpOnly")))
                 .andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("SameSite=Lax")));
 
-        assertThat(jdbc.sql("SELECT COUNT(*) FROM spring_session")
-                .query(Integer.class)
-                .single()).isOne();
+        assertThat(sessionCount()).isOne();
     }
 
     @Test
@@ -105,6 +133,12 @@ class PersistentSessionIntegrationTest {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(authentication);
         return context;
+    }
+
+    private int sessionCount() {
+        return jdbc.sql("SELECT COUNT(*) FROM spring_session")
+                .query(Integer.class)
+                .single();
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

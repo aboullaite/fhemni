@@ -16,6 +16,7 @@ import org.springframework.security.web.authentication.LoginUrlAuthenticationEnt
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -94,6 +95,9 @@ public class SecurityConfiguration {
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
                         .deleteCookies("JSESSIONID", "FHEMNI_SESSION"))
+                // Fhemni carries its small, validated return target separately. Avoid creating a
+                // database-backed session merely because an anonymous client requested /admin.
+                .requestCache(cache -> cache.requestCache(new NullRequestCache()))
                 .csrf(csrf -> csrf.csrfTokenRepository(csrfTokens))
                 .headers(headers -> headers
                         .contentSecurityPolicy(csp -> csp.policyDirectives("""

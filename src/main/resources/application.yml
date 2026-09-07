@@ -19,6 +19,8 @@ spring:
     jdbc:
       # Flyway owns the schema so every environment uses the same reviewed migration.
       initialize-schema: never
+      # An eight-hour session lifetime does not need per-minute database cleanup.
+      cleanup-cron: "0 */5 * * * *"
 
 server:
   port: ${PORT:8080}
@@ -30,10 +32,6 @@ server:
   servlet:
     session:
       timeout: ${FHEMNI_LOGIN_SESSION_TIMEOUT:8h}
-      cookie:
-        name: FHEMNI_SESSION
-        http-only: true
-        same-site: lax
 
 fhemni:
   analytics:

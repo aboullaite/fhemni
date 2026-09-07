@@ -19,7 +19,9 @@ import org.springframework.test.web.servlet.MockMvc;
         "JDBC_DATABASE_URL=jdbc:h2:mem:production-cost-control;MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
         "JDBC_DATABASE_USERNAME=sa",
         "JDBC_DATABASE_PASSWORD=",
-        "fhemni.gemini.api-key="
+        "fhemni.gemini.api-key=",
+        "fhemni.auth.google.client-id=test-client",
+        "fhemni.auth.google.client-secret=test-secret"
 })
 @ActiveProfiles("prod")
 @AutoConfigureMockMvc
@@ -39,10 +41,21 @@ class ProductionCostControlIntegrationTest {
 
     @Test
     void productionLoginCookieIsSecureAndHttpOnly() throws Exception {
-        mvc.perform(get("/admin"))
+        mvc.perform(get("/oauth2/authorization/google"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(header().string(HttpHeaders.SET_COOKIE, allOf(
                         containsString("FHEMNI_SESSION="),
+                        containsString("Secure"),
+                        containsString("HttpOnly"),
+                        containsString("SameSite=Lax"))));
+    }
+
+    @Test
+    void productionReturnTargetCookieIsAlsoSecureAndHttpOnly() throws Exception {
+        mvc.perform(get("/login").param("continue", "/admin"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.SET_COOKIE, allOf(
+                        containsString("FHEMNI_LOGIN_RETURN="),
                         containsString("Secure"),
                         containsString("HttpOnly"),
                         containsString("SameSite=Lax"))));
