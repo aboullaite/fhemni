@@ -67,7 +67,6 @@
             analysis_available: video.status === 'PUBLISHED' && Boolean(video.publishedAnalysisId)
         });
     }
-    }
 
     document.addEventListener('DOMContentLoaded', load);
     document.addEventListener('fhemni:localechange', () => {

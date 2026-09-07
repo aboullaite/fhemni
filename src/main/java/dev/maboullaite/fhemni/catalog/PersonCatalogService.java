@@ -54,14 +54,26 @@ public class PersonCatalogService {
     /**
      * Matching algorithm tuning. Two statements are treated as related when
      * they share at least this many distinctive words (normalized, 5+ letters,
-     * so short grammatical words never match), or share an identical chapter
-     * title plus at least two such words. Short function words in Darija and
-     * French are too short to ever count, which keeps generic chapters from
-     * producing spurious pairs without any stop-word list.
+     * stop-words excluded), or share an identical chapter title plus at least
+     * two such words.
      */
     private static final int MIN_SHARED_TOKENS = 3;
     private static final int MIN_SHARED_TOKENS_SAME_TOPIC = 2;
     private static final int MIN_TOKEN_LENGTH = 5;
+
+    /**
+     * Common political vocabulary (normalized forms) excluded from statement
+     * matching, so unrelated passages that only share generic words never
+     * pair. Distinctive words — names, figures, sectors, places — still match.
+     */
+    private static final java.util.Set<String> STOP_WORDS = java.util.Set.of(
+            "gouvernement", "parti", "partis", "politique", "politiques",
+            "election", "elections", "parlement", "ministre", "ministres",
+            "president", "royaume", "maroc",
+            "الحكومه", "الحزب", "الاحزاب", "الانتخابات", "البرلمان",
+            "الوزراء", "الوزير", "الرئيس", "الملك", "المغرب",
+            "الشعب", "المواطنين", "المواطن", "الدوله", "القانون",
+            "الدستور", "النواب", "مجلس");
 
     private final JdbcClient jdbc;
     private final ObjectMapper mapper;
@@ -146,7 +158,12 @@ public class PersonCatalogService {
                     .sorted(Comparator.comparingInt(PersonSummary::appearances).reversed()
                             .thenComparing(PersonSummary::displayName))
                     .toList();
-            int appearances = members.stream().mapToInt(PersonSummary::appearances).sum();
+            // Distinct episodes: two same-party guests in one episode count once.
+            int appearances = (int) people.values().stream()
+                    .filter(builder -> party.code().equals(builder.partyCode()))
+                    .flatMap(builder -> builder.episodes.keySet().stream())
+                    .distinct()
+                    .count();
             int claims = members.stream().mapToInt(PersonSummary::claims).sum();
             result.add(new PartySummary(
                     party.code(), party.nameFr(), party.nameAr(), party.color(),
@@ -240,7 +257,7 @@ public class PersonCatalogService {
             return false;
         }
         List<String> left = statementTokens(first.statement());
-        List<String> right = statementTokens(second.statement());
+        java.util.Set<String> right = new java.util.HashSet<>(statementTokens(second.statement()));
         long shared = left.stream().filter(right::contains).count();
         if (shared >= MIN_SHARED_TOKENS) {
             return true;
@@ -260,6 +277,7 @@ public class PersonCatalogService {
     private List<String> statementTokens(String statement) {
         return Arrays.stream(PersonDirectory.normalize(statement).split(" "))
                 .filter(token -> token.length() >= MIN_TOKEN_LENGTH)
+                .filter(token -> !STOP_WORDS.contains(token))
                 .distinct()
                 .toList();
     }

@@ -516,6 +516,16 @@ footer { display: flex; align-items: center; justify-content: space-between; fle
 .admin-heading { max-width: 850px; margin-bottom: 35px; }
 .admin-heading h1 { margin-bottom: 15px; font-size: clamp(2.6rem, 5vw, 4.4rem); }
 .admin-heading > p { max-width: 720px; color: var(--muted); }
+.admin-metrics { margin-bottom: 22px; padding: 23px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: 0 14px 45px rgba(31,57,53,.07); }
+.admin-metrics .section-heading { margin-bottom: 17px; }
+.admin-metrics .section-heading h2 { font-size: clamp(1.7rem, 3vw, 2.35rem); }
+.admin-metrics-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.admin-metric-card { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 15px; background: var(--white); }
+.admin-metric-card > span, .admin-metric-card > strong, .admin-metric-card > small { display: block; }
+.admin-metric-card > span { color: var(--muted); font-size: 10px; font-weight: 850; }
+.admin-metric-card > strong { margin: 6px 0 4px; color: var(--teal-dark); font: 600 31px/1 Georgia, serif; }
+.admin-metric-card > small { color: var(--muted); font-size: 9px; line-height: 1.45; }
+.admin-metrics .import-feedback { margin-top: 12px; }
 .admin-layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, .6fr); align-items: start; gap: 18px; }
 .admin-panel { padding: 29px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: 0 14px 45px rgba(31,57,53,.07); }
 .admin-panel h2 { margin: 8px 0 9px; font: 500 28px/1.2 Georgia, serif; }
@@ -585,6 +595,7 @@ h1:dir(rtl), h2:dir(rtl), h3:dir(rtl), h4:dir(rtl) {
     .product-hero, .video-detail-grid, .admin-layout, .suggestion-panel { grid-template-columns: 1fr; }
     .product-hero { gap: 36px; padding-top: 62px; }
     .catalog-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .admin-metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .admin-next-step { position: static; }
 }
 
@@ -601,6 +612,8 @@ h1:dir(rtl), h2:dir(rtl), h3:dir(rtl), h4:dir(rtl) {
     .catalog-card h3 { font-size: 17px; }
     .video-detail-heading .catalog-status { margin-top: 0; }
     .admin-panel { padding: 21px; }
+    .admin-metrics { padding: 18px; }
+    .admin-metrics-grid { grid-template-columns: 1fr; }
     .suggestion-panel, .admin-suggestions { padding: 21px; }
     .suggestion-input-row, .admin-suggestion-row { grid-template-columns: 1fr; }
     .suggestion-community { padding: 21px; }

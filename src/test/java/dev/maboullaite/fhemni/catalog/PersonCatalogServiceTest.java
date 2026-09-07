@@ -67,7 +67,9 @@ class PersonCatalogServiceTest {
                         new Claim("c3", "The national deficit rose although desalination plants multiplied.", "إدريس الأزمي", 200,
                                 ClaimKind.FACT, ClaimVerdict.CONTRADICTED, "Denied by official data.", "HIGH", List.of()),
                         new Claim("c4", "Desalination plants need national budget oversight.", "Nizar Baraka", 150,
-                                ClaimKind.FACT, ClaimVerdict.NEEDS_CONTEXT, "Needs context.", "MEDIUM", List.of())),
+                                ClaimKind.FACT, ClaimVerdict.NEEDS_CONTEXT, "Needs context.", "MEDIUM", List.of()),
+                        new Claim("c5", "While national parties face elections government.", "Stopword Guest", 50,
+                                ClaimKind.FACT, ClaimVerdict.SUPPORTED, "Supported.", "LOW", List.of())),
                 List.of()));
 
         // A completed draft that is never published must stay invisible.
@@ -160,6 +162,14 @@ class PersonCatalogServiceTest {
         assertThat(pair.secondSpeaker().slug()).isEqualTo("nizar-baraka");
         assertThat(pair.secondSpeaker().partyCode()).isEqualTo("PI");
         assertThat(pair.first().episodeSlug()).isNotEqualTo(pair.second().episodeSlug());
+    }
+
+    @Test
+    void ignoresPassagesSharingOnlyGenericPoliticalVocabulary() {
+        // c5 shares five long words with c1, but three are stop-words and the
+        // chapters differ: no pair in either direction.
+        assertThat(service.person("stopword-guest").crossComparisons()).isEmpty();
+        assertThat(service.person("driss-el-azami").crossComparisons()).hasSize(1);
     }
 
     @Test

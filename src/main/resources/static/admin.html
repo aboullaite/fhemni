@@ -25,6 +25,39 @@
         <p data-i18n="admin.intro">Import free YouTube metadata now. Gemini analysis remains a separate, deliberate action, so adding a video never creates an AI bill.</p>
     </section>
 
+    <section class="admin-metrics" aria-labelledby="adminMetricsTitle">
+        <div class="section-heading">
+            <div>
+                <div class="section-kicker" data-i18n="admin.metricsKicker">Live usage</div>
+                <h2 id="adminMetricsTitle" data-i18n="admin.metricsTitle">Product pulse</h2>
+            </div>
+            <button id="refreshAdminMetrics" class="secondary-button" type="button" data-i18n="admin.metricsRefresh">Refresh</button>
+        </div>
+        <div class="admin-metrics-grid" aria-live="polite">
+            <article class="admin-metric-card">
+                <span data-i18n="admin.metricsUsers">Registered users</span>
+                <strong id="registeredUsersMetric">—</strong>
+                <small id="registeredUsersDetail" data-i18n="admin.metricsLoading">Loading…</small>
+            </article>
+            <article class="admin-metric-card">
+                <span data-i18n="admin.metricsChatRounds">Chat rounds</span>
+                <strong id="chatRoundsMetric">—</strong>
+                <small id="chatRoundsDetail" data-i18n="admin.metricsLoading">Loading…</small>
+            </article>
+            <article class="admin-metric-card" data-i18n-title="admin.metricsTokenHint" title="Input, output, thinking, and tool-use counters. Cached tokens are shown separately.">
+                <span data-i18n="admin.metricsChatTokens">Chat tokens</span>
+                <strong id="chatTokensMetric">—</strong>
+                <small id="chatTokensDetail" data-i18n="admin.metricsLoading">Loading…</small>
+            </article>
+            <article class="admin-metric-card" data-i18n-title="admin.metricsTokenHint" title="Input, output, thinking, and tool-use counters. Cached tokens are shown separately.">
+                <span data-i18n="admin.metricsAllAiTokens">All AI tokens</span>
+                <strong id="allAiTokensMetric">—</strong>
+                <small id="allAiTokensDetail" data-i18n="admin.metricsLoading">Loading…</small>
+            </article>
+        </div>
+        <div id="adminMetricsFeedback" class="import-feedback error" role="status" hidden></div>
+    </section>
+
     <div class="admin-layout">
         <section class="admin-panel">
             <div class="section-kicker" data-i18n="admin.importKicker">Metadata import</div>
@@ -96,6 +129,6 @@
     </section>
 </main>
 
-<script src="/js/i18n.js?v=20260906-19" defer></script><script src="/js/auth.js?v=20260906-3" defer></script><script src="/js/catalog-ui.js?v=20260906-2" defer></script><script src="/js/admin.js?v=20260906-9" defer></script>
+<script src="/js/i18n.js?v=20260907-2" defer></script><script src="/js/auth.js?v=20260906-3" defer></script><script src="/js/catalog-ui.js?v=20260906-2" defer></script><script src="/js/admin.js?v=20260907-2" defer></script>
 </body>
 </html>
