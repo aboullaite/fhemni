@@ -26,6 +26,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 
 @SpringBootTest(properties = {
         "fhemni.gemini.api-key=",
+        "fhemni.catalog.people-cache-ttl=PT0S",
         "spring.datasource.url=jdbc:h2:mem:person-catalog-test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"
 })
 class PersonCatalogServiceTest {
@@ -72,7 +73,13 @@ class PersonCatalogServiceTest {
                                 ClaimKind.FACT, ClaimVerdict.SUPPORTED, "Supported.", "LOW", List.of())),
                 List.of()));
 
-        // A completed draft that is never published must stay invisible.
+        jdbc.sql("""
+                UPDATE catalog_videos
+                   SET status = 'CATALOGUED',
+                       short_summary = NULL,
+                       published_analysis_id = NULL
+                 WHERE youtube_video_id = 'quf5ok_tkB4'
+                """).update();
         UUID draftId = UUID.randomUUID();
         revisions.create(
                 new AnalysisSnapshot(
@@ -181,7 +188,41 @@ class PersonCatalogServiceTest {
         var pjd = service.party("pjd");
         assertThat(pjd.members()).isEqualTo(1);
         assertThat(pjd.topMembers().get(0).slug()).isEqualTo("driss-el-azami");
+        assertThat(pjd.appearances()).isEqualTo(2);
+        assertThat(pjd.claims()).isEqualTo(2);
         assertThat(pjd.recentClaims()).hasSize(2);
+    }
+
+    @Test
+    void deduplicatesPartyAppearancesWhenMultipleMembersAppearInSameEpisode() {
+        publish("quf5ok_tkB4", new VideoReport(
+                "Joint appearance episode",
+                "Summary.",
+                "Details.",
+                List.of(
+                        new Participant("Driss El Azami", "Guest"),
+                        new Participant("Abdelilah Benkirane", "Guest")),
+                List.of(),
+                List.of(
+                        new Claim("c6", "Statement 1", "Driss El Azami", 10,
+                                ClaimKind.FACT, ClaimVerdict.SUPPORTED, "Note.", "HIGH", List.of()),
+                        new Claim("c7", "Statement 2", "Abdelilah Benkirane", 20,
+                                ClaimKind.FACT, ClaimVerdict.SUPPORTED, "Note.", "HIGH", List.of())),
+                List.of()));
+
+        var pjd = service.party("pjd");
+        var pjdSummary = service.parties().stream()
+                .filter(p -> p.code().equals("PJD"))
+                .findFirst()
+                .orElseThrow();
+
+        // Driss appears in 3 episodes (n5B3boj2MFM, 14IF32HrTBs, quf5ok_tkB4).
+        // Benkirane appears in 1 episode (quf5ok_tkB4).
+        // Sum of per-member appearances would be 4, but distinct episode appearances is 3.
+        assertThat(pjd.appearances()).isEqualTo(3);
+        assertThat(pjdSummary.appearances()).isEqualTo(3);
+        assertThat(pjd.claims()).isEqualTo(4);
+        assertThat(pjdSummary.claims()).isEqualTo(4);
     }
 
     @Test

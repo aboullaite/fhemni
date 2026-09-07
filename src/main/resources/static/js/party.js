@@ -193,8 +193,8 @@
         meta.append(video);
         if (claim.kind === 'FACT' && claim.verdict) {
             const verdict = document.createElement('span');
-            verdict.className = 'catalog-status published';
-            verdict.textContent = claim.verdict;
+            verdict.className = `catalog-status ${verdictClass(claim.verdict)}`;
+            verdict.textContent = verdictLabel(claim.verdict);
             meta.append(verdict);
         }
         item.append(text, meta);
@@ -210,6 +210,21 @@
             item.append(details);
         }
         return item;
+    }
+
+    function verdictClass(verdict) {
+        return {
+            SUPPORTED: 'verdict-supported',
+            CONTRADICTED: 'verdict-contradicted',
+            NEEDS_CONTEXT: 'verdict-needs-context',
+            UNVERIFIABLE: 'verdict-unverifiable'
+        }[verdict] || '';
+    }
+
+    function verdictLabel(verdict) {
+        const key = `label.${verdict}`;
+        const translated = t(key);
+        return translated === key ? verdict : translated;
     }
 
     document.addEventListener('DOMContentLoaded', load);

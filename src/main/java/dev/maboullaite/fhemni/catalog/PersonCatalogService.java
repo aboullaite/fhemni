@@ -195,10 +195,16 @@ public class PersonCatalogService {
                 .sorted(claimOrder())
                 .limit(maxPartyClaims)
                 .toList();
-        int appearances = members.stream().mapToInt(PersonSummary::appearances).sum();
+        // Distinct episodes: two same-party guests in one episode count once.
+        int appearances = (int) people.values().stream()
+                .filter(builder -> party.code().equals(builder.partyCode()))
+                .flatMap(builder -> builder.episodes.keySet().stream())
+                .distinct()
+                .count();
+        int claims = members.stream().mapToInt(PersonSummary::claims).sum();
         return new PartyProfile(
                 party.code(), party.nameFr(), party.nameAr(), party.color(),
-                members.size(), appearances, recentClaims.size(), members, recentClaims);
+                members.size(), appearances, claims, members, recentClaims);
     }
 
     /**
