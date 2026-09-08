@@ -62,6 +62,11 @@ public class PageController {
         return "forward:/community.html";
     }
 
+    @GetMapping({"/methodology", "/methodology/"})
+    public String methodologyPage() {
+        return "forward:/methodology.html";
+    }
+
     @GetMapping({"/suggestions", "/suggestions/"})
     public String suggestionsAlias() {
         return "redirect:/community";

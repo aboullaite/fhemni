@@ -62,6 +62,12 @@
         document.querySelector('#promiseAiAttribution').textContent = t(`promise.aiAttribution.${provider}`, {
             models: assessment.modelNames || 'Gemini 3.8 Flash'
         });
+        const correctionParameters = new URLSearchParams({
+            title: `[Correction] ${localized(promise.title)}`,
+            body: `Assessment: ${window.location.href.split('#')[0]}\n\nWhat appears incorrect?\n`
+        });
+        document.querySelector('#promiseReportErrorLink').href =
+            `https://github.com/aboullaite/fhemni/issues/new?${correctionParameters}`;
         const evidence = document.querySelector('#promiseEvidence');
         evidence.replaceChildren();
         assessment.evidence.forEach(item => evidence.append(evidenceItem(item)));

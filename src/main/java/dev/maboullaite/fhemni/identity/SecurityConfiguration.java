@@ -81,6 +81,7 @@ public class SecurityConfiguration {
                                 "/promises/**", "/promise.html",
                                 "/catalog", "/catalog/**",
                                 "/community", "/community/", "/community.html",
+                                "/methodology", "/methodology/", "/methodology.html",
                                 "/suggestions", "/suggestions/",
                                 "/video.html", "/videos.html", "/login", "/login.html",
                                 "/error", "/favicon.ico", "/css/**", "/js/**", "/assets/**",

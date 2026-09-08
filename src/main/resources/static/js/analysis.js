@@ -37,6 +37,8 @@ const elements = {
     results: document.querySelector('#results'),
     demoNotice: document.querySelector('#demoNotice'),
     reportTitle: document.querySelector('#reportTitle'),
+    analysisReportErrorLink: document.querySelector('#analysisReportErrorLink'),
+    chatReportErrorLink: document.querySelector('#chatReportErrorLink'),
     reportSummary: document.querySelector('#reportSummary'),
     detailedSummary: document.querySelector('#detailedSummary'),
     participants: document.querySelector('#participants'),
@@ -359,6 +361,7 @@ function renderResult(snapshot) {
     }
 
     elements.reportTitle.textContent = report.title;
+    configureCorrectionLinks(report.title);
     elements.reportSummary.textContent = report.summary;
     elements.detailedSummary.textContent = report.detailedSummary;
     elements.claimCount.textContent = report.claims.length;
@@ -406,6 +409,17 @@ function renderResult(snapshot) {
     showOnly('results');
     document.title = `${report.title} — Fhemni`;
     window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function configureCorrectionLinks(title) {
+    const parameters = new URLSearchParams({
+        title: `[Correction] ${title}`,
+        body: `Analysis: ${window.location.href.split('#')[0]}\n\nWhat appears incorrect?\n`
+    });
+    const href = `https://github.com/aboullaite/fhemni/issues/new?${parameters}`;
+    [elements.analysisReportErrorLink, elements.chatReportErrorLink]
+        .filter(Boolean)
+        .forEach(link => { link.href = href; });
 }
 
 async function configurePublication() {
