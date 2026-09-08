@@ -1,8 +1,6 @@
 package dev.maboullaite.fhemni.gemini;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +23,7 @@ import dev.maboullaite.fhemni.model.Claim;
 import dev.maboullaite.fhemni.model.ClaimKind;
 import dev.maboullaite.fhemni.model.ClaimVerdict;
 import dev.maboullaite.fhemni.model.FactCheckAssessment;
+import dev.maboullaite.fhemni.model.FactCheckEvidencePolicy;
 import dev.maboullaite.fhemni.model.OutputLanguage;
 import dev.maboullaite.fhemni.model.Participant;
 import dev.maboullaite.fhemni.model.QuestionMode;
@@ -41,7 +40,7 @@ public class VideoIntelligenceGateway {
 
     private static final String ANALYSIS_PROMPT_VERSION = "2026-09-06-darija-v3";
     private static final String CONTEXT_PROMPT_VERSION = "2026-09-06-chat-context-v1";
-    private static final String FACT_CHECK_PROMPT_VERSION = "2026-09-06-fact-check-v1";
+    private static final String FACT_CHECK_PROMPT_VERSION = "2026-09-08-fact-check-v2";
 
     private static final String SYSTEM_INSTRUCTION = """
             You are Fhemni, a neutral video understanding and evidence assistant.
@@ -343,38 +342,12 @@ public class VideoIntelligenceGateway {
     }
 
     private FactCheckAssessment safeAssessment(FactCheckResponse.Item item, OutputLanguage language) {
-        ClaimVerdict verdict = safeVerdict(item.verdict());
-        List<SourceReference> sources = safeSources(item.sources());
-        if (sources.isEmpty()
-                && (verdict == ClaimVerdict.SUPPORTED || verdict == ClaimVerdict.CONTRADICTED)) {
-            return new FactCheckAssessment(
-                    item.claimId(),
-                    ClaimVerdict.UNVERIFIABLE,
-                    missingEvidenceText(language),
-                    "LOW",
-                    List.of());
-        }
-        return new FactCheckAssessment(
-                item.claimId(), verdict, item.explanation(), item.evidenceStrength(), sources);
-    }
-
-    private String missingEvidenceText(OutputLanguage language) {
-        return switch (language) {
-            case DARIJA -> "ما رجع حتى مصدر موثوق كافي باش ندققو فهاد الادعاء.";
-            case FRENCH -> "Aucune source suffisamment fiable n’a été trouvée pour vérifier cette affirmation.";
-            case ENGLISH -> "No sufficiently reliable source was returned to verify this claim.";
-        };
-    }
-
-    private List<SourceReference> safeSources(List<SourceReference> sources) {
-        if (sources == null) {
-            return List.of();
-        }
-        Map<String, SourceReference> unique = new LinkedHashMap<>();
-        sources.stream()
-                .filter(source -> source != null && GeminiInteractionsClient.isSafeWebUrl(source.url()))
-                .forEach(source -> unique.putIfAbsent(source.url(), source));
-        return new ArrayList<>(unique.values());
+        return FactCheckEvidencePolicy.sanitize(new FactCheckAssessment(
+                item.claimId(),
+                safeVerdict(item.verdict()),
+                item.explanation(),
+                item.evidenceStrength(),
+                item.sources()), language);
     }
 
     private ClaimKind safeKind(String kind) {

@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import dev.maboullaite.fhemni.model.AnalysisSnapshot;
 import dev.maboullaite.fhemni.model.AnalysisStatus;
+import dev.maboullaite.fhemni.model.FactCheckEvidencePolicy;
 import dev.maboullaite.fhemni.model.OutputLanguage;
 import dev.maboullaite.fhemni.model.VideoReport;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -327,12 +328,13 @@ public class AnalysisRevisionRepository {
     }
 
     private StoredRevision mapRevision(ResultSet resultSet, int rowNumber) throws SQLException {
-        VideoReport report = readReport(resultSet.getString("report_json"));
+        OutputLanguage language = OutputLanguage.valueOf(resultSet.getString("output_language"));
+        VideoReport report = readReport(resultSet.getString("report_json"), language);
         AnalysisSnapshot snapshot = new AnalysisSnapshot(
                 resultSet.getObject("id", UUID.class),
                 resultSet.getString("video_url"),
                 resultSet.getString("youtube_video_id"),
-                OutputLanguage.valueOf(resultSet.getString("output_language")),
+                language,
                 AnalysisStatus.valueOf(resultSet.getString("status")),
                 resultSet.getInt("progress"),
                 resultSet.getString("progress_message"),
@@ -371,12 +373,12 @@ public class AnalysisRevisionRepository {
         }
     }
 
-    private VideoReport readReport(String json) {
+    private VideoReport readReport(String json, OutputLanguage language) {
         if (json == null || json.isBlank()) {
             return null;
         }
         try {
-            return mapper.readValue(json, VideoReport.class);
+            return FactCheckEvidencePolicy.sanitize(mapper.readValue(json, VideoReport.class), language);
         } catch (RuntimeException exception) {
             throw new IllegalStateException("A stored video report could not be read.", exception);
         }

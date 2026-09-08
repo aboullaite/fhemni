@@ -66,6 +66,31 @@ class VideoIntelligenceGatewayFactCheckTest {
         });
     }
 
+    @Test
+    void localizesTheMissingEvidenceExplanationInFrench() {
+        SpringAiFactCheckClient factCheckClient = mock(SpringAiFactCheckClient.class);
+        when(factCheckClient.configured()).thenReturn(true);
+        when(factCheckClient.check(anyString(), anyString())).thenReturn(new SpringAiFactCheckClient.FactCheckResult(
+                new FactCheckResponse(List.of(new FactCheckResponse.Item(
+                        "claim-1", "SUPPORTED", "Confirmé", "HIGH", List.of()))),
+                AiUsage.empty()));
+
+        GatewayFactCheckResult result = gateway(factCheckClient).factCheck(
+                List.of(factualClaim("claim-1")), OutputLanguage.FRENCH);
+
+        assertThat(result.assessments()).singleElement().satisfies(assessment ->
+                assertThat(assessment.explanation()).isEqualTo(
+                        "Aucune source suffisamment fiable n’a été trouvée pour vérifier cette affirmation."));
+    }
+
+    @Test
+    void exposesANewFactCheckPromptVersionForCacheInvalidation() {
+        SpringAiFactCheckClient factCheckClient = mock(SpringAiFactCheckClient.class);
+
+        assertThat(gateway(factCheckClient).factCheckPromptVersion())
+                .isEqualTo("2026-09-08-fact-check-v2");
+    }
+
     private VideoIntelligenceGateway gateway(SpringAiFactCheckClient factCheckClient) {
         GeminiInteractionsClient client = mock(GeminiInteractionsClient.class);
         when(client.configured()).thenReturn(true);

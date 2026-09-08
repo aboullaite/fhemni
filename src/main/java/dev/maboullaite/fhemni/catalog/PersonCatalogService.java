@@ -19,6 +19,8 @@ import java.util.TreeSet;
 import dev.maboullaite.fhemni.catalog.PersonDirectory.ResolvedPerson;
 import dev.maboullaite.fhemni.model.Claim;
 import dev.maboullaite.fhemni.model.ClaimVerdict;
+import dev.maboullaite.fhemni.model.FactCheckEvidencePolicy;
+import dev.maboullaite.fhemni.model.OutputLanguage;
 import dev.maboullaite.fhemni.model.VideoReport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -389,7 +391,7 @@ public class PersonCatalogService {
     private List<PublishedItem> loadPublished() {
         List<PublishedItem> items = jdbc.sql("""
                         SELECT cv.slug, cv.title, cv.youtube_video_id, cv.published_on,
-                               cv.thumbnail_url, ar.report_json
+                               cv.thumbnail_url, ar.output_language, ar.report_json
                           FROM catalog_videos cv
                           JOIN analysis_revisions ar
                             ON ar.id = cv.published_analysis_id
@@ -404,7 +406,8 @@ public class PersonCatalogService {
         List<PublishedItem> parsed = new ArrayList<>();
         for (PublishedItem item : items) {
             try {
-                VideoReport report = mapper.readValue(item.reportJson(), VideoReport.class);
+                VideoReport report = FactCheckEvidencePolicy.sanitize(
+                        mapper.readValue(item.reportJson(), VideoReport.class), item.language());
                 if (report != null) {
                     parsed.add(item.withReport(report));
                 }
@@ -422,6 +425,7 @@ public class PersonCatalogService {
                 resultSet.getString("youtube_video_id"),
                 resultSet.getObject("published_on", LocalDate.class),
                 resultSet.getString("thumbnail_url"),
+                OutputLanguage.valueOf(resultSet.getString("output_language")),
                 resultSet.getString("report_json"),
                 null);
     }
@@ -441,11 +445,12 @@ public class PersonCatalogService {
             String youtubeVideoId,
             LocalDate publishedOn,
             String thumbnailUrl,
+            OutputLanguage language,
             String reportJson,
             VideoReport report) {
 
         PublishedItem withReport(VideoReport parsed) {
-            return new PublishedItem(slug, title, youtubeVideoId, publishedOn, thumbnailUrl, reportJson, parsed);
+            return new PublishedItem(slug, title, youtubeVideoId, publishedOn, thumbnailUrl, language, reportJson, parsed);
         }
     }
 

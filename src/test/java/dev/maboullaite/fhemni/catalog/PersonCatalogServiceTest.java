@@ -17,6 +17,7 @@ import dev.maboullaite.fhemni.model.ClaimKind;
 import dev.maboullaite.fhemni.model.ClaimVerdict;
 import dev.maboullaite.fhemni.model.OutputLanguage;
 import dev.maboullaite.fhemni.model.Participant;
+import dev.maboullaite.fhemni.model.SourceReference;
 import dev.maboullaite.fhemni.model.VideoReport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,7 +53,7 @@ class PersonCatalogServiceTest {
                         new Chapter("Budget debate", 300, "Money talk")),
                 List.of(
                         new Claim("c1", "The national deficit fell while desalination plants multiplied.", "Driss El Azami", 350,
-                                ClaimKind.FACT, ClaimVerdict.SUPPORTED, "Confirmed by official data.", "HIGH", List.of()),
+                                ClaimKind.FACT, ClaimVerdict.SUPPORTED, "Confirmed by official data.", "HIGH", sources()),
                         new Claim("c2", "I believe the reform will succeed.", "Nizar Baraka", 120,
                                 ClaimKind.OPINION, ClaimVerdict.NOT_APPLICABLE, "", "", List.of())),
                 List.of()));
@@ -66,11 +67,11 @@ class PersonCatalogServiceTest {
                         new Chapter("Budget debate", 100, "Money talk")),
                 List.of(
                         new Claim("c3", "The national deficit rose although desalination plants multiplied.", "إدريس الأزمي", 200,
-                                ClaimKind.FACT, ClaimVerdict.CONTRADICTED, "Denied by official data.", "HIGH", List.of()),
+                                ClaimKind.FACT, ClaimVerdict.CONTRADICTED, "Denied by official data.", "HIGH", sources()),
                         new Claim("c4", "Desalination plants need national budget oversight.", "Nizar Baraka", 150,
                                 ClaimKind.FACT, ClaimVerdict.NEEDS_CONTEXT, "Needs context.", "MEDIUM", List.of()),
                         new Claim("c5", "While national parties face elections government.", "Stopword Guest", 50,
-                                ClaimKind.FACT, ClaimVerdict.SUPPORTED, "Supported.", "LOW", List.of())),
+                                ClaimKind.FACT, ClaimVerdict.SUPPORTED, "Supported.", "LOW", sources())),
                 List.of()));
 
         jdbc.sql("""
@@ -205,9 +206,9 @@ class PersonCatalogServiceTest {
                 List.of(),
                 List.of(
                         new Claim("c6", "Statement 1", "Driss El Azami", 10,
-                                ClaimKind.FACT, ClaimVerdict.SUPPORTED, "Note.", "HIGH", List.of()),
+                                ClaimKind.FACT, ClaimVerdict.SUPPORTED, "Note.", "HIGH", sources()),
                         new Claim("c7", "Statement 2", "Abdelilah Benkirane", 20,
-                                ClaimKind.FACT, ClaimVerdict.SUPPORTED, "Note.", "HIGH", List.of())),
+                                ClaimKind.FACT, ClaimVerdict.SUPPORTED, "Note.", "HIGH", sources())),
                 List.of()));
 
         var pjd = service.party("pjd");
@@ -275,5 +276,9 @@ class PersonCatalogServiceTest {
                 .param("analysisId", analysisId)
                 .param("youtubeVideoId", youtubeVideoId)
                 .update();
+    }
+
+    private List<SourceReference> sources() {
+        return List.of(new SourceReference("Official source", "https://example.com/evidence", "2026-09-01"));
     }
 }

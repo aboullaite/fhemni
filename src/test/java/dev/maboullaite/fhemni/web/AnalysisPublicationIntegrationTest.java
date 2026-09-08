@@ -19,6 +19,9 @@ import dev.maboullaite.fhemni.identity.UserAccountRepository;
 import dev.maboullaite.fhemni.model.AnalysisSnapshot;
 import dev.maboullaite.fhemni.model.AnalysisStatus;
 import dev.maboullaite.fhemni.model.Chapter;
+import dev.maboullaite.fhemni.model.Claim;
+import dev.maboullaite.fhemni.model.ClaimKind;
+import dev.maboullaite.fhemni.model.ClaimVerdict;
 import dev.maboullaite.fhemni.model.OutputLanguage;
 import dev.maboullaite.fhemni.model.Participant;
 import dev.maboullaite.fhemni.model.VideoReport;
@@ -79,7 +82,16 @@ class AnalysisPublicationIntegrationTest {
                 "تفاصيل التحليل المحفوظ.",
                 List.of(new Participant("ضيف", "متدخل")),
                 List.of(new Chapter("المقدمة", 0, "بداية الحلقة")),
-                List.of(),
+                List.of(new Claim(
+                        "stale-claim",
+                        "ادعاء قديم بلا مصادر",
+                        "ضيف",
+                        42,
+                        ClaimKind.FACT,
+                        ClaimVerdict.SUPPORTED,
+                        "هاد الادعاء مؤكد.",
+                        "HIGH",
+                        List.of())),
                 List.of("شنو هي الخلاصة؟"));
         revisions.create(
                 queued, "gemini-test", "prompt-test", "fact-model-test", "fact-prompt-test",
@@ -121,6 +133,11 @@ class AnalysisPublicationIntegrationTest {
                 .andExpect(jsonPath("$.published").value(true))
                 .andExpect(jsonPath("$.report.title").value("تحليل محفوظ"))
                 .andExpect(jsonPath("$.report.chapters[0].title").value("المقدمة"))
+                .andExpect(jsonPath("$.report.claims[0].verdict").value("UNVERIFIABLE"))
+                .andExpect(jsonPath("$.report.claims[0].evidenceStrength").value("LOW"))
+                .andExpect(jsonPath("$.report.claims[0].sources").isEmpty())
+                .andExpect(jsonPath("$.report.claims[0].explanation").value(
+                        "ما رجع حتى مصدر موثوق كافي باش ندققو فهاد الادعاء."))
                 .andExpect(jsonPath("$.report.topics").doesNotExist());
 
         mvc.perform(get("/api/catalog/videos/episode-n5B3boj2MFM"))
