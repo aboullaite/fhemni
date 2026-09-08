@@ -33,7 +33,7 @@ class AiUsageGuardWeeklyLimitTest {
         AiUsageRepository repository = mock(AiUsageRepository.class);
         UUID userId = UUID.randomUUID();
         UUID analysisId = UUID.randomUUID();
-        when(repository.countQuestionsForUser(userId, WEEK_START, NEXT_WEEK)).thenReturn(4L, 5L);
+        when(repository.countQuestionsForUser(userId, WEEK_START, NEXT_WEEK)).thenReturn(19L, 20L);
         when(repository.reserve(
                 eq(AiOperation.CHAT_VIDEO), eq(userId), eq(analysisId), eq("test-model"), any()))
                 .thenReturn(UUID.randomUUID());
@@ -42,18 +42,19 @@ class AiUsageGuardWeeklyLimitTest {
         guard.reserveQuestion(analysisId, userId, AiOperation.CHAT_VIDEO, "test-model");
         AiUsageGuard.ChatQuota quota = guard.chatQuota(userId);
 
-        assertThat(quota.weeklyLimit()).isEqualTo(5);
-        assertThat(quota.used()).isEqualTo(5);
+        assertThat(quota.weeklyLimit()).isEqualTo(20);
+        assertThat(quota.used()).isEqualTo(20);
         assertThat(quota.remaining()).isZero();
         assertThat(quota.resetsAt()).isEqualTo(NEXT_WEEK);
+        assertThat(quota.dailyOutputTokenLimit()).isEqualTo(16_000);
         verify(repository, times(2)).countQuestionsForUser(userId, WEEK_START, NEXT_WEEK);
     }
 
     @Test
-    void rejectsTheSixthAttemptEvenWhenEarlierProviderCallsFailed() {
+    void rejectsTheTwentyFirstAttemptEvenWhenEarlierProviderCallsFailed() {
         AiUsageRepository repository = mock(AiUsageRepository.class);
         UUID userId = UUID.randomUUID();
-        when(repository.countQuestionsForUser(userId, WEEK_START, NEXT_WEEK)).thenReturn(5L);
+        when(repository.countQuestionsForUser(userId, WEEK_START, NEXT_WEEK)).thenReturn(20L);
         AiUsageGuard guard = guard(repository);
 
         assertThatThrownBy(() -> guard.reserveQuestion(
@@ -102,7 +103,7 @@ class AiUsageGuardWeeklyLimitTest {
         UUID userId = UUID.randomUUID();
         when(repository.countGlobal(HOUR_START, NEXT_HOUR, false)).thenReturn(12L);
         when(repository.countGlobal(DAY_START, NEXT_DAY, false)).thenReturn(80L);
-        when(repository.sumQuestionOutputTokensForUser(userId, DAY_START, NEXT_DAY)).thenReturn(10_250L);
+        when(repository.sumQuestionOutputTokensForUser(userId, DAY_START, NEXT_DAY)).thenReturn(16_250L);
         AiUsageGuard guard = guard(repository);
 
         assertThatThrownBy(() -> guard.reserveQuestion(
@@ -115,6 +116,6 @@ class AiUsageGuardWeeklyLimitTest {
     }
 
     private static AiUsageGuard guard(AiUsageRepository repository) {
-        return new AiUsageGuard(repository, SUNDAY, true, true, 5, 50, 500, 5);
+        return new AiUsageGuard(repository, SUNDAY, true, true, 5, 50, 500, 20);
     }
 }

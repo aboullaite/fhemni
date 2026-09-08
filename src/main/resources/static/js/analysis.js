@@ -576,7 +576,7 @@ async function refreshChatQuota() {
 function chatErrorMessage(error) {
     if (error.code === 'CHAT_WEEKLY_LIMIT') {
         return t('analysis.chatQuotaUsedText', {
-            limit: state.authSession?.chatQuota?.weeklyLimit || 5
+            limit: state.authSession?.chatQuota?.weeklyLimit || 20
         });
     }
     if (error.code === 'CHAT_HOURLY_LIMIT') return t('analysis.chatHourlyLimit');
