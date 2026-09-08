@@ -1,6 +1,5 @@
 package dev.maboullaite.fhemni.gemini;
 
-import java.net.URI;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -23,6 +22,7 @@ import com.google.genai.gaos.utils.RetryConfig;
 import com.google.genai.types.HttpOptions;
 import com.google.genai.types.UploadFileConfig;
 import dev.maboullaite.fhemni.cost.AiUsage;
+import dev.maboullaite.fhemni.model.FactCheckEvidencePolicy;
 import dev.maboullaite.fhemni.model.SourceReference;
 import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Value;
@@ -175,7 +175,7 @@ class GeminiInteractionsClient {
                 .flatMap(content -> content.annotations().orElse(List.of()).stream())
                 .filter(URLCitation.class::isInstance)
                 .map(URLCitation.class::cast)
-                .forEach(citation -> citation.url().filter(GeminiInteractionsClient::isSafeWebUrl).ifPresent(url ->
+                .forEach(citation -> citation.url().filter(FactCheckEvidencePolicy::isSafeWebUrl).ifPresent(url ->
                         citations.putIfAbsent(url, new SourceReference(citation.title().orElse("Source"), url, ""))));
         return new ArrayList<>(citations.values());
     }
@@ -218,16 +218,6 @@ class GeminiInteractionsClient {
     private static void validateTimeout(Duration timeout) {
         if (timeout == null || timeout.isNegative() || timeout.isZero() || timeout.toMillis() > Integer.MAX_VALUE) {
             throw new IllegalArgumentException("Gemini read timeouts must be positive and fit in milliseconds");
-        }
-    }
-
-    static boolean isSafeWebUrl(String value) {
-        try {
-            URI uri = URI.create(value);
-            return ("https".equalsIgnoreCase(uri.getScheme()) || "http".equalsIgnoreCase(uri.getScheme()))
-                    && uri.getHost() != null;
-        } catch (IllegalArgumentException exception) {
-            return false;
         }
     }
 

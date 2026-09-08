@@ -1,8 +1,6 @@
 package dev.maboullaite.fhemni.gemini;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +23,7 @@ import dev.maboullaite.fhemni.model.Claim;
 import dev.maboullaite.fhemni.model.ClaimKind;
 import dev.maboullaite.fhemni.model.ClaimVerdict;
 import dev.maboullaite.fhemni.model.FactCheckAssessment;
+import dev.maboullaite.fhemni.model.FactCheckEvidencePolicy;
 import dev.maboullaite.fhemni.model.OutputLanguage;
 import dev.maboullaite.fhemni.model.Participant;
 import dev.maboullaite.fhemni.model.QuestionMode;
@@ -41,7 +40,7 @@ public class VideoIntelligenceGateway {
 
     private static final String ANALYSIS_PROMPT_VERSION = "2026-09-06-darija-v3";
     private static final String CONTEXT_PROMPT_VERSION = "2026-09-06-chat-context-v1";
-    private static final String FACT_CHECK_PROMPT_VERSION = "2026-09-06-fact-check-v1";
+    private static final String FACT_CHECK_PROMPT_VERSION = "2026-09-08-fact-check-v2";
 
     private static final String SYSTEM_INSTRUCTION = """
             You are Fhemni, a neutral video understanding and evidence assistant.
@@ -172,7 +171,7 @@ public class VideoIntelligenceGateway {
         SpringAiFactCheckClient.FactCheckResult result = factCheckClient.check(
                 SYSTEM_INSTRUCTION,
                 factCheckPrompt(factualClaims, language));
-        return new GatewayFactCheckResult(parseFactChecks(result.response()), result.usage());
+        return new GatewayFactCheckResult(parseFactChecks(result.response(), language), result.usage());
     }
 
     public GatewayAnswerResult ask(
@@ -336,26 +335,19 @@ public class VideoIntelligenceGateway {
         }
     }
 
-    private List<FactCheckAssessment> parseFactChecks(FactCheckResponse response) {
+    private List<FactCheckAssessment> parseFactChecks(FactCheckResponse response, OutputLanguage language) {
         return response.assessments().stream()
-                .map(item -> new FactCheckAssessment(
-                        item.claimId(),
-                        safeVerdict(item.verdict()),
-                        item.explanation(),
-                        item.evidenceStrength(),
-                        safeSources(item.sources())))
+                .map(item -> safeAssessment(item, language))
                 .toList();
     }
 
-    private List<SourceReference> safeSources(List<SourceReference> sources) {
-        if (sources == null) {
-            return List.of();
-        }
-        Map<String, SourceReference> unique = new LinkedHashMap<>();
-        sources.stream()
-                .filter(source -> source != null && GeminiInteractionsClient.isSafeWebUrl(source.url()))
-                .forEach(source -> unique.putIfAbsent(source.url(), source));
-        return new ArrayList<>(unique.values());
+    private FactCheckAssessment safeAssessment(FactCheckResponse.Item item, OutputLanguage language) {
+        return FactCheckEvidencePolicy.sanitize(new FactCheckAssessment(
+                item.claimId(),
+                safeVerdict(item.verdict()),
+                item.explanation(),
+                item.evidenceStrength(),
+                item.sources()), language);
     }
 
     private ClaimKind safeKind(String kind) {
