@@ -172,7 +172,7 @@ public class VideoIntelligenceGateway {
         SpringAiFactCheckClient.FactCheckResult result = factCheckClient.check(
                 SYSTEM_INSTRUCTION,
                 factCheckPrompt(factualClaims, language));
-        return new GatewayFactCheckResult(parseFactChecks(result.response()), result.usage());
+        return new GatewayFactCheckResult(parseFactChecks(result.response(), language), result.usage());
     }
 
     public GatewayAnswerResult ask(
@@ -336,15 +336,34 @@ public class VideoIntelligenceGateway {
         }
     }
 
-    private List<FactCheckAssessment> parseFactChecks(FactCheckResponse response) {
+    private List<FactCheckAssessment> parseFactChecks(FactCheckResponse response, OutputLanguage language) {
         return response.assessments().stream()
-                .map(item -> new FactCheckAssessment(
-                        item.claimId(),
-                        safeVerdict(item.verdict()),
-                        item.explanation(),
-                        item.evidenceStrength(),
-                        safeSources(item.sources())))
+                .map(item -> safeAssessment(item, language))
                 .toList();
+    }
+
+    private FactCheckAssessment safeAssessment(FactCheckResponse.Item item, OutputLanguage language) {
+        ClaimVerdict verdict = safeVerdict(item.verdict());
+        List<SourceReference> sources = safeSources(item.sources());
+        if (sources.isEmpty()
+                && (verdict == ClaimVerdict.SUPPORTED || verdict == ClaimVerdict.CONTRADICTED)) {
+            return new FactCheckAssessment(
+                    item.claimId(),
+                    ClaimVerdict.UNVERIFIABLE,
+                    missingEvidenceText(language),
+                    "LOW",
+                    List.of());
+        }
+        return new FactCheckAssessment(
+                item.claimId(), verdict, item.explanation(), item.evidenceStrength(), sources);
+    }
+
+    private String missingEvidenceText(OutputLanguage language) {
+        return switch (language) {
+            case DARIJA -> "ما رجع حتى مصدر موثوق كافي باش ندققو فهاد الادعاء.";
+            case FRENCH -> "Aucune source suffisamment fiable n’a été trouvée pour vérifier cette affirmation.";
+            case ENGLISH -> "No sufficiently reliable source was returned to verify this claim.";
+        };
     }
 
     private List<SourceReference> safeSources(List<SourceReference> sources) {
