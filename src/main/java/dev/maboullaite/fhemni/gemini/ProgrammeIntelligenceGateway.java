@@ -202,14 +202,21 @@ public class ProgrammeIntelligenceGateway {
                 .responseFormat(responseFormat(GeminiSchemas.programmeFeasibility(mapper)))
                 .store(false)
                 .build());
-        FeasibilityResponse parsed = parse(response.outputText(), FeasibilityResponse.class);
-        validateAssessmentCoverage(promises, parsed.assessments());
-        if (requireGroundedEvidence) {
-            return new AssessmentResult(
-                    groundedAssessments(parsed.assessments(), response.citations()), response.usage(), true);
+        try {
+            FeasibilityResponse parsed = parse(response.outputText(), FeasibilityResponse.class);
+            validateAssessmentCoverage(promises, parsed.assessments());
+            if (requireGroundedEvidence) {
+                return new AssessmentResult(
+                        groundedAssessments(parsed.assessments(), response.citations()), response.usage(), true);
+            }
+            CandidateGrounding candidate = candidateGrounding(parsed.assessments(), response.citations());
+            return new AssessmentResult(candidate.assessments(), response.usage(), candidate.grounded());
+        } catch (GeminiApiException invalid) {
+            throw new GeminiApiException(invalid.getMessage(), invalid, response.usage(), invalid.upstreamStatus());
+        } catch (RuntimeException invalid) {
+            throw new GeminiApiException(
+                    "Gemini returned an invalid programme assessment.", invalid, response.usage());
         }
-        CandidateGrounding candidate = candidateGrounding(parsed.assessments(), response.citations());
-        return new AssessmentResult(candidate.assessments(), response.usage(), candidate.grounded());
     }
 
     private String json(Object value, String label) {

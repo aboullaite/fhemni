@@ -1,6 +1,7 @@
 package dev.maboullaite.fhemni.programme;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -43,6 +44,9 @@ class ProgrammeAssessmentJobIntegrationTest {
 
     @Autowired
     private ProgrammeAssessmentJobRepository jobRepository;
+
+    @Autowired
+    private ProgrammeAssessmentCommitter committer;
 
     @Autowired
     private JdbcClient jdbc;
@@ -147,6 +151,40 @@ class ProgrammeAssessmentJobIntegrationTest {
                     assertThat(item.status()).isEqualTo(ProgrammeAssessmentJobItem.Status.RETRY_WAIT);
                     assertThat(item.attemptCount()).isEqualTo(1);
                 });
+    }
+
+    @Test
+    void rejectsResultsFromAWorkerAfterItsLeaseWasReclaimed() {
+        var programme = programme();
+        var promise = programmes.createPromise(programme.id(), promise("pjd-fenced"));
+        Instant startedAt = Instant.parse("2026-09-08T12:00:00Z");
+        ProgrammeAssessmentJob job = jobRepository.create(
+                programme.id(), "consensus", List.of(promise.promise()), 3, startedAt);
+        var oldLease = jobRepository.claim(
+                job.id(), "old-worker", startedAt, startedAt.plusSeconds(1)).orElseThrow();
+        jobRepository.markRunning(
+                oldLease, List.of(promise.promise().id()), promise.promise().slug(), startedAt);
+
+        Instant reclaimedAt = startedAt.plusSeconds(2);
+        jobRepository.recoverExpiredLeases(reclaimedAt);
+        var newLease = jobRepository.claim(
+                job.id(), "new-worker", reclaimedAt, reclaimedAt.plusSeconds(120)).orElseThrow();
+        List<ExtractedPromise> requested = List.of(new ExtractedPromise(
+                promise.promise().slug(), promise.promise().topic(), promise.promise().title(),
+                promise.promise().promiseText(), promise.promise().sourceLocator(),
+                promise.promise().mechanism(), promise.promise().financing()));
+        FactCheckResult generated = result(requested);
+
+        assertThatThrownBy(() -> committer.saveAndComplete(
+                oldLease, programme.id(), requested, generated,
+                List.of(promise.promise().id()), reclaimedAt))
+                .isInstanceOf(ProgrammeJobLeaseLostException.class);
+        assertThat(programmes.adminProgramme(programme.id()).promises().getFirst().assessments()).isEmpty();
+
+        committer.saveAndComplete(
+                newLease, programme.id(), requested, generated,
+                List.of(promise.promise().id()), reclaimedAt.plusSeconds(1));
+        assertThat(programmes.adminProgramme(programme.id()).promises().getFirst().assessments()).hasSize(1);
     }
 
     private PartyProgrammeService.AdminProgrammeView programme() {

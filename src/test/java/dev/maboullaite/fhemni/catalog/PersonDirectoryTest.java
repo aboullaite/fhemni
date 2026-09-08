@@ -143,5 +143,8 @@ class PersonDirectoryTest {
                 .isEqualTo("PJD");
         assertThat(dated.resolve("Guest Who Moved", LocalDate.of(2026, 6, 1)).partyCode())
                 .isEqualTo("PAM");
+        assertThat(dated.resolve("Guest Who Moved", null).partyCode())
+                .as("a missing episode date must not be replaced with today's affiliation")
+                .isEqualTo(PartyDirectory.UNKNOWN);
     }
 }

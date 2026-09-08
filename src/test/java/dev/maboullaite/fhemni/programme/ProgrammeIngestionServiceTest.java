@@ -59,6 +59,8 @@ class ProgrammeIngestionServiceTest {
         assertRejected("https://192.168.1.10/programme");
         assertRejected("https://admin:secret@party.ma/programme");
         assertRejected("https://party.local/programme");
+        assertRejected("https://[::1]/programme");
+        assertRejected("https://[::ffff:192.168.1.1]/programme");
     }
 
     @Test

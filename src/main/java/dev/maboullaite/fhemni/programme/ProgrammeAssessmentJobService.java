@@ -35,6 +35,7 @@ public class ProgrammeAssessmentJobService {
 
     private final ProgrammeAssessmentJobRepository jobs;
     private final PartyProgrammeService programmes;
+    private final ProgrammeAssessmentCommitter committer;
     private final ProgrammeFactCheckService factChecks;
     private final ExecutorService executor;
     private final int concurrency;
@@ -43,22 +44,26 @@ public class ProgrammeAssessmentJobService {
     private final Clock clock;
     private final String owner = UUID.randomUUID().toString();
     private final Set<UUID> submitted = ConcurrentHashMap.newKeySet();
+    private final Map<UUID, ProgrammeAssessmentJobRepository.Lease> activeLeases = new ConcurrentHashMap<>();
 
     @Autowired
     public ProgrammeAssessmentJobService(
             ProgrammeAssessmentJobRepository jobs,
             PartyProgrammeService programmes,
+            ProgrammeAssessmentCommitter committer,
             ProgrammeFactCheckService factChecks,
             @Qualifier("programmeAssessmentExecutor") ExecutorService executor,
             @Value("${fhemni.programme-jobs.concurrency:1}") int concurrency,
             @Value("${fhemni.programme-jobs.max-attempts:3}") int maxAttempts,
             @Value("${fhemni.programme-jobs.retry-delay:PT30S}") Duration retryDelay) {
-        this(jobs, programmes, factChecks, executor, concurrency, maxAttempts, retryDelay, Clock.systemUTC());
+        this(jobs, programmes, committer, factChecks, executor,
+                concurrency, maxAttempts, retryDelay, Clock.systemUTC());
     }
 
     ProgrammeAssessmentJobService(
             ProgrammeAssessmentJobRepository jobs,
             PartyProgrammeService programmes,
+            ProgrammeAssessmentCommitter committer,
             ProgrammeFactCheckService factChecks,
             ExecutorService executor,
             int concurrency,
@@ -76,6 +81,7 @@ public class ProgrammeAssessmentJobService {
         }
         this.jobs = jobs;
         this.programmes = programmes;
+        this.committer = committer;
         this.factChecks = factChecks;
         this.executor = executor;
         this.concurrency = concurrency;
@@ -87,7 +93,7 @@ public class ProgrammeAssessmentJobService {
     public synchronized ProgrammeAssessmentJob start(UUID programmeId) {
         ProgrammeAssessmentJob active = jobs.activeForProgramme(programmeId).orElse(null);
         if (active != null && !active.providerMode().equals(factChecks.mode().value())) {
-            jobs.failJob(active.id(), "PROVIDER_MODE_CHANGED",
+            jobs.invalidateAndFailJob(active.id(), "PROVIDER_MODE_CHANGED",
                     "The configured assessment mode changed. A new job is required.", clock.instant());
             active = null;
         }
@@ -140,32 +146,48 @@ public class ProgrammeAssessmentJobService {
     @Scheduled(fixedDelayString = "${fhemni.programme-jobs.lease-renew-interval-ms:30000}")
     public void renewLeases() {
         Instant now = clock.instant();
-        jobs.renewLeases(owner, now, now.plus(LEASE_DURATION));
+        activeLeases.entrySet().removeIf(entry ->
+                !jobs.renewLease(entry.getValue(), now, now.plus(LEASE_DURATION)));
     }
 
     private void run(UUID jobId) {
+        ProgrammeAssessmentJobRepository.Lease lease = null;
         try {
             Instant now = clock.instant();
-            if (!jobs.claim(jobId, owner, now, now.plus(LEASE_DURATION))) {
+            lease = jobs.claim(jobId, owner, now, now.plus(LEASE_DURATION)).orElse(null);
+            if (lease == null) {
                 return;
             }
-            process(jobId);
+            activeLeases.put(jobId, lease);
+            process(lease);
         } catch (NoSuchElementException deleted) {
             log.info("Programme assessment job {} disappeared while it was queued", jobId);
+        } catch (ProgrammeJobLeaseLostException lost) {
+            log.info("Programme assessment job {} stopped because its lease moved to another worker", jobId);
         } catch (RuntimeException unexpected) {
             log.error("Programme assessment job {} stopped unexpectedly", jobId, unexpected);
-            jobs.failJob(jobId, "INTERNAL_JOB_FAILURE",
-                    "The background worker stopped unexpectedly. Start a new job to retry missing promises.",
-                    clock.instant());
+            if (lease != null) {
+                try {
+                    jobs.failOwnedJob(lease, "INTERNAL_JOB_FAILURE",
+                            "The background worker stopped unexpectedly. Start a new job to retry missing promises.",
+                            clock.instant());
+                } catch (ProgrammeJobLeaseLostException lost) {
+                    log.info("Programme assessment job {} was already reclaimed after its worker failed", jobId);
+                }
+            }
         } finally {
+            if (lease != null) {
+                activeLeases.remove(jobId, lease);
+            }
             submitted.remove(jobId);
         }
     }
 
-    private void process(UUID jobId) {
+    private void process(ProgrammeAssessmentJobRepository.Lease lease) {
+        UUID jobId = lease.jobId();
         ProgrammeAssessmentJob claimed = jobs.find(jobId).orElseThrow();
         if (!claimed.providerMode().equals(factChecks.mode().value())) {
-            jobs.failJob(jobId, "PROVIDER_MODE_CHANGED",
+            jobs.failOwnedJob(lease, "PROVIDER_MODE_CHANGED",
                     "The configured assessment mode changed. Start a new job for missing promises.",
                     clock.instant());
             return;
@@ -174,7 +196,7 @@ public class ProgrammeAssessmentJobService {
             Instant now = clock.instant();
             List<ProgrammeAssessmentJobItem> ready = jobs.readyItems(jobId, now, ASSESSMENT_BATCH_SIZE);
             if (ready.isEmpty()) {
-                jobs.settle(jobId, now);
+                jobs.settle(lease, now);
                 return;
             }
 
@@ -187,7 +209,7 @@ public class ProgrammeAssessmentJobService {
                             && !byId.get(item.promiseId()).assessments().isEmpty())
                     .toList();
             if (!alreadyDone.isEmpty()) {
-                jobs.completeItems(jobId, ids(alreadyDone), now);
+                jobs.completeItems(lease, ids(alreadyDone), now);
                 ready = ready.stream().filter(item -> !alreadyDone.contains(item)).toList();
                 if (ready.isEmpty()) {
                     continue;
@@ -198,7 +220,7 @@ public class ProgrammeAssessmentJobService {
             for (ProgrammeAssessmentJobItem item : ready) {
                 AdminPromiseView promise = byId.get(item.promiseId());
                 if (promise == null) {
-                    jobs.failItems(jobId, List.of(item.promiseId()), "PROMISE_REMOVED",
+                    jobs.failItems(lease, List.of(item.promiseId()), "PROMISE_REMOVED",
                             "The promise was removed before it could be assessed.", now);
                     continue;
                 }
@@ -211,29 +233,32 @@ public class ProgrammeAssessmentJobService {
             List<ProgrammeAssessmentJobItem> batch = ready.stream()
                     .filter(item -> requested.stream().anyMatch(promise -> promise.slug().equals(item.promiseSlug())))
                     .toList();
-            jobs.markRunning(jobId, ids(batch), batch.getFirst().promiseSlug(), now);
+            jobs.markRunning(lease, ids(batch), batch.getFirst().promiseSlug(), now);
             try {
                 var result = factChecks.assess(programme.sourceUrl(), requested);
-                programmes.saveGeneratedAssessments(programme.id(), requested, result);
-                jobs.completeItems(jobId, ids(batch), clock.instant());
+                committer.saveAndComplete(
+                        lease, programme.id(), requested, result, ids(batch), clock.instant());
             } catch (RuntimeException failure) {
+                if (failure instanceof ProgrammeJobLeaseLostException) {
+                    throw failure;
+                }
                 Failure classified = classify(failure);
                 if (classified.promiseSlug() != null) {
-                    handleUngrounded(jobId, batch, classified, clock.instant());
+                    handleUngrounded(lease, batch, classified, clock.instant());
                     continue;
                 }
                 if (!classified.retryable()) {
-                    jobs.failJob(jobId, classified.code(), classified.message(), clock.instant());
+                    jobs.failOwnedJob(lease, classified.code(), classified.message(), clock.instant());
                     return;
                 }
-                pauseOrExhaust(jobId, batch, classified, clock.instant());
+                pauseOrExhaust(lease, batch, classified, clock.instant());
                 return;
             }
         }
     }
 
     private void handleUngrounded(
-            UUID jobId,
+            ProgrammeAssessmentJobRepository.Lease lease,
             List<ProgrammeAssessmentJobItem> batch,
             Failure failure,
             Instant now) {
@@ -244,20 +269,20 @@ public class ProgrammeAssessmentJobService {
                         "The provider identified an unknown ungrounded promise."));
         int attempt = blocked.attemptCount() + 1;
         if (attempt >= blocked.maxAttempts()) {
-            jobs.failItems(jobId, List.of(blocked.promiseId()), failure.code(), failure.message(), now);
+            jobs.failItems(lease, List.of(blocked.promiseId()), failure.code(), failure.message(), now);
         } else {
-            jobs.retryItemsWhileRunning(jobId, List.of(blocked.promiseId()),
+            jobs.retryItemsWhileRunning(lease, List.of(blocked.promiseId()),
                     now.plus(backoff(attempt)), failure.code(), failure.message(), now);
         }
         List<UUID> remaining = batch.stream()
                 .filter(item -> !item.promiseId().equals(blocked.promiseId()))
                 .map(ProgrammeAssessmentJobItem::promiseId)
                 .toList();
-        jobs.returnToPending(jobId, remaining, now);
+        jobs.returnToPending(lease, remaining, now);
     }
 
     private void pauseOrExhaust(
-            UUID jobId,
+            ProgrammeAssessmentJobRepository.Lease lease,
             List<ProgrammeAssessmentJobItem> batch,
             Failure failure,
             Instant now) {
@@ -269,16 +294,16 @@ public class ProgrammeAssessmentJobService {
                 .filter(item -> item.attemptCount() + 1 < item.maxAttempts())
                 .map(ProgrammeAssessmentJobItem::promiseId)
                 .toList();
-        jobs.failItems(jobId, exhausted, failure.code(), failure.message(), now);
+        jobs.failItems(lease, exhausted, failure.code(), failure.message(), now);
         if (retry.isEmpty()) {
-            jobs.settle(jobId, now);
+            jobs.settle(lease, now);
         } else {
             int nextAttempt = batch.stream()
                     .filter(item -> retry.contains(item.promiseId()))
                     .mapToInt(item -> item.attemptCount() + 1)
                     .max()
                     .orElse(1);
-            jobs.retryItems(jobId, retry, now.plus(backoff(nextAttempt)),
+            jobs.retryItems(lease, retry, now.plus(backoff(nextAttempt)),
                     failure.code(), failure.message(), now);
         }
     }

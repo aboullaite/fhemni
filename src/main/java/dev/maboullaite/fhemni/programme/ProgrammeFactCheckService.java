@@ -48,7 +48,7 @@ public class ProgrammeFactCheckService {
     public boolean ready() {
         return switch (mode) {
             case GEMINI -> gemini.live();
-            case OPENAI -> gemini.live() && openAi.configured();
+            case OPENAI -> openAi.configured();
             case CONSENSUS -> gemini.live() && openAi.configured();
         };
     }

@@ -15,8 +15,10 @@ public record PersonAffiliation(
         Instant verifiedAt) {
 
     public boolean activeOn(LocalDate date) {
-        LocalDate effectiveDate = date == null ? LocalDate.now() : date;
-        return (validFrom == null || !effectiveDate.isBefore(validFrom))
-                && (validUntil == null || !effectiveDate.isAfter(validUntil));
+        if (date == null) {
+            return false;
+        }
+        return (validFrom == null || !date.isBefore(validFrom))
+                && (validUntil == null || !date.isAfter(validUntil));
     }
 }

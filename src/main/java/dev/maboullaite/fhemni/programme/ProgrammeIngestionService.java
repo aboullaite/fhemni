@@ -146,6 +146,9 @@ public class ProgrammeIngestionService {
                     || (uri.getPort() != -1 && uri.getPort() != 443)) {
                 throw new IllegalArgumentException("Use a public HTTPS programme URL.");
             }
+            if (host.contains(":")) {
+                throw new IllegalArgumentException("Use a public HTTPS programme URL.");
+            }
             String asciiHost = IDN.toASCII(host).toLowerCase(Locale.ROOT);
             if (isPrivateHost(asciiHost)) {
                 throw new IllegalArgumentException("Use a public HTTPS programme URL.");
@@ -214,7 +217,8 @@ public class ProgrammeIngestionService {
     }
 
     private static boolean isPrivateHost(String host) {
-        if (!host.contains(".")
+        if (host.contains(":")
+                || !host.contains(".")
                 || host.equals("localhost")
                 || host.endsWith(".localhost")
                 || host.endsWith(".local")

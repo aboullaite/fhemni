@@ -61,6 +61,16 @@ class ProgrammeFactCheckServiceTest {
     }
 
     @Test
+    void openAiModeDoesNotRequireGeminiCredentials() {
+        when(gemini.live()).thenReturn(false);
+        when(openAi.configured()).thenReturn(true);
+
+        var service = new ProgrammeFactCheckService(gemini, openAi, usage, "openai");
+
+        assertThat(service.ready()).isTrue();
+    }
+
+    @Test
     void consensusRunsIndependentPassesConcurrentlyAndUsesAnOpenAiReconciler() {
         String sourceUrl = sourceUrlForReconciler(false);
         CountDownLatch independentPassesStarted = new CountDownLatch(2);

@@ -95,6 +95,24 @@ class ProgrammeIntelligenceGatewayTest {
                 .satisfies(item -> assertThat(item.evidence()).isEmpty());
     }
 
+    @Test
+    void preservesBilledUsageWhenPostResponseValidationRejectsGeminiOutput() {
+        GeminiInteractionsClient client = mock(GeminiInteractionsClient.class);
+        AiUsage billed = new AiUsage(900, 300, 20, 10, null, 2);
+        when(client.model()).thenReturn("gemini-3.8-flash");
+        when(client.create(any())).thenReturn(new InteractionResponse(
+                "invalid", "not structured json", List.of(), billed));
+        ProgrammeIntelligenceGateway gateway = new ProgrammeIntelligenceGateway(
+                client, new ObjectMapper(), 32_768, 32_768);
+        var promise = new ProgrammeIntelligenceGateway.ExtractedPromise(
+                "party-promise", "employment", new LocalizedText("وعد", "Promesse", "Promise"),
+                "Create jobs", "page 2", "", "");
+
+        assertThatThrownBy(() -> gateway.assess("https://party.ma/programme", List.of(promise)))
+                .isInstanceOf(GeminiApiException.class)
+                .satisfies(exception -> assertThat(((GeminiApiException) exception).usage()).isEqualTo(billed));
+    }
+
     private static ProgrammeIntelligenceGateway.GeneratedAssessment assessment(String url) {
         LocalizedText text = new LocalizedText("نص", "Texte", "Text");
         return new ProgrammeIntelligenceGateway.GeneratedAssessment(

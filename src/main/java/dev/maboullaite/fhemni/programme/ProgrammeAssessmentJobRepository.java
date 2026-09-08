@@ -176,20 +176,29 @@ public class ProgrammeAssessmentJobRepository {
     }
 
     @Transactional
-    public boolean claim(UUID jobId, String owner, Instant now, Instant leaseUntil) {
-        return jdbc.sql("""
+    public Optional<Lease> claim(UUID jobId, String owner, Instant now, Instant leaseUntil) {
+        int updated = jdbc.sql("""
                         UPDATE programme_assessment_jobs
                            SET status = 'RUNNING', lock_owner = :owner, lease_until = :leaseUntil,
+                               lease_token = lease_token + 1,
                                started_at = COALESCE(started_at, :now), updated_at = :now
                          WHERE id = :id AND active_marker = TRUE
                            AND status IN ('QUEUED', 'RUNNING', 'RETRY_WAIT')
-                           AND (lease_until IS NULL OR lease_until <= :now OR lock_owner = :owner)
+                           AND (lease_until IS NULL OR lease_until <= :now)
                         """)
                 .param("owner", owner)
                 .param("leaseUntil", utc(leaseUntil))
                 .param("now", utc(now))
                 .param("id", jobId)
-                .update() == 1;
+                .update();
+        if (updated != 1) {
+            return Optional.empty();
+        }
+        long token = jdbc.sql("SELECT lease_token FROM programme_assessment_jobs WHERE id = :id")
+                .param("id", jobId)
+                .query(Long.class)
+                .single();
+        return Optional.of(new Lease(jobId, owner, token));
     }
 
     public List<ProgrammeAssessmentJobItem> readyItems(UUID jobId, Instant now, int limit) {
@@ -209,19 +218,28 @@ public class ProgrammeAssessmentJobRepository {
     }
 
     @Transactional
-    public void markRunning(UUID jobId, List<UUID> promiseIds, String currentSlug, Instant now) {
+    public void markRunning(Lease lease, List<UUID> promiseIds, String currentSlug, Instant now) {
         if (promiseIds.isEmpty()) {
             return;
         }
+        requireOwnedLease(lease, now);
         jdbc.sql("""
                         UPDATE programme_assessment_job_items
                            SET status = 'RUNNING', attempt_count = attempt_count + 1,
                                next_attempt_at = NULL, updated_at = :now
                          WHERE job_id = :jobId AND promise_id IN (:promiseIds)
                            AND status IN ('PENDING', 'RETRY_WAIT')
+                           AND EXISTS (
+                               SELECT 1 FROM programme_assessment_jobs job
+                                WHERE job.id = :jobId AND job.active_marker = TRUE
+                                  AND job.lock_owner = :owner AND job.lease_token = :leaseToken
+                                  AND job.lease_until > :now
+                           )
                         """)
                 .param("now", utc(now))
-                .param("jobId", jobId)
+                .param("jobId", lease.jobId())
+                .param("owner", lease.owner())
+                .param("leaseToken", lease.token())
                 .param("promiseIds", promiseIds)
                 .update();
         jdbc.sql("""
@@ -232,26 +250,28 @@ public class ProgrammeAssessmentJobRepository {
                         """)
                 .param("currentSlug", currentSlug)
                 .param("now", utc(now))
-                .param("jobId", jobId)
+                .param("jobId", lease.jobId())
                 .update();
     }
 
     @Transactional
-    public void completeItems(UUID jobId, List<UUID> promiseIds, Instant now) {
-        updateItemStatus(jobId, promiseIds, "COMPLETED", now, null, null, null);
-        refreshCounts(jobId, now);
+    public void completeItems(Lease lease, List<UUID> promiseIds, Instant now) {
+        requireOwnedLease(lease, now);
+        updateItemStatus(lease, promiseIds, "COMPLETED", now, null, null, null);
+        refreshCounts(lease.jobId(), now);
     }
 
     @Transactional
     public void retryItems(
-            UUID jobId,
+            Lease lease,
             List<UUID> promiseIds,
             Instant nextAttemptAt,
             String errorCode,
             String message,
             Instant now) {
-        updateItemStatus(jobId, promiseIds, "RETRY_WAIT", now, nextAttemptAt, errorCode, message);
-        refreshCounts(jobId, now);
+        requireOwnedLease(lease, now);
+        updateItemStatus(lease, promiseIds, "RETRY_WAIT", now, nextAttemptAt, errorCode, message);
+        refreshCounts(lease.jobId(), now);
         jdbc.sql("""
                         UPDATE programme_assessment_jobs
                            SET status = 'RETRY_WAIT', current_promise_slug = NULL,
@@ -262,20 +282,21 @@ public class ProgrammeAssessmentJobRepository {
                 .param("errorCode", errorCode)
                 .param("message", message)
                 .param("now", utc(now))
-                .param("jobId", jobId)
+                .param("jobId", lease.jobId())
                 .update();
     }
 
     @Transactional
     public void retryItemsWhileRunning(
-            UUID jobId,
+            Lease lease,
             List<UUID> promiseIds,
             Instant nextAttemptAt,
             String errorCode,
             String message,
             Instant now) {
-        updateItemStatus(jobId, promiseIds, "RETRY_WAIT", now, nextAttemptAt, errorCode, message);
-        refreshCounts(jobId, now);
+        requireOwnedLease(lease, now);
+        updateItemStatus(lease, promiseIds, "RETRY_WAIT", now, nextAttemptAt, errorCode, message);
+        refreshCounts(lease.jobId(), now);
         jdbc.sql("""
                         UPDATE programme_assessment_jobs
                            SET last_error_code = :errorCode, last_error_message = :message, updated_at = :now
@@ -284,24 +305,26 @@ public class ProgrammeAssessmentJobRepository {
                 .param("errorCode", errorCode)
                 .param("message", message)
                 .param("now", utc(now))
-                .param("jobId", jobId)
+                .param("jobId", lease.jobId())
                 .update();
     }
 
     @Transactional
     public void failItems(
-            UUID jobId,
+            Lease lease,
             List<UUID> promiseIds,
             String errorCode,
             String message,
             Instant now) {
-        updateItemStatus(jobId, promiseIds, "FAILED", now, null, errorCode, message);
-        refreshCounts(jobId, now);
+        requireOwnedLease(lease, now);
+        updateItemStatus(lease, promiseIds, "FAILED", now, null, errorCode, message);
+        refreshCounts(lease.jobId(), now);
     }
 
     @Transactional
-    public void returnToPending(UUID jobId, List<UUID> promiseIds, Instant now) {
-        updateItemStatus(jobId, promiseIds, "PENDING", now, null, null, null);
+    public void returnToPending(Lease lease, List<UUID> promiseIds, Instant now) {
+        requireOwnedLease(lease, now);
+        updateItemStatus(lease, promiseIds, "PENDING", now, null, null, null);
     }
 
     public Counts counts(UUID jobId) {
@@ -321,10 +344,12 @@ public class ProgrammeAssessmentJobRepository {
     }
 
     @Transactional
-    public ProgrammeAssessmentJob settle(UUID jobId, Instant now) {
+    public ProgrammeAssessmentJob settle(Lease lease, Instant now) {
+        requireOwnedLease(lease, now);
+        UUID jobId = lease.jobId();
         Counts counts = counts(jobId);
         if (counts.remaining() == 0) {
-            finish(jobId, counts.failed() == 0 ? Status.COMPLETED : Status.COMPLETED_WITH_ERRORS,
+            finishOwned(lease, counts.failed() == 0 ? Status.COMPLETED : Status.COMPLETED_WITH_ERRORS,
                     now, null, null);
         } else {
             String nextStatus = counts.nextAttemptAt() == null ? "RUNNING" : "RETRY_WAIT";
@@ -346,7 +371,20 @@ public class ProgrammeAssessmentJobRepository {
     }
 
     @Transactional
-    public void failJob(UUID jobId, String errorCode, String message, Instant now) {
+    public void invalidateAndFailJob(UUID jobId, String errorCode, String message, Instant now) {
+        jdbc.sql("""
+                        UPDATE programme_assessment_jobs
+                           SET status = 'FAILED', active_marker = NULL, current_promise_slug = NULL,
+                               last_error_code = :errorCode, last_error_message = :message,
+                               lock_owner = NULL, lease_until = NULL, lease_token = lease_token + 1,
+                               finished_at = :now, updated_at = :now
+                         WHERE id = :jobId
+                        """)
+                .param("errorCode", errorCode)
+                .param("message", message)
+                .param("now", utc(now))
+                .param("jobId", jobId)
+                .update();
         jdbc.sql("""
                         UPDATE programme_assessment_job_items
                            SET status = 'FAILED', last_error_code = :errorCode,
@@ -359,24 +397,66 @@ public class ProgrammeAssessmentJobRepository {
                 .param("jobId", jobId)
                 .update();
         refreshCounts(jobId, now);
-        finish(jobId, Status.FAILED, now, errorCode, message);
     }
 
     @Transactional
-    public void renewLeases(String owner, Instant now, Instant leaseUntil) {
+    public void failOwnedJob(Lease lease, String errorCode, String message, Instant now) {
+        requireOwnedLease(lease, now);
+        UUID jobId = lease.jobId();
         jdbc.sql("""
+                        UPDATE programme_assessment_job_items
+                           SET status = 'FAILED', last_error_code = :errorCode,
+                               last_error_message = :message, updated_at = :now
+                         WHERE job_id = :jobId AND status IN ('PENDING', 'RUNNING', 'RETRY_WAIT')
+                        """)
+                .param("errorCode", errorCode)
+                .param("message", message)
+                .param("now", utc(now))
+                .param("jobId", jobId)
+                .update();
+        refreshCounts(jobId, now);
+        finishOwned(lease, Status.FAILED, now, errorCode, message);
+    }
+
+    @Transactional
+    public boolean renewLease(Lease lease, Instant now, Instant leaseUntil) {
+        return jdbc.sql("""
                         UPDATE programme_assessment_jobs
                            SET lease_until = :leaseUntil, updated_at = :now
-                         WHERE active_marker = TRUE AND status = 'RUNNING' AND lock_owner = :owner
+                         WHERE id = :jobId AND active_marker = TRUE AND status = 'RUNNING'
+                           AND lock_owner = :owner AND lease_token = :leaseToken
+                           AND lease_until > :now
                         """)
                 .param("leaseUntil", utc(leaseUntil))
                 .param("now", utc(now))
-                .param("owner", owner)
-                .update();
+                .param("jobId", lease.jobId())
+                .param("owner", lease.owner())
+                .param("leaseToken", lease.token())
+                .update() == 1;
+    }
+
+    void requireOwnedLease(Lease lease, Instant now) {
+        boolean owned = jdbc.sql("""
+                        SELECT id FROM programme_assessment_jobs
+                         WHERE id = :jobId AND active_marker = TRUE AND status = 'RUNNING'
+                           AND lock_owner = :owner AND lease_token = :leaseToken
+                           AND lease_until > :now
+                         FOR UPDATE
+                        """)
+                .param("jobId", lease.jobId())
+                .param("owner", lease.owner())
+                .param("leaseToken", lease.token())
+                .param("now", utc(now))
+                .query(UUID.class)
+                .optional()
+                .isPresent();
+        if (!owned) {
+            throw new ProgrammeJobLeaseLostException();
+        }
     }
 
     private void updateItemStatus(
-            UUID jobId,
+            Lease lease,
             List<UUID> promiseIds,
             String status,
             Instant now,
@@ -393,13 +473,21 @@ public class ProgrammeAssessmentJobRepository {
                                completed_at = CASE WHEN :status IN ('COMPLETED', 'FAILED') THEN :now ELSE NULL END,
                                updated_at = :now
                          WHERE job_id = :jobId AND promise_id IN (:promiseIds)
+                           AND EXISTS (
+                               SELECT 1 FROM programme_assessment_jobs job
+                                WHERE job.id = :jobId AND job.active_marker = TRUE
+                                  AND job.lock_owner = :owner AND job.lease_token = :leaseToken
+                                  AND job.lease_until > :now
+                           )
                         """)
                 .param("status", status)
                 .param("nextAttemptAt", nextAttemptAt == null ? null : utc(nextAttemptAt), Types.TIMESTAMP_WITH_TIMEZONE)
                 .param("errorCode", errorCode, Types.VARCHAR)
                 .param("message", message, Types.VARCHAR)
                 .param("now", utc(now))
-                .param("jobId", jobId)
+                .param("jobId", lease.jobId())
+                .param("owner", lease.owner())
+                .param("leaseToken", lease.token())
                 .param("promiseIds", promiseIds)
                 .update();
     }
@@ -416,6 +504,10 @@ public class ProgrammeAssessmentJobRepository {
                 .param("now", utc(now))
                 .param("jobId", jobId)
                 .update();
+    }
+
+    private void finishOwned(Lease lease, Status status, Instant now, String errorCode, String message) {
+        finish(lease.jobId(), status, now, errorCode, message);
     }
 
     private void finish(UUID jobId, Status status, Instant now, String errorCode, String message) {
@@ -468,5 +560,8 @@ public class ProgrammeAssessmentJobRepository {
     }
 
     public record Counts(int total, int completed, int failed, int remaining, Instant nextAttemptAt) {
+    }
+
+    public record Lease(UUID jobId, String owner, long token) {
     }
 }
