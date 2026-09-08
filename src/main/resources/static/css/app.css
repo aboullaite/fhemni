@@ -464,7 +464,7 @@ footer { display: flex; align-items: center; justify-content: space-between; fle
 .suggestion-copy p { margin: 0; color: var(--muted); font-size: 12px; }
 .suggestion-community-link { display: inline-flex; margin-top: 12px; }
 .featured-footer-action { display: flex; justify-content: center; margin-top: 28px; }
-.catalog-suggestion-panel { margin-bottom: 90px; }
+.catalog-suggestion-panel { grid-template-columns: 1fr; margin-bottom: 90px; }
 .community-page { padding-bottom: 90px; }
 .community-hero { padding-bottom: 34px; }
 .community-hero > .text-link { display: inline-flex; margin-top: 8px; }
