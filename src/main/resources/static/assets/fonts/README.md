@@ -1,4 +1,13 @@
-# Optional TIDO Arabic font
+# Fonts
+
+## Tajawal
+
+Fhemni self-hosts Tajawal Regular, Medium and Bold for Arabic body text and
+interface controls. Tajawal was designed by Boutros International and is
+distributed under the SIL Open Font License 1.1. See `TAJAWAL-OFL.txt` in this
+directory for the complete license.
+
+## Optional TIDO Arabic font
 
 Fhemni supports the TIDO Arabic typeface by Anyone ae®, available from the
 [creator’s Behance asset](https://www.behance.net/asset/721845/TIDO-Font).

@@ -32,3 +32,6 @@ credentials*.json
 /src/main/resources/static/assets/fonts/*.ttf
 /src/main/resources/static/assets/fonts/*.woff
 /src/main/resources/static/assets/fonts/*.woff2
+!/src/main/resources/static/assets/fonts/tajawal-regular.ttf
+!/src/main/resources/static/assets/fonts/tajawal-medium.ttf
+!/src/main/resources/static/assets/fonts/tajawal-bold.ttf

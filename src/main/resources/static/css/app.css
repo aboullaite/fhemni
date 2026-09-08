@@ -45,6 +45,33 @@
 }
 
 @font-face {
+    font-family: "Tajawal";
+    src: url("/assets/fonts/tajawal-regular.ttf") format("truetype");
+    font-display: swap;
+    font-style: normal;
+    font-weight: 400;
+    size-adjust: 130%;
+}
+
+@font-face {
+    font-family: "Tajawal";
+    src: url("/assets/fonts/tajawal-medium.ttf") format("truetype");
+    font-display: swap;
+    font-style: normal;
+    font-weight: 500;
+    size-adjust: 130%;
+}
+
+@font-face {
+    font-family: "Tajawal";
+    src: url("/assets/fonts/tajawal-bold.ttf") format("truetype");
+    font-display: swap;
+    font-style: normal;
+    font-weight: 700 900;
+    size-adjust: 130%;
+}
+
+@font-face {
     font-family: "TIDO Arabic";
     src: url("/assets/fonts/tido-regular.otf") format("opentype");
     font-display: swap;
@@ -316,7 +343,7 @@ h1 em { color: var(--teal); font-weight: 400; }
 
 [dir="rtl"] { text-align: right; }
 html[dir="rtl"] body {
-    font-family: "TIDO Arabic", Tahoma, Arial, "Segoe UI", sans-serif;
+    font-family: "Tajawal", Tahoma, Arial, "Segoe UI", sans-serif;
     line-height: 1.65;
 }
 html[dir="rtl"] h1 { font-family: "TIDO Arabic", Tahoma, Arial, "Segoe UI", sans-serif; }
@@ -405,8 +432,8 @@ footer { display: flex; align-items: center; justify-content: space-between; fle
 .promise-card ol { display: grid; gap: 0; margin: 22px 0 0; padding: 0; list-style: none; }
 .promise-card li { display: grid; grid-template-columns: 37px 1fr; gap: 13px; padding: 18px 0; border-top: 1px solid var(--line); }
 .promise-card li > span { color: var(--orange); font: 800 11px/1.8 ui-monospace, monospace; }
-.promise-card strong { display: block; font-size: 14px; }
-.promise-card p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+.promise-card strong { display: block; font-size: 15px; }
+.promise-card p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
 
 .featured-section { padding: 78px 0; border-top: 1px solid var(--line); }
 .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
@@ -757,7 +784,7 @@ span.party-badge { cursor: default; }
 /* 2026 programmes and five-year promise feasibility */
 .programme-section { padding: clamp(20px, 3vw, 34px); border: 1px solid rgba(23,107,99,.22); border-radius: 26px; background: linear-gradient(135deg, rgba(207,230,220,.5), rgba(255,253,248,.9)); }
 .programme-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
-.programme-heading h2 { margin: 4px 0 8px; }
+.programme-heading h2 { margin: 4px 0 8px; font-size: clamp(2.25rem, 4vw, 3.5rem); line-height: 1.1; }
 .programme-summary { max-width: 70ch; margin: 0; color: var(--muted); line-height: 1.75; }
 .promise-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 24px; }
 .promise-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 20px; border: 1px solid var(--line); border-radius: 18px; background: var(--white); }
