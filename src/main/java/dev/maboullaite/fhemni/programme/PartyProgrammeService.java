@@ -223,10 +223,10 @@ public class PartyProgrammeService {
                 .toList();
         PromiseAssessment assessment = new PromiseAssessment(
                 UUID.randomUUID(), promiseId, repository.nextAssessmentRevision(promiseId), HORIZON_YEARS,
-                draft.verdict(), localized(draft.summary(), "Assessment summary", 30_000),
-                localized(draft.requirements(), "Requirements", 30_000),
-                localized(draft.assumptions(), "Assumptions", 50_000),
-                localized(draft.calculationNotes(), "Calculation notes", 50_000),
+                draft.verdict(), assessmentText(draft.summary(), "Assessment summary", 30_000),
+                assessmentText(draft.requirements(), "Requirements", 30_000),
+                assessmentText(draft.assumptions(), "Assumptions", 50_000),
+                assessmentText(draft.calculationNotes(), "Calculation notes", 50_000),
                 required(draft.methodologyVersion(), "Methodology version", 40),
                 providerMode(draft.providerMode()), text(draft.modelNames(), 300),
                 draft.dataCutoff(), EditorialStatus.DRAFT, Instant.now(), null, evidence);
@@ -459,6 +459,38 @@ public class PartyProgrammeService {
                 required(value.ar(), field + " (Darija)", maxLength),
                 required(value.fr(), field + " (French)", maxLength),
                 required(value.en(), field + " (English)", maxLength));
+    }
+
+    private static LocalizedText assessmentText(LocalizedText value, String field, int maxLength) {
+        if (value == null) {
+            return localized(null, field, maxLength);
+        }
+        return localized(new LocalizedText(
+                naturalizeVerdictCodes(
+                        value.ar(), "قابل للتحقيق", "صعيب التحقيق فـ5 سنين",
+                        "بعيد بزاف يتحقق فـ5 سنين", "المعطيات ما كافياش"),
+                naturalizeVerdictCodes(
+                        value.fr(), "réalisable", "difficile à réaliser en cinq ans",
+                        "très improbable en cinq ans", "données insuffisantes"),
+                naturalizeVerdictCodes(
+                        value.en(), "achievable", "difficult to achieve within five years",
+                        "very unlikely within five years", "insufficient data")), field, maxLength);
+    }
+
+    private static String naturalizeVerdictCodes(
+            String value,
+            String possible,
+            String hard,
+            String notAchievable,
+            String insufficientData) {
+        if (value == null) {
+            return null;
+        }
+        return value
+                .replace("NOT_ACHIEVABLE", notAchievable)
+                .replace("INSUFFICIENT_DATA", insufficientData)
+                .replace("POSSIBLE", possible)
+                .replace("HARD", hard);
     }
 
     private static String required(String value, String field, int maxLength) {

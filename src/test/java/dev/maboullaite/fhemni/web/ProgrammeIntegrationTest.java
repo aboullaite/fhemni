@@ -91,8 +91,8 @@ class ProgrammeIntegrationTest {
                 "The programme states an aggregate envelope."));
         var assessment = programmes.createAssessment(promise.promise().id(), new DraftAssessment(
                 FeasibilityVerdict.HARD,
-                localized("ممكن ولكن صعيب", "Possible, mais difficile", "Possible, but hard"),
-                localized("خاص نمو قوي", "Une croissance forte est nécessaire", "Strong growth is required"),
+                localized("HARD. ممكن ولكن صعيب", "C’est POSSIBLE, mais difficile", "HARD. Possible, but hard"),
+                localized("خاص نمو قوي", "Une croissance forte est nécessaire", "INSUFFICIENT_DATA without a baseline"),
                 localized("النتيجة كتبدل مع النمو", "Le résultat dépend de la croissance", "The result depends on growth"),
                 localized("200 ألف منصب فالسنة", "200 000 emplois par an", "200,000 jobs per year"),
                 "fhemni-feasibility-v1",
@@ -103,6 +103,11 @@ class ProgrammeIntegrationTest {
                         "https://www.hcp.ma/",
                         LocalDate.of(2026, 8, 1),
                         "Official baseline for employment."))));
+
+        assertThat(assessment.summary().ar()).startsWith("صعيب التحقيق فـ5 سنين.");
+        assertThat(assessment.summary().fr()).startsWith("C’est réalisable");
+        assertThat(assessment.summary().en()).startsWith("difficult to achieve within five years.");
+        assertThat(assessment.requirements().en()).startsWith("insufficient data");
 
         assertThatThrownBy(() -> programmes.publishProgramme(programme.id()))
                 .isInstanceOf(IllegalStateException.class);

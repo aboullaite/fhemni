@@ -103,7 +103,7 @@
 
     function cleanSummary(value) {
         return String(value || '')
-            .replace(/\b(?:POSSIBLE|HARD|NOT_ACHIEVABLE|INSUFFICIENT_DATA)\b[.:؛،-]?/gi, '')
+            .replace(/\b(?:POSSIBLE|HARD|NOT_ACHIEVABLE|INSUFFICIENT_DATA)\b[.:؛،-]?/g, '')
             .replace(/[ \t]+([.,؛،])/g, '$1')
             .replace(/[ \t]{2,}/g, ' ')
             .trim();
