@@ -38,8 +38,8 @@ public class AiUsageGuard {
             @Value("${fhemni.cost-control.max-daily-analyses:5}") int maxDailyAnalyses,
             @Value("${fhemni.cost-control.max-hourly-chat-rounds:50}") int maxHourlyChatRounds,
             @Value("${fhemni.cost-control.max-daily-chat-rounds:500}") int maxDailyChatRounds,
-            @Value("${fhemni.cost-control.max-weekly-chat-rounds-per-user:5}") int maxWeeklyChatRoundsPerUser,
-            @Value("${fhemni.cost-control.max-daily-chat-output-tokens-per-user:10000}")
+            @Value("${fhemni.cost-control.max-weekly-chat-rounds-per-user:20}") int maxWeeklyChatRoundsPerUser,
+            @Value("${fhemni.cost-control.max-daily-chat-output-tokens-per-user:16000}")
             int maxDailyChatOutputTokensPerUser) {
         this(repository, Clock.systemUTC(), analysisEnabled, chatEnabled,
                 maxDailyAnalyses, maxHourlyChatRounds, maxDailyChatRounds, maxWeeklyChatRoundsPerUser,
@@ -56,7 +56,7 @@ public class AiUsageGuard {
             int maxDailyChatRounds,
             int maxWeeklyChatRoundsPerUser) {
         this(repository, clock, analysisEnabled, chatEnabled, maxDailyAnalyses, maxHourlyChatRounds,
-                maxDailyChatRounds, maxWeeklyChatRoundsPerUser, 10_000);
+                maxDailyChatRounds, maxWeeklyChatRoundsPerUser, 16_000);
     }
 
     AiUsageGuard(
