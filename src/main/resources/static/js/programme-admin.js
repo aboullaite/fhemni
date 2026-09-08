@@ -1,5 +1,5 @@
 (function () {
-    // Extraction, the parallel first pass, and reconciliation all fit inside this admin deadline.
+    // Only source extraction stays in the request. Feasibility work runs in the durable queue.
     const INGESTION_TIMEOUT_MS = 65 * 60 * 1000;
     const ingestForm = document.querySelector('#programmeIngestForm');
     const sourceUrl = document.querySelector('#programmeSourceUrl');
@@ -11,6 +11,8 @@
     const feedback = document.querySelector('#programmeFeedback');
     const refresh = document.querySelector('#refreshProgrammes');
     let programmes = [];
+    let jobsByProgramme = {};
+    let pollTimer = null;
 
     function t(key, parameters = {}) {
         return window.FhemniI18n?.t(key, parameters) ?? key;
@@ -27,9 +29,13 @@
     async function load() {
         refresh.disabled = true;
         try {
-            programmes = await window.FhemniCatalog.requestJson('/api/admin/programmes');
+            [programmes, jobsByProgramme] = await Promise.all([
+                window.FhemniCatalog.requestJson('/api/admin/programmes'),
+                window.FhemniCatalog.requestJson('/api/admin/programmes/assessment-jobs')
+            ]);
             render();
             syncReplacementOption();
+            schedulePolling();
         } catch (error) {
             window.FhemniCatalog.renderError(list, error.message);
         } finally {
@@ -61,17 +67,10 @@
                 document ? '/api/admin/programmes/ingest-pdf' : '/api/admin/programmes/ingest',
                 options,
                 INGESTION_TIMEOUT_MS);
-            const message = result.assessmentPending
-                ? t('admin.programmeAssessmentPending', {
-                    party: result.programme.partyCode,
-                    count: result.programme.promises.length
-                })
-                : result.cacheHit
-                ? t('admin.programmeCacheHit')
-                : t('admin.programmeIngested', {
-                    party: result.programme.partyCode,
-                    count: result.programme.promises.length
-                });
+            const message = t('admin.programmeQueued', {
+                party: result.programme.partyCode,
+                count: result.programme.promises.length
+            });
             const warnings = (result.warnings || []).join(' · ');
             showFeedback(warnings ? `${message} ${t('admin.programmeWarnings', { warnings })}` : message, false);
             sourceUrl.value = '';
@@ -92,8 +91,13 @@
             AI_SOURCE_OR_REQUEST_INVALID: 'admin.programmeAiSourceInvalid',
             AI_CREDENTIAL_REJECTED: 'admin.programmeAiCredentialRejected',
             AI_RATE_LIMITED: 'admin.programmeAiRateLimited',
+            AI_TIMEOUT: 'admin.programmeAiTimeout',
+            AI_REQUEST_REJECTED: 'admin.programmeAiRequestRejected',
             AI_RESULT_INVALID: 'admin.programmeAiResultInvalid',
             AI_TEMPORARY_FAILURE: 'admin.programmeAiTemporaryFailure',
+            EVIDENCE_REQUIRED: 'admin.programmeAssessmentEvidenceRequired',
+            WORKER_INTERRUPTED: 'admin.programmeWorkerInterrupted',
+            PROVIDER_MODE_CHANGED: 'admin.programmeProviderModeChanged',
             PROGRAMME_PDF_TOO_LARGE: 'admin.programmePdfTooLarge'
         };
         return messages[error.code] ? t(messages[error.code]) : error.message;
@@ -171,8 +175,10 @@
         }
 
         const needsAssessment = programme.promises.some(item => !item.assessments.length);
-        if (programme.status === 'DRAFT' && needsAssessment) {
-            article.append(assessmentPendingPanel(programme));
+        if (programme.status === 'DRAFT' && programme.promises.length) {
+            article.append(needsAssessment
+                ? assessmentJobPanel(programme, jobsByProgramme[programme.id])
+                : assessmentCompletePanel(programme));
         }
 
         if (programme.status === 'DRAFT' && programme.promises.length < 10) {
@@ -210,24 +216,62 @@
         return article;
     }
 
-    function assessmentPendingPanel(programme) {
+    function assessmentJobPanel(programme, job) {
         const panel = document.createElement('section');
         panel.className = 'programme-recovery-panel';
         const copy = document.createElement('div');
         const title = document.createElement('strong');
-        title.textContent = t('admin.programmeAssessmentBlockedTitle');
         const body = document.createElement('p');
-        const complete = programme.promises.filter(item => item.assessments.length).length;
-        body.textContent = t('admin.programmeAssessmentBlockedBody', {
-            complete,
-            total: programme.promises.length
+        const { complete, total, remaining } = assessmentCounts(programme);
+        const state = job?.status || 'READY';
+        title.textContent = t(`admin.programmeJob.${state}.title`);
+        body.textContent = t(`admin.programmeJob.${state}.body`, {
+            complete, total, remaining,
+            current: job?.currentPromiseSlug || '',
+            jobComplete: job?.completedItems || 0,
+            jobTotal: job?.totalItems || remaining,
+            failed: job?.failedItems || 0,
+            mode: t(`admin.programmeMode.${job?.providerMode || 'unknown'}`)
         });
         copy.append(title, body);
-        const retry = actionButton(t('admin.retryProgrammeAssessment'), true,
-            () => retryAssessment(programme.sourceUrl, retry));
-        retry.className = 'primary-button programme-action';
-        panel.append(copy, retry);
+        if (job?.lastErrorCode) {
+            const error = document.createElement('small');
+            error.className = 'video-meta';
+            error.textContent = programmeError({
+                code: job.lastErrorCode,
+                message: job.lastErrorMessage
+            });
+            copy.append(error);
+        }
+        panel.append(copy);
+        if (!['QUEUED', 'RUNNING', 'RETRY_WAIT'].includes(state)) {
+            const label = state === 'READY'
+                ? t('admin.startProgrammeAssessment')
+                : t('admin.retryProgrammeAssessment');
+            const retry = actionButton(label, true,
+                () => startAssessment(programme.id, retry));
+            retry.className = 'primary-button programme-action';
+            panel.append(retry);
+        }
         return panel;
+    }
+
+    function assessmentCompletePanel(programme) {
+        const panel = document.createElement('section');
+        panel.className = 'programme-complete-panel';
+        const title = document.createElement('strong');
+        title.textContent = t('admin.programmeAssessmentCompleteTitle');
+        const body = document.createElement('p');
+        const { complete, total } = assessmentCounts(programme);
+        body.textContent = t('admin.programmeAssessmentCompleteBody', { complete, total });
+        panel.append(title, body);
+        return panel;
+    }
+
+    function assessmentCounts(programme) {
+        const total = programme.promises.length;
+        const complete = programme.promises.filter(item => item.assessments.length).length;
+        return { complete, total, remaining: total - complete };
     }
 
     function extractionCoveragePanel(programme) {
@@ -395,21 +439,14 @@
         return button;
     }
 
-    async function retryAssessment(programmeSourceUrl, button) {
+    async function startAssessment(programmeId, button) {
         button.disabled = true;
         button.textContent = t('admin.programmeAssessmentRetrying');
-        showFeedback(t('admin.programmeAssessmentRetryWait'), false);
         try {
-            const options = await window.FhemniAuth.withCsrf({
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sourceUrl: programmeSourceUrl })
-            });
-            const result = await window.FhemniCatalog.requestJson(
-                '/api/admin/programmes/ingest', options, INGESTION_TIMEOUT_MS);
-            showFeedback(result.assessmentPending
-                ? t('admin.programmeAiTemporaryFailure')
-                : t('admin.programmeAssessmentRetried'), result.assessmentPending);
+            const options = await window.FhemniAuth.withCsrf({ method: 'POST' });
+            await window.FhemniCatalog.requestJson(
+                `/api/admin/programmes/${programmeId}/assessment-jobs`, options, 30_000);
+            showFeedback(t('admin.programmeAssessmentQueued'), false);
             await load();
         } catch (error) {
             showFeedback(programmeError(error), true);
@@ -470,6 +507,13 @@
         feedback.className = `import-feedback ${error ? 'error' : 'success'}`;
         feedback.textContent = message;
         feedback.hidden = false;
+    }
+
+    function schedulePolling() {
+        window.clearTimeout(pollTimer);
+        const running = Object.values(jobsByProgramme)
+            .some(job => ['QUEUED', 'RUNNING', 'RETRY_WAIT'].includes(job.status));
+        if (running) pollTimer = window.setTimeout(load, 3000);
     }
 
     ingestForm.addEventListener('submit', ingest);

@@ -58,4 +58,15 @@ public class FhemniApplication {
         return Executors.newSingleThreadExecutor(
                 Thread.ofVirtual().name("fhemni-catalog-batch-", 0).factory());
     }
+
+    @Bean(name = "programmeAssessmentExecutor", destroyMethod = "close")
+    ExecutorService programmeAssessmentExecutor(
+            @Value("${fhemni.programme-jobs.concurrency:1}") int concurrency) {
+        if (concurrency < 1 || concurrency > 4) {
+            throw new IllegalArgumentException("Programme job concurrency must be between 1 and 4");
+        }
+        return Executors.newFixedThreadPool(
+                concurrency,
+                Thread.ofVirtual().name("fhemni-programme-job-", 0).factory());
+    }
 }

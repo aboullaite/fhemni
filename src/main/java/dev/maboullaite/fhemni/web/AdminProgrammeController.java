@@ -1,8 +1,11 @@
 package dev.maboullaite.fhemni.web;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import dev.maboullaite.fhemni.programme.ProgrammeAssessmentJob;
+import dev.maboullaite.fhemni.programme.ProgrammeAssessmentJobService;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService;
 import dev.maboullaite.fhemni.programme.ProgrammeIngestionService;
 import dev.maboullaite.fhemni.programme.ProgrammeIngestionService.IngestionRequest;
@@ -33,32 +36,56 @@ public class AdminProgrammeController {
 
     private final PartyProgrammeService programmes;
     private final ProgrammeIngestionService ingestion;
+    private final ProgrammeAssessmentJobService assessmentJobs;
 
-    public AdminProgrammeController(PartyProgrammeService programmes, ProgrammeIngestionService ingestion) {
+    public AdminProgrammeController(
+            PartyProgrammeService programmes,
+            ProgrammeIngestionService ingestion,
+            ProgrammeAssessmentJobService assessmentJobs) {
         this.programmes = programmes;
         this.ingestion = ingestion;
+        this.assessmentJobs = assessmentJobs;
     }
 
     @PostMapping("/ingest")
-    public ResponseEntity<IngestionResult> ingest(@RequestBody IngestionRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
+    public ResponseEntity<IngestionJobResult> ingest(@RequestBody IngestionRequest request) {
+        IngestionResult result = ingestion.ingest(request.sourceUrl());
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
                 .cacheControl(CacheControl.noStore())
-                .body(ingestion.ingest(request.sourceUrl()));
+                .body(withJob(result));
     }
 
     @PostMapping(value = "/ingest-pdf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<IngestionResult> ingestPdf(
+    public ResponseEntity<IngestionJobResult> ingestPdf(
             @RequestParam String sourceUrl,
             @RequestParam("document") MultipartFile document,
             @RequestParam(defaultValue = "false") boolean replaceExistingDraft) {
-        return ResponseEntity.status(HttpStatus.CREATED)
+        IngestionResult result = ingestion.ingestPdf(sourceUrl, document, replaceExistingDraft);
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
                 .cacheControl(CacheControl.noStore())
-                .body(ingestion.ingestPdf(sourceUrl, document, replaceExistingDraft));
+                .body(withJob(result));
     }
 
     @GetMapping
     public ResponseEntity<List<AdminProgrammeView>> list() {
         return noStore(programmes.adminProgrammes());
+    }
+
+    @GetMapping("/assessment-jobs")
+    public ResponseEntity<Map<UUID, ProgrammeAssessmentJob>> assessmentJobs() {
+        return noStore(assessmentJobs.latest());
+    }
+
+    @GetMapping("/{programmeId}/assessment-jobs/latest")
+    public ResponseEntity<ProgrammeAssessmentJob> latestAssessmentJob(@PathVariable UUID programmeId) {
+        return noStore(assessmentJobs.latest(programmeId));
+    }
+
+    @PostMapping("/{programmeId}/assessment-jobs")
+    public ResponseEntity<ProgrammeAssessmentJob> startAssessmentJob(@PathVariable UUID programmeId) {
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
+                .cacheControl(CacheControl.noStore())
+                .body(assessmentJobs.start(programmeId));
     }
 
     @PostMapping
@@ -131,5 +158,19 @@ public class AdminProgrammeController {
 
     private <T> ResponseEntity<T> noStore(T body) {
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(body);
+    }
+
+    private IngestionJobResult withJob(IngestionResult result) {
+        ProgrammeAssessmentJob job = assessmentJobs.start(result.programme().id());
+        return new IngestionJobResult(
+                result.programme(), result.cacheHit(), result.extracted(), result.warnings(), job);
+    }
+
+    public record IngestionJobResult(
+            AdminProgrammeView programme,
+            boolean cacheHit,
+            boolean extracted,
+            List<String> warnings,
+            ProgrammeAssessmentJob job) {
     }
 }

@@ -53,6 +53,13 @@ class ProgrammeIntegrationTest {
         mvc.perform(get("/api/admin/programmes").with(user("admin").roles("ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"));
+        mvc.perform(get("/api/admin/programmes/assessment-jobs"))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/admin/programmes/assessment-jobs").with(user("member").roles("USER")))
+                .andExpect(status().isForbidden());
+        mvc.perform(get("/api/admin/programmes/assessment-jobs").with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CACHE_CONTROL, "no-store"));
 
         var programme = programmes.createProgramme(new DraftProgramme(
                 "PAM",

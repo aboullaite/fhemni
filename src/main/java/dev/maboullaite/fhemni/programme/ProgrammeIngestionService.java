@@ -17,26 +17,19 @@ import dev.maboullaite.fhemni.cost.AiUsageGuard.Reservation;
 import dev.maboullaite.fhemni.gemini.GeminiApiException;
 import dev.maboullaite.fhemni.gemini.ProgrammeIntelligenceGateway;
 import dev.maboullaite.fhemni.gemini.ProgrammeIntelligenceGateway.ExtractionResult;
-import dev.maboullaite.fhemni.gemini.ProgrammeIntelligenceGateway.ExtractedPromise;
-import dev.maboullaite.fhemni.programme.ProgrammeFactCheckService.FactCheckResult;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.AdminProgrammeView;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Service
 public class ProgrammeIngestionService {
 
-    private static final Logger log = LoggerFactory.getLogger(ProgrammeIngestionService.class);
     static final long MAX_PDF_BYTES = 25L * 1024 * 1024;
-    static final int ASSESSMENT_BATCH_SIZE = 6;
     private static final int INGESTION_LOCK_STRIPES = 64;
     private static final Set<String> TRACKING_PARAMETERS = Set.of(
             "fbclid", "gclid", "dclid", "msclkid", "mc_cid", "mc_eid");
 
     private final ProgrammeIntelligenceGateway gateway;
-    private final ProgrammeFactCheckService factChecks;
     private final PartyProgrammeService programmes;
     private final AiUsageGuard usageGuard;
     private final Object[] ingestionLocks = java.util.stream.IntStream.range(0, INGESTION_LOCK_STRIPES)
@@ -45,11 +38,9 @@ public class ProgrammeIngestionService {
 
     public ProgrammeIngestionService(
             ProgrammeIntelligenceGateway gateway,
-            ProgrammeFactCheckService factChecks,
             PartyProgrammeService programmes,
             AiUsageGuard usageGuard) {
         this.gateway = gateway;
-        this.factChecks = factChecks;
         this.programmes = programmes;
         this.usageGuard = usageGuard;
     }
@@ -79,11 +70,6 @@ public class ProgrammeIngestionService {
         if (!gateway.live()) {
             throw new IllegalStateException("Gemini must be configured before importing a party programme.");
         }
-        if (!factChecks.ready()) {
-            throw new IllegalStateException(
-                    "The credentials required by the selected programme fact-check mode are not configured.");
-        }
-
         // Same-source clicks share a bounded lock; unrelated parties can be imported independently.
         synchronized (ingestionLock(sourceUrl)) {
             AdminProgrammeView programme = programmes.programmeBySourceUrl(sourceUrl).orElse(null);
@@ -105,27 +91,7 @@ public class ProgrammeIngestionService {
                 extracted = true;
             }
 
-            List<ExtractedPromise> pendingPromises = programmes.promisesAwaitingAssessment(programme);
-            boolean assessed = false;
-            for (int offset = 0; offset < pendingPromises.size(); offset += ASSESSMENT_BATCH_SIZE) {
-                var batch = pendingPromises.subList(
-                        offset, Math.min(offset + ASSESSMENT_BATCH_SIZE, pendingPromises.size()));
-                FactCheckResult assessment;
-                try {
-                    assessment = factChecks.assess(sourceUrl, batch);
-                } catch (ProgrammeFactCheckException exception) {
-                    log.warn(
-                            "Programme feasibility batch failed for {} after {}/{} promises were saved",
-                            sourceUrl, offset, pendingPromises.size(), exception);
-                    return new IngestionResult(
-                            programme, false, extracted, assessed, warnings, true, "ASSESSMENT_RETRY_REQUIRED");
-                }
-                programme = programmes.saveGeneratedAssessments(programme.id(), batch, assessment);
-                assessed = true;
-            }
-
-            return new IngestionResult(
-                    programme, !extracted && !assessed, extracted, assessed, warnings, false, null);
+            return new IngestionResult(programme, !extracted, extracted, warnings);
         }
     }
 
@@ -269,10 +235,7 @@ public class ProgrammeIngestionService {
             AdminProgrammeView programme,
             boolean cacheHit,
             boolean extracted,
-            boolean assessed,
-            List<String> warnings,
-            boolean assessmentPending,
-            String noticeCode) {
+            List<String> warnings) {
     }
 
     private record PdfUpload(MultipartFile document, String displayName) {

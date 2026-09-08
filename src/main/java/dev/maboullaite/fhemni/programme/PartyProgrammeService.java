@@ -45,6 +45,10 @@ public class PartyProgrammeService {
         return repository.findAllForAdminList().stream().map(this::adminView).toList();
     }
 
+    public AdminProgrammeView adminProgramme(UUID programmeId) {
+        return adminView(programme(programmeId));
+    }
+
     public Optional<AdminProgrammeView> programmeBySourceUrl(String sourceUrl) {
         return repository.findBySourceUrl(sourceUrl).map(this::adminView);
     }

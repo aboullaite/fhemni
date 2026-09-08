@@ -67,6 +67,13 @@ fhemni:
   programme-fact-check:
     # gemini | openai | consensus. Production can switch providers without rebuilding the app.
     mode: ${FHEMNI_PROGRAMME_FACT_CHECK_MODE:gemini}
+  programme-jobs:
+    # Keep production at one expensive party job at a time. Local runs can opt into two.
+    concurrency: ${FHEMNI_PROGRAMME_JOB_CONCURRENCY:1}
+    max-attempts: ${FHEMNI_PROGRAMME_JOB_MAX_ATTEMPTS:3}
+    retry-delay: ${FHEMNI_PROGRAMME_JOB_RETRY_DELAY:PT30S}
+    dispatch-interval-ms: ${FHEMNI_PROGRAMME_JOB_DISPATCH_INTERVAL_MS:3000}
+    lease-renew-interval-ms: ${FHEMNI_PROGRAMME_JOB_LEASE_RENEW_INTERVAL_MS:30000}
   openai:
     api-key: ${OPENAI_API_KEY:}
     model: ${OPENAI_PROGRAMME_FACT_CHECK_MODEL:gpt-5.6-terra}

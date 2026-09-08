@@ -31,6 +31,7 @@ import dev.maboullaite.fhemni.programme.EvidenceCitationMatcher;
 import dev.maboullaite.fhemni.programme.PartyProgramme.LocalizedText;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.EvidenceDraft;
 import dev.maboullaite.fhemni.programme.ProgrammeFactCheckException;
+import dev.maboullaite.fhemni.programme.UngroundedProgrammeEvidenceException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
@@ -172,8 +173,7 @@ public class OpenAiProgrammeFactCheckGateway {
             String promiseSlug = required(item.promiseSlug(), "OpenAI promise slug");
             List<EvidenceDraft> groundedEvidence = evidence(item.evidence(), citedUrls);
             if (groundedEvidence.isEmpty()) {
-                throw new IllegalArgumentException(
-                        "OpenAI returned no grounded evidence for promise " + promiseSlug + ".");
+                throw new UngroundedProgrammeEvidenceException(promiseSlug);
             }
             return new GeneratedAssessment(
                     promiseSlug,
@@ -330,7 +330,9 @@ public class OpenAiProgrammeFactCheckGateway {
 
                 Show decisive arithmetic and annualized requirements. Compare Moroccan baselines, public budgets,
                 implementation capacity, legal constraints, and historical delivery. Every assessment must cite at
-                least one real independent HTTPS source. Return exactly one assessment per promise slug.
+                least one real independent HTTPS source. Copy every evidence.url exactly from a web-search source
+                URL returned during this request; do not shorten, rewrite, or guess URLs. Return exactly one
+                assessment per promise slug.
 
                 For evidence.publishedOn, return an ISO-8601 date when known, otherwise an empty string. Allowed verdict
                 values are POSSIBLE, HARD, NOT_ACHIEVABLE, and INSUFFICIENT_DATA.
@@ -351,6 +353,8 @@ public class OpenAiProgrammeFactCheckGateway {
                 claims and URLs with web search, identify disagreements, and resolve them from evidence rather than by
                 averaging or favoring either model. Keep the more cautious verdict only when the evidence justifies it.
                 Never hide material uncertainty. Every final assessment needs a real independent HTTPS evidence URL.
+                Copy every evidence.url exactly from a web-search source URL returned during this request; do not
+                shorten, rewrite, or guess URLs.
 
                 Official programme URL: %s
 
