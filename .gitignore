@@ -26,8 +26,7 @@ credentials*.json
 *.sqlite
 *.sqlite3
 
-# TIDO may be used in the app, but its asset license does not permit publishing
-# the font binaries as reusable standalone repository assets.
+# Keep production-only font binaries out of the public source repository.
 /src/main/resources/static/assets/fonts/*.otf
 /src/main/resources/static/assets/fonts/*.ttf
 /src/main/resources/static/assets/fonts/*.woff
