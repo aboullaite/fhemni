@@ -23,7 +23,11 @@ public class GeminiApiException extends RuntimeException {
         this(message, null, usage, null);
     }
 
-    private GeminiApiException(String message, Throwable cause, AiUsage usage, Integer upstreamStatus) {
+    public GeminiApiException(String message, Throwable cause, AiUsage usage) {
+        this(message, cause, usage, null);
+    }
+
+    public GeminiApiException(String message, Throwable cause, AiUsage usage, Integer upstreamStatus) {
         super(message, cause);
         this.usage = usage == null ? AiUsage.empty() : usage;
         this.upstreamStatus = upstreamStatus;

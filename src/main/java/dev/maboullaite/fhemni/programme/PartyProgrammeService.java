@@ -84,6 +84,16 @@ public class PartyProgrammeService {
             String sourceUrl,
             ProgrammeExtraction extraction,
             List<String> extractionWarnings) {
+        AdminProgrammeView existing = adminView(programme(existingProgrammeId));
+        requireDraft(existing.status(), "programme");
+        boolean hasPublishedChildren = existing.promises().stream().anyMatch(item ->
+                item.promise().status() != EditorialStatus.DRAFT
+                        || item.assessments().stream().anyMatch(assessment ->
+                                assessment.status() != EditorialStatus.DRAFT));
+        if (hasPublishedChildren) {
+            throw new IllegalStateException(
+                    "A programme with published promises or assessments cannot be replaced.");
+        }
         repository.deleteDraftProgramme(existingProgrammeId);
         return saveGeneratedExtraction(sourceUrl, extraction, extractionWarnings);
     }
@@ -91,17 +101,26 @@ public class PartyProgrammeService {
     @Transactional
     public AdminProgrammeView saveGeneratedAssessments(
             UUID programmeId,
+            List<ExtractedPromise> requestedPromises,
             FactCheckResult generatedResult) {
         AdminProgrammeView programme = adminView(programme(programmeId));
         Map<String, AdminPromiseView> pending = new LinkedHashMap<>();
-        programme.promises().stream()
-                .filter(item -> item.assessments().isEmpty())
-                .forEach(item -> pending.put(item.promise().slug(), item));
+        for (ExtractedPromise requested : requestedPromises) {
+            AdminPromiseView promise = programme.promises().stream()
+                    .filter(item -> item.promise().slug().equals(requested.slug()))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "The fact-check batch contains an unknown promise."));
+            if (!promise.assessments().isEmpty() || pending.put(requested.slug(), promise) != null) {
+                throw new IllegalArgumentException(
+                        "The fact-check batch contains an assessed or duplicate promise.");
+            }
+        }
         List<GeneratedAssessment> assessments = generatedResult == null || generatedResult.assessments() == null
                 ? List.of()
                 : generatedResult.assessments();
         if (assessments.size() != pending.size()) {
-            throw new IllegalArgumentException("The fact-check provider must assess every promise awaiting review.");
+            throw new IllegalArgumentException("The fact-check provider must assess every promise in the requested batch.");
         }
         for (GeneratedAssessment generated : assessments) {
             AdminPromiseView promise = pending.remove(generated.promiseSlug());

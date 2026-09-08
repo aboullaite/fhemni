@@ -71,6 +71,7 @@ public class PersonDirectoryAdminService {
             return;
         }
         AffiliationPeriod period = validatePeriod(command);
+        requireNoOverlap(slug, period, null);
         people.insertAffiliation(
                 slug, partyCode, period.validFrom(), period.validUntil(), null, ADMIN_ASSIGNMENT, Instant.now());
         catalogue.invalidateCache();
@@ -86,6 +87,7 @@ public class PersonDirectoryAdminService {
             throw new IllegalArgumentException("Use an affiliation transition when changing a guest's party.");
         }
         AffiliationPeriod period = validatePeriod(command);
+        requireNoOverlap(slug, period, id);
         people.updateAffiliation(id, slug, partyCode, period.validFrom(), period.validUntil(), Instant.now());
         catalogue.invalidateCache();
     }
@@ -101,20 +103,32 @@ public class PersonDirectoryAdminService {
             return;
         }
 
-        LocalDate nextFrom = PartyDirectory.UNKNOWN.equals(partyCode)
-                ? LocalDate.now()
-                : validatePeriod(command).validFrom();
+        AffiliationPeriod nextPeriod = PartyDirectory.UNKNOWN.equals(partyCode)
+                ? new AffiliationPeriod(LocalDate.now(), null)
+                : validatePeriod(command);
+        LocalDate nextFrom = nextPeriod.validFrom();
         if (existing.validFrom() != null && !nextFrom.isAfter(existing.validFrom())) {
             throw new IllegalArgumentException(
                     "The new affiliation must start after the current affiliation began, so its history can be preserved.");
+        }
+        LocalDate transitionDay = nextFrom.minusDays(1);
+        List<PersonAffiliation> affiliations = people.findAffiliations(slug);
+        List<PersonAffiliation> activeAtTransition = affiliations.stream()
+                .filter(affiliation -> affiliation.activeOn(transitionDay))
+                .toList();
+        if (activeAtTransition.size() != 1 || activeAtTransition.getFirst().id() != existing.id()) {
+            throw new IllegalArgumentException(
+                    "Only the affiliation active immediately before the new start date can be transitioned.");
+        }
+        if (!PartyDirectory.UNKNOWN.equals(partyCode)) {
+            requireNoOverlap(slug, nextPeriod, id);
         }
         LocalDate currentUntil = nextFrom.minusDays(1);
         people.updateAffiliation(
                 id, slug, existing.partyCode(), existing.validFrom(), currentUntil, Instant.now());
         if (!PartyDirectory.UNKNOWN.equals(partyCode)) {
-            AffiliationPeriod period = validatePeriod(command);
             people.insertAffiliation(
-                    slug, partyCode, period.validFrom(), period.validUntil(), null, ADMIN_ASSIGNMENT, Instant.now());
+                    slug, partyCode, nextPeriod.validFrom(), nextPeriod.validUntil(), null, ADMIN_ASSIGNMENT, Instant.now());
         }
         catalogue.invalidateCache();
     }
@@ -141,6 +155,26 @@ public class PersonDirectoryAdminService {
             throw new IllegalArgumentException("The affiliation end date cannot be before its start date.");
         }
         return new AffiliationPeriod(validFrom, validUntil);
+    }
+
+    private void requireNoOverlap(String personSlug, AffiliationPeriod candidate, Long excludedId) {
+        boolean overlaps = people.findAffiliations(personSlug).stream()
+                .filter(existing -> excludedId == null || existing.id() != excludedId)
+                .anyMatch(existing -> periodsOverlap(
+                        candidate.validFrom(), candidate.validUntil(),
+                        existing.validFrom(), existing.validUntil()));
+        if (overlaps) {
+            throw new IllegalArgumentException("Political affiliation periods cannot overlap.");
+        }
+    }
+
+    private static boolean periodsOverlap(
+            LocalDate leftFrom,
+            LocalDate leftUntil,
+            LocalDate rightFrom,
+            LocalDate rightUntil) {
+        return (rightUntil == null || !rightUntil.isBefore(leftFrom))
+                && (leftUntil == null || rightFrom == null || !rightFrom.isAfter(leftUntil));
     }
 
     private List<String> aliases(List<String> provided, String displayNameFr, String displayNameAr) {

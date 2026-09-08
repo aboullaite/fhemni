@@ -175,6 +175,19 @@ public class DirectoryPersonRepository {
                 .optional();
     }
 
+    public List<PersonAffiliation> findAffiliations(String personSlug) {
+        return jdbc.sql("""
+                        SELECT id, person_slug, party_code, valid_from, valid_until,
+                               source_url, source_label, verified_at
+                          FROM person_affiliations
+                         WHERE person_slug = :personSlug
+                         ORDER BY valid_from NULLS FIRST, id
+                        """)
+                .param("personSlug", personSlug)
+                .query(this::mapAffiliation)
+                .list();
+    }
+
     public void deleteAffiliation(long id, String personSlug) {
         int deleted = jdbc.sql("""
                         DELETE FROM person_affiliations

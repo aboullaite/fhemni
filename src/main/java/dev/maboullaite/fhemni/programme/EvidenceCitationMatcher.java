@@ -24,6 +24,8 @@ public final class EvidenceCitationMatcher {
             URI rightUri = URI.create(right);
             return leftUri.getHost() != null
                     && rightUri.getHost() != null
+                    && normalizedScheme(leftUri).equals(normalizedScheme(rightUri))
+                    && effectivePort(leftUri) == effectivePort(rightUri)
                     && leftUri.getHost().equalsIgnoreCase(rightUri.getHost())
                     && normalizedPath(leftUri).equals(normalizedPath(rightUri))
                     && normalizedQuery(leftUri).equals(normalizedQuery(rightUri));
@@ -32,8 +34,23 @@ public final class EvidenceCitationMatcher {
         }
     }
 
+    private static String normalizedScheme(URI uri) {
+        return uri.getScheme() == null ? "" : uri.getScheme().toLowerCase(Locale.ROOT);
+    }
+
+    private static int effectivePort(URI uri) {
+        if (uri.getPort() >= 0) {
+            return uri.getPort();
+        }
+        return switch (normalizedScheme(uri)) {
+            case "https" -> 443;
+            case "http" -> 80;
+            default -> -1;
+        };
+    }
+
     private static String normalizedPath(URI uri) {
-        String path = uri.normalize().getPath();
+        String path = uri.normalize().getRawPath();
         if (path == null || path.isBlank()) {
             return "/";
         }

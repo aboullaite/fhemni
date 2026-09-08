@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.openai.client.OpenAIClient;
@@ -17,8 +18,10 @@ import com.openai.models.ReasoningEffort;
 import com.openai.models.responses.Response;
 import com.openai.models.responses.ResponseCreateParams;
 import com.openai.models.responses.ResponseFormatTextJsonSchemaConfig;
+import com.openai.models.responses.ResponseIncludable;
 import com.openai.models.responses.ResponseTextConfig;
 import com.openai.models.responses.ResponseUsage;
+import com.openai.models.responses.ToolChoiceOptions;
 import com.openai.models.responses.WebSearchTool;
 import dev.maboullaite.fhemni.cost.AiUsage;
 import dev.maboullaite.fhemni.gemini.ProgrammeIntelligenceGateway.ExtractedPromise;
@@ -136,11 +139,16 @@ public class OpenAiProgrammeFactCheckGateway {
                         .type(WebSearchTool.Type.WEB_SEARCH)
                         .searchContextSize(WebSearchTool.SearchContextSize.HIGH)
                         .userLocation(WebSearchTool.UserLocation.builder()
+                                .type(WebSearchTool.UserLocation.Type.APPROXIMATE)
                                 .country("MA")
                                 .region("Morocco")
                                 .timezone("Africa/Casablanca")
                                 .build())
                         .build())
+                // A web-search tool being available does not mean the model will use it. Programme
+                // verdicts must never be accepted from model memory alone.
+                .toolChoice(ToolChoiceOptions.REQUIRED)
+                .addInclude(ResponseIncludable.WEB_SEARCH_CALL_ACTION_SOURCES)
                 .maxToolCalls(20)
                 .maxOutputTokens(maxOutputTokens)
                 .store(false)
@@ -160,32 +168,50 @@ public class OpenAiProgrammeFactCheckGateway {
         if (response.assessments() == null) {
             return List.of();
         }
-        return response.assessments().stream().map(item -> new GeneratedAssessment(
-                required(item.promiseSlug(), "OpenAI promise slug"),
-                verdict(item.verdict()),
-                localized(item.summary()),
-                localized(item.requirements()),
-                localized(item.assumptions()),
-                localized(item.calculationNotes()),
-                evidence(item.evidence(), citedUrls))).toList();
+        return response.assessments().stream().map(item -> {
+            String promiseSlug = required(item.promiseSlug(), "OpenAI promise slug");
+            List<EvidenceDraft> groundedEvidence = evidence(item.evidence(), citedUrls);
+            if (groundedEvidence.isEmpty()) {
+                throw new IllegalArgumentException(
+                        "OpenAI returned no grounded evidence for promise " + promiseSlug + ".");
+            }
+            return new GeneratedAssessment(
+                    promiseSlug,
+                    verdict(item.verdict()),
+                    localized(item.summary()),
+                    localized(item.requirements()),
+                    localized(item.assumptions()),
+                    localized(item.calculationNotes()),
+                    groundedEvidence);
+        }).toList();
     }
 
     private List<EvidenceDraft> evidence(List<FactCheckEvidence> values, Set<String> citedUrls) {
         if (values == null) {
             return List.of();
         }
-        return values.stream().map(item -> {
+        return values.stream()
+                .flatMap(item -> groundedEvidence(item, citedUrls).stream())
+                .toList();
+    }
+
+    private static Optional<EvidenceDraft> groundedEvidence(
+            FactCheckEvidence item,
+            Set<String> citedUrls) {
+        try {
             String url = httpsEndpoint(item.url());
             if (citedUrls.stream().noneMatch(cited -> sameDocument(cited, url))) {
-                throw new IllegalArgumentException("OpenAI evidence was not backed by a web-search citation.");
+                return Optional.empty();
             }
-            return new EvidenceDraft(
+            return Optional.of(new EvidenceDraft(
                     required(item.publisher(), "Evidence publisher"),
                     required(item.title(), "Evidence title"),
                     url,
                     date(item.publishedOn()),
-                    required(item.note(), "Evidence note"));
-        }).toList();
+                    required(item.note(), "Evidence note")));
+        } catch (IllegalArgumentException invalidEvidence) {
+            return Optional.empty();
+        }
     }
 
     private static Set<String> citedUrls(Response response) {
@@ -197,6 +223,15 @@ public class OpenAiProgrammeFactCheckGateway {
                 .flatMap(text -> text.annotations().stream())
                 .flatMap(annotation -> annotation.urlCitation().stream())
                 .map(citation -> citation.url())
+                .forEach(urls::add);
+        response.output().stream()
+                .flatMap(item -> item.webSearchCall().stream())
+                .flatMap(call -> call.action().search().stream())
+                .flatMap(search -> search.sources().stream())
+                .flatMap(List::stream)
+                // The Responses API can include non-URL source variants in this union. The Java
+                // SDK represents them with a missing url field, so only consume known URL values.
+                .flatMap(source -> source._url().asKnown().stream())
                 .forEach(urls::add);
         return urls;
     }

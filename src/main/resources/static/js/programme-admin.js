@@ -170,6 +170,15 @@
             article.append(verification);
         }
 
+        const needsAssessment = programme.promises.some(item => !item.assessments.length);
+        if (programme.status === 'DRAFT' && needsAssessment) {
+            article.append(assessmentPendingPanel(programme));
+        }
+
+        if (programme.status === 'DRAFT' && programme.promises.length < 10) {
+            article.append(extractionCoveragePanel(programme));
+        }
+
         const promiseList = document.createElement('div');
         promiseList.className = 'programme-promise-list';
         programme.promises.forEach(item => promiseList.append(promiseRow(item)));
@@ -184,12 +193,6 @@
         if (programme.status === 'DRAFT') {
             const actions = document.createElement('div');
             actions.className = 'admin-video-actions';
-            const needsAssessment = programme.promises.some(item => !item.assessments.length);
-            if (needsAssessment) {
-                const retry = actionButton(t('admin.retryProgrammeAssessment'), true,
-                    () => retryAssessment(programme.sourceUrl, retry));
-                actions.append(retry);
-            }
             const publishable = programme.sourceVerified
                 && programme.promises.length > 0
                 && programme.promises.every(item => item.promise.status === 'PUBLISHED'
@@ -205,6 +208,42 @@
             article.append(actions);
         }
         return article;
+    }
+
+    function assessmentPendingPanel(programme) {
+        const panel = document.createElement('section');
+        panel.className = 'programme-recovery-panel';
+        const copy = document.createElement('div');
+        const title = document.createElement('strong');
+        title.textContent = t('admin.programmeAssessmentBlockedTitle');
+        const body = document.createElement('p');
+        const complete = programme.promises.filter(item => item.assessments.length).length;
+        body.textContent = t('admin.programmeAssessmentBlockedBody', {
+            complete,
+            total: programme.promises.length
+        });
+        copy.append(title, body);
+        const retry = actionButton(t('admin.retryProgrammeAssessment'), true,
+            () => retryAssessment(programme.sourceUrl, retry));
+        retry.className = 'primary-button programme-action';
+        panel.append(copy, retry);
+        return panel;
+    }
+
+    function extractionCoveragePanel(programme) {
+        const panel = document.createElement('section');
+        panel.className = 'programme-coverage-panel';
+        const note = document.createElement('p');
+        note.textContent = t('admin.programmeLowExtractionCount', {
+            count: programme.promises.length
+        });
+        const rescan = actionButton(t('admin.rescanProgrammePdf'), true, () => {
+            sourceUrl.value = programme.sourceUrl;
+            ingestForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            pdf.focus();
+        });
+        panel.append(note, rescan);
+        return panel;
     }
 
     function promiseRow(item) {

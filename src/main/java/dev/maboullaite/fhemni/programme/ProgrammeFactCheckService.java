@@ -1,8 +1,13 @@
 package dev.maboullaite.fhemni.programme;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
@@ -64,7 +69,9 @@ public class ProgrammeFactCheckService {
         IndependentResults independent = runIndependentPasses(sourceUrl, promises);
         CandidatePair candidates = orderedCandidates(
                 sourceUrl, independent.gemini().assessments(), independent.openAi().assessments());
-        if (geminiReconciles(sourceUrl)) {
+        // An ungrounded Gemini candidate is useful only as an untrusted second opinion. OpenAI must
+        // independently search, cite and reconcile it before the result can become an editorial draft.
+        if (independent.gemini().grounded() && geminiReconciles(sourceUrl)) {
             AssessmentResult finalResult = callGeminiConsensus(
                     sourceUrl, promises, candidates.first(), candidates.second());
             return consensusResult(finalResult.assessments(), gemini.model(), "gemini");
@@ -76,11 +83,21 @@ public class ProgrammeFactCheckService {
 
     private IndependentResults runIndependentPasses(String sourceUrl, List<ExtractedPromise> promises) {
         ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-        Future<AssessmentResult> geminiTask = executor.submit(() -> callGemini(sourceUrl, promises));
-        Future<OpenAiProgrammeFactCheckGateway.AssessmentResult> openAiTask =
-                executor.submit(() -> callOpenAi(sourceUrl, promises));
+        CompletionService<IndependentPass> completed = new ExecutorCompletionService<>(executor);
+        Future<IndependentPass> geminiTask = completed.submit(
+                () -> new GeminiPass(callGeminiCandidate(sourceUrl, promises)));
+        Future<IndependentPass> openAiTask = completed.submit(
+                () -> new OpenAiPass(callOpenAi(sourceUrl, promises)));
         try {
-            return new IndependentResults(await(geminiTask), await(openAiTask));
+            IndependentPass first = take(completed);
+            IndependentPass second = take(completed);
+            AssessmentResult geminiResult = first instanceof GeminiPass pass
+                    ? pass.result()
+                    : ((GeminiPass) second).result();
+            OpenAiProgrammeFactCheckGateway.AssessmentResult openAiResult = first instanceof OpenAiPass pass
+                    ? pass.result()
+                    : ((OpenAiPass) second).result();
+            return new IndependentResults(geminiResult, openAiResult);
         } catch (RuntimeException exception) {
             geminiTask.cancel(true);
             openAiTask.cancel(true);
@@ -116,6 +133,24 @@ public class ProgrammeFactCheckService {
         } catch (RuntimeException exception) {
             usageGuard.failed(reservation, consumed);
             throw new ProgrammeFactCheckException("Gemini returned an invalid programme fact check.", exception);
+        }
+    }
+
+    private AssessmentResult callGeminiCandidate(String sourceUrl, List<ExtractedPromise> promises) {
+        Reservation reservation = usageGuard.reserveEditorial(AiOperation.PROMISE_FEASIBILITY, gemini.model());
+        AiUsage consumed = AiUsage.empty();
+        try {
+            AssessmentResult result = gemini.assessCandidate(sourceUrl, promises);
+            consumed = result.usage();
+            validateCoverage(promises, result.assessments());
+            usageGuard.succeeded(reservation, consumed);
+            return result;
+        } catch (GeminiApiException exception) {
+            usageGuard.failed(reservation, exception.usage());
+            throw new ProgrammeFactCheckException("Gemini could not prepare its programme candidate.", exception);
+        } catch (RuntimeException exception) {
+            usageGuard.failed(reservation, consumed);
+            throw new ProgrammeFactCheckException("Gemini returned an invalid programme candidate.", exception);
         }
     }
 
@@ -197,6 +232,15 @@ public class ProgrammeFactCheckService {
         }
     }
 
+    private static IndependentPass take(CompletionService<IndependentPass> completed) {
+        try {
+            return await(completed.take());
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new ProgrammeFactCheckException("The programme fact check was interrupted.", exception);
+        }
+    }
+
     static boolean geminiReconciles(String sourceUrl) {
         return stableChoice(sourceUrl, "reconciler");
     }
@@ -205,13 +249,23 @@ public class ProgrammeFactCheckService {
             String sourceUrl,
             List<GeneratedAssessment> geminiAssessments,
             List<GeneratedAssessment> openAiAssessments) {
-        return stableChoice(sourceUrl, "candidate-order")
+        return geminiCandidateFirst(sourceUrl)
                 ? new CandidatePair(geminiAssessments, openAiAssessments)
                 : new CandidatePair(openAiAssessments, geminiAssessments);
     }
 
+    static boolean geminiCandidateFirst(String sourceUrl) {
+        return stableChoice(sourceUrl, "candidate-order");
+    }
+
     private static boolean stableChoice(String sourceUrl, String purpose) {
-        return ((sourceUrl + '|' + purpose).hashCode() & 1) == 0;
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                    .digest((purpose + '\0' + sourceUrl).getBytes(StandardCharsets.UTF_8));
+            return (digest[0] & 1) == 0;
+        } catch (NoSuchAlgorithmException impossible) {
+            throw new IllegalStateException("SHA-256 is not available.", impossible);
+        }
     }
 
     private static FactCheckResult result(
@@ -256,6 +310,16 @@ public class ProgrammeFactCheckService {
     private record IndependentResults(
             AssessmentResult gemini,
             OpenAiProgrammeFactCheckGateway.AssessmentResult openAi) {
+    }
+
+    private sealed interface IndependentPass permits GeminiPass, OpenAiPass {
+    }
+
+    private record GeminiPass(AssessmentResult result) implements IndependentPass {
+    }
+
+    private record OpenAiPass(
+            OpenAiProgrammeFactCheckGateway.AssessmentResult result) implements IndependentPass {
     }
 
     private record CandidatePair(List<GeneratedAssessment> first, List<GeneratedAssessment> second) {

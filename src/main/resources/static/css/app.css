@@ -843,6 +843,12 @@ span.party-badge { cursor: default; }
 .programme-promise-row > small { color: var(--muted); font-size: 10px; }
 .programme-assessment-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; color: var(--muted); font-size: 11px; }
 .programme-verification { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 14px; padding: 11px 13px; border-radius: 12px; background: #fff0df; color: #7b431e; font-size: 10px; }
+.programme-recovery-panel, .programme-coverage-panel { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 14px; padding: 13px; border-radius: 12px; }
+.programme-recovery-panel { border: 1px solid rgba(153,27,27,.18); background: #fff5f5; }
+.programme-recovery-panel > div { display: grid; gap: 3px; }
+.programme-recovery-panel strong { color: #991b1b; font-size: 12px; }
+.programme-recovery-panel p, .programme-coverage-panel p { font-size: 11px; line-height: 1.55; }
+.programme-coverage-panel { border: 1px solid rgba(23,107,99,.16); background: rgba(207,230,220,.24); }
 .programme-assessment-review { display: grid; gap: 9px; margin-top: 8px; padding: 13px; border-radius: 12px; background: rgba(207,230,220,.27); }
 .programme-assessment-review p { font-size: 11px; line-height: 1.65; white-space: pre-line; }
 .programme-verdict-line { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
@@ -867,6 +873,7 @@ span.party-badge { cursor: default; }
 
 @media (max-width: 760px) {
     .programme-source-fields { grid-template-columns: 1fr; }
+    .programme-recovery-panel, .programme-coverage-panel { align-items: stretch; flex-direction: column; }
 }
 .programme-action { width: max-content; padding: 7px 11px; font-size: 10px; }
 .programme-publish-all { padding-inline: 16px; }

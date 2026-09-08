@@ -17,15 +17,20 @@ import dev.maboullaite.fhemni.cost.AiUsageGuard.Reservation;
 import dev.maboullaite.fhemni.gemini.GeminiApiException;
 import dev.maboullaite.fhemni.gemini.ProgrammeIntelligenceGateway;
 import dev.maboullaite.fhemni.gemini.ProgrammeIntelligenceGateway.ExtractionResult;
+import dev.maboullaite.fhemni.gemini.ProgrammeIntelligenceGateway.ExtractedPromise;
 import dev.maboullaite.fhemni.programme.ProgrammeFactCheckService.FactCheckResult;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.AdminProgrammeView;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class ProgrammeIngestionService {
 
+    private static final Logger log = LoggerFactory.getLogger(ProgrammeIngestionService.class);
     static final long MAX_PDF_BYTES = 25L * 1024 * 1024;
+    static final int ASSESSMENT_BATCH_SIZE = 6;
     private static final int INGESTION_LOCK_STRIPES = 64;
     private static final Set<String> TRACKING_PARAMETERS = Set.of(
             "fbclid", "gclid", "dclid", "msclkid", "mc_cid", "mc_eid");
@@ -100,17 +105,22 @@ public class ProgrammeIngestionService {
                 extracted = true;
             }
 
-            var pendingPromises = programmes.promisesAwaitingAssessment(programme);
+            List<ExtractedPromise> pendingPromises = programmes.promisesAwaitingAssessment(programme);
             boolean assessed = false;
-            if (!pendingPromises.isEmpty()) {
+            for (int offset = 0; offset < pendingPromises.size(); offset += ASSESSMENT_BATCH_SIZE) {
+                var batch = pendingPromises.subList(
+                        offset, Math.min(offset + ASSESSMENT_BATCH_SIZE, pendingPromises.size()));
                 FactCheckResult assessment;
                 try {
-                    assessment = factChecks.assess(sourceUrl, pendingPromises);
+                    assessment = factChecks.assess(sourceUrl, batch);
                 } catch (ProgrammeFactCheckException exception) {
+                    log.warn(
+                            "Programme feasibility batch failed for {} after {}/{} promises were saved",
+                            sourceUrl, offset, pendingPromises.size(), exception);
                     return new IngestionResult(
-                            programme, false, extracted, false, warnings, true, "ASSESSMENT_RETRY_REQUIRED");
+                            programme, false, extracted, assessed, warnings, true, "ASSESSMENT_RETRY_REQUIRED");
                 }
-                programme = programmes.saveGeneratedAssessments(programme.id(), assessment);
+                programme = programmes.saveGeneratedAssessments(programme.id(), batch, assessment);
                 assessed = true;
             }
 

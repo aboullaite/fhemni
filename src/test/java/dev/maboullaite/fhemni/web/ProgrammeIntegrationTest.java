@@ -22,6 +22,8 @@ import dev.maboullaite.fhemni.programme.PartyProgrammeService.DraftAssessment;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.DraftProgramme;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.DraftPromise;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.EvidenceDraft;
+import dev.maboullaite.fhemni.gemini.ProgrammeIntelligenceGateway.ExtractedPromise;
+import dev.maboullaite.fhemni.gemini.ProgrammeIntelligenceGateway.ProgrammeExtraction;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -247,6 +249,37 @@ class ProgrammeIntegrationTest {
         mvc.perform(get("/api/catalog/parties/RNI/programme"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.promises.length()").value(2));
+    }
+
+    @Test
+    void refusesToReplaceADraftProgrammeAfterAChildWasPublished() {
+        LocalizedText title = localized("برنامج الاتحاد", "Programme UC", "UC programme");
+        var programme = programmes.createProgramme(new DraftProgramme(
+                "UC", title, title,
+                "https://uc.ma/programme-2026", "Official UC programme", "fr",
+                "Frozen UC programme text.", true));
+        var promise = programmes.createPromise(programme.id(), new DraftPromise(
+                "uc-testable-promise", "institutions", title,
+                "A testable commitment.", "Page 3", "Mechanism", "Financing"));
+        var assessment = programmes.createAssessment(
+                promise.promise().id(), assessment("https://www.hcp.ma/uc"));
+        programmes.publishAssessment(assessment.id());
+        ProgrammeExtraction replacement = new ProgrammeExtraction(
+                "UC", 2026, true, "Official UC programme", "fr", "Replacement snapshot",
+                title, title, List.of(), List.of(new ExtractedPromise(
+                        "uc-replacement", "economy", title, "Replacement", "Page 4", "", "")));
+
+        assertThatThrownBy(() -> programmes.replaceGeneratedExtraction(
+                programme.id(), "https://uc.ma/programme-2026", replacement, List.of()))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("published promises or assessments");
+
+        var preserved = programmes.adminProgrammes().stream()
+                .filter(item -> item.id().equals(programme.id()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(preserved.promises().getFirst().assessments().getFirst().status().name())
+                .isEqualTo("PUBLISHED");
     }
 
     private static DraftAssessment assessment(String evidenceUrl) {
