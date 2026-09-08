@@ -4,7 +4,7 @@
     <script src="/js/analytics.js?v=20260906-2"></script>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
     <title>2026 programmes — Fhemni administration</title>
-    <link rel="icon" type="image/png" href="/assets/brand/fhemni-icon.png"><link rel="stylesheet" href="/css/dist.css?v=20260907-4">
+    <link rel="icon" type="image/png" href="/assets/brand/fhemni-icon.png"><link rel="stylesheet" href="/css/dist.css?v=20260908-5">
 </head>
 <body class="admin-page" data-i18n-page-title="admin.programmesPageTitle">
 <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
@@ -25,6 +25,7 @@
                 <label><span data-i18n="admin.programmePdfLabel">Programme PDF (optional)</span><input id="programmePdf" type="file" accept="application/pdf,.pdf" aria-describedby="programmePdfHelp"></label>
             </div>
             <p id="programmePdfHelp" class="programme-source-help" data-i18n="admin.programmePdfHelp">If the official page contains the programme, leave this empty. Upload the downloaded PDF only when the document has no public direct URL.</p>
+            <label id="programmeReplaceOption" class="programme-replace-draft" hidden><input id="programmeReplaceExisting" type="checkbox"><span data-i18n="admin.programmeReplaceExisting">Corrected PDF: replace the saved draft and run it again.</span></label>
             <div class="admin-form-footer"><p data-i18n="admin.programmeCostNote">A new source runs one extraction and one batched feasibility pass. Saved drafts are reused on retry.</p><button id="programmeIngestButton" class="primary-button" type="submit" data-i18n="admin.programmeIngestButton">Prepare private drafts</button></div><div id="programmeFeedback" class="import-feedback" role="status" hidden></div>
         </form>
     </section>
@@ -35,5 +36,5 @@
         <div id="programmeList" class="programme-review-list" aria-live="polite"><div class="catalog-loading" data-i18n="catalog.loading">Loading…</div></div>
     </section>
 </main>
-<script src="/js/i18n.js?v=20260907-10" defer></script><script src="/js/auth.js?v=20260906-3" defer></script><script src="/js/catalog-ui.js?v=20260906-2" defer></script><script src="/js/programme-admin.js?v=20260907-6" defer></script>
+<script src="/js/i18n.js?v=20260908-11" defer></script><script src="/js/auth.js?v=20260906-3" defer></script><script src="/js/catalog-ui.js?v=20260906-2" defer></script><script src="/js/programme-admin.js?v=20260908-7" defer></script>
 </body></html>

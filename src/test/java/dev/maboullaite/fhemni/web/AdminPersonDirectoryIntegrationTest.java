@@ -2,6 +2,7 @@ package dev.maboullaite.fhemni.web;
 
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -12,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -164,5 +166,41 @@ class AdminPersonDirectoryIntegrationTest {
         mvc.perform(get("/api/catalog/parties/PJD"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.episodes[0].slug").value("episode-n5B3boj2MFM"));
+
+        long affiliationId = jdbc.sql("""
+                        SELECT id FROM person_affiliations
+                         WHERE person_slug = 'guest-to-review' AND party_code = 'PJD'
+                        """)
+                .query(Long.class)
+                .single();
+        mvc.perform(post("/api/admin/people/guest-to-review/affiliations/" + affiliationId + "/transition")
+                        .with(user("admin").roles("ADMIN"))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "partyCode": "RNI",
+                                  "validFrom": "2026-06-01",
+                                  "validUntil": null
+                                }
+                                """))
+                .andExpect(status().isNoContent());
+
+        assertThat(jdbc.sql("SELECT COUNT(*) FROM person_affiliations WHERE person_slug = 'guest-to-review'")
+                .query(Integer.class).single()).isEqualTo(2);
+        assertThat(jdbc.sql("""
+                        SELECT valid_until FROM person_affiliations
+                         WHERE id = :id
+                        """)
+                .param("id", affiliationId)
+                .query(LocalDate.class)
+                .single()).isEqualTo(LocalDate.of(2026, 5, 31));
+        assertThat(jdbc.sql("""
+                        SELECT COUNT(*) FROM person_affiliations
+                         WHERE person_slug = 'guest-to-review'
+                           AND party_code = 'RNI'
+                           AND valid_from = DATE '2026-06-01'
+                        """)
+                .query(Integer.class).single()).isEqualTo(1);
     }
 }

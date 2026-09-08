@@ -80,11 +80,41 @@ public class PersonDirectoryAdminService {
     public void updateAffiliation(String personSlug, long id, AffiliationCommand command) {
         String slug = required(personSlug, "The guest is required.", 160).toLowerCase(Locale.ROOT);
         String partyCode = validateParty(command);
-        if (PartyDirectory.UNKNOWN.equals(partyCode)) {
-            people.deleteAffiliation(id, slug);
-        } else {
+        PersonAffiliation existing = people.findAffiliation(id, slug)
+                .orElseThrow(() -> new NoSuchElementException("This affiliation was not found."));
+        if (!existing.partyCode().equals(partyCode)) {
+            throw new IllegalArgumentException("Use an affiliation transition when changing a guest's party.");
+        }
+        AffiliationPeriod period = validatePeriod(command);
+        people.updateAffiliation(id, slug, partyCode, period.validFrom(), period.validUntil(), Instant.now());
+        catalogue.invalidateCache();
+    }
+
+    @Transactional
+    public void transitionAffiliation(String personSlug, long id, AffiliationCommand command) {
+        String slug = required(personSlug, "The guest is required.", 160).toLowerCase(Locale.ROOT);
+        PersonAffiliation existing = people.findAffiliation(id, slug)
+                .orElseThrow(() -> new NoSuchElementException("This affiliation was not found."));
+        String partyCode = validateParty(command);
+        if (existing.partyCode().equals(partyCode)) {
+            updateAffiliation(slug, id, command);
+            return;
+        }
+
+        LocalDate nextFrom = PartyDirectory.UNKNOWN.equals(partyCode)
+                ? LocalDate.now()
+                : validatePeriod(command).validFrom();
+        if (existing.validFrom() != null && !nextFrom.isAfter(existing.validFrom())) {
+            throw new IllegalArgumentException(
+                    "The new affiliation must start after the current affiliation began, so its history can be preserved.");
+        }
+        LocalDate currentUntil = nextFrom.minusDays(1);
+        people.updateAffiliation(
+                id, slug, existing.partyCode(), existing.validFrom(), currentUntil, Instant.now());
+        if (!PartyDirectory.UNKNOWN.equals(partyCode)) {
             AffiliationPeriod period = validatePeriod(command);
-            people.updateAffiliation(id, slug, partyCode, period.validFrom(), period.validUntil(), Instant.now());
+            people.insertAffiliation(
+                    slug, partyCode, period.validFrom(), period.validUntil(), null, ADMIN_ASSIGNMENT, Instant.now());
         }
         catalogue.invalidateCache();
     }

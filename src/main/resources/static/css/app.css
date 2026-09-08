@@ -857,6 +857,13 @@ span.party-badge { cursor: default; }
 .programme-source-fields { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(260px, .65fr); gap: 14px; }
 .admin-import-form input[type="file"] { height: auto; min-height: 46px; padding: 9px 12px; cursor: pointer; }
 .programme-source-help { margin: -7px 0 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
+.admin-import-form .programme-replace-draft { width: max-content; max-width: 100%; display: inline-flex; align-items: center; gap: 9px; border: 1px solid rgba(23,107,99,.18); border-radius: 999px; background: rgba(207,230,220,.32); padding: 7px 10px; color: var(--muted); font-size: 10px; font-weight: 750; cursor: pointer; }
+.admin-import-form .programme-replace-draft[hidden] { display: none; }
+.admin-import-form .programme-replace-draft input { appearance: none; width: 30px; height: 18px; padding: 2px; flex: 0 0 auto; border: 0; border-radius: 999px; background: var(--line); cursor: pointer; transition: background .18s ease; }
+.admin-import-form .programme-replace-draft input::after { content: ""; display: block; width: 14px; height: 14px; border-radius: 50%; background: var(--white); box-shadow: 0 1px 3px rgba(15,23,42,.22); transition: transform .18s ease; }
+.admin-import-form .programme-replace-draft input:checked { background: var(--teal-dark); }
+.admin-import-form .programme-replace-draft input:checked::after { transform: translateX(12px); }
+[dir="rtl"] .admin-import-form .programme-replace-draft input:checked::after { transform: translateX(-12px); }
 
 @media (max-width: 760px) {
     .programme-source-fields { grid-template-columns: 1fr; }

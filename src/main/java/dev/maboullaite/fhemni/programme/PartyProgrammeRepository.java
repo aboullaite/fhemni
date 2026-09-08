@@ -38,6 +38,13 @@ public class PartyProgrammeRepository {
             source_retrieved_at, source_verified, editorial_status,
             created_at, updated_at, published_at
             """;
+    private static final String PROGRAMME_ADMIN_LIST_COLUMNS = """
+            id, party_code, election_year, term_start_year, term_end_year,
+            title_ar, title_fr, title_en, summary_ar, summary_fr, summary_en,
+            source_url, source_label, source_language, NULL AS source_snapshot, extraction_warnings, source_sha256,
+            source_retrieved_at, source_verified, editorial_status,
+            created_at, updated_at, published_at
+            """;
     private static final String PROMISE_COLUMNS = """
             id, programme_id, slug, topic, title_ar, title_fr, title_en,
             promise_text, source_locator, mechanism, financing, editorial_status,
@@ -70,6 +77,12 @@ public class PartyProgrammeRepository {
 
     public List<PartyProgramme> findAll() {
         return jdbc.sql("SELECT " + PROGRAMME_COLUMNS + " FROM party_programmes ORDER BY party_code")
+                .query(this::mapProgramme)
+                .list();
+    }
+
+    public List<PartyProgramme> findAllForAdminList() {
+        return jdbc.sql("SELECT " + PROGRAMME_ADMIN_LIST_COLUMNS + " FROM party_programmes ORDER BY party_code")
                 .query(this::mapProgramme)
                 .list();
     }

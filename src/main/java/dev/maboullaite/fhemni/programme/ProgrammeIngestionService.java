@@ -51,16 +51,26 @@ public class ProgrammeIngestionService {
 
     public IngestionResult ingest(String rawSourceUrl) {
         String sourceUrl = publicHttpsUrl(rawSourceUrl);
-        return ingest(sourceUrl, () -> extract(sourceUrl));
+        return ingest(sourceUrl, () -> extract(sourceUrl), false);
     }
 
     public IngestionResult ingestPdf(String rawSourceUrl, MultipartFile document) {
-        String sourceUrl = publicHttpsUrl(rawSourceUrl);
-        PdfUpload pdf = validPdf(document);
-        return ingest(sourceUrl, () -> extractPdf(sourceUrl, pdf));
+        return ingestPdf(rawSourceUrl, document, false);
     }
 
-    private IngestionResult ingest(String sourceUrl, ExtractionOperation extractionOperation) {
+    public IngestionResult ingestPdf(
+            String rawSourceUrl,
+            MultipartFile document,
+            boolean replaceExistingDraft) {
+        String sourceUrl = publicHttpsUrl(rawSourceUrl);
+        PdfUpload pdf = validPdf(document);
+        return ingest(sourceUrl, () -> extractPdf(sourceUrl, pdf), replaceExistingDraft);
+    }
+
+    private IngestionResult ingest(
+            String sourceUrl,
+            ExtractionOperation extractionOperation,
+            boolean replaceExistingDraft) {
         if (!gateway.live()) {
             throw new IllegalStateException("Gemini must be configured before importing a party programme.");
         }
@@ -75,12 +85,18 @@ public class ProgrammeIngestionService {
             boolean extracted = false;
             List<String> warnings = programme == null ? List.of() : programme.extractionWarnings();
 
-            if (programme == null) {
+            if (replaceExistingDraft && programme != null && programme.status() != EditorialStatus.DRAFT) {
+                throw new IllegalStateException("A published programme cannot be replaced by an uploaded PDF.");
+            }
+            if (programme == null || replaceExistingDraft) {
                 ExtractionResult extraction = extractionOperation.extract();
                 warnings = extraction.programme().warnings() == null
                         ? List.of()
                         : extraction.programme().warnings().stream().filter(value -> value != null && !value.isBlank()).toList();
-                programme = programmes.saveGeneratedExtraction(sourceUrl, extraction.programme(), warnings);
+                programme = replaceExistingDraft && programme != null
+                        ? programmes.replaceGeneratedExtraction(
+                                programme.id(), sourceUrl, extraction.programme(), warnings)
+                        : programmes.saveGeneratedExtraction(sourceUrl, extraction.programme(), warnings);
                 extracted = true;
             }
 

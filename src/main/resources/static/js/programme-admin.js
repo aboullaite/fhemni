@@ -1,9 +1,11 @@
 (function () {
-    // Extraction (12m) plus three consensus passes (3 × 15m) can legitimately exceed ten minutes.
+    // Extraction, the parallel first pass, and reconciliation all fit inside this admin deadline.
     const INGESTION_TIMEOUT_MS = 65 * 60 * 1000;
     const ingestForm = document.querySelector('#programmeIngestForm');
     const sourceUrl = document.querySelector('#programmeSourceUrl');
     const pdf = document.querySelector('#programmePdf');
+    const replaceOption = document.querySelector('#programmeReplaceOption');
+    const replaceExisting = document.querySelector('#programmeReplaceExisting');
     const ingestButton = document.querySelector('#programmeIngestButton');
     const list = document.querySelector('#programmeList');
     const feedback = document.querySelector('#programmeFeedback');
@@ -27,6 +29,7 @@
         try {
             programmes = await window.FhemniCatalog.requestJson('/api/admin/programmes');
             render();
+            syncReplacementOption();
         } catch (error) {
             window.FhemniCatalog.renderError(list, error.message);
         } finally {
@@ -45,6 +48,7 @@
             if (body) {
                 body.append('sourceUrl', sourceUrl.value);
                 body.append('document', document);
+                body.append('replaceExistingDraft', String(replaceExisting.checked));
             }
             const options = await window.FhemniAuth.withCsrf(document
                 ? { method: 'POST', body }
@@ -72,6 +76,7 @@
             showFeedback(warnings ? `${message} ${t('admin.programmeWarnings', { warnings })}` : message, false);
             sourceUrl.value = '';
             pdf.value = '';
+            replaceExisting.checked = false;
             await load();
         } catch (error) {
             showFeedback(programmeError(error), true);
@@ -92,6 +97,33 @@
             PROGRAMME_PDF_TOO_LARGE: 'admin.programmePdfTooLarge'
         };
         return messages[error.code] ? t(messages[error.code]) : error.message;
+    }
+
+    function syncReplacementOption() {
+        const normalized = normalizedSourceUrl(sourceUrl.value);
+        const hasDraft = normalized && programmes.some(programme =>
+            programme.status === 'DRAFT' && normalizedSourceUrl(programme.sourceUrl) === normalized
+        );
+        replaceOption.hidden = !(pdf.files.length && hasDraft);
+        if (replaceOption.hidden) replaceExisting.checked = false;
+    }
+
+    function normalizedSourceUrl(value) {
+        try {
+            const url = new URL(value);
+            url.hash = '';
+            [...url.searchParams.keys()].forEach(key => {
+                const normalized = key.toLowerCase();
+                if (normalized.startsWith('utm_')
+                    || ['dclid', 'fbclid', 'gclid', 'msclkid', 'mc_cid', 'mc_eid'].includes(normalized)) {
+                    url.searchParams.delete(key);
+                }
+            });
+            url.searchParams.sort();
+            return url.toString();
+        } catch (_) {
+            return '';
+        }
     }
 
     function render() {
@@ -402,6 +434,8 @@
     }
 
     ingestForm.addEventListener('submit', ingest);
+    sourceUrl.addEventListener('input', syncReplacementOption);
+    pdf.addEventListener('change', syncReplacementOption);
     refresh.addEventListener('click', load);
     document.addEventListener('DOMContentLoaded', load);
     document.addEventListener('fhemni:localechange', render);

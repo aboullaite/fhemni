@@ -3,6 +3,7 @@ package dev.maboullaite.fhemni.programme;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -12,6 +13,9 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 
 import dev.maboullaite.fhemni.cost.AiOperation;
 import dev.maboullaite.fhemni.cost.AiUsage;
@@ -55,27 +59,58 @@ class ProgrammeFactCheckServiceTest {
     }
 
     @Test
-    void consensusRunsIndependentPassesAndAnOpenAiReconciliation() {
+    void consensusRunsIndependentPassesConcurrentlyAndUsesAnOpenAiReconciler() {
+        String sourceUrl = sourceUrlForReconciler(false);
+        CountDownLatch independentPassesStarted = new CountDownLatch(2);
         when(gemini.live()).thenReturn(true);
         when(openAi.configured()).thenReturn(true);
         when(gemini.model()).thenReturn("gemini-model");
         when(openAi.model()).thenReturn("openai-model");
         when(usage.reserveEditorial(eq(AiOperation.PROMISE_FEASIBILITY), any()))
                 .thenAnswer(call -> new Reservation(UUID.randomUUID()));
-        when(gemini.assess("https://party.ma/programme", promises))
-                .thenReturn(new AssessmentResult(assessments, AiUsage.empty()));
-        when(openAi.assess("https://party.ma/programme", promises))
-                .thenReturn(new OpenAiProgrammeFactCheckGateway.AssessmentResult(assessments, AiUsage.empty()));
-        when(openAi.reconcile("https://party.ma/programme", promises, assessments, assessments))
+        when(gemini.assess(sourceUrl, promises)).thenAnswer(call -> {
+            awaitBothProviders(independentPassesStarted);
+            return new AssessmentResult(assessments, AiUsage.empty());
+        });
+        when(openAi.assess(sourceUrl, promises)).thenAnswer(call -> {
+            awaitBothProviders(independentPassesStarted);
+            return new OpenAiProgrammeFactCheckGateway.AssessmentResult(assessments, AiUsage.empty());
+        });
+        when(openAi.reconcile(eq(sourceUrl), eq(promises), anyList(), anyList()))
                 .thenReturn(new OpenAiProgrammeFactCheckGateway.AssessmentResult(assessments, AiUsage.empty()));
 
         var result = new ProgrammeFactCheckService(gemini, openAi, usage, "consensus")
-                .assess("https://party.ma/programme", promises);
+                .assess(sourceUrl, promises);
 
         assertThat(result.providerMode()).isEqualTo("consensus");
-        assertThat(result.modelNames()).isEqualTo("gemini-model, openai-model");
-        assertThat(result.methodologyVersion()).endsWith("-consensus");
+        assertThat(result.modelNames()).isEqualTo("gemini-model, openai-model; final=openai-model");
+        assertThat(result.methodologyVersion()).endsWith("-consensus-openai");
         verify(usage, times(3)).reserveEditorial(eq(AiOperation.PROMISE_FEASIBILITY), any());
+        verify(openAi).reconcile(eq(sourceUrl), eq(promises), anyList(), anyList());
+        verify(gemini, never()).reconcile(any(), anyList(), anyList(), anyList());
+    }
+
+    @Test
+    void consensusAlternatesToAGeminiReconciler() {
+        String sourceUrl = sourceUrlForReconciler(true);
+        when(gemini.model()).thenReturn("gemini-model");
+        when(openAi.model()).thenReturn("openai-model");
+        when(usage.reserveEditorial(eq(AiOperation.PROMISE_FEASIBILITY), any()))
+                .thenAnswer(call -> new Reservation(UUID.randomUUID()));
+        when(gemini.assess(sourceUrl, promises))
+                .thenReturn(new AssessmentResult(assessments, AiUsage.empty()));
+        when(openAi.assess(sourceUrl, promises))
+                .thenReturn(new OpenAiProgrammeFactCheckGateway.AssessmentResult(assessments, AiUsage.empty()));
+        when(gemini.reconcile(eq(sourceUrl), eq(promises), anyList(), anyList()))
+                .thenReturn(new AssessmentResult(assessments, AiUsage.empty()));
+
+        var result = new ProgrammeFactCheckService(gemini, openAi, usage, "consensus")
+                .assess(sourceUrl, promises);
+
+        assertThat(result.modelNames()).isEqualTo("gemini-model, openai-model; final=gemini-model");
+        assertThat(result.methodologyVersion()).endsWith("-consensus-gemini");
+        verify(gemini).reconcile(eq(sourceUrl), eq(promises), anyList(), anyList());
+        verify(openAi, never()).reconcile(any(), anyList(), anyList(), anyList());
     }
 
     @Test
@@ -106,5 +141,18 @@ class ProgrammeFactCheckServiceTest {
 
     private static LocalizedText text(String value) {
         return new LocalizedText(value, value, value);
+    }
+
+    private static String sourceUrlForReconciler(boolean geminiReconciler) {
+        return IntStream.range(0, 100)
+                .mapToObj(index -> "https://party.ma/programme-" + index)
+                .filter(url -> ProgrammeFactCheckService.geminiReconciles(url) == geminiReconciler)
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private static void awaitBothProviders(CountDownLatch started) throws InterruptedException {
+        started.countDown();
+        assertThat(started.await(5, TimeUnit.SECONDS)).isTrue();
     }
 }

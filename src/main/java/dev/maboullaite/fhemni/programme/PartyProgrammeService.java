@@ -42,7 +42,7 @@ public class PartyProgrammeService {
     }
 
     public List<AdminProgrammeView> adminProgrammes() {
-        return repository.findAll().stream().map(this::adminView).toList();
+        return repository.findAllForAdminList().stream().map(this::adminView).toList();
     }
 
     public Optional<AdminProgrammeView> programmeBySourceUrl(String sourceUrl) {
@@ -76,6 +76,16 @@ public class PartyProgrammeService {
                     promise.sourceLocator(), promise.mechanism(), promise.financing()));
         }
         return adminView(repository.findById(programme.id()).orElseThrow());
+    }
+
+    @Transactional
+    public AdminProgrammeView replaceGeneratedExtraction(
+            UUID existingProgrammeId,
+            String sourceUrl,
+            ProgrammeExtraction extraction,
+            List<String> extractionWarnings) {
+        repository.deleteDraftProgramme(existingProgrammeId);
+        return saveGeneratedExtraction(sourceUrl, extraction, extractionWarnings);
     }
 
     @Transactional

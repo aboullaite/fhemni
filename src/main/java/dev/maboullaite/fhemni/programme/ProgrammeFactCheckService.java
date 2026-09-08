@@ -1,6 +1,10 @@
 package dev.maboullaite.fhemni.programme;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import dev.maboullaite.fhemni.cost.AiOperation;
 import dev.maboullaite.fhemni.cost.AiUsage;
@@ -18,7 +22,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ProgrammeFactCheckService {
 
-    private static final String METHODOLOGY_VERSION = "fhemni-feasibility-v2";
+    private static final String METHODOLOGY_VERSION = "fhemni-feasibility-v3";
 
     private final ProgrammeIntelligenceGateway gemini;
     private final OpenAiProgrammeFactCheckGateway openAi;
@@ -57,13 +61,44 @@ public class ProgrammeFactCheckService {
     }
 
     private FactCheckResult consensus(String sourceUrl, List<ExtractedPromise> promises) {
-        AssessmentResult geminiResult = callGemini(sourceUrl, promises);
-        OpenAiProgrammeFactCheckGateway.AssessmentResult openAiResult = callOpenAi(sourceUrl, promises);
+        IndependentResults independent = runIndependentPasses(sourceUrl, promises);
+        CandidatePair candidates = orderedCandidates(
+                sourceUrl, independent.gemini().assessments(), independent.openAi().assessments());
+        if (geminiReconciles(sourceUrl)) {
+            AssessmentResult finalResult = callGeminiConsensus(
+                    sourceUrl, promises, candidates.first(), candidates.second());
+            return consensusResult(finalResult.assessments(), gemini.model(), "gemini");
+        }
         OpenAiProgrammeFactCheckGateway.AssessmentResult finalResult = callOpenAiConsensus(
-                sourceUrl, promises, geminiResult.assessments(), openAiResult.assessments());
+                sourceUrl, promises, candidates.first(), candidates.second());
+        return consensusResult(finalResult.assessments(), openAi.model(), "openai");
+    }
+
+    private IndependentResults runIndependentPasses(String sourceUrl, List<ExtractedPromise> promises) {
+        ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+        Future<AssessmentResult> geminiTask = executor.submit(() -> callGemini(sourceUrl, promises));
+        Future<OpenAiProgrammeFactCheckGateway.AssessmentResult> openAiTask =
+                executor.submit(() -> callOpenAi(sourceUrl, promises));
+        try {
+            return new IndependentResults(await(geminiTask), await(openAiTask));
+        } catch (RuntimeException exception) {
+            geminiTask.cancel(true);
+            openAiTask.cancel(true);
+            throw exception;
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    private FactCheckResult consensusResult(
+            List<GeneratedAssessment> assessments,
+            String reconcilerModel,
+            String reconciler) {
         return new FactCheckResult(
-                finalResult.assessments(), mode.value(), gemini.model() + ", " + openAi.model(),
-                METHODOLOGY_VERSION + "-consensus");
+                assessments,
+                mode.value(),
+                gemini.model() + ", " + openAi.model() + "; final=" + reconcilerModel,
+                METHODOLOGY_VERSION + "-consensus-" + reconciler);
     }
 
     private AssessmentResult callGemini(String sourceUrl, List<ExtractedPromise> promises) {
@@ -126,6 +161,59 @@ public class ProgrammeFactCheckService {
         }
     }
 
+    private AssessmentResult callGeminiConsensus(
+            String sourceUrl,
+            List<ExtractedPromise> promises,
+            List<GeneratedAssessment> candidateA,
+            List<GeneratedAssessment> candidateB) {
+        Reservation reservation = usageGuard.reserveEditorial(AiOperation.PROMISE_FEASIBILITY, gemini.model());
+        AiUsage consumed = AiUsage.empty();
+        try {
+            AssessmentResult result = gemini.reconcile(sourceUrl, promises, candidateA, candidateB);
+            consumed = result.usage();
+            validateCoverage(promises, result.assessments());
+            usageGuard.succeeded(reservation, consumed);
+            return result;
+        } catch (GeminiApiException exception) {
+            usageGuard.failed(reservation, exception.usage());
+            throw new ProgrammeFactCheckException("Gemini could not reconcile the programme fact check.", exception);
+        } catch (RuntimeException exception) {
+            usageGuard.failed(reservation, consumed);
+            throw new ProgrammeFactCheckException("Gemini returned an invalid consensus fact check.", exception);
+        }
+    }
+
+    private static <T> T await(Future<T> task) {
+        try {
+            return task.get();
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new ProgrammeFactCheckException("The programme fact check was interrupted.", exception);
+        } catch (ExecutionException exception) {
+            if (exception.getCause() instanceof RuntimeException runtimeException) {
+                throw runtimeException;
+            }
+            throw new ProgrammeFactCheckException("The programme fact check failed.", exception.getCause());
+        }
+    }
+
+    static boolean geminiReconciles(String sourceUrl) {
+        return stableChoice(sourceUrl, "reconciler");
+    }
+
+    private static CandidatePair orderedCandidates(
+            String sourceUrl,
+            List<GeneratedAssessment> geminiAssessments,
+            List<GeneratedAssessment> openAiAssessments) {
+        return stableChoice(sourceUrl, "candidate-order")
+                ? new CandidatePair(geminiAssessments, openAiAssessments)
+                : new CandidatePair(openAiAssessments, geminiAssessments);
+    }
+
+    private static boolean stableChoice(String sourceUrl, String purpose) {
+        return ((sourceUrl + '|' + purpose).hashCode() & 1) == 0;
+    }
+
     private static FactCheckResult result(
             AssessmentResult result,
             ProgrammeFactCheckMode mode,
@@ -163,5 +251,13 @@ public class ProgrammeFactCheckService {
         private SetView(List<String> items) {
             this(new java.util.LinkedHashSet<>(items), new java.util.LinkedHashSet<>(items).size() != items.size());
         }
+    }
+
+    private record IndependentResults(
+            AssessmentResult gemini,
+            OpenAiProgrammeFactCheckGateway.AssessmentResult openAi) {
+    }
+
+    private record CandidatePair(List<GeneratedAssessment> first, List<GeneratedAssessment> second) {
     }
 }

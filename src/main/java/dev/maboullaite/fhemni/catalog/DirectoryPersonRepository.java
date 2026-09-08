@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 
 import dev.maboullaite.fhemni.catalog.PersonDirectory.CuratedPerson;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -161,6 +162,19 @@ public class DirectoryPersonRepository {
         }
     }
 
+    public java.util.Optional<PersonAffiliation> findAffiliation(long id, String personSlug) {
+        return jdbc.sql("""
+                        SELECT id, person_slug, party_code, valid_from, valid_until,
+                               source_url, source_label, verified_at
+                          FROM person_affiliations
+                         WHERE id = :id AND person_slug = :personSlug
+                        """)
+                .param("id", id)
+                .param("personSlug", personSlug)
+                .query(this::mapAffiliation)
+                .optional();
+    }
+
     public void deleteAffiliation(long id, String personSlug) {
         int deleted = jdbc.sql("""
                         DELETE FROM person_affiliations
@@ -230,7 +244,7 @@ public class DirectoryPersonRepository {
                 resultSet.getObject("valid_until", LocalDate.class),
                 resultSet.getString("source_url"),
                 resultSet.getString("source_label"),
-                resultSet.getObject("verified_at", Instant.class));
+                resultSet.getObject("verified_at", OffsetDateTime.class).toInstant());
     }
 
     private String currentParty(List<PersonAffiliation> affiliations) {

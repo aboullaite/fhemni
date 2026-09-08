@@ -52,4 +52,13 @@ public class AdminPersonDirectoryController {
         directory.updateAffiliation(slug, id, request);
         return ResponseEntity.noContent().cacheControl(CacheControl.noStore()).build();
     }
+
+    @PostMapping("/{slug}/affiliations/{id}/transition")
+    public ResponseEntity<Void> transitionAffiliation(
+            @PathVariable String slug,
+            @PathVariable long id,
+            @RequestBody AffiliationCommand request) {
+        directory.transitionAffiliation(slug, id, request);
+        return ResponseEntity.noContent().cacheControl(CacheControl.noStore()).build();
+    }
 }

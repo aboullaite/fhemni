@@ -49,10 +49,11 @@ public class AdminProgrammeController {
     @PostMapping(value = "/ingest-pdf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<IngestionResult> ingestPdf(
             @RequestParam String sourceUrl,
-            @RequestParam("document") MultipartFile document) {
+            @RequestParam("document") MultipartFile document,
+            @RequestParam(defaultValue = "false") boolean replaceExistingDraft) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .cacheControl(CacheControl.noStore())
-                .body(ingestion.ingestPdf(sourceUrl, document));
+                .body(ingestion.ingestPdf(sourceUrl, document, replaceExistingDraft));
     }
 
     @GetMapping

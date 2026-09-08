@@ -302,8 +302,11 @@
                     affiliation
                 };
             } else if (existing) {
-                endpoint = `/api/admin/people/${encodeURIComponent(person.slug)}/affiliations/${existing.id}`;
-                method = 'PUT';
+                const changingParty = existing.partyCode !== affiliation.partyCode;
+                endpoint = changingParty
+                    ? `/api/admin/people/${encodeURIComponent(person.slug)}/affiliations/${existing.id}/transition`
+                    : `/api/admin/people/${encodeURIComponent(person.slug)}/affiliations/${existing.id}`;
+                method = changingParty ? 'POST' : 'PUT';
                 body = affiliation;
             } else {
                 endpoint = `/api/admin/people/${encodeURIComponent(person.slug)}/affiliations`;

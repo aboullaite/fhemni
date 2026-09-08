@@ -69,7 +69,7 @@ fhemni:
     mode: ${FHEMNI_PROGRAMME_FACT_CHECK_MODE:gemini}
   openai:
     api-key: ${OPENAI_API_KEY:}
-    model: ${OPENAI_PROGRAMME_FACT_CHECK_MODEL:gpt-6-astra}
+    model: ${OPENAI_PROGRAMME_FACT_CHECK_MODEL:gpt-5.6-terra}
     timeout: ${OPENAI_PROGRAMME_FACT_CHECK_TIMEOUT:PT15M}
     max-output-tokens: ${OPENAI_PROGRAMME_FACT_CHECK_MAX_OUTPUT_TOKENS:32768}
   cost-control:
