@@ -13,6 +13,7 @@
     let programmes = [];
     let jobsByProgramme = {};
     let pollTimer = null;
+    const expandedProgrammes = new Map();
 
     function t(key, parameters = {}) {
         return window.FhemniI18n?.t(key, parameters) ?? key;
@@ -146,12 +147,60 @@
         const article = document.createElement('article');
         article.className = 'programme-review-card';
 
-        const heading = document.createElement('div');
-        heading.className = 'programme-review-top';
+        const body = document.createElement('div');
+        body.className = 'programme-card-body';
+
+        const job = jobsByProgramme[programme.id];
+        const jobIsActive = ['QUEUED', 'RUNNING', 'RETRY_WAIT'].includes(job?.status);
+        const { complete, total } = assessmentCounts(programme);
+
+        const heading = document.createElement('button');
+        heading.type = 'button';
+        heading.className = 'programme-card-summary';
+        heading.setAttribute('aria-expanded', String(expandedProgrammes.get(programme.id) ?? jobIsActive));
         const copy = document.createElement('div');
+        copy.className = 'programme-card-heading';
         const title = document.createElement('h3');
         title.dir = 'auto';
         title.textContent = `${programme.partyCode} · ${localized(programme.title)}`;
+        const summary = document.createElement('p');
+        summary.className = 'programme-card-meta';
+        summary.textContent = t('admin.programmeCardProgress', {
+            complete,
+            total,
+            promises: programme.promises.length
+        });
+        copy.append(title, summary);
+
+        const indicators = document.createElement('span');
+        indicators.className = 'programme-card-indicators';
+        indicators.append(statusBadge(programme.status));
+        if (jobIsActive) {
+            const running = document.createElement('span');
+            running.className = 'programme-card-running';
+            running.textContent = t(`admin.programmeJob.${job.status}.title`);
+            indicators.append(running);
+        }
+        const chevron = document.createElement('span');
+        chevron.className = 'programme-card-chevron';
+        chevron.setAttribute('aria-hidden', 'true');
+        indicators.append(chevron);
+        heading.append(copy, indicators);
+
+        const expanded = expandedProgrammes.get(programme.id) ?? jobIsActive;
+        body.hidden = !expanded;
+        article.classList.toggle('expanded', expanded);
+        heading.addEventListener('click', () => {
+            const next = body.hidden;
+            body.hidden = !next;
+            article.classList.toggle('expanded', next);
+            heading.setAttribute('aria-expanded', String(next));
+            expandedProgrammes.set(programme.id, next);
+        });
+        article.append(heading);
+
+        const sourceDetails = document.createElement('div');
+        sourceDetails.className = 'programme-card-source';
         const source = document.createElement('a');
         source.href = programme.sourceUrl;
         source.target = '_blank';
@@ -159,9 +208,8 @@
         source.textContent = programme.sourceLabel;
         const meta = document.createElement('p');
         meta.textContent = `${programme.electionYear}–${programme.termEndYear} · SHA-256 ${programme.sourceSha256.slice(0, 10)}…`;
-        copy.append(title, source, meta);
-        heading.append(copy, statusBadge(programme.status));
-        article.append(heading);
+        sourceDetails.append(source, meta);
+        body.append(sourceDetails);
 
         if (programme.status === 'DRAFT' && !programme.sourceVerified) {
             const verification = document.createElement('div');
@@ -171,18 +219,18 @@
             const verify = actionButton(t('admin.verifyProgrammeSource'), true,
                 () => verifySource(programme.id, verify));
             verification.append(note, verify);
-            article.append(verification);
+            body.append(verification);
         }
 
         const needsAssessment = programme.promises.some(item => !item.assessments.length);
         if (programme.status === 'DRAFT' && programme.promises.length) {
-            article.append(needsAssessment
-                ? assessmentJobPanel(programme, jobsByProgramme[programme.id])
+            body.append(needsAssessment
+                ? assessmentJobPanel(programme, job)
                 : assessmentCompletePanel(programme));
         }
 
         if (programme.status === 'DRAFT' && programme.promises.length < 10) {
-            article.append(extractionCoveragePanel(programme));
+            body.append(extractionCoveragePanel(programme));
         }
 
         const promiseList = document.createElement('div');
@@ -194,7 +242,7 @@
             empty.textContent = t('admin.noPromises');
             promiseList.append(empty);
         }
-        article.append(promiseList);
+        body.append(promiseList);
 
         if (programme.status === 'DRAFT') {
             const actions = document.createElement('div');
@@ -211,8 +259,9 @@
                 () => discardResource(`/api/admin/programmes/${programme.id}`, discard));
             discard.className = 'secondary-button programme-action programme-action-danger';
             actions.append(publish, discard);
-            article.append(actions);
+            body.append(actions);
         }
+        article.append(body);
         return article;
     }
 

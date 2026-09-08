@@ -50,6 +50,8 @@ public class ProgrammeIntelligenceGateway {
             Party material establishes what a party promises; it does not independently prove feasibility.
             Write Moroccan Darija in Arabic script for the ar fields, natural French for fr, and natural English for en.
             Preserve uncertainty and use INSUFFICIENT_DATA whenever reliable evidence cannot support a stronger conclusion.
+            Never describe a future promise as true, false, or certainly impossible. Every verdict is a conditional
+            feasibility assessment for the 2026-2031 term under the cited evidence and explicitly stated assumptions.
             """;
 
     private final GeminiInteractionsClient client;
@@ -301,9 +303,13 @@ public class ProgrammeIntelligenceGateway {
                 Verdicts:
                 - POSSIBLE: achievable in five years under realistic institutional, fiscal, and economic conditions.
                 - HARD: technically possible, but requires unusually strong execution, funding, growth, or coordination.
-                - NOT_ACHIEVABLE: the stated scale or deadline conflicts with binding arithmetic, capacity, law, or a
-                  reliable baseline. Do not use this verdict merely because a promise is ambitious.
+                - NOT_ACHIEVABLE: very unlikely within five years because binding constraints or a quantified
+                  baseline-to-target gap remain implausible even under explicitly optimistic assumptions. Do not use
+                  this verdict merely because a promise is ambitious, and never call it certainly impossible or false.
                 - INSUFFICIENT_DATA: the promise or available evidence is too vague for a defensible conclusion.
+
+                Each localized summary must stand on its own in plain language, stay under 70 words, lead with the
+                decisive baseline-to-target comparison, and never expose an internal verdict code such as HARD.
 
                 For each promise, show the decisive arithmetic and annualized requirement where relevant. Compare it with
                 Moroccan baselines, budgets, implementation capacity, legal constraints, and historical delivery rates.
@@ -335,6 +341,12 @@ public class ProgrammeIntelligenceGateway {
                 from evidence rather than averaging, guessing, or favoring either candidate. Keep the more cautious
                 verdict only when the evidence justifies it. Never hide material uncertainty. Every final assessment
                 needs a real independent HTTPS evidence URL backed by the search results.
+
+                Treat every verdict as a conditional feasibility assessment for 2026-2031. Never call a future promise
+                true, false, or certainly impossible. NOT_ACHIEVABLE means very unlikely within five years under the
+                cited evidence and explicit assumptions, not a claim of certainty.
+                Each localized summary must be plain language, no more than 70 words, and must never include internal
+                verdict codes such as HARD or POSSIBLE.
 
                 Official programme URL: %s
 

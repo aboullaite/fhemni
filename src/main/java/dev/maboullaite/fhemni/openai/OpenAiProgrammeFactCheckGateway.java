@@ -49,6 +49,8 @@ public class OpenAiProgrammeFactCheckGateway {
             Party material establishes what was promised, but never proves feasibility by itself.
             Write Moroccan Darija in Arabic script for ar fields, natural French for fr, and natural English for en.
             Preserve uncertainty and use INSUFFICIENT_DATA when evidence cannot support a stronger conclusion.
+            Never describe a future promise as true, false, or certainly impossible. Every verdict is a conditional
+            feasibility assessment for the 2026-2031 term under the cited evidence and explicitly stated assumptions.
             """;
     private static final ResponseTextConfig FACT_CHECK_RESPONSE_FORMAT = factCheckResponseFormat();
     private final OpenAIClient client;
@@ -324,9 +326,14 @@ public class OpenAiProgrammeFactCheckGateway {
                 evidence; the supplied programme text establishes the promise but is not proof of feasibility.
 
                 Verdicts: POSSIBLE means realistically achievable in five years; HARD means technically possible but
-                dependent on unusually strong execution, funding, growth, or coordination; NOT_ACHIEVABLE requires a
-                binding arithmetic, capacity, legal, or deadline conflict; INSUFFICIENT_DATA means the evidence cannot
-                support a defensible conclusion. Ambition alone never proves impossibility.
+                dependent on unusually strong execution, funding, growth, or coordination; NOT_ACHIEVABLE means very
+                unlikely to be achieved within five years because binding constraints or a quantified baseline-to-target
+                gap remain implausible even under explicitly optimistic assumptions; INSUFFICIENT_DATA means the evidence
+                cannot support a defensible conclusion. Ambition alone never proves impossibility. Never call a future
+                promise true, false, or certainly impossible.
+
+                Each localized summary must stand on its own in plain language, stay under 70 words, lead with the
+                decisive baseline-to-target comparison, and never expose an internal verdict code such as HARD.
 
                 Show decisive arithmetic and annualized requirements. Compare Moroccan baselines, public budgets,
                 implementation capacity, legal constraints, and historical delivery. Every assessment must cite at
@@ -355,6 +362,12 @@ public class OpenAiProgrammeFactCheckGateway {
                 Never hide material uncertainty. Every final assessment needs a real independent HTTPS evidence URL.
                 Copy every evidence.url exactly from a web-search source URL returned during this request; do not
                 shorten, rewrite, or guess URLs.
+
+                Treat every verdict as a conditional feasibility assessment for 2026-2031. Never call a future promise
+                true, false, or certainly impossible. NOT_ACHIEVABLE means very unlikely within five years under the
+                cited evidence and explicit assumptions, not a claim of certainty.
+                Each localized summary must be plain language, no more than 70 words, and must never include internal
+                verdict codes such as HARD or POSSIBLE.
 
                 Official programme URL: %s
 

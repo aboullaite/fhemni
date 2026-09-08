@@ -766,22 +766,24 @@ span.party-badge { cursor: default; }
 .promise-card h3 { margin: 0; font-size: clamp(18px, 2vw, 24px); }
 .promise-card h3 a { color: var(--ink); text-decoration: none; }
 .promise-card p { display: -webkit-box; flex: 1; margin: 0; overflow: hidden; color: var(--muted); line-height: 1.65; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
-.feasibility-badge { display: inline-flex; align-items: center; width: max-content; padding: 6px 11px; border-radius: 999px; background: #ecebe7; color: #4b5563; font-size: 11px; font-weight: 900; }
-.feasibility-badge.possible { background: #d9efe2; color: #166534; }
-.feasibility-badge.hard { background: #fff0df; color: #965126; }
-.feasibility-badge.not-achievable { background: #f8dadd; color: #991b1b; }
-.promise-detail { max-width: 1040px; }
-.promise-hero { margin-top: 16px; padding: clamp(18px, 2.5vw, 28px); border: 1px solid var(--line); border-radius: 22px; background: linear-gradient(135deg, rgba(207,230,220,.65), var(--surface)); }
-.promise-hero-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.feasibility-badge { display: inline-flex; align-items: center; width: max-content; padding: 6px 11px; border: 1px solid #9ca3af40; border-radius: 999px; background: #ecebe7; color: #4b5563; font-size: 11px; font-weight: 900; }
+.feasibility-badge.possible { border-color: #16a34a42; background: #dcfce7; color: #166534; }
+.feasibility-badge.hard { border-color: #f59e0b66; background: #fef3c7; color: #92400e; }
+.feasibility-badge.not-achievable { border-color: #dc26264d; background: #fee2e2; color: #991b1b; }
+.promise-detail { max-width: 960px; }
+.promise-hero { margin-top: 16px; padding: clamp(18px, 2.2vw, 24px); border: 1px solid var(--line); border-radius: 22px; background: linear-gradient(135deg, rgba(207,230,220,.65), var(--surface)); }
+.promise-hero-top { display: block; }
 .promise-heading-copy { min-width: 0; }
-.promise-heading-copy h1 { max-width: 30ch; margin: 5px 0 0; font-size: clamp(26px, 3.4vw, 40px); line-height: 1.16; }
-.promise-hero-top .feasibility-badge { flex: 0 0 auto; margin-top: 3px; }
-.promise-takeaway { max-width: 72ch; margin-top: 18px; padding: 14px 16px; border-radius: 15px; background: rgba(255,255,255,.62); }
+.promise-heading-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.promise-heading-copy h1 { max-width: none; margin: 8px 0 0; font-size: clamp(26px, 3vw, 38px); line-height: 1.16; }
+.promise-heading-meta .section-kicker { margin: 0; }
+.promise-heading-meta .feasibility-badge { flex: 0 0 auto; }
+.promise-takeaway { max-width: none; margin-top: 16px; padding: 13px 15px; border-radius: 15px; background: rgba(255,255,255,.62); }
 .promise-takeaway .section-kicker { margin-bottom: 5px; }
 .promise-takeaway p { margin: 0; line-height: 1.6; }
 .promise-source-line { margin-top: 12px; color: var(--muted); font-size: 11px; font-weight: 750; }
 .promise-source-line a { color: var(--teal-dark); }
-.promise-exact-wording { max-width: 72ch; margin-top: 11px; }
+.promise-exact-wording { max-width: none; margin-top: 11px; }
 .promise-exact-wording > summary { width: max-content; cursor: pointer; color: var(--teal-dark); font-size: 11px; font-weight: 850; }
 .promise-exact-wording blockquote { margin: 10px 0 0; padding: 11px 14px; border-inline-start: 3px solid var(--teal); border-radius: 12px; background: rgba(255,255,255,.48); color: var(--ink); font-size: clamp(14px, 1.5vw, 17px); line-height: 1.6; }
 .promise-deep-dive { margin-top: 14px; padding: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
@@ -808,7 +810,6 @@ span.party-badge { cursor: default; }
 .promise-footer-notes p { margin: 0; }
 .promise-ai-attribution { color: var(--teal-dark); font-weight: 800; }
 @media (max-width: 760px) {
-    .promise-hero-top { flex-direction: column-reverse; gap: 12px; }
     .promise-heading-copy h1 { font-size: clamp(25px, 8.5vw, 36px); }
     .promise-takeaway { margin-top: 15px; padding: 13px; }
     .programme-heading { flex-direction: column; }
@@ -830,7 +831,20 @@ span.party-badge { cursor: default; }
 .programme-verified input { width: 17px; height: 17px; margin-top: 2px; }
 .programme-review-heading { margin-top: 28px; }
 .programme-review-list { display: grid; gap: 12px; }
-.programme-review-card { padding: 18px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+.programme-review-card { overflow: hidden; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+.programme-card-summary { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 18px; border: 0; background: transparent; color: var(--ink); text-align: start; cursor: pointer; }
+.programme-card-summary:hover { background: rgba(207,230,220,.18); }
+.programme-card-summary:focus-visible { outline: 3px solid rgba(23,107,99,.28); outline-offset: -3px; }
+.programme-card-heading { min-width: 0; }
+.programme-card-heading h3 { overflow: hidden; margin: 0; text-overflow: ellipsis; white-space: nowrap; }
+.programme-card-meta { margin-top: 4px !important; }
+.programme-card-indicators { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; }
+.programme-card-running { padding: 5px 8px; border-radius: 999px; background: #fff0df; color: #7b431e; font-size: 9px; font-weight: 900; letter-spacing: .03em; }
+.programme-card-chevron { width: 9px; height: 9px; border-inline-end: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform .18s ease; }
+.programme-review-card.expanded .programme-card-chevron { transform: rotate(225deg); }
+.programme-review-card.expanded > .programme-card-summary { border-bottom: 1px solid var(--line); }
+.programme-card-body { padding: 0 18px 18px; }
+.programme-card-source { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding-top: 14px; }
 .programme-review-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
 .programme-review-card h3, .programme-review-card h4 { margin: 0 0 4px; font-size: 18px; }
 .programme-review-card p { margin: 0; color: var(--muted); font-size: 10px; }
@@ -874,6 +888,11 @@ span.party-badge { cursor: default; }
 @media (max-width: 760px) {
     .programme-source-fields { grid-template-columns: 1fr; }
     .programme-recovery-panel, .programme-coverage-panel { align-items: stretch; flex-direction: column; }
+    .programme-card-summary, .programme-card-source { align-items: flex-start; }
+    .programme-card-summary { padding: 14px; }
+    .programme-card-body { padding: 0 14px 14px; }
+    .programme-card-indicators { align-items: flex-end; flex-direction: column-reverse; }
+    .programme-card-running { display: none; }
 }
 .programme-action { width: max-content; padding: 7px 11px; font-size: 10px; }
 .programme-publish-all { padding-inline: 16px; }
