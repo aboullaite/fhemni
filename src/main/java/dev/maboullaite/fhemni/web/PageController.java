@@ -52,9 +52,19 @@ public class PageController {
         return "forward:/party.html";
     }
 
+    @GetMapping({"/promises/{slug}", "/promises/{slug}/"})
+    public String promisePage(@PathVariable String slug) {
+        return "forward:/promise.html";
+    }
+
     @GetMapping({"/community", "/community/"})
     public String communityPage() {
         return "forward:/community.html";
+    }
+
+    @GetMapping({"/methodology", "/methodology/"})
+    public String methodologyPage() {
+        return "forward:/methodology.html";
     }
 
     @GetMapping({"/suggestions", "/suggestions/"})
@@ -75,5 +85,25 @@ public class PageController {
     @GetMapping("/admin")
     public String adminPage() {
         return "forward:/admin.html";
+    }
+
+    @GetMapping({"/admin/episodes", "/admin/episodes/"})
+    public String adminEpisodesPage() {
+        return "forward:/admin-episodes.html";
+    }
+
+    @GetMapping({"/admin/suggestions", "/admin/suggestions/"})
+    public String adminSuggestionsPage() {
+        return "forward:/admin-suggestions.html";
+    }
+
+    @GetMapping({"/admin/programmes", "/admin/programmes/"})
+    public String adminProgrammesPage() {
+        return "forward:/admin-programmes.html";
+    }
+
+    @GetMapping({"/admin/people", "/admin/people/"})
+    public String adminPeoplePage() {
+        return "forward:/admin-people.html";
     }
 }

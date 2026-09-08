@@ -9,7 +9,9 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +25,12 @@ public class YouTubePublicationDateClient implements VideoPublicationDateGateway
             "(?i)itemprop=[\"'](?:datePublished|uploadDate)[\"'][^>]*content=[\"']([^\"']+)[\"']");
     private static final Pattern JSON_DATE = Pattern.compile(
             "\"(?:publishDate|uploadDate)\"\\s*:\\s*\"([^\"]+)\"");
+    private static final Pattern SIMPLE_TEXT_DATE = Pattern.compile(
+            "\"(?:publishDate|uploadDate)\"\\s*:\\s*\\{\\s*\"simpleText\"\\s*:\\s*\"([^\"]+)\"");
+    private static final Pattern LIVE_START_DATE = Pattern.compile(
+            "\"startTimestamp\"\\s*:\\s*\"([^\"]+)\"");
+    private static final DateTimeFormatter ENGLISH_DISPLAY_DATE =
+            DateTimeFormatter.ofPattern("MMM d, uuuu", Locale.ENGLISH);
     private static final int MAX_RESPONSE_BYTES = 2_000_000;
 
     private final HttpClient httpClient;
@@ -79,12 +87,28 @@ public class YouTubePublicationDateClient implements VideoPublicationDateGateway
         if (json.find()) {
             return parseDate(json.group(1));
         }
+        var simpleText = SIMPLE_TEXT_DATE.matcher(html);
+        if (simpleText.find()) {
+            return parseDisplayDate(simpleText.group(1));
+        }
+        var liveStart = LIVE_START_DATE.matcher(html);
+        if (liveStart.find()) {
+            return parseDate(liveStart.group(1));
+        }
         throw new IllegalStateException("YouTube did not expose a publication date.");
     }
 
     private LocalDate parseDate(String value) {
         try {
             return LocalDate.parse(value.substring(0, Math.min(10, value.length())));
+        } catch (DateTimeParseException exception) {
+            throw new IllegalStateException("YouTube returned an invalid publication date.", exception);
+        }
+    }
+
+    private LocalDate parseDisplayDate(String value) {
+        try {
+            return LocalDate.parse(value.strip(), ENGLISH_DISPLAY_DATE);
         } catch (DateTimeParseException exception) {
             throw new IllegalStateException("YouTube returned an invalid publication date.", exception);
         }

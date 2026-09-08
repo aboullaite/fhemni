@@ -35,6 +35,7 @@
         <java.version>26</java.version>
         <spring-ai.version>2.0.1</spring-ai.version>
         <google-genai.version>1.70.0</google-genai.version>
+        <openai-java.version>4.58.0</openai-java.version>
     </properties>
 
     <dependencyManagement>
@@ -82,6 +83,11 @@
             <groupId>com.google.genai</groupId>
             <artifactId>google-genai</artifactId>
             <version>${google-genai.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.openai</groupId>
+            <artifactId>openai-java</artifactId>
+            <version>${openai-java.version}</version>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
@@ -137,6 +143,14 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Java 26 no longer guarantees dynamic agent attachment. -->
+                    <argLine>-javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar</argLine>
+                </configuration>
             </plugin>
         </plugins>
     </build>

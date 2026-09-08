@@ -56,6 +56,47 @@ class YouTubePublicationDateClientTest {
         }
     }
 
+    @Test
+    void readsTheDisplayDateShapeReturnedToTheProductionHost() throws IOException {
+        byte[] response = """
+                <script>
+                {"publishDate":{"simpleText":"Sep 6, 2026"}}
+                </script>
+                """.getBytes(StandardCharsets.UTF_8);
+        HttpServer server = server(response, 200);
+        server.start();
+        try {
+            var client = new YouTubePublicationDateClient(
+                    Duration.ofSeconds(2),
+                    "http://127.0.0.1:" + server.getAddress().getPort() + "/watch?v=");
+
+            assertThat(client.fetch("2prDGFPxFrU")).isEqualTo(LocalDate.of(2026, 9, 6));
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
+    void fallsBackToTheLiveBroadcastStartDate() throws IOException {
+        byte[] response = """
+                <script>
+                {"dateText":{"simpleText":"Streamed live on Sep 4, 2026"},
+                "liveBroadcastDetails":{"startTimestamp":"2026-09-04T18:30:02Z"}}
+                </script>
+                """.getBytes(StandardCharsets.UTF_8);
+        HttpServer server = server(response, 200);
+        server.start();
+        try {
+            var client = new YouTubePublicationDateClient(
+                    Duration.ofSeconds(2),
+                    "http://127.0.0.1:" + server.getAddress().getPort() + "/watch?v=");
+
+            assertThat(client.fetch("cfM0dKXkuhU")).isEqualTo(LocalDate.of(2026, 9, 4));
+        } finally {
+            server.stop(0);
+        }
+    }
+
     private HttpServer server(byte[] response, int status) throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/watch", exchange -> {

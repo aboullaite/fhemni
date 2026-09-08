@@ -2,6 +2,8 @@ package dev.maboullaite.fhemni.catalog;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 
 import dev.maboullaite.fhemni.catalog.PersonDirectory.CuratedPerson;
@@ -118,5 +120,31 @@ class PersonDirectoryTest {
     void normalizesAccentsAndSpacing() {
         assertThat(PersonDirectory.normalize("  Driss   LACHGAR ")).isEqualTo("driss lachgar");
         assertThat(persons.resolve("Driss Lachgar").partyCode()).isEqualTo("USFP");
+    }
+
+    @Test
+    void resolvesThePartyThatWasValidWhenTheEpisodeWasPublished() {
+        CuratedPerson guest = new CuratedPerson(
+                "guest-who-moved",
+                "Guest Who Moved",
+                "ضيف بدّل الحزب",
+                "PAM",
+                List.of(),
+                List.of(
+                        new PersonAffiliation(1, "guest-who-moved", "PJD",
+                                LocalDate.of(2020, 1, 1), LocalDate.of(2024, 12, 31),
+                                "https://example.com/old", "Old affiliation", Instant.EPOCH),
+                        new PersonAffiliation(2, "guest-who-moved", "PAM",
+                                LocalDate.of(2025, 1, 1), null,
+                                "https://example.com/current", "Current affiliation", Instant.EPOCH)));
+        PersonDirectory dated = new PersonDirectory(List.of(guest), HONORIFICS);
+
+        assertThat(dated.resolve("Guest Who Moved", LocalDate.of(2024, 6, 1)).partyCode())
+                .isEqualTo("PJD");
+        assertThat(dated.resolve("Guest Who Moved", LocalDate.of(2026, 6, 1)).partyCode())
+                .isEqualTo("PAM");
+        assertThat(dated.resolve("Guest Who Moved", null).partyCode())
+                .as("a missing episode date must not be replaced with today's affiliation")
+                .isEqualTo(PartyDirectory.UNKNOWN);
     }
 }

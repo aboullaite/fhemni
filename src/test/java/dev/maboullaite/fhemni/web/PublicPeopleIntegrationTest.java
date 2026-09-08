@@ -120,14 +120,21 @@ class PublicPeopleIntegrationTest {
         mvc.perform(get("/api/catalog/parties"))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("max-age=300")))
-                .andExpect(jsonPath("$[*].code", hasItem("PJD")));
+                .andExpect(jsonPath("$[*].code", hasItem("PI")))
+                .andExpect(jsonPath("$[*].code").value(org.hamcrest.Matchers.not(hasItem("PJD"))))
+                .andExpect(jsonPath("$[0].symbolAsset").value("/assets/parties/pi-scales.svg"));
 
         mvc.perform(get("/api/catalog/parties/PI"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value("PI"))
-                .andExpect(jsonPath("$.topMembers[0].slug").value("nizar-baraka"));
+                .andExpect(jsonPath("$.topMembers").doesNotExist())
+                .andExpect(jsonPath("$.recentClaims").doesNotExist())
+                .andExpect(jsonPath("$.episodes[0].slug").value("episode-n5B3boj2MFM"));
 
         mvc.perform(get("/api/catalog/parties/XX"))
+                .andExpect(status().isNotFound());
+
+        mvc.perform(get("/api/catalog/parties/PJD"))
                 .andExpect(status().isNotFound());
 
         mvc.perform(get("/api/catalog/parties/UNKNOWN"))

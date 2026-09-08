@@ -68,6 +68,111 @@ final class GeminiSchemas {
                 """);
     }
 
+    static JsonNode programmeExtraction(ObjectMapper mapper) {
+        return read(mapper, """
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "partyCode": {"type": "string", "enum": ["RNI", "PAM", "PI", "USFP", "MP", "PPS", "UC", "PJD", "MDS", "FFD"]},
+                    "electionYear": {"type": "integer", "enum": [2026]},
+                    "official2026Programme": {"type": "boolean"},
+                    "sourceLabel": {"type": "string"},
+                    "sourceLanguage": {"type": "string"},
+                    "sourceSnapshot": {"type": "string"},
+                    "title": {"$ref": "#/$defs/localizedText"},
+                    "summary": {"$ref": "#/$defs/localizedText"},
+                    "warnings": {"type": "array", "items": {"type": "string"}},
+                    "promises": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "slug": {"type": "string"},
+                          "topic": {"type": "string"},
+                          "title": {"$ref": "#/$defs/localizedText"},
+                          "promiseText": {"type": "string"},
+                          "sourceLocator": {"type": "string"},
+                          "mechanism": {"type": "string"},
+                          "financing": {"type": "string"}
+                        },
+                        "required": ["slug", "topic", "title", "promiseText", "sourceLocator", "mechanism", "financing"]
+                      }
+                    }
+                  },
+                  "$defs": {
+                    "localizedText": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "ar": {"type": "string"},
+                        "fr": {"type": "string"},
+                        "en": {"type": "string"}
+                      },
+                      "required": ["ar", "fr", "en"]
+                    }
+                  },
+                  "required": ["partyCode", "electionYear", "official2026Programme", "sourceLabel", "sourceLanguage", "sourceSnapshot", "title", "summary", "warnings", "promises"]
+                }
+                """);
+    }
+
+    static JsonNode programmeFeasibility(ObjectMapper mapper) {
+        return read(mapper, """
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "assessments": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "promiseSlug": {"type": "string"},
+                          "verdict": {"type": "string", "enum": ["POSSIBLE", "HARD", "NOT_ACHIEVABLE", "INSUFFICIENT_DATA"]},
+                          "summary": {"$ref": "#/$defs/localizedText"},
+                          "requirements": {"$ref": "#/$defs/localizedText"},
+                          "assumptions": {"$ref": "#/$defs/localizedText"},
+                          "calculationNotes": {"$ref": "#/$defs/localizedText"},
+                          "evidence": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "publisher": {"type": "string"},
+                                "title": {"type": "string"},
+                                "url": {"type": "string"},
+                                "publishedOn": {"type": ["string", "null"]},
+                                "note": {"type": "string"}
+                              },
+                              "required": ["publisher", "title", "url", "publishedOn", "note"]
+                            }
+                          }
+                        },
+                        "required": ["promiseSlug", "verdict", "summary", "requirements", "assumptions", "calculationNotes", "evidence"]
+                      }
+                    }
+                  },
+                  "$defs": {
+                    "localizedText": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "ar": {"type": "string"},
+                        "fr": {"type": "string"},
+                        "en": {"type": "string"}
+                      },
+                      "required": ["ar", "fr", "en"]
+                    }
+                  },
+                  "required": ["assessments"]
+                }
+                """);
+    }
+
     private static JsonNode read(ObjectMapper mapper, String json) {
         try {
             return mapper.readTree(json);

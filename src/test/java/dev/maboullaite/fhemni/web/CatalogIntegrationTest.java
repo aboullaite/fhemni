@@ -112,6 +112,21 @@ class CatalogIntegrationTest {
         mvc.perform(get("/community/"))
                 .andExpect(status().isOk())
                 .andExpect(forwardedUrl("/community.html"));
+        mvc.perform(get("/methodology"))
+                .andExpect(status().isOk())
+                .andExpect(forwardedUrl("/methodology.html"));
+        mvc.perform(get("/methodology.html"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-i18n=\"methodology.promisesTitle\"")))
+                .andExpect(content().string(containsString("data-i18n=\"analysis.reportError\"")));
+        mvc.perform(get("/analysis.html"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-i18n=\"analysis.chatDisclaimer\"")))
+                .andExpect(content().string(containsString("id=\"analysisReportErrorLink\"")));
+        mvc.perform(get("/promise.html"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("id=\"promiseReportErrorLink\"")))
+                .andExpect(content().string(containsString("data-i18n=\"promise.disclaimer\"")));
         mvc.perform(get("/suggestions"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/community"));

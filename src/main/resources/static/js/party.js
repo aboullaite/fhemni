@@ -1,5 +1,6 @@
 (function () {
     let profile;
+    let programme;
 
     function t(key, parameters = {}) {
         return window.FhemniI18n?.t(key, parameters) ?? key;
@@ -12,7 +13,16 @@
     async function load() {
         const code = decodeURIComponent(window.location.pathname.split('/').filter(Boolean).at(-1) || '');
         try {
-            profile = await window.FhemniCatalog.requestJson(`/api/catalog/parties/${encodeURIComponent(code)}`);
+            const programmeRequest = window.FhemniCatalog.requestJson(
+                `/api/catalog/parties/${encodeURIComponent(code)}/programme`)
+                .catch(error => {
+                    if (error.status === 404) return null;
+                    throw error;
+                });
+            [profile, programme] = await Promise.all([
+                window.FhemniCatalog.requestJson(`/api/catalog/parties/${encodeURIComponent(code)}`),
+                programmeRequest
+            ]);
             render();
             document.querySelector('#partyLoading').hidden = true;
             document.querySelector('#partyDetail').hidden = false;
@@ -29,6 +39,9 @@
         const alt = (window.FhemniPeople.locale() === 'ar' ? profile.nameFr : profile.nameAr) || '';
         document.querySelector('#partyName').textContent = `${profile.code} · ${name}`;
         document.querySelector('#partyNameAlt').textContent = alt;
+        const symbol = document.querySelector('#partySymbol');
+        symbol.replaceChildren(people().partySymbol(profile, true));
+        const hasProgramme = renderProgramme();
 
         const stats = document.querySelector('#partyStats');
         stats.replaceChildren();
@@ -38,136 +51,132 @@
         const episodes = document.createElement('span');
         episodes.className = 'person-stat';
         episodes.textContent = t('parties.episodes', { count: profile.appearances });
-        const statements = document.createElement('span');
-        statements.className = 'person-stat';
-        statements.textContent = t('parties.statements', { count: profile.claims });
-        stats.append(members, episodes, statements);
+        stats.append(members, episodes);
 
-        document.querySelector('#partyMembersCount').textContent =
-            t('parties.members', { count: profile.topMembers.length });
-        const memberGrid = document.querySelector('#partyMembers');
-        memberGrid.replaceChildren();
-        if (!profile.topMembers.length) {
+        document.querySelector('#partyEpisodesCount').textContent =
+            t('parties.episodes', { count: profile.episodes.length });
+        const episodeGrid = document.querySelector('#partyEpisodes');
+        episodeGrid.replaceChildren();
+        if (!profile.episodes.length) {
             const empty = document.createElement('div');
             empty.className = 'catalog-empty';
-            empty.textContent = t('party.noMembers');
-            memberGrid.append(empty);
+            empty.textContent = t('party.noEpisodes');
+            episodeGrid.append(empty);
         } else {
-            profile.topMembers.forEach(member => memberGrid.append(memberCard(member)));
+            profile.episodes.forEach(episode => episodeGrid.append(episodeCard(episode)));
         }
 
-        const claimGrid = document.querySelector('#partyStatements');
-        claimGrid.replaceChildren();
-        if (!profile.recentClaims.length) {
-            const empty = document.createElement('div');
-            empty.className = 'catalog-empty';
-            empty.textContent = t('party.noStatements');
-            claimGrid.append(empty);
-        } else {
-            const claimsByPerson = new Map();
-            profile.recentClaims.forEach(claim => {
-                if (!claimsByPerson.has(claim.personSlug)) claimsByPerson.set(claim.personSlug, []);
-                claimsByPerson.get(claim.personSlug).push(claim);
-            });
-            profile.topMembers.forEach(member => {
-                const claims = claimsByPerson.get(member.slug) || [];
-                if (!claims.length) return;
-                const heading = document.createElement('h3');
-                heading.className = 'person-card-title person-group-heading span-all';
-                heading.dir = 'auto';
-                const link = document.createElement('a');
-                link.href = `/people/${encodeURIComponent(member.slug)}`;
-                link.textContent = people().personDisplayName(member);
-                heading.append(link);
-                const tally = document.createElement('span');
-                tally.className = 'person-stat';
-                tally.textContent = t('parties.statements', { count: claims.length });
-                heading.append(' ', tally);
-                claimGrid.append(heading);
-                const list = document.createElement('ul');
-                list.className = 'statement-list span-all';
-                claims.forEach(claim => list.append(statementBullet(claim)));
-                claimGrid.append(list);
-            });
-        }
+        setupTabs(hasProgramme);
 
         document.title = `${profile.code} — Fhemni`;
     }
 
-    function memberCard(member) {
+    function renderProgramme() {
+        const section = document.querySelector('#partyProgramme');
+        const tab = document.querySelector('#partyProgrammeTab');
+        if (!programme) {
+            section.hidden = true;
+            tab.hidden = true;
+            return false;
+        }
+        tab.hidden = false;
+        document.querySelector('#partyProgrammeSummary').textContent = localized(programme.summary);
+        const source = document.querySelector('#partyProgrammeSource');
+        source.href = programme.sourceUrl;
+        source.title = programme.sourceLabel;
+        const grid = document.querySelector('#partyPromises');
+        grid.replaceChildren();
+        programme.promises.forEach(promise => grid.append(promiseCard(promise)));
+        return true;
+    }
+
+    function setupTabs(hasProgramme) {
+        const programmeTab = document.querySelector('#partyProgrammeTab');
+        const episodesTab = document.querySelector('#partyEpisodesTab');
+        programmeTab.onclick = () => selectTab('programme');
+        episodesTab.onclick = () => selectTab('episodes');
+        selectTab(hasProgramme ? 'programme' : 'episodes');
+    }
+
+    function selectTab(name) {
+        const programmeSelected = name === 'programme' && programme;
+        const programmeTab = document.querySelector('#partyProgrammeTab');
+        const episodesTab = document.querySelector('#partyEpisodesTab');
+        const programmePanel = document.querySelector('#partyProgramme');
+        const episodesPanel = document.querySelector('#partyEpisodesSection');
+        programmeTab.setAttribute('aria-selected', String(Boolean(programmeSelected)));
+        programmeTab.tabIndex = programmeSelected ? 0 : -1;
+        episodesTab.setAttribute('aria-selected', String(!programmeSelected));
+        episodesTab.tabIndex = programmeSelected ? -1 : 0;
+        programmePanel.hidden = !programmeSelected;
+        episodesPanel.hidden = Boolean(programmeSelected);
+    }
+
+    function episodeCard(episode) {
         const article = document.createElement('article');
         article.className = 'catalog-card';
+        const imageLink = document.createElement('a');
+        imageLink.className = 'catalog-thumbnail';
+        imageLink.href = `/videos/${encodeURIComponent(episode.slug)}`;
+        const image = document.createElement('img');
+        image.src = window.FhemniCatalog.safeImage(episode.thumbnailUrl, episode.youtubeVideoId);
+        image.alt = '';
+        image.loading = 'lazy';
+        imageLink.append(image);
         const body = document.createElement('div');
         body.className = 'catalog-card-body';
-        const top = document.createElement('div');
-        top.className = 'person-card-top';
-        const shownName = people().personDisplayName(member);
         const title = document.createElement('h3');
-        title.className = 'person-card-title';
         title.dir = 'auto';
         const link = document.createElement('a');
-        link.href = `/people/${encodeURIComponent(member.slug)}`;
-        link.textContent = shownName;
+        link.href = imageLink.href;
+        link.textContent = episode.title;
         title.append(link);
-        top.append(title);
-        const stats = document.createElement('div');
-        stats.className = 'person-stats';
-        const episodes = document.createElement('span');
-        episodes.className = 'person-stat';
-        episodes.textContent = t('parties.episodes', { count: member.appearances });
-        stats.append(episodes);
-        body.append(top, stats);
-        article.append(body);
+        const meta = document.createElement('p');
+        meta.className = 'catalog-card-meta';
+        meta.textContent = window.FhemniCatalog.formatDate(episode.publishedOn);
+        const action = document.createElement('a');
+        action.className = 'text-link';
+        action.href = imageLink.href;
+        action.textContent = t('party.viewEpisode');
+        body.append(title, meta, action);
+        article.append(imageLink, body);
         return article;
     }
 
-    function statementBullet(claim) {
-        const item = document.createElement('li');
-        const text = document.createElement('p');
-        text.dir = 'auto';
-        text.textContent = claim.statement;
-        const meta = document.createElement('div');
-        meta.className = 'statement-meta';
-        const video = document.createElement('a');
-        video.className = 'text-link';
-        const startSeconds = Math.max(0, Math.floor(Number(claim.startSeconds) || 0));
-        video.href = `/videos/${encodeURIComponent(claim.episodeSlug)}?t=${startSeconds}`;
-        video.textContent = t('party.watchVideo');
-        meta.append(video);
-        if (claim.kind === 'FACT' && claim.verdict) {
-            const verdict = document.createElement('span');
-            verdict.className = `catalog-status ${verdictClass(claim.verdict)}`;
-            verdict.textContent = verdictLabel(claim.verdict);
-            meta.append(verdict);
-        }
-        item.append(text, meta);
-        if (claim.explanation) {
-            const details = document.createElement('details');
-            const summary = document.createElement('summary');
-            summary.textContent = t('party.details');
-            const explanation = document.createElement('p');
-            explanation.className = 'video-meta';
-            explanation.dir = 'auto';
-            explanation.textContent = claim.explanation;
-            details.append(summary, explanation);
-            item.append(details);
-        }
-        return item;
+    function promiseCard(promise) {
+        const article = document.createElement('article');
+        article.className = 'promise-card';
+        const top = document.createElement('div');
+        top.className = 'promise-card-topline';
+        const topic = document.createElement('span');
+        topic.className = 'section-kicker';
+        topic.textContent = promise.topic;
+        const verdict = document.createElement('span');
+        verdict.className = `feasibility-badge ${String(promise.verdict).toLowerCase().replace('_', '-')}`;
+        verdict.textContent = t(`promise.verdict.${promise.verdict}`);
+        const verdictDescription = t(`promise.verdictDescription.${promise.verdict}`);
+        verdict.title = verdictDescription;
+        verdict.setAttribute('aria-label', verdictDescription);
+        top.append(topic, verdict);
+        const title = document.createElement('h3');
+        const link = document.createElement('a');
+        link.href = `/promises/${encodeURIComponent(promise.slug)}`;
+        link.textContent = localized(promise.title);
+        title.append(link);
+        const summary = document.createElement('p');
+        summary.dir = 'auto';
+        summary.textContent = localized(promise.assessmentSummary);
+        const more = document.createElement('a');
+        more.className = 'text-link';
+        more.href = link.href;
+        more.textContent = t('programme.readAssessment');
+        article.append(top, title, summary, more);
+        return article;
     }
 
-    function verdictClass(verdict) {
-        return {
-            SUPPORTED: 'verdict-supported',
-            CONTRADICTED: 'verdict-contradicted',
-            NEEDS_CONTEXT: 'verdict-needs-context',
-            UNVERIFIABLE: 'verdict-unverifiable'
-        }[verdict] || '';
-    }
-
-    function verdictLabel(verdict) {
-        const key = `label.${verdict}`;
-        const translated = t(key);
-        return translated === key ? verdict : translated;
+    function localized(value) {
+        const locale = window.FhemniPeople?.locale() || 'ar';
+        return value?.[locale] || value?.ar || value?.fr || value?.en || '';
     }
 
     document.addEventListener('DOMContentLoaded', load);

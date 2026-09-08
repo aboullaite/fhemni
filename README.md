@@ -51,10 +51,16 @@ Fhemni uses two complementary integrations:
 | --- | --- |
 | Agentic video analysis and video-context questions | Google Gen AI Java SDK and Gemini Interactions API |
 | Independent, search-grounded fact checking | Spring AI `ChatClient` with Google GenAI |
+| 2026 programme feasibility | Configurable Gemini, OpenAI, or Gemini + OpenAI consensus |
 
 The split keeps agentic video understanding separate from the independent
 evidence pass. The full flow and persistence boundaries are documented in
 [Architecture](docs/ARCHITECTURE.md).
+
+Programme fact checks default to Gemini. Set `FHEMNI_PROGRAMME_FACT_CHECK_MODE`
+to `openai` or `consensus` and provide `OPENAI_API_KEY` to enable the official
+OpenAI Responses API client. Provider keys never enter the database; each cached
+assessment stores only its provider/model attribution and reviewed result.
 
 ## Documentation
 

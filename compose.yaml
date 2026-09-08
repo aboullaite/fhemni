@@ -37,6 +37,8 @@ services:
         target: JDBC_DATABASE_PASSWORD
       - source: gemini_api_key
         target: GEMINI_API_KEY
+      - source: openai_api_key
+        target: OPENAI_API_KEY
       - source: google_client_id
         target: GOOGLE_CLIENT_ID
       - source: google_client_secret
@@ -83,6 +85,8 @@ secrets:
     file: ${FHEMNI_SECRETS_DIR:-.secrets}/postgres_password
   gemini_api_key:
     file: ${FHEMNI_SECRETS_DIR:-.secrets}/gemini_api_key
+  openai_api_key:
+    file: ${FHEMNI_SECRETS_DIR:-.secrets}/openai_api_key
   google_client_id:
     file: ${FHEMNI_SECRETS_DIR:-.secrets}/google_client_id
   google_client_secret:

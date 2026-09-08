@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -32,7 +33,11 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(GeminiApiException.class)
     ProblemDetail upstream(GeminiApiException exception) {
-        return problem(HttpStatus.BAD_GATEWAY, "The AI service could not complete this request. Please retry later.");
+        ProblemDetail detail = problem(
+                HttpStatus.BAD_GATEWAY,
+                "The AI service could not complete this request. Please retry later.");
+        detail.setProperty("code", geminiErrorCode(exception));
+        return detail;
     }
 
     @ExceptionHandler(AuthenticationCredentialsNotFoundException.class)
@@ -47,6 +52,13 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(detail);
     }
 
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    ResponseEntity<ProblemDetail> uploadTooLarge(MaxUploadSizeExceededException exception) {
+        ProblemDetail detail = problem(HttpStatus.PAYLOAD_TOO_LARGE, "The programme PDF must be 25 MB or smaller.");
+        detail.setProperty("code", "PROGRAMME_PDF_TOO_LARGE");
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(detail);
+    }
+
     @ExceptionHandler(SuggestionRateLimitException.class)
     ResponseEntity<ProblemDetail> tooManySuggestions(SuggestionRateLimitException exception) {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
@@ -58,5 +70,18 @@ public class ApiExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
         problem.setTitle(status.getReasonPhrase());
         return problem;
+    }
+
+    private String geminiErrorCode(GeminiApiException exception) {
+        Integer status = exception.upstreamStatus();
+        if (status == null) {
+            return "AI_RESULT_INVALID";
+        }
+        return switch (status) {
+            case 400, 404, 422 -> "AI_SOURCE_OR_REQUEST_INVALID";
+            case 401, 403 -> "AI_CREDENTIAL_REJECTED";
+            case 429 -> "AI_RATE_LIMITED";
+            default -> "AI_TEMPORARY_FAILURE";
+        };
     }
 }

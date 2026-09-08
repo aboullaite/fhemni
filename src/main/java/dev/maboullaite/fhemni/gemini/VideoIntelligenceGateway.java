@@ -284,8 +284,8 @@ public class VideoIntelligenceGateway {
             OutputLanguage language,
             VideoReport report) {
         String instruction = mode == QuestionMode.VIDEO
-                ? "Answer only from the video context. Cite relevant moments as clickable-style timestamps such as [12:34]. If the video does not answer the question, say that clearly."
-                : "Use the video context and Google Search. Clearly separate what was said in the video from what external evidence supports. Cite video timestamps and rely on the returned web citations. If evidence is mixed, show the disagreement.";
+                ? "Answer only from the video context. Cite relevant moments as clickable-style timestamps such as [12:34]. If you cannot find a direct answer in the analyzed video, say that the analysis did not find one. Never make the stronger claim that a speaker never said something."
+                : "Use the video context and Google Search. Clearly separate what was said in the video from what external evidence supports. Cite video timestamps and rely on the returned web citations. If you cannot find a direct statement in the analyzed video, say that the analysis did not find one; never claim that a speaker never said something. If evidence is mixed, show the disagreement.";
         return """
                 Respond in %s.
                 %s

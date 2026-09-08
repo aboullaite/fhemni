@@ -43,9 +43,7 @@
 
         const top = document.createElement('div');
         top.className = 'person-card-top';
-        const dot = document.createElement('span');
-        dot.className = `party-dot party-dot-lg ${people().partyClass(party.code)}`;
-        dot.setAttribute('aria-hidden', 'true');
+        const symbol = people().partySymbol(party, true);
         const title = document.createElement('h3');
         title.className = 'person-card-title';
         title.dir = 'auto';
@@ -53,7 +51,7 @@
         link.href = `/parties/${encodeURIComponent(party.code)}`;
         link.textContent = people().partyDisplayName(party);
         title.append(link);
-        top.append(dot, title);
+        top.append(symbol, title);
 
         const alt = document.createElement('p');
         alt.className = 'catalog-card-meta';

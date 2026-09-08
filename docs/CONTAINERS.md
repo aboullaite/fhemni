@@ -22,19 +22,25 @@ integration disabled:
 ```bash
 openssl rand -base64 32 > .secrets/postgres_password
 : > .secrets/gemini_api_key
+: > .secrets/openai_api_key
 : > .secrets/google_client_id
 : > .secrets/google_client_secret
 : > .secrets/admin_identities
 chmod 444 .secrets/*
 ```
 
-Add a Gemini key or OAuth values only to the corresponding ignored file. Never
+Add Gemini, OpenAI, or OAuth values only to the corresponding ignored file. Never
 put them in `.env.container`, `compose.yaml`, an image build argument, or Git.
 `GEMINI_CREDENTIAL_VERSION` is a non-secret cache-generation label: change it
 whenever the Gemini key belongs to a different Google project. Existing public
 reports remain unchanged, while chat stays unavailable for them until an admin
 temporarily enables `FHEMNI_CONTEXT_MIGRATION_ENABLED` and runs the one-off
 migration shown in the admin catalogue.
+
+Party-programme fact checking defaults to Gemini. To run the OpenAI-only or
+consensus mode, put the key in `.secrets/openai_api_key` and set
+`FHEMNI_PROGRAMME_FACT_CHECK_MODE=openai` or `consensus` in `.env.container`.
+Switching back to `gemini` does not relabel or recompute cached assessments.
 
 Start the stack:
 

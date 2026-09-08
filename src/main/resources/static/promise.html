@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="fhemni">
+<head>
+    <script src="/js/analytics.js"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A sourced five-year feasibility assessment of a 2026 electoral promise." data-i18n-content="promise.description">
+    <title>Promise — Fhemni</title>
+    <link rel="icon" type="image/png" href="/assets/brand/fhemni-icon.png">
+    <link rel="stylesheet" href="/css/dist.css?v=20260908-8">
+</head>
+<body class="public-page" data-i18n-page-title="promise.pageTitle">
+<div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+
+<header class="site-header public-header">
+    <a class="brand" href="/" aria-label="Fhemni home" data-i18n-aria-label="common.brandHome"><img class="brand-logo brand-logo-full" src="/assets/brand/fhemni-logo.png" alt=""><img class="brand-logo brand-logo-icon" src="/assets/brand/fhemni-icon.png" alt=""></a>
+    <nav class="primary-nav" aria-label="Primary navigation" data-i18n-aria-label="common.primaryNavigation"><a href="/videos" data-i18n="common.catalogue">Catalogue</a><a class="active" href="/parties" data-i18n="common.parties">Parties</a></nav>
+    <div class="header-actions"><label class="site-language"><span class="sr-only" data-i18n="common.siteLanguage">Website language</span><select data-site-language data-i18n-aria-label="common.siteLanguage" aria-label="Website language"><option value="en">EN</option><option value="fr">FR</option><option value="ar">الدارجة</option></select></label><div id="authNav"></div></div>
+</header>
+
+<main>
+    <div id="promiseLoading" class="catalog-loading detail-loading" data-i18n="promise.loading">Loading the assessment…</div>
+    <article id="promiseDetail" class="video-detail promise-detail" hidden>
+        <a id="promiseBack" class="back-link" href="/parties">← <span data-i18n="promise.back">Back to the party</span></a>
+        <header class="promise-hero">
+            <div class="promise-hero-top">
+                <div class="promise-heading-copy">
+                    <div class="promise-heading-meta">
+                        <div class="section-kicker" data-i18n="programme.title">Promises under the microscope</div>
+                        <span id="promiseVerdict" class="feasibility-badge"></span>
+                    </div>
+                    <h1 id="promiseTitle" dir="auto"></h1>
+                </div>
+            </div>
+            <div class="promise-takeaway">
+                <div class="section-kicker" data-i18n="promise.takeaway">The short answer</div>
+                <p id="promiseSummary" class="promise-lead" dir="auto"></p>
+            </div>
+            <div class="promise-source-line"><span id="promiseParty"></span><span>·</span><span id="promiseTerm"></span><span>·</span><a id="promiseSource" target="_blank" rel="noopener noreferrer" data-i18n="programme.officialSource">Official source</a></div>
+            <details class="promise-exact-wording" open>
+                <summary data-i18n="promise.showExactWording">Read the exact promise</summary>
+                <blockquote id="promiseText" dir="auto"></blockquote>
+            </details>
+        </header>
+
+        <details class="promise-deep-dive profile-section">
+            <summary>
+                <span class="section-kicker" data-i18n="promise.detailsKicker">Want to check the reasoning?</span>
+                <strong data-i18n="promise.showDetails">Show assumptions, calculations and sources</strong>
+            </summary>
+            <div class="promise-assessment-grid">
+                <section class="profile-section">
+                    <h2 data-i18n="promise.requirements">What would it take?</h2>
+                    <p id="promiseRequirements" dir="auto"></p>
+                </section>
+                <section class="profile-section">
+                    <h2 data-i18n="promise.assumptions">Assumptions</h2>
+                    <p id="promiseAssumptions" dir="auto"></p>
+                </section>
+                <section class="profile-section promise-assessment-main">
+                    <h2 data-i18n="promise.calculation">How we assessed it</h2>
+                    <p id="promiseCalculation" dir="auto"></p>
+                    <small id="promiseMethodology" class="video-meta"></small>
+                </section>
+            </div>
+            <section class="profile-section promise-evidence" aria-labelledby="promiseEvidenceTitle">
+                <div class="catalog-result-heading"><h2 id="promiseEvidenceTitle" data-i18n="promise.evidence">Evidence</h2><span id="promiseDataCutoff"></span></div>
+                <ol id="promiseEvidence" class="evidence-list"></ol>
+            </section>
+        </details>
+        <div class="promise-footer-notes">
+            <p id="promiseAiAttribution" class="promise-ai-attribution" data-i18n="promise.aiAttribution">Feasibility analysis prepared with Gemini 3.8 Flash.</p>
+            <p class="promise-disclaimer" data-i18n="promise.disclaimer">AI-generated five-year feasibility assessment based on the cited evidence and stated assumptions. It is not a certain prediction, a finding that a future promise is true or false, or a political endorsement. AI can make mistakes; review the evidence.</p>
+            <a class="footer-feedback-link" href="/methodology" data-i18n="common.methodology">Methodology</a>
+            <a id="promiseReportErrorLink" class="footer-feedback-link" href="https://github.com/aboullaite/fhemni/issues/new" target="_blank" rel="noopener noreferrer" data-i18n="analysis.reportError">Report an error</a>
+        </div>
+    </article>
+    <section id="promiseError" class="catalog-error detail-loading" hidden></section>
+</main>
+
+<footer><img class="footer-logo" src="/assets/brand/fhemni-logo.png" alt="Fhemni — فهّمني"><span data-i18n="common.footer">© 2026 Mohammed Aboullaite</span><a class="footer-feedback-link" href="https://github.com/aboullaite/fhemni/issues" target="_blank" rel="noopener noreferrer" data-i18n="common.suggestFeature">Suggest a feature</a></footer>
+<script src="/js/i18n.js?v=20260908-13" defer></script><script src="/js/auth.js" defer></script><script src="/js/catalog-ui.js?v=20260906-2" defer></script><script src="/js/people-ui.js?v=20260906-1" defer></script><script src="/js/promise.js?v=20260908-3" defer></script>
+</body>
+</html>

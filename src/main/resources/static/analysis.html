@@ -8,7 +8,7 @@
     <title>Understanding the video… — Fhemni</title>
     <link rel="icon" type="image/png" href="/assets/brand/fhemni-icon.png">
     <link rel="apple-touch-icon" href="/assets/brand/fhemni-icon.png">
-    <link rel="stylesheet" href="/css/dist.css?v=20260906-2">
+    <link rel="stylesheet" href="/css/dist.css?v=20260908-7">
 </head>
 <body class="analysis-page min-h-screen overflow-x-hidden bg-base-200 text-base-content font-sans rtl:font-arabic" data-i18n-page-title="analysis.pageTitle">
 <div class="ambient ambient-one"></div>
@@ -81,6 +81,15 @@
             <div class="min-w-0">
                 <div class="eyebrow"><span></span><span class="eyebrow-text" data-i18n="analysis.videoBriefing">Video briefing</span></div>
                 <h1 id="reportTitle" class="mb-0 mt-2 max-w-4xl text-[clamp(1.75rem,3vw,2.75rem)]! leading-[1.15]! tracking-[-.025em]! rtl:font-arabic"></h1>
+                <div class="mt-3 flex max-w-4xl flex-wrap items-center gap-x-2 gap-y-1 text-[11px] leading-relaxed text-base-content/55">
+                    <strong class="font-black text-primary" data-i18n="analysis.aiDisclosureLabel">AI-generated analysis</strong>
+                    <span aria-hidden="true">·</span>
+                    <span data-i18n="analysis.aiDisclosureText">Based on the displayed sources. AI can make mistakes.</span>
+                    <span aria-hidden="true">·</span>
+                    <a class="font-bold text-primary underline decoration-primary/30 underline-offset-2 hover:decoration-primary" href="/methodology" data-i18n="common.methodology">Methodology</a>
+                    <span aria-hidden="true">·</span>
+                    <a id="analysisReportErrorLink" class="font-bold text-primary underline decoration-primary/30 underline-offset-2 hover:decoration-primary" href="https://github.com/aboullaite/fhemni/issues/new" target="_blank" rel="noopener noreferrer" data-i18n="analysis.reportError">Report an error</a>
+                </div>
             </div>
             <a id="analyzeAnotherLink" class="secondary-button shrink-0 sm:mt-6" href="/admin" data-i18n="analysis.analyzeAnother" hidden>Analyze another</a>
         </div>
@@ -167,7 +176,7 @@
                         <span id="chatGateBadge" class="badge badge-warning badge-sm mb-3 font-black uppercase tracking-wider" data-i18n="common.comingSoon">Coming soon</span>
                         <strong id="chatGateTitle" data-i18n="analysis.chatComingSoonTitle">Ask the video</strong>
                         <p id="chatGateText" class="mx-auto mb-4 mt-2 max-w-xl text-sm text-base-content/65" data-i18n="analysis.chatPrivacy" hidden></p>
-                        <a id="chatLoginLink" class="primary-button" href="/login" data-i18n="common.signIn">Sign in</a>
+                        <a id="chatLoginLink" class="primary-button" href="/login" data-i18n="analysis.signInToAskAction">Sign in and ask</a>
                     </div>
                     <form id="questionForm" class="question-form mx-5 mb-5 grid grid-cols-[1fr_auto] gap-2 rounded-box border border-base-300 bg-base-100 p-2 ps-4 focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10">
                         <textarea id="questionInput" class="textarea h-auto min-h-12 w-full min-w-0 resize-none border-0 bg-transparent px-0 text-sm shadow-none outline-none focus:outline-none" rows="2" maxlength="600" placeholder="What did the speaker say about…?" data-i18n-placeholder="analysis.questionPlaceholder" required></textarea>
@@ -187,6 +196,12 @@
                             <span id="chatQuestionQuota" class="text-xs font-bold" aria-label=""></span>
                         </div>
                     </form>
+                    <div class="mx-5 -mt-2 mb-4 flex items-start gap-2 border-t border-base-300/70 pt-3 text-[10px] leading-relaxed text-base-content/55">
+                        <span class="mt-[2px] shrink-0 font-black text-primary" aria-hidden="true">AI</span>
+                        <p class="m-0 flex-1" data-i18n="analysis.chatDisclaimer">Answers are AI-generated. In Video only mode, they are based exclusively on the analyzed content of this video and are not new statements by a speaker. AI can miss or misinterpret content—verify the timestamps and sources.</p>
+                        <a class="shrink-0 font-bold text-primary underline decoration-primary/30 underline-offset-2 hover:decoration-primary" href="/methodology" data-i18n="common.methodology">Methodology</a>
+                        <a id="chatReportErrorLink" class="shrink-0 font-bold text-primary underline decoration-primary/30 underline-offset-2 hover:decoration-primary" href="https://github.com/aboullaite/fhemni/issues/new" target="_blank" rel="noopener noreferrer" data-i18n="analysis.reportError">Report an error</a>
+                    </div>
                 </section>
                 <aside class="ask-aside flex flex-col gap-7">
                     <div class="trust-card card border border-base-300 bg-base-100/90 shadow-lg">
@@ -212,9 +227,9 @@
     <a class="footer-feedback-link" href="https://github.com/aboullaite/fhemni/issues" target="_blank" rel="noopener noreferrer" data-i18n="common.suggestFeature">Suggest a feature</a>
 </footer>
 
-<script src="/js/i18n.js?v=20260906-19" defer></script>
+<script src="/js/i18n.js?v=20260908-12" defer></script>
 <script src="/js/auth.js?v=20260906-3" defer></script>
 <script src="/js/markdown.js?v=20260906-1" defer></script>
-<script src="/js/analysis.js?v=20260906-9" defer></script>
+<script src="/js/analysis.js?v=20260908-1" defer></script>
 </body>
 </html>

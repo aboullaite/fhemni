@@ -44,9 +44,11 @@
         window.location.assign('/');
     }
 
-    function loginPage(returnTo = window.location.pathname) {
+    function loginPage(returnTo = window.location.pathname, intent = '') {
         const target = returnTo.startsWith('/') ? returnTo : '/';
-        return `/login?continue=${encodeURIComponent(target)}`;
+        const parameters = new URLSearchParams({ continue: target });
+        if (['chat', 'suggest', 'vote'].includes(intent)) parameters.set('intent', intent);
+        return `/login?${parameters}`;
     }
 
     async function renderNavigation() {

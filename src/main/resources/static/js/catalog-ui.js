@@ -10,11 +10,16 @@
             const response = await fetch(url, { ...options, signal: controller.signal });
             if (!response.ok) {
                 let message = t('common.requestFailed', { status: response.status });
+                let code = null;
                 try {
                     const problem = await response.json();
                     message = problem.detail || message;
+                    code = problem.code || null;
                 } catch (_) { /* use the status message */ }
-                throw new Error(message);
+                const error = new Error(message);
+                error.status = response.status;
+                error.code = code;
+                throw error;
             }
             if (response.status === 204) return null;
             return await response.json();

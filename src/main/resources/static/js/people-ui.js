@@ -30,6 +30,21 @@
         return `party-${String(code || 'UNKNOWN').toUpperCase()}`;
     }
 
+    function partySymbolAlt(party) {
+        if (!party) return '';
+        if (locale() === 'ar') return party.symbolLabelAr || party.partySymbolLabelAr || '';
+        return party.symbolLabelFr || party.partySymbolLabelFr || '';
+    }
+
+    function partySymbol(party, large = false) {
+        const image = document.createElement('img');
+        image.className = `party-symbol${large ? ' party-symbol-lg' : ''}`;
+        image.src = party.symbolAsset || party.partySymbolAsset || '/assets/parties/unknown.svg';
+        image.alt = partySymbolAlt(party);
+        image.loading = 'lazy';
+        return image;
+    }
+
     function partyBadge(personOrParty, { link = true } = {}) {
         const code = personOrParty.partyCode || personOrParty.code || 'UNKNOWN';
         const name = personOrParty.partyNameFr || personOrParty.nameFr
@@ -42,13 +57,11 @@
         const element = document.createElement(link ? 'a' : 'span');
         element.className = `party-badge ${partyClass(code)}`;
         if (link) element.href = `/parties/${encodeURIComponent(code)}`;
-        const dot = document.createElement('span');
-        dot.className = 'party-dot';
-        dot.setAttribute('aria-hidden', 'true');
+        const symbol = partySymbol(personOrParty);
         const label = document.createElement('span');
         label.textContent = code === 'UNKNOWN' ? name : `${code} · ${name}`;
         label.dir = 'auto';
-        element.append(dot, label);
+        element.append(symbol, label);
         return element;
     }
 
@@ -81,6 +94,6 @@
 
     window.FhemniPeople = {
         t, locale, partyDisplayName, personPartyName, personDisplayName, partyClass,
-        partyBadge, initials, formatTime, escapeHtml
+        partyBadge, partySymbol, partySymbolAlt, initials, formatTime, escapeHtml
     };
 })();
