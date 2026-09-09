@@ -50,7 +50,8 @@ class DirectorySeedIntegrationTest {
         assertThat(byCode.get("RNI").symbolAsset()).isEqualTo("/assets/parties/rni-display.png");
         assertThat(byCode.get("PE").symbolAsset()).isEqualTo("/assets/parties/pe-display.png");
         assertThat(byCode.get("PE").symbolVerified()).isTrue();
-        assertThat(byCode.get("FGD").symbolAsset()).isEqualTo("/assets/parties/fgd-letter.svg");
+        assertThat(byCode.get("FGD").symbolAsset()).isEqualTo("/assets/parties/fgd-display.png");
+        assertThat(byCode.get("FGD").symbolVerified()).isTrue();
     }
 
     @Test
