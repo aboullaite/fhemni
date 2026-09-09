@@ -8,6 +8,7 @@
     const form = document.querySelector('#affiliationForm');
     const personSelect = document.querySelector('#affiliationPerson');
     const partySelect = document.querySelector('#affiliationParty');
+    const periodDetails = document.querySelector('#affiliationPeriod');
     const validFromInput = document.querySelector('#affiliationValidFrom');
     const validUntilInput = document.querySelector('#affiliationValidUntil');
     const episodesList = document.querySelector('#affiliationEpisodes');
@@ -200,9 +201,6 @@
             if (request !== profileRequest || personSelect.value !== person.slug) return;
             episodesList.replaceChildren();
             (profile.episodes || []).forEach(episode => episodesList.append(episodeLink(episode)));
-            if (!validFromInput.value && partySelect.value !== 'UNKNOWN') {
-                validFromInput.value = earliestEpisodeDate(profile.episodes) || today();
-            }
             if (!profile.episodes?.length) {
                 loading.textContent = t('admin.affiliationEpisodesEmpty');
                 episodesList.append(loading);
@@ -219,30 +217,18 @@
         }
     }
 
-    function earliestEpisodeDate(episodes) {
-        return (episodes || [])
-            .map(episode => episode.publishedOn)
-            .filter(Boolean)
-            .sort()[0] || '';
-    }
-
-    function today() {
-        const date = new Date();
-        const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-        return local.toISOString().slice(0, 10);
-    }
-
     function syncPeriodInputs() {
         const affiliated = partySelect.value !== 'UNKNOWN';
+        const existing = currentAffiliation(selectedPerson());
+        const changingParty = affiliated && existing && existing.partyCode !== partySelect.value;
+        periodDetails.hidden = !affiliated;
+        if (changingParty) periodDetails.open = true;
         validFromInput.disabled = !affiliated;
         validUntilInput.disabled = !affiliated;
-        validFromInput.required = affiliated;
+        validFromInput.required = Boolean(changingParty);
         if (!affiliated) {
             validFromInput.value = '';
             validUntilInput.value = '';
-        } else if (!validFromInput.value) {
-            const cached = profileCache.get(personSelect.value);
-            validFromInput.value = earliestEpisodeDate(cached?.episodes) || today();
         }
     }
 

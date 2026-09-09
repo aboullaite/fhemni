@@ -105,7 +105,7 @@ public class PersonDirectoryAdminService {
 
         AffiliationPeriod nextPeriod = PartyDirectory.UNKNOWN.equals(partyCode)
                 ? new AffiliationPeriod(LocalDate.now(), null)
-                : validatePeriod(command);
+                : validateTransitionPeriod(command);
         LocalDate nextFrom = nextPeriod.validFrom();
         if (existing.validFrom() != null && !nextFrom.isAfter(existing.validFrom())) {
             throw new IllegalArgumentException(
@@ -148,13 +148,18 @@ public class PersonDirectoryAdminService {
     private AffiliationPeriod validatePeriod(AffiliationCommand command) {
         LocalDate validFrom = command.validFrom();
         LocalDate validUntil = command.validUntil();
-        if (validFrom == null) {
-            throw new IllegalArgumentException("Choose when this affiliation started.");
-        }
-        if (validUntil != null && validUntil.isBefore(validFrom)) {
+        if (validFrom != null && validUntil != null && validUntil.isBefore(validFrom)) {
             throw new IllegalArgumentException("The affiliation end date cannot be before its start date.");
         }
         return new AffiliationPeriod(validFrom, validUntil);
+    }
+
+    private AffiliationPeriod validateTransitionPeriod(AffiliationCommand command) {
+        AffiliationPeriod period = validatePeriod(command);
+        if (period.validFrom() == null) {
+            throw new IllegalArgumentException("Choose the date only when recording a party change.");
+        }
+        return period;
     }
 
     private void requireNoOverlap(String personSlug, AffiliationPeriod candidate, Long excludedId) {
@@ -173,8 +178,13 @@ public class PersonDirectoryAdminService {
             LocalDate leftUntil,
             LocalDate rightFrom,
             LocalDate rightUntil) {
-        return (rightUntil == null || !rightUntil.isBefore(leftFrom))
-                && (leftUntil == null || rightFrom == null || !rightFrom.isAfter(leftUntil));
+        boolean leftEndsBeforeRightStarts = leftUntil != null
+                && rightFrom != null
+                && leftUntil.isBefore(rightFrom);
+        boolean rightEndsBeforeLeftStarts = rightUntil != null
+                && leftFrom != null
+                && rightUntil.isBefore(leftFrom);
+        return !leftEndsBeforeRightStarts && !rightEndsBeforeLeftStarts;
     }
 
     private List<String> aliases(List<String> provided, String displayNameFr, String displayNameAr) {
