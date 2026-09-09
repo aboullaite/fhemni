@@ -122,7 +122,7 @@ class PublicPeopleIntegrationTest {
                 .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("max-age=300")))
                 .andExpect(jsonPath("$[*].code", hasItem("PI")))
                 .andExpect(jsonPath("$[*].code").value(org.hamcrest.Matchers.not(hasItem("PJD"))))
-                .andExpect(jsonPath("$[0].symbolAsset").value("/assets/parties/pi-scales.svg"));
+                .andExpect(jsonPath("$[0].symbolAsset").value("/assets/parties/pi-maroc-ma.png"));
 
         mvc.perform(get("/api/catalog/parties/PI"))
                 .andExpect(status().isOk())

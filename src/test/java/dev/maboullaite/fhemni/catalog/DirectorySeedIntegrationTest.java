@@ -11,6 +11,7 @@ import dev.maboullaite.fhemni.catalog.PersonDirectory.CuratedPerson;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
 
 /**
  * Guards the Flyway-seeded reference data: every party and verified affiliation
@@ -41,7 +42,15 @@ class DirectorySeedIntegrationTest {
             assertThat(party.symbolLabelFr()).isNotBlank();
             assertThat(party.symbolLabelAr()).isNotBlank();
             assertThat(party.symbolAsset()).startsWith("/assets/parties/");
+            assertThat(new ClassPathResource("static" + party.symbolAsset()).exists()).isTrue();
         });
+
+        Map<String, PoliticalParty> byCode = parties.stream()
+                .collect(Collectors.toUnmodifiableMap(PoliticalParty::code, Function.identity()));
+        assertThat(byCode.get("RNI").symbolAsset()).isEqualTo("/assets/parties/rni-maroc-ma.png");
+        assertThat(byCode.get("PE").symbolAsset()).isEqualTo("/assets/parties/pe-maroc-ma.png");
+        assertThat(byCode.get("PE").symbolVerified()).isTrue();
+        assertThat(byCode.get("FGD").symbolAsset()).isEqualTo("/assets/parties/fgd-letter.svg");
     }
 
     @Test
