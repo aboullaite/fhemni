@@ -43,11 +43,94 @@ class ProgrammeChatContextBuilderTest {
                 .contains("Party code: PJD")
                 .contains("Create 200,000 jobs each year")
                 .contains("Five-year verdict: HARD")
+                .contains("published feasibility=HARD")
+                .contains("evidence=[PROMISE_2_E1] HCP — Jobs report")
+                .contains("--- Official document extract 1; cite [PROGRAMME] ---")
                 .contains("RECENT PRIVATE CONVERSATION")
+                .doesNotContain("[PROGRAMME, document extract")
                 .doesNotContain("RNI");
         assertThat(context.material().indexOf("Title: Create 200,000 jobs each year"))
                 .isLessThan(context.material().indexOf("Title: Digitise courts"));
         assertThat(context.sources()).containsKeys("PROGRAMME", "PROMISE_2", "PROMISE_2_E1");
+    }
+
+    @Test
+    void usesRecentQuestionsToKeepFollowUpRetrievalOnTheSamePromise() {
+        UUID programmeId = UUID.randomUUID();
+        PartyProgramme programme = new PartyProgramme(
+                programmeId, "PJD", 2026, 2026, 2031,
+                text("برنامج", "Programme", "Programme"), text("", "", ""),
+                "https://pjd.example/programme.pdf", "Official programme", "ar", "",
+                List.of(), "sha", Instant.now(), true, EditorialStatus.PUBLISHED,
+                Instant.now(), Instant.now(), Instant.now());
+        PartyPromise justice = promise(programmeId, "justice", "Digitise courts", "page 45");
+        PartyPromise jobs = promise(programmeId, "jobs", "Create industrial jobs", "page 12");
+        ProgrammeChatDossier dossier = new ProgrammeChatDossier(programme, List.of(
+                new ProgrammeChatPromise(justice, null),
+                new ProgrammeChatPromise(jobs, assessment(jobs.id()))));
+
+        ProgrammeChatContext context = new ProgrammeChatContextBuilder(90_000).build(
+                dossier, "How would that be funded?", OutputLanguage.ENGLISH,
+                List.of(new ConversationTurn("What does it promise for industrial jobs?", "It promises jobs.")));
+
+        assertThat(context.material().indexOf("Title: Create industrial jobs"))
+                .isLessThan(context.material().indexOf("Title: Digitise courts"));
+    }
+
+    @Test
+    void keepsCompactPublishedVerdictsAvailableBeyondTheDetailedTopEight() {
+        UUID programmeId = UUID.randomUUID();
+        PartyProgramme programme = programme(programmeId, "Short official source");
+        List<ProgrammeChatPromise> promises = new java.util.ArrayList<>();
+        for (int index = 1; index <= 9; index++) {
+            promises.add(new ProgrammeChatPromise(
+                    promise(programmeId, "topic-" + index, "Promise " + index, "page " + index), null));
+        }
+        PartyPromise last = promise(programmeId, "hard-promise", "Promise 10", "page 10");
+        promises.add(new ProgrammeChatPromise(last, assessment(last.id())));
+
+        ProgrammeChatContext context = new ProgrammeChatContextBuilder(90_000).build(
+                new ProgrammeChatDossier(programme, promises),
+                "Give me a general overview", OutputLanguage.ENGLISH, List.of());
+
+        assertThat(context.material())
+                .contains("[PROMISE_10] Promise 10")
+                .contains("published feasibility=HARD")
+                .contains("evidence=[PROMISE_10_E1] HCP — Jobs report")
+                .doesNotContain("Title: Promise 10");
+        assertThat(context.sources()).containsKey("PROMISE_10_E1");
+    }
+
+    @Test
+    void expandsEnglishRetrievalWithThePromisesOriginalArabicWording() {
+        UUID programmeId = UUID.randomUUID();
+        String source = "مقدمة عامة ".repeat(400)
+                + " خلق مناصب الشغل الصناعية وتمويلها عبر الاستثمار ";
+        PartyProgramme programme = programme(programmeId, source);
+        PartyPromise jobs = new PartyPromise(
+                UUID.randomUUID(), programmeId, "jobs", "employment",
+                text("خلق مناصب الشغل الصناعية", "Créer des emplois industriels", "Create industrial jobs"),
+                "خلق مناصب الشغل الصناعية", "الصفحة 12", "تمويلها عبر الاستثمار", "الاستثمار",
+                EditorialStatus.PUBLISHED, Instant.now(), Instant.now(), Instant.now());
+
+        ProgrammeChatContext context = new ProgrammeChatContextBuilder(90_000).build(
+                new ProgrammeChatDossier(programme, List.of(new ProgrammeChatPromise(jobs, null))),
+                "What does it say about industrial jobs?", OutputLanguage.ENGLISH, List.of());
+
+        String extracts = context.material().substring(
+                context.material().indexOf("RELEVANT EXTRACTS FROM THE FROZEN OFFICIAL DOCUMENT"));
+        assertThat(extracts).startsWith("RELEVANT EXTRACTS FROM THE FROZEN OFFICIAL DOCUMENT")
+                .contains("--- Official document extract 2; cite [PROGRAMME] ---");
+    }
+
+    private static PartyProgramme programme(UUID programmeId, String sourceSnapshot) {
+        return new PartyProgramme(
+                programmeId, "PJD", 2026, 2026, 2031,
+                text("برنامج 2026", "Programme 2026", "2026 programme"),
+                text("خلاصة", "Résumé", "Summary"),
+                "https://pjd.example/programme.pdf", "PJD official programme", "ar",
+                sourceSnapshot, List.of(), "sha", Instant.now(), true, EditorialStatus.PUBLISHED,
+                Instant.now(), Instant.now(), Instant.now());
     }
 
     private static PartyPromise promise(UUID programmeId, String slug, String title, String locator) {

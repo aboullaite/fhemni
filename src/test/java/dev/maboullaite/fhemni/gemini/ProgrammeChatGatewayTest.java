@@ -53,4 +53,22 @@ class ProgrammeChatGatewayTest {
                 .isInstanceOf(GeminiApiException.class)
                 .satisfies(error -> assertThat(((GeminiApiException) error).usage()).isEqualTo(usage));
     }
+
+    @Test
+    void preservesBilledUsageWhenTheAnswerBasisIsNull() {
+        GeminiInteractionsClient client = mock(GeminiInteractionsClient.class);
+        AiUsage usage = new AiUsage(420, 90, null, 12, null, null);
+        when(client.configured()).thenReturn(true);
+        when(client.model()).thenReturn("gemini-3.8-flash");
+        when(client.createQuestion(any())).thenReturn(new InteractionResponse(
+                "", """
+                {"answer":"The programme proposes it.","basis":null,"citationIds":["PROGRAMME"]}
+                """, List.of(), usage));
+        ProgrammeChatGateway gateway = new ProgrammeChatGateway(client, new ObjectMapper(), 2_048);
+
+        assertThatThrownBy(() -> gateway.answer("Question", OutputLanguage.ENGLISH, "Material"))
+                .isInstanceOf(GeminiApiException.class)
+                .hasMessageContaining("invalid structured programme answer")
+                .satisfies(error -> assertThat(((GeminiApiException) error).usage()).isEqualTo(usage));
+    }
 }

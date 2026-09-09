@@ -52,7 +52,7 @@ public class ProgrammeChatContextBuilder {
             OutputLanguage language,
             List<ConversationTurn> history) {
         PartyProgramme programme = dossier.programme();
-        Set<String> queryTokens = tokens(question);
+        Set<String> queryTokens = retrievalTokens(question, history);
         List<RankedPromise> ranked = rankPromises(dossier.promises(), queryTokens);
         List<RankedPromise> selected = ranked.stream().limit(MAX_PROMISES).toList();
         Map<String, SourceReference> sources = new LinkedHashMap<>();
@@ -77,7 +77,9 @@ public class ProgrammeChatContextBuilder {
             sources.put(id, new SourceReference(
                     programme.sourceLabel() + " · " + promise.sourceLocator(), programme.sourceUrl(), ""));
             append(material, "[" + id + "] " + localized(promise.title(), language)
-                    + " | topic=" + promise.topic() + " | locator=" + promise.sourceLocator() + "\n");
+                    + " | topic=" + promise.topic() + " | locator=" + promise.sourceLocator());
+            appendCompactAssessment(material, sources, item.assessment(), id, language);
+            append(material, "\n");
         }
 
         append(material, "\nRELEVANT OFFICIAL PROGRAMME EXTRACTS\n");
@@ -96,11 +98,13 @@ public class ProgrammeChatContextBuilder {
             }
         }
 
-        List<RankedText> chunks = rankChunks(programme.sourceSnapshot(), queryTokens);
+        List<RankedText> chunks = rankChunks(
+                programme.sourceSnapshot(), expandedDocumentTokens(queryTokens, selected));
         if (!chunks.isEmpty()) {
             append(material, "\nRELEVANT EXTRACTS FROM THE FROZEN OFFICIAL DOCUMENT\n");
             for (RankedText chunk : chunks.stream().limit(MAX_DOCUMENT_CHUNKS).toList()) {
-                append(material, "\n[PROGRAMME, document extract " + (chunk.originalIndex() + 1) + "]\n");
+                append(material, "\n--- Official document extract " + (chunk.originalIndex() + 1)
+                        + "; cite [PROGRAMME] ---\n");
                 append(material, chunk.text() + "\n");
             }
         }
@@ -114,6 +118,25 @@ public class ProgrammeChatContextBuilder {
         }
 
         return new ProgrammeChatContext(material.toString(), Map.copyOf(sources));
+    }
+
+    private void appendCompactAssessment(
+            StringBuilder material,
+            Map<String, SourceReference> sources,
+            PromiseAssessment assessment,
+            String promiseId,
+            OutputLanguage language) {
+        if (assessment == null) return;
+        append(material, " | published feasibility=" + assessment.verdict());
+        append(material, " | review=" + clipped(localized(assessment.summary(), language), 450));
+        for (int index = 0; index < Math.min(2, assessment.evidence().size()); index++) {
+            Evidence evidence = assessment.evidence().get(index);
+            int evidenceIndex = index + 1;
+            String id = promiseId + "_E" + evidenceIndex;
+            sources.put(id, sourceReference(evidence));
+            append(material, " | evidence=[" + id + "] " + evidence.publisher() + " — "
+                    + clipped(evidence.title(), 180));
+        }
     }
 
     private void appendAssessment(
@@ -132,10 +155,7 @@ public class ProgrammeChatContextBuilder {
         for (int index = 0; index < assessment.evidence().size(); index++) {
             Evidence evidence = assessment.evidence().get(index);
             String id = promiseId + "_E" + (index + 1);
-            sources.put(id, new SourceReference(
-                    evidence.publisher() + " · " + evidence.title(),
-                    evidence.url(),
-                    evidence.publishedOn() == null ? "" : evidence.publishedOn().toString()));
+            sources.put(id, sourceReference(evidence));
             append(material, "Evidence [" + id + "]: " + evidence.publisher() + " — " + evidence.title()
                     + " | date=" + nullableDate(evidence.publishedOn()) + " | note=" + evidence.note() + "\n");
         }
@@ -177,6 +197,31 @@ public class ProgrammeChatContextBuilder {
         chunks.sort(Comparator.comparingInt(RankedText::score).reversed()
                 .thenComparingInt(RankedText::originalIndex));
         return chunks;
+    }
+
+    private static Set<String> retrievalTokens(
+            String question,
+            List<ConversationTurn> history) {
+        StringBuilder retrievalQuery = new StringBuilder(question == null ? "" : question);
+        if (history != null) {
+            history.stream()
+                    .skip(Math.max(0, history.size() - 2L))
+                    .map(ConversationTurn::question)
+                    .forEach(previous -> retrievalQuery.append(' ').append(previous));
+        }
+        return tokens(retrievalQuery.toString());
+    }
+
+    private static Set<String> expandedDocumentTokens(
+            Set<String> queryTokens,
+            List<RankedPromise> selected) {
+        Set<String> expanded = new HashSet<>(queryTokens);
+        selected.stream().limit(3).map(RankedPromise::item).map(ProgrammeChatPromise::promise)
+                .map(promise -> String.join(" ", localizedAll(promise.title()),
+                        promise.promiseText(), promise.mechanism(), promise.financing()))
+                .map(ProgrammeChatContextBuilder::tokens)
+                .forEach(expanded::addAll);
+        return expanded;
     }
 
     private static int score(String text, Set<String> queryTokens) {
@@ -230,6 +275,13 @@ public class ProgrammeChatContextBuilder {
 
     private static String nullableDate(LocalDate value) {
         return value == null ? "unknown" : value.toString();
+    }
+
+    private static SourceReference sourceReference(Evidence evidence) {
+        return new SourceReference(
+                evidence.publisher() + " · " + evidence.title(),
+                evidence.url(),
+                evidence.publishedOn() == null ? "" : evidence.publishedOn().toString());
     }
 
     private static String promiseId(int index) {

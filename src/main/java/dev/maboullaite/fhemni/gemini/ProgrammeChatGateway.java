@@ -16,7 +16,6 @@ import dev.maboullaite.fhemni.model.OutputLanguage;
 import dev.maboullaite.fhemni.programme.ProgrammeChatBasis;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
@@ -93,6 +92,9 @@ public class ProgrammeChatGateway {
             if (answer.length() > 12_000) {
                 throw new IllegalArgumentException("Programme chat returned an answer that is too long");
             }
+            if (wire.basis() == null || wire.basis().isBlank()) {
+                throw new IllegalArgumentException("Programme chat returned no answer basis");
+            }
             ProgrammeChatBasis basis = ProgrammeChatBasis.valueOf(wire.basis());
             List<String> citationIds = wire.citationIds() == null
                     ? List.of()
@@ -103,7 +105,7 @@ public class ProgrammeChatGateway {
                             .limit(12)
                             .toList();
             return new Result(answer, basis, citationIds, response.usage());
-        } catch (JacksonException | IllegalArgumentException exception) {
+        } catch (RuntimeException exception) {
             throw new GeminiApiException(
                     "Gemini returned an invalid structured programme answer", exception, response.usage());
         }

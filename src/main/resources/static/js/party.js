@@ -5,6 +5,7 @@
     let partyCode;
     let authSession;
     let meta;
+    let chatStateResolved = false;
 
     function t(key, parameters = {}) {
         return window.FhemniI18n?.t(key, parameters) ?? key;
@@ -16,6 +17,10 @@
 
     async function load() {
         partyCode = decodeURIComponent(window.location.pathname.split('/').filter(Boolean).at(-1) || '');
+        const chatStateRequest = Promise.all([
+            window.FhemniAuth.session().catch(() => ({ authenticated: false })),
+            window.FhemniCatalog.requestJson('/api/meta').catch(() => null)
+        ]);
         try {
             const programmeRequest = window.FhemniCatalog.requestJson(
                 `/api/catalog/parties/${encodeURIComponent(partyCode)}/programme`)
@@ -23,16 +28,20 @@
                     if (error.status === 404) return null;
                     throw error;
                 });
-            [profile, programme, authSession, meta] = await Promise.all([
+            [profile, programme] = await Promise.all([
                 window.FhemniCatalog.requestJson(`/api/catalog/parties/${encodeURIComponent(partyCode)}`),
-                programmeRequest,
-                window.FhemniAuth.session().catch(() => ({ authenticated: false })),
-                window.FhemniCatalog.requestJson('/api/meta').catch(() => null)
+                programmeRequest
             ]);
             render();
             bindChat();
             document.querySelector('#partyLoading').hidden = true;
             document.querySelector('#partyDetail').hidden = false;
+            void chatStateRequest.then(([session, metadata]) => {
+                authSession = session;
+                meta = metadata;
+                chatStateResolved = true;
+                configureChatAccess();
+            });
         } catch (error) {
             document.querySelector('#partyLoading').hidden = true;
             const panel = document.querySelector('#partyError');
@@ -139,6 +148,12 @@
         const gate = document.querySelector('#programmeChatGate');
         const login = document.querySelector('#programmeChatLogin');
         const quotaLabel = document.querySelector('#programmeChatQuota');
+        if (!chatStateResolved) {
+            form.hidden = true;
+            gate.hidden = true;
+            quotaLabel.textContent = '';
+            return;
+        }
         const authenticated = Boolean(authSession?.authenticated);
         const enabled = Boolean(meta?.programmeChatEnabled);
         const quota = authSession?.chatQuota;
