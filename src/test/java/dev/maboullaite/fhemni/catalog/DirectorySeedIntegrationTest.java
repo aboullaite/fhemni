@@ -34,7 +34,7 @@ class DirectorySeedIntegrationTest {
         List<PoliticalParty> parties = partyRepository.findAll();
         assertThat(parties).extracting(PoliticalParty::code)
                 .containsExactly("RNI", "PAM", "PI", "PJD", "USFP", "PPS", "MP", "FGD",
-                        "UC", "FFD", "MDS", "PSU", "PE", "PML", "PVM", "ND", "PGV",
+                        "UC", "FFD", "MDS", "PSU", "PE", "PML", "PVM", "ND", "PDN", "PGV",
                         "PEDD", "PUD", "PRV", "IND", "UNKNOWN");
         assertThat(parties).allSatisfy(party ->
                 assertThat(PartyDirectory.validColor(party.color())).isTrue());
@@ -52,6 +52,18 @@ class DirectorySeedIntegrationTest {
         assertThat(byCode.get("PE").symbolVerified()).isTrue();
         assertThat(byCode.get("FGD").symbolAsset()).isEqualTo("/assets/parties/fgd-display.png");
         assertThat(byCode.get("FGD").symbolVerified()).isTrue();
+
+        PoliticalParty neoDemocrats = byCode.get("ND");
+        PoliticalParty nationalDemocrats = byCode.get("PDN");
+        assertThat(neoDemocrats.nameFr()).isEqualTo("Parti des Néo-Démocrates");
+        assertThat(neoDemocrats.nameAr()).isEqualTo("حزب الديمقراطيين الجدد");
+        assertThat(neoDemocrats.symbolAsset()).isEqualTo("/assets/parties/nd-display.png");
+        assertThat(nationalDemocrats.nameFr()).isEqualTo("Parti Démocrate National");
+        assertThat(nationalDemocrats.nameAr()).isEqualTo("الحزب الديمقراطي الوطني");
+        assertThat(nationalDemocrats.symbolLabelFr()).isEqualTo("Parapluie");
+        assertThat(nationalDemocrats.symbolAsset()).isEqualTo("/assets/parties/pdn-display.png");
+        assertThat(nationalDemocrats.symbolVerified()).isTrue();
+        assertThat(nationalDemocrats).isNotEqualTo(neoDemocrats);
     }
 
     @Test

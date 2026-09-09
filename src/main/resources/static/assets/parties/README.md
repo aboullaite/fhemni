@@ -8,6 +8,14 @@ FGD's source artwork was downloaded unchanged on the same date from the
 party's official [2026 election platform](https://fgd.ma/apps/loielec/). It is
 also served locally rather than hot-linked.
 
+PDN's umbrella artwork was downloaded unchanged from the
+[TAFRA party catalogue](https://wiki.thevoice.ma/partis/pdn/). Its identity was
+cross-checked against the official [Maroc.ma party directory](https://www.maroc.ma/fr/le-maroc/les-partis-politiques-et-syndicats),
+which lists PDN and ND separately, and PDN's own
+[2026–2030 programme](https://www.pdn.ma/programme/). PDN and ND therefore have
+separate catalogue records and artwork; existing ND affiliations are not
+reassigned.
+
 The UI uses the corresponding `*-display.png` derivatives. These are mechanical
 emblem crops, resized with Lanczos interpolation and centred on equal 256 × 256
 transparent canvases. They are not redrawn, recoloured or generatively edited;
@@ -36,6 +44,7 @@ claim over the artwork.
 | PML | `pml-maroc-ma.jpeg` | [source](https://www.maroc.ma/sites/default/files/2025-01/image50.jpeg) | `1bd4617074008d38fa49ae6fa92c1e799a6a306182ba42636a61a8ac6beef107` |
 | PVM | `pvm-maroc-ma.jpeg` | [source](https://www.maroc.ma/sites/default/files/2025-01/image42.jpeg) | `d11050fba64768a2be26976dc488aa4536c931d34de9e27dcd7a417c626b29e7` |
 | ND | `nd-maroc-ma.jpg` | [source](https://www.maroc.ma/sites/default/files/2024-10/PARTI%20DES%20NEO-DEMOCRATES.jpg) | `b915699217edc715b441db286c5979a9fe7d3d2e4ca5744db82628015fdffc89` |
+| PDN | `pdn-tafra.jpg` | [source](https://wiki.thevoice.ma/wp-content/uploads/2023/12/c645b6b6-e000-11eb-ac93-2753eed7ac4c.jpg) | `7df19bd327f3ca3fd27d58cef77796a5670f0a8e258906ee528d6482ba7a5a34` |
 | PGV | `pgv-maroc-ma.jpeg` | [source](https://www.maroc.ma/sites/default/files/2025-01/image44.jpeg) | `b9adaddb9690286caec111a3410522d821be2ee222594b7eaa19c53c6e4ba4ff` |
 | PEDD | `pedd-maroc-ma.png` | [source](https://www.maroc.ma/sites/default/files/2024-10/PARTI%20DE%20LENVIRONNEMENT%20ET%20DU%20DEVELOPPEMENT%20DURABLE.png) | `9b33bdfed7678a8d136ad5d27d6a1a286ef94e0b36877dcf24667a14fbfacbe2` |
 | PUD | `pud-maroc-ma.png` | [source](https://www.maroc.ma/sites/default/files/2024-10/%D8%AD%D8%B2%D8%A8%20%D8%A7%D9%84%D9%88%D8%AD%D8%AF%D8%A9%20%D9%88%D8%A7%D9%84%D8%AF%D9%8A%D9%85%D9%82%D8%B1%D8%A7%D8%B7%D9%8A%D8%A9.png) | `3dbec14201fc80e969339596255e6551b44e5f6075b67528e475cab2888efa94` |
