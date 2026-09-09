@@ -418,7 +418,7 @@
         top.className = 'promise-card-topline';
         const topic = document.createElement('span');
         topic.className = 'section-kicker';
-        topic.textContent = promise.topic;
+        topic.textContent = localizedTopic(promise.topic);
         const verdict = document.createElement('span');
         verdict.className = `feasibility-badge ${String(promise.verdict).toLowerCase().replace('_', '-')}`;
         verdict.textContent = t(`promise.verdict.${promise.verdict}`);
@@ -440,6 +440,35 @@
         more.textContent = t('programme.readAssessment');
         article.append(top, title, summary, more);
         return article;
+    }
+
+    function localizedTopic(rawTopic) {
+        const topic = String(rawTopic || '')
+            .normalize('NFD')
+            .replace(/\p{M}/gu, '')
+            .toLowerCase();
+        const topics = [
+            ['agriculture', /agriculture|rural|فلاح|زراع|قروي/],
+            ['transportInfrastructure', /transport|infrastructure|نقل|طرق|بنية تحتية/],
+            ['sport', /(^|[^a-z])sport([^a-z]|$)|رياض/],
+            ['cultureIdentity', /(^|[^a-z])culture([^a-z]|$)|amazigh|identity|ثقاف|امازيغ|هوي/],
+            ['familyYouth', /women|woman|youth|family|femme|jeunesse|famille|مرأة|المراة|نساء|شباب|اسر/],
+            ['higherEducation', /higher education|enseignement superieur|research|recherche|universit|تعليم عالي|التعليم العالي|بحث علمي|البحث العلمي|جامع/],
+            ['employment', /employment|emploi|labou?r|travail|chomage|salaire|wage|pouvoir d'achat|تشغيل|شغل|عمل|بطال|اجور|الأجور|قدرة شرائية/],
+            ['socialProtection', /social protection|protection sociale|securite sociale|pension|retrait|حماية اجتماعية|الحماية الاجتماعية|تقاعد|معاش|دعم اجتماعي/],
+            ['health', /health|sante|medical|صحة|الصحة|طب|استشف/],
+            ['financeTax', /finance|financement|fiscal|tax|douan|budget|مالي|تمويل|ضريب|جبا|ميزاني|ادخار|قروض/],
+            ['economy', /econom|industrie|entrepris|pme|market|concurrence|اقتصاد|صناع|مقاول|استثمار|تنافس/],
+            ['education', /education|enseignement|school|تعليم|تربية|مدرس/],
+            ['energy', /energy|energie|طاق/],
+            ['waterEnvironment', /water|eau|environment|environnement|climat|ماء|مياه|بيئ|مناخ/],
+            ['housing', /housing|habitat|logement|سكن/],
+            ['digital', /digital|numerique|data|artificial intelligence|رقم|بيانات|ذكاء اصطناعي/],
+            ['governance', /governance|justice|transparen|moralisation|rights|election|حكامة|عدال|قضاء|شفاف|انتخاب|حقوق/],
+            ['diplomacy', /diplom|foreign|mre|diaspora|جالية|دبلوماس|خارجية/]
+        ];
+        const match = topics.find(([, pattern]) => pattern.test(topic));
+        return t(`programme.topic.${match?.[0] || 'other'}`);
     }
 
     function localized(value) {

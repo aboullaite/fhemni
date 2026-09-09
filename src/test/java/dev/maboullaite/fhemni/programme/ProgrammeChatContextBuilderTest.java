@@ -44,6 +44,7 @@ class ProgrammeChatContextBuilderTest {
                 .contains("Create 200,000 jobs each year")
                 .contains("Five-year verdict: HARD")
                 .contains("published feasibility=HARD")
+                .contains("assessment=[ASSESSMENT_2]")
                 .contains("evidence=[PROMISE_2_E1] HCP — Jobs report")
                 .contains("--- Official document extract 1; cite [PROGRAMME] ---")
                 .contains("RECENT PRIVATE CONVERSATION")
@@ -51,7 +52,8 @@ class ProgrammeChatContextBuilderTest {
                 .doesNotContain("RNI");
         assertThat(context.material().indexOf("Title: Create 200,000 jobs each year"))
                 .isLessThan(context.material().indexOf("Title: Digitise courts"));
-        assertThat(context.sources()).containsKeys("PROGRAMME", "PROMISE_2", "PROMISE_2_E1");
+        assertThat(context.sources()).containsKeys(
+                "PROGRAMME", "PROMISE_2", "ASSESSMENT_2", "PROMISE_2_E1");
     }
 
     @Test
@@ -95,10 +97,11 @@ class ProgrammeChatContextBuilderTest {
 
         assertThat(context.material())
                 .contains("[PROMISE_10] Promise 10")
+                .contains("assessment=[ASSESSMENT_10]")
                 .contains("published feasibility=HARD")
                 .contains("evidence=[PROMISE_10_E1] HCP — Jobs report")
                 .doesNotContain("Title: Promise 10");
-        assertThat(context.sources()).containsKey("PROMISE_10_E1");
+        assertThat(context.sources()).containsKeys("ASSESSMENT_10", "PROMISE_10_E1");
     }
 
     @Test

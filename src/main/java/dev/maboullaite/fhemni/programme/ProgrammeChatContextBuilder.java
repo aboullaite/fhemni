@@ -78,7 +78,7 @@ public class ProgrammeChatContextBuilder {
                     programme.sourceLabel() + " · " + promise.sourceLocator(), programme.sourceUrl(), ""));
             append(material, "[" + id + "] " + localized(promise.title(), language)
                     + " | topic=" + promise.topic() + " | locator=" + promise.sourceLocator());
-            appendCompactAssessment(material, sources, item.assessment(), id, language);
+            appendCompactAssessment(material, sources, promise, item.assessment(), id, language);
             append(material, "\n");
         }
 
@@ -94,7 +94,7 @@ public class ProgrammeChatContextBuilder {
             append(material, "Stated implementation: " + promise.mechanism() + "\n");
             append(material, "Stated financing: " + promise.financing() + "\n");
             if (item.assessment() != null) {
-                appendAssessment(material, sources, item.assessment(), id, language);
+                appendAssessment(material, sources, promise, item.assessment(), id, language);
             }
         }
 
@@ -123,11 +123,14 @@ public class ProgrammeChatContextBuilder {
     private void appendCompactAssessment(
             StringBuilder material,
             Map<String, SourceReference> sources,
+            PartyPromise promise,
             PromiseAssessment assessment,
             String promiseId,
             OutputLanguage language) {
         if (assessment == null) return;
-        append(material, " | published feasibility=" + assessment.verdict());
+        String assessmentId = assessmentId(promiseId);
+        sources.put(assessmentId, assessmentSourceReference(promise, assessment, language));
+        append(material, " | assessment=[" + assessmentId + "] published feasibility=" + assessment.verdict());
         append(material, " | review=" + clipped(localized(assessment.summary(), language), 450));
         for (int index = 0; index < Math.min(2, assessment.evidence().size()); index++) {
             Evidence evidence = assessment.evidence().get(index);
@@ -142,10 +145,14 @@ public class ProgrammeChatContextBuilder {
     private void appendAssessment(
             StringBuilder material,
             Map<String, SourceReference> sources,
+            PartyPromise promise,
             PromiseAssessment assessment,
             String promiseId,
             OutputLanguage language) {
-        append(material, "Published Fhemni feasibility assessment for [" + promiseId + "]:\n");
+        String assessmentId = assessmentId(promiseId);
+        sources.put(assessmentId, assessmentSourceReference(promise, assessment, language));
+        append(material, "Published Fhemni feasibility assessment [" + assessmentId
+                + "] for programme promise [" + promiseId + "]:\n");
         append(material, "Five-year verdict: " + assessment.verdict() + "\n");
         append(material, "Assessment summary: " + localized(assessment.summary(), language) + "\n");
         append(material, "Requirements: " + localized(assessment.requirements(), language) + "\n");
@@ -282,6 +289,20 @@ public class ProgrammeChatContextBuilder {
                 evidence.publisher() + " · " + evidence.title(),
                 evidence.url(),
                 evidence.publishedOn() == null ? "" : evidence.publishedOn().toString());
+    }
+
+    private static SourceReference assessmentSourceReference(
+            PartyPromise promise,
+            PromiseAssessment assessment,
+            OutputLanguage language) {
+        return new SourceReference(
+                "Fhemni five-year feasibility review · " + localized(promise.title(), language),
+                "/promises/" + promise.slug(),
+                assessment.dataCutoff() == null ? "" : assessment.dataCutoff().toString());
+    }
+
+    private static String assessmentId(String promiseId) {
+        return promiseId.replace("PROMISE_", "ASSESSMENT_");
     }
 
     private static String promiseId(int index) {

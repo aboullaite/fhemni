@@ -34,13 +34,14 @@ class ProgrammeChatServiceTest {
         when(fixture.gateway.answer(any(), any(), any())).thenReturn(new ProgrammeChatGateway.Result(
                 "The programme promises jobs; the review says delivery is difficult.",
                 ProgrammeChatBasis.BOTH,
-                List.of("PROMISE_1", "PROMISE_1_E1", "INVENTED"),
+                List.of("PROMISE_1", "ASSESSMENT_1", "PROMISE_1_E1", "INVENTED"),
                 usage));
 
         ProgrammeChatAnswer answer = fixture.service.ask("PJD", fixture.userId, "What about jobs?", "en");
 
         assertThat(answer.basis()).isEqualTo(ProgrammeChatBasis.BOTH);
-        assertThat(answer.sources()).containsExactly(fixture.programmeSource, fixture.evidenceSource);
+        assertThat(answer.sources()).containsExactly(
+                fixture.programmeSource, fixture.assessmentSource, fixture.evidenceSource);
         verify(fixture.usageGuard).reserveQuestion(
                 null, fixture.userId, AiOperation.CHAT_PROGRAMME, "gemini-3.8-flash");
         verify(fixture.usageGuard).succeeded(fixture.reservation, usage);
@@ -57,6 +58,19 @@ class ProgrammeChatServiceTest {
                 .isInstanceOf(GeminiApiException.class)
                 .hasMessageContaining("evidence did not match");
         verify(fixture.usageGuard).failed(fixture.reservation, usage);
+    }
+
+    @Test
+    void acceptsAFeasibilityAnswerThatCitesThePublishedAssessment() {
+        Fixture fixture = fixture();
+        AiUsage usage = new AiUsage(500, 80, null, null, null, null);
+        when(fixture.gateway.answer(any(), any(), any())).thenReturn(new ProgrammeChatGateway.Result(
+                "It is difficult.", ProgrammeChatBasis.FEASIBILITY, List.of("ASSESSMENT_1"), usage));
+
+        ProgrammeChatAnswer answer = fixture.service.ask("PJD", fixture.userId, "Is it feasible?", "en");
+
+        assertThat(answer.sources()).containsExactly(fixture.assessmentSource);
+        verify(fixture.usageGuard).succeeded(fixture.reservation, usage);
     }
 
     @Test
@@ -94,10 +108,13 @@ class ProgrammeChatServiceTest {
                 "Official programme · page 1", programme.sourceUrl(), "");
         SourceReference evidenceSource = new SourceReference(
                 "HCP · Jobs report", "https://hcp.example/jobs", "2026-01-01");
+        SourceReference assessmentSource = new SourceReference(
+                "Fhemni five-year feasibility review · Jobs", "/promises/jobs", "2026-01-01");
         ProgrammeChatContext context = new ProgrammeChatContext(
                 "PJD-only material", Map.of(
                         "PROGRAMME", new SourceReference("Official programme", programme.sourceUrl(), ""),
                         "PROMISE_1", programmeSource,
+                        "ASSESSMENT_1", assessmentSource,
                         "PROMISE_1_E1", evidenceSource));
 
         when(programmes.publishedChatDossier("PJD")).thenReturn(dossier);
@@ -110,7 +127,7 @@ class ProgrammeChatServiceTest {
         ProgrammeChatService service = new ProgrammeChatService(
                 programmes, contexts, gateway, usageGuard, 8, 100, Duration.ofHours(6));
         return new Fixture(service, contexts, gateway, usageGuard, dossier, userId, reservation,
-                programmeSource, evidenceSource);
+                programmeSource, assessmentSource, evidenceSource);
     }
 
     private static LocalizedText text(String ar, String fr, String en) {
@@ -126,6 +143,7 @@ class ProgrammeChatServiceTest {
             UUID userId,
             Reservation reservation,
             SourceReference programmeSource,
+            SourceReference assessmentSource,
             SourceReference evidenceSource) {
     }
 }

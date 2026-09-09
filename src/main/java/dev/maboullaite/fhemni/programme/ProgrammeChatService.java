@@ -21,12 +21,16 @@ import dev.maboullaite.fhemni.model.OutputLanguage;
 import dev.maboullaite.fhemni.model.SourceReference;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.ProgrammeChatDossier;
 import dev.maboullaite.fhemni.programme.ProgrammeChatContextBuilder.ConversationTurn;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ProgrammeChatService {
+
+    private static final Logger log = LoggerFactory.getLogger(ProgrammeChatService.class);
 
     private final PartyProgrammeService programmes;
     private final ProgrammeChatContextBuilder contexts;
@@ -95,6 +99,13 @@ public class ProgrammeChatService {
             conversation.add(new ConversationTurn(cleanQuestion, generated.answer()));
             return answer;
         } catch (GeminiApiException exception) {
+            log.warn(
+                    "Programme chat response rejected for party {}: {} (upstreamStatus={}, inputTokens={}, outputTokens={})",
+                    partyCode,
+                    exception.getMessage(),
+                    exception.upstreamStatus(),
+                    exception.usage().inputTokens(),
+                    exception.usage().outputTokens());
             usageGuard.failed(reservation, exception.usage());
             throw exception;
         } catch (RuntimeException exception) {
@@ -140,13 +151,19 @@ public class ProgrammeChatService {
         boolean programmeCitation = recognizedIds.stream()
                 .anyMatch(id -> id.equals("PROGRAMME")
                         || id.startsWith("PROMISE_") && !id.contains("_E"));
+        boolean assessmentCitation = recognizedIds.stream().anyMatch(id -> id.startsWith("ASSESSMENT_"));
         boolean evidenceCitation = recognizedIds.stream().anyMatch(id -> id.contains("_E"));
+        boolean feasibilityCitation = assessmentCitation || evidenceCitation;
         boolean validBasis = switch (generated.basis()) {
             case PROGRAMME, NOT_FOUND -> programmeCitation;
-            case FEASIBILITY -> evidenceCitation;
-            case BOTH -> programmeCitation && evidenceCitation;
+            case FEASIBILITY -> feasibilityCitation;
+            case BOTH -> programmeCitation && feasibilityCitation;
         };
         if (!validBasis) {
+            log.warn(
+                    "Programme chat citation mismatch: basis={}, recognizedCitationIds={}",
+                    generated.basis(),
+                    recognizedIds);
             throw new GeminiApiException(
                     "Programme chat evidence did not match its answer basis", generated.usage());
         }

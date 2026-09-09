@@ -71,4 +71,24 @@ class ProgrammeChatGatewayTest {
                 .hasMessageContaining("invalid structured programme answer")
                 .satisfies(error -> assertThat(((GeminiApiException) error).usage()).isEqualTo(usage));
     }
+
+    @Test
+    void removesInternalCitationIdsAndLocalizesVerdictCodesFromVisibleAnswer() {
+        GeminiInteractionsClient client = mock(GeminiInteractionsClient.class);
+        when(client.configured()).thenReturn(true);
+        when(client.model()).thenReturn("gemini-3.8-flash");
+        when(client.createQuestion(any())).thenReturn(new InteractionResponse(
+                "", """
+                {"answer":"هاد الوعد HARD [ASSESSMENT_1]، والمعطيات ديال وعد آخر INSUFFICIENT_DATA [PROMISE_2_E1].","basis":"FEASIBILITY","citationIds":["ASSESSMENT_1","PROMISE_2_E1"]}
+                """, List.of(), AiUsage.empty()));
+        ProgrammeChatGateway gateway = new ProgrammeChatGateway(client, new ObjectMapper(), 2_048);
+
+        ProgrammeChatGateway.Result result = gateway.answer(
+                "واش ساهل؟", OutputLanguage.DARIJA, "PJD-only dossier");
+
+        assertThat(result.answer())
+                .isEqualTo("هاد الوعد صعيب ولكن ممكن، والمعطيات ديال وعد آخر ما كايناش معطيات كافية.")
+                .doesNotContain("ASSESSMENT", "PROMISE_", "HARD", "INSUFFICIENT_DATA");
+        assertThat(result.citationIds()).containsExactly("ASSESSMENT_1", "PROMISE_2_E1");
+    }
 }
