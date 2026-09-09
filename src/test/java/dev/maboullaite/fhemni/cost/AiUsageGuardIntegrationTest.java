@@ -55,7 +55,7 @@ class AiUsageGuardIntegrationTest {
 
         var user = users.recordLogin(new ExternalIdentityProfile(
                 "test", "cost-user", null, "Cost User", null, false, null), false);
-        guard.reserveQuestion(firstAnalysis, user.id(), AiOperation.CHAT_VIDEO, "test-model");
+        guard.reserveQuestion(firstAnalysis, user.id(), AiOperation.CHAT_PROGRAMME, "test-model");
         assertThatThrownBy(() -> guard.reserveQuestion(
                 firstAnalysis, user.id(), AiOperation.CHAT_CHECK, "test-model"))
                 .isInstanceOf(AiBudgetExceededException.class)

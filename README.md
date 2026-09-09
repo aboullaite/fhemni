@@ -17,7 +17,7 @@ episode by episode.
 - source-grounded claim checking
 - community suggestions and voting
 - review-before-publication workflow
-- optional authenticated video Q&A with weekly usage limits
+- optional authenticated, source-locked video and party-programme Q&A with weekly usage limits
 
 ## Run locally
 
@@ -49,7 +49,7 @@ Fhemni uses two complementary integrations:
 
 | Responsibility | Integration |
 | --- | --- |
-| Agentic video analysis and video-context questions | Google Gen AI Java SDK and Gemini Interactions API |
+| Agentic video analysis, video questions, and source-locked programme questions | Google Gen AI Java SDK and Gemini Interactions API |
 | Independent, search-grounded fact checking | Spring AI `ChatClient` with Google GenAI |
 | 2026 programme feasibility | Configurable Gemini, OpenAI, or Gemini + OpenAI consensus |
 

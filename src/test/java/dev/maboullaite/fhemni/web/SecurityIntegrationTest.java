@@ -59,6 +59,7 @@ class SecurityIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.analysisEnabled").value(false))
                 .andExpect(jsonPath("$.chatEnabled").value(false))
+                .andExpect(jsonPath("$.programmeChatEnabled").value(false))
                 .andExpect(jsonPath("$.analyticsMeasurementId").value(""));
     }
 
@@ -103,6 +104,12 @@ class SecurityIntegrationTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"question\":\"Hello\",\"mode\":\"VIDEO\"}"))
+                .andExpect(status().isUnauthorized());
+
+        mvc.perform(post("/api/catalog/parties/PJD/programme/questions")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"question\":\"What about jobs?\",\"language\":\"en\"}"))
                 .andExpect(status().isUnauthorized());
     }
 

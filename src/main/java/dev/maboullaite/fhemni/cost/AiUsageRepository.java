@@ -20,7 +20,7 @@ public class AiUsageRepository {
     public long countGlobal(Instant fromInclusive, Instant toExclusive, boolean analyses) {
         String operationFilter = analyses
                 ? "operation = 'ANALYSIS'"
-                : "operation IN ('CHAT_VIDEO', 'CHAT_CHECK')";
+                : "operation IN ('CHAT_VIDEO', 'CHAT_CHECK', 'CHAT_PROGRAMME')";
         return jdbc.sql("""
                         SELECT COUNT(*)
                           FROM ai_usage_events
@@ -38,7 +38,7 @@ public class AiUsageRepository {
         return jdbc.sql("""
                         SELECT COUNT(*)
                           FROM ai_usage_events
-                         WHERE operation IN ('CHAT_VIDEO', 'CHAT_CHECK')
+                         WHERE operation IN ('CHAT_VIDEO', 'CHAT_CHECK', 'CHAT_PROGRAMME')
                            AND user_id = :userId
                            AND requested_at >= :fromInclusive
                            AND requested_at < :toExclusive
@@ -54,7 +54,7 @@ public class AiUsageRepository {
         return jdbc.sql("""
                         SELECT COALESCE(SUM(output_tokens), 0)
                           FROM ai_usage_events
-                         WHERE operation IN ('CHAT_VIDEO', 'CHAT_CHECK')
+                         WHERE operation IN ('CHAT_VIDEO', 'CHAT_CHECK', 'CHAT_PROGRAMME')
                            AND user_id = :userId
                            AND requested_at >= :fromInclusive
                            AND requested_at < :toExclusive

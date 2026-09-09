@@ -173,6 +173,24 @@ final class GeminiSchemas {
                 """);
     }
 
+    static JsonNode programmeChat(ObjectMapper mapper) {
+        return read(mapper, """
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "answer": {"type": "string"},
+                    "basis": {"type": "string", "enum": ["PROGRAMME", "FEASIBILITY", "BOTH", "NOT_FOUND"]},
+                    "citationIds": {
+                      "type": "array",
+                      "items": {"type": "string"}
+                    }
+                  },
+                  "required": ["answer", "basis", "citationIds"]
+                }
+                """);
+    }
+
     private static JsonNode read(ObjectMapper mapper, String json) {
         try {
             return mapper.readTree(json);

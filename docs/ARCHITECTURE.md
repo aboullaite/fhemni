@@ -37,6 +37,9 @@ reconciliation that must resolve disagreements from cited evidence. The final
 draft records its methodology, mode, and model names before editorial review.
 Changing mode affects only future drafts; stored and published assessments keep
 their original attribution. OpenAI is never used for video analysis or chat.
+Party-programme chat is a separate Gemini interaction with no search tool. Its
+context is assembled only from one party's verified, published 2026 programme,
+published promises, and published feasibility assessments and evidence.
 
 ## Persistence
 
@@ -46,10 +49,10 @@ compatibility mode; PostgreSQL is supported for container deployments.
 Catalogue entries, external identities, suggestions, votes, AI usage records,
 completed analysis revisions, and private Gemini video contexts are durable.
 Login sessions are stored in the same database through Spring Session JDBC, so
-an application restart or traffic switch does not sign users out. Follow-up
-conversation state is bounded and process-local; it must move to shared storage
-before multiple application instances can serve chat traffic concurrently.
-Restarting does not remove a published report.
+an application restart or traffic switch does not sign users out. Video and
+party-programme follow-up conversation state is bounded and process-local; it
+must move to shared storage before multiple application instances can serve
+chat traffic concurrently. Restarting does not remove a published report.
 
 A completed revision is reused only when the video, language, prompt versions,
 model identities, and live/demo mode match. Reprocessing creates a new draft and
@@ -73,7 +76,7 @@ Chat is protected independently from analysis:
 - only authenticated users can submit questions;
 - each submitted question is one billable chat round, whether it succeeds or
   the provider fails after accepting it;
-- the default allowance is five rounds per user per Monday-to-Monday UTC week;
+- the default allowance is 20 rounds per user per Monday-to-Monday UTC week;
 - global ceilings default to 50 rounds per UTC hour and 500 per UTC day;
 - question text, provider context depth, response tokens, and request time are
   bounded;
@@ -81,7 +84,10 @@ Chat is protected independently from analysis:
 
 Chat answers are intentionally not shared or cached across users. They may
 depend on private conversation context, while the underlying published video
-analysis remains the reusable shared artifact.
+analysis and party-programme evidence remain reusable shared artifacts. Party
+chat labels whether an answer came from the official programme, the published
+feasibility review, both, or was not found. Returned citations are checked
+against server-owned source identifiers before an answer is exposed.
 
 ## Application modules
 
@@ -109,4 +115,6 @@ analysis remains the reusable shared artifact.
 - Only authenticated users can submit or vote on suggestions.
 - Only administrators can create, reprocess, review, or publish analyses.
 - Provider keys remain server-side and are never returned to browser code.
+- Party chat never mixes parties, performs live web research, or gives voting
+  recommendations. Feasibility answers require published evidence citations.
 - Automated tests use local stubs and must never consume external AI quota.

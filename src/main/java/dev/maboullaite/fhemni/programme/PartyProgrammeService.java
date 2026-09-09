@@ -359,6 +359,22 @@ public class PartyProgrammeService {
                 programme.publishedAt(), promises);
     }
 
+    public ProgrammeChatDossier publishedChatDossier(String partyCode) {
+        PartyProgramme programme = repository.findPublishedChatSourceByParty(
+                        required(partyCode, "Party code", 10).toUpperCase(Locale.ROOT), ELECTION_YEAR)
+                .orElseThrow(() -> new NoSuchElementException(
+                        "No verified published 2026 programme was found for this party."));
+        List<PartyPromise> promises = repository.findPromises(programme.id(), true);
+        Map<UUID, List<PromiseAssessment>> assessments = repository.findAssessments(
+                promises.stream().map(PartyPromise::id).toList(), true);
+        List<ProgrammeChatPromise> published = promises.stream()
+                .map(promise -> new ProgrammeChatPromise(
+                        promise,
+                        assessments.getOrDefault(promise.id(), List.of()).stream().findFirst().orElse(null)))
+                .toList();
+        return new ProgrammeChatDossier(programme, published);
+    }
+
     public PublicPromiseView publishedPromise(String slug) {
         PartyPromise promise = repository.findPublishedPromiseBySlug(required(slug, "Promise slug", 180))
                 .orElseThrow(() -> new NoSuchElementException("Published promise not found."));
@@ -720,5 +736,15 @@ public class PartyProgrammeService {
             FeasibilityVerdict verdict,
             LocalizedText assessmentSummary,
             LocalDate dataCutoff) {
+    }
+
+    public record ProgrammeChatDossier(
+            PartyProgramme programme,
+            List<ProgrammeChatPromise> promises) {
+    }
+
+    public record ProgrammeChatPromise(
+            PartyPromise promise,
+            PromiseAssessment assessment) {
     }
 }

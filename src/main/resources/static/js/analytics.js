@@ -67,6 +67,16 @@
         if (path === '/videos' || path === '/videos.html' || path === '/catalog') {
             return page('catalogue', 'Catalogue');
         }
+        if (path === '/parties' || path === '/parties.html') return page('parties', 'Parties');
+        if (segments[0] === 'parties' && segments.length > 1) {
+            return page('party', 'Party', safeValue(segments[1]));
+        }
+        if (segments[0] === 'promises' && segments.length > 1) {
+            return page('promise', 'Promise', safeValue(segments[1]));
+        }
+        if (segments[0] === 'people' && segments.length > 1) {
+            return page('person', 'Person', safeValue(segments[1]));
+        }
         if (segments[0] === 'videos' && segments.length > 1) {
             return page('video', 'Video', safeValue(segments[1]));
         }

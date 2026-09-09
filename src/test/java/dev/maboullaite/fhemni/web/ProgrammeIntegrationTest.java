@@ -115,6 +115,17 @@ class ProgrammeIntegrationTest {
         programmes.publishPromise(promise.promise().id());
         programmes.publishProgramme(programme.id());
 
+        var chatDossier = programmes.publishedChatDossier("PAM");
+        assertThat(chatDossier.programme().sourceSnapshot())
+                .isEqualTo("Frozen official programme text for editorial review.");
+        assertThat(chatDossier.promises()).singleElement().satisfies(item -> {
+            assertThat(item.promise().slug()).isEqualTo("million-net-jobs");
+            assertThat(item.assessment()).isNotNull();
+            assertThat(item.assessment().status().name()).isEqualTo("PUBLISHED");
+            assertThat(item.assessment().evidence()).singleElement()
+                    .satisfies(evidence -> assertThat(evidence.publisher()).isEqualTo("HCP"));
+        });
+
         mvc.perform(get("/api/catalog/parties/PAM/programme"))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CACHE_CONTROL, org.hamcrest.Matchers.containsString("max-age=300")))

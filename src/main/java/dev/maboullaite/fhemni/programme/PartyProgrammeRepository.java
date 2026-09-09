@@ -132,6 +132,20 @@ public class PartyProgrammeRepository {
                 .optional();
     }
 
+    public Optional<PartyProgramme> findPublishedChatSourceByParty(String partyCode, int electionYear) {
+        return jdbc.sql("""
+                        SELECT %s FROM party_programmes
+                         WHERE party_code = :partyCode
+                           AND election_year = :electionYear
+                           AND editorial_status = 'PUBLISHED'
+                           AND source_verified = TRUE
+                        """.formatted(PROGRAMME_COLUMNS))
+                .param("partyCode", partyCode)
+                .param("electionYear", electionYear)
+                .query(this::mapProgramme)
+                .optional();
+    }
+
     public void insertProgramme(PartyProgramme programme) {
         jdbc.sql("""
                         INSERT INTO party_programmes (

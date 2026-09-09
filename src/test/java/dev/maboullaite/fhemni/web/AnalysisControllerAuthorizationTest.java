@@ -14,6 +14,7 @@ import java.util.UUID;
 
 import dev.maboullaite.fhemni.analysis.AnalysisService;
 import dev.maboullaite.fhemni.identity.CurrentUserService;
+import dev.maboullaite.fhemni.programme.ProgrammeChatService;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.Authentication;
 
@@ -29,7 +30,8 @@ class AnalysisControllerAuthorizationTest {
         when(currentUser.isAdministrator(authentication)).thenReturn(false);
         when(analyses.getPublished(analysisId, null))
                 .thenThrow(new NoSuchElementException("Published analysis not found."));
-        AnalysisController controller = new AnalysisController(analyses, currentUser, "");
+        AnalysisController controller = new AnalysisController(
+                analyses, currentUser, mock(ProgrammeChatService.class), "");
 
         assertThrows(NoSuchElementException.class, () -> controller.events(analysisId, authentication));
 

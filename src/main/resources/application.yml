@@ -63,6 +63,7 @@ fhemni:
     analysis-max-output-tokens: ${GEMINI_ANALYSIS_MAX_OUTPUT_TOKENS:16384}
     context-max-output-tokens: ${GEMINI_CONTEXT_MAX_OUTPUT_TOKENS:16384}
     question-max-output-tokens: ${GEMINI_QUESTION_MAX_OUTPUT_TOKENS:16384}
+    programme-chat-max-output-tokens: ${GEMINI_PROGRAMME_CHAT_MAX_OUTPUT_TOKENS:2048}
     fact-check-max-output-tokens: ${GEMINI_FACT_CHECK_MAX_OUTPUT_TOKENS:8192}
   programme-fact-check:
     # gemini | openai | consensus. Production can switch providers without rebuilding the app.
@@ -89,6 +90,12 @@ fhemni:
     max-daily-chat-rounds: ${FHEMNI_MAX_DAILY_CHAT_ROUNDS:500}
     max-weekly-chat-rounds-per-user: ${FHEMNI_MAX_WEEKLY_CHAT_ROUNDS_PER_USER:20}
     max-daily-chat-output-tokens-per-user: ${FHEMNI_MAX_DAILY_CHAT_OUTPUT_TOKENS_PER_USER:16000}
+  programme-chat:
+    max-context-characters: ${FHEMNI_PROGRAMME_CHAT_MAX_CONTEXT_CHARACTERS:90000}
+    max-conversation-turns: ${FHEMNI_PROGRAMME_CHAT_MAX_CONVERSATION_TURNS:8}
+    max-user-conversations: ${FHEMNI_PROGRAMME_CHAT_MAX_USER_CONVERSATIONS:1000}
+    retention: ${FHEMNI_PROGRAMME_CHAT_RETENTION:PT6H}
+    cleanup-interval-ms: ${FHEMNI_PROGRAMME_CHAT_CLEANUP_INTERVAL_MS:300000}
   sessions:
     max: ${FHEMNI_MAX_SESSIONS:250}
     retention: ${FHEMNI_SESSION_RETENTION:PT6H}
