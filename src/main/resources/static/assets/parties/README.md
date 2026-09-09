@@ -4,6 +4,11 @@ The files ending in `-maroc-ma` were downloaded unchanged on 2026-09-09 from
 the official [Maroc.ma political-party directory](https://www.maroc.ma/fr/le-maroc/les-partis-politiques-et-syndicats).
 They are kept locally so public pages do not hot-link a third-party service.
 
+The UI uses the corresponding `*-display.png` derivatives. These are mechanical
+emblem crops, resized with Lanczos interpolation and centred on equal 256 × 256
+transparent canvases. They are not redrawn, recoloured or generatively edited;
+the unchanged source downloads remain available here for comparison.
+
 Maroc.ma's [terms of use](https://www.maroc.ma/fr/conditions-generales-d-utilisation)
 apply to the source material. This manifest records provenance; it does not make
 any ownership or relicensing claim over the artwork.
