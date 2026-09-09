@@ -52,6 +52,8 @@ class DirectorySeedIntegrationTest {
         assertThat(byCode.get("PE").symbolVerified()).isTrue();
         assertThat(byCode.get("FGD").symbolAsset()).isEqualTo("/assets/parties/fgd-display.png");
         assertThat(byCode.get("FGD").symbolVerified()).isTrue();
+        assertThat(byCode.get("FGD").catalogueCode()).isEqualTo("FGD");
+        assertThat(byCode.get("PSU").catalogueCode()).isEqualTo("FGD");
 
         PoliticalParty neoDemocrats = byCode.get("ND");
         PoliticalParty nationalDemocrats = byCode.get("PDN");

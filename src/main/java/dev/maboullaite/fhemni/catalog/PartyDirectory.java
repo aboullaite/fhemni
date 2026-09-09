@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -49,6 +50,18 @@ public class PartyDirectory {
     public PoliticalParty required(String code) {
         return findByCode(code)
                 .orElseThrow(() -> new java.util.NoSuchElementException("Unknown political party: " + code));
+    }
+
+    public PoliticalParty catalogueParty(PoliticalParty party) {
+        return required(party.catalogueCode());
+    }
+
+    public Set<String> catalogueMemberCodes(String catalogueCode) {
+        String normalized = required(catalogueCode).catalogueCode();
+        return parties.stream()
+                .filter(party -> normalized.equals(party.catalogueCode()))
+                .map(PoliticalParty::code)
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     public PoliticalParty fallback() {

@@ -6,6 +6,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.util.List;
 
+import javax.imageio.ImageIO;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
@@ -36,6 +38,22 @@ class NavigationConsistencyTest {
                     .as("primary navigation in %s", page)
                     .contains("href=\"/#how-it-works\" data-i18n=\"common.howItWorks\"");
         }
+    }
+
+    @Test
+    void homePagePublishesACompleteLargeSocialCard() throws IOException {
+        String home = html("index.html");
+        assertThat(home)
+                .contains("property=\"og:title\"")
+                .contains("property=\"og:description\"")
+                .contains("property=\"og:site_name\"")
+                .contains("name=\"twitter:card\" content=\"summary_large_image\"")
+                .contains("https://fhemni.aboullaite.me/assets/social/fhemni-og.png");
+
+        var imageResource = new ClassPathResource("static/assets/social/fhemni-og.png");
+        var image = ImageIO.read(imageResource.getInputStream());
+        assertThat(image.getWidth()).isEqualTo(1200);
+        assertThat(image.getHeight()).isEqualTo(630);
     }
 
     private String html(String page) throws IOException {

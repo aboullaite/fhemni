@@ -26,6 +26,7 @@ public class AiUsageGuard {
     private final int maxDailyAnalyses;
     private final int maxHourlyChatRounds;
     private final int maxDailyChatRounds;
+    private final int maxDailyChatRoundsPerUser;
     private final int maxWeeklyChatRoundsPerUser;
     private final int maxDailyChatOutputTokensPerUser;
     private final Object reservationMonitor = new Object();
@@ -38,12 +39,13 @@ public class AiUsageGuard {
             @Value("${fhemni.cost-control.max-daily-analyses:5}") int maxDailyAnalyses,
             @Value("${fhemni.cost-control.max-hourly-chat-rounds:50}") int maxHourlyChatRounds,
             @Value("${fhemni.cost-control.max-daily-chat-rounds:500}") int maxDailyChatRounds,
-            @Value("${fhemni.cost-control.max-weekly-chat-rounds-per-user:20}") int maxWeeklyChatRoundsPerUser,
+            @Value("${fhemni.cost-control.max-daily-chat-rounds-per-user:20}") int maxDailyChatRoundsPerUser,
+            @Value("${fhemni.cost-control.max-weekly-chat-rounds-per-user:100}") int maxWeeklyChatRoundsPerUser,
             @Value("${fhemni.cost-control.max-daily-chat-output-tokens-per-user:16000}")
             int maxDailyChatOutputTokensPerUser) {
         this(repository, Clock.systemUTC(), analysisEnabled, chatEnabled,
-                maxDailyAnalyses, maxHourlyChatRounds, maxDailyChatRounds, maxWeeklyChatRoundsPerUser,
-                maxDailyChatOutputTokensPerUser);
+                maxDailyAnalyses, maxHourlyChatRounds, maxDailyChatRounds, maxDailyChatRoundsPerUser,
+                maxWeeklyChatRoundsPerUser, maxDailyChatOutputTokensPerUser);
     }
 
     AiUsageGuard(
@@ -56,7 +58,7 @@ public class AiUsageGuard {
             int maxDailyChatRounds,
             int maxWeeklyChatRoundsPerUser) {
         this(repository, clock, analysisEnabled, chatEnabled, maxDailyAnalyses, maxHourlyChatRounds,
-                maxDailyChatRounds, maxWeeklyChatRoundsPerUser, 16_000);
+                maxDailyChatRounds, 20, maxWeeklyChatRoundsPerUser, 16_000);
     }
 
     AiUsageGuard(
@@ -67,11 +69,13 @@ public class AiUsageGuard {
             int maxDailyAnalyses,
             int maxHourlyChatRounds,
             int maxDailyChatRounds,
+            int maxDailyChatRoundsPerUser,
             int maxWeeklyChatRoundsPerUser,
             int maxDailyChatOutputTokensPerUser) {
         if (maxDailyAnalyses < 0
                 || maxHourlyChatRounds < 1
                 || maxDailyChatRounds < 1
+                || maxDailyChatRoundsPerUser < 1
                 || maxWeeklyChatRoundsPerUser < 1
                 || maxDailyChatOutputTokensPerUser < 1) {
             throw new IllegalArgumentException(
@@ -84,6 +88,7 @@ public class AiUsageGuard {
         this.maxDailyAnalyses = maxDailyAnalyses;
         this.maxHourlyChatRounds = maxHourlyChatRounds;
         this.maxDailyChatRounds = maxDailyChatRounds;
+        this.maxDailyChatRoundsPerUser = maxDailyChatRoundsPerUser;
         this.maxWeeklyChatRoundsPerUser = maxWeeklyChatRoundsPerUser;
         this.maxDailyChatOutputTokensPerUser = maxDailyChatOutputTokensPerUser;
     }
@@ -145,6 +150,12 @@ public class AiUsageGuard {
                         "CHAT_DAILY_LIMIT",
                         "The daily chat budget has been reached.");
             }
+            if (repository.countQuestionsForUser(userId, dailyWindow.from(), dailyWindow.to())
+                    >= maxDailyChatRoundsPerUser) {
+                throw new AiBudgetExceededException(
+                        "CHAT_USER_DAILY_LIMIT",
+                        "Your daily chat allowance has been reached.");
+            }
             if (repository.sumQuestionOutputTokensForUser(userId, dailyWindow.from(), dailyWindow.to())
                     >= maxDailyChatOutputTokensPerUser) {
                 throw new AiBudgetExceededException(
@@ -168,16 +179,22 @@ public class AiUsageGuard {
             throw new IllegalArgumentException("A user is required to read the chat quota.");
         }
         synchronized (reservationMonitor) {
-            Window window = currentWeek();
-            long used = repository.countQuestionsForUser(userId, window.from(), window.to());
+            Window weeklyWindow = currentWeek();
+            long weeklyUsed = repository.countQuestionsForUser(userId, weeklyWindow.from(), weeklyWindow.to());
             Window dailyWindow = today();
+            long dailyRequestsUsed = repository.countQuestionsForUser(
+                    userId, dailyWindow.from(), dailyWindow.to());
             long dailyOutputTokensUsed = repository.sumQuestionOutputTokensForUser(
                     userId, dailyWindow.from(), dailyWindow.to());
             return new ChatQuota(
                     maxWeeklyChatRoundsPerUser,
-                    used,
-                    Math.max(0L, maxWeeklyChatRoundsPerUser - used),
-                    window.to(),
+                    weeklyUsed,
+                    Math.max(0L, maxWeeklyChatRoundsPerUser - weeklyUsed),
+                    weeklyWindow.to(),
+                    maxDailyChatRoundsPerUser,
+                    dailyRequestsUsed,
+                    Math.max(0L, maxDailyChatRoundsPerUser - dailyRequestsUsed),
+                    dailyWindow.to(),
                     maxDailyChatOutputTokensPerUser,
                     dailyOutputTokensUsed,
                     Math.max(0L, maxDailyChatOutputTokensPerUser - dailyOutputTokensUsed),
@@ -247,6 +264,10 @@ public class AiUsageGuard {
             long used,
             long remaining,
             Instant resetsAt,
+            int dailyRequestLimit,
+            long dailyRequestsUsed,
+            long dailyRequestsRemaining,
+            Instant dailyRequestsResetAt,
             int dailyOutputTokenLimit,
             long dailyOutputTokensUsed,
             long dailyOutputTokensRemaining,

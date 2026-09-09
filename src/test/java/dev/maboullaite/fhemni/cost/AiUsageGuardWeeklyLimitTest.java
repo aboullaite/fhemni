@@ -29,11 +29,12 @@ class AiUsageGuardWeeklyLimitTest {
             Instant.parse("2026-09-06T20:00:00Z"), ZoneOffset.UTC);
 
     @Test
-    void reportsQuotaAndUsesTheSameMondayToMondayWindowForAdmission() {
+    void reportsDailyAndWeeklyQuotaUsingTheirMatchingAdmissionWindows() {
         AiUsageRepository repository = mock(AiUsageRepository.class);
         UUID userId = UUID.randomUUID();
         UUID analysisId = UUID.randomUUID();
-        when(repository.countQuestionsForUser(userId, WEEK_START, NEXT_WEEK)).thenReturn(19L, 20L);
+        when(repository.countQuestionsForUser(userId, DAY_START, NEXT_DAY)).thenReturn(7L, 8L);
+        when(repository.countQuestionsForUser(userId, WEEK_START, NEXT_WEEK)).thenReturn(99L, 100L);
         when(repository.reserve(
                 eq(AiOperation.CHAT_VIDEO), eq(userId), eq(analysisId), eq("test-model"), any()))
                 .thenReturn(UUID.randomUUID());
@@ -42,8 +43,12 @@ class AiUsageGuardWeeklyLimitTest {
         guard.reserveQuestion(analysisId, userId, AiOperation.CHAT_VIDEO, "test-model");
         AiUsageGuard.ChatQuota quota = guard.chatQuota(userId);
 
-        assertThat(quota.weeklyLimit()).isEqualTo(20);
-        assertThat(quota.used()).isEqualTo(20);
+        assertThat(quota.dailyRequestLimit()).isEqualTo(20);
+        assertThat(quota.dailyRequestsUsed()).isEqualTo(8);
+        assertThat(quota.dailyRequestsRemaining()).isEqualTo(12);
+        assertThat(quota.dailyRequestsResetAt()).isEqualTo(NEXT_DAY);
+        assertThat(quota.weeklyLimit()).isEqualTo(100);
+        assertThat(quota.used()).isEqualTo(100);
         assertThat(quota.remaining()).isZero();
         assertThat(quota.resetsAt()).isEqualTo(NEXT_WEEK);
         assertThat(quota.dailyOutputTokenLimit()).isEqualTo(16_000);
@@ -51,10 +56,27 @@ class AiUsageGuardWeeklyLimitTest {
     }
 
     @Test
-    void rejectsTheTwentyFirstAttemptEvenWhenEarlierProviderCallsFailed() {
+    void rejectsTheTwentyFirstDailyAttemptEvenWhenEarlierProviderCallsFailed() {
         AiUsageRepository repository = mock(AiUsageRepository.class);
         UUID userId = UUID.randomUUID();
-        when(repository.countQuestionsForUser(userId, WEEK_START, NEXT_WEEK)).thenReturn(20L);
+        when(repository.countQuestionsForUser(userId, DAY_START, NEXT_DAY)).thenReturn(20L);
+        AiUsageGuard guard = guard(repository);
+
+        assertThatThrownBy(() -> guard.reserveQuestion(
+                UUID.randomUUID(), userId, AiOperation.CHAT_CHECK, "test-model"))
+                .isInstanceOfSatisfying(AiBudgetExceededException.class, exception -> {
+                    assertThat(exception.code()).isEqualTo("CHAT_USER_DAILY_LIMIT");
+                    assertThat(exception).hasMessageContaining("daily chat allowance");
+                });
+        verify(repository, never()).reserve(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void rejectsTheHundredAndFirstWeeklyAttemptBeforeReservation() {
+        AiUsageRepository repository = mock(AiUsageRepository.class);
+        UUID userId = UUID.randomUUID();
+        when(repository.countQuestionsForUser(userId, DAY_START, NEXT_DAY)).thenReturn(19L);
+        when(repository.countQuestionsForUser(userId, WEEK_START, NEXT_WEEK)).thenReturn(100L);
         AiUsageGuard guard = guard(repository);
 
         assertThatThrownBy(() -> guard.reserveQuestion(
@@ -111,11 +133,11 @@ class AiUsageGuardWeeklyLimitTest {
                 .isInstanceOfSatisfying(AiBudgetExceededException.class, exception ->
                         assertThat(exception.code()).isEqualTo("CHAT_DAILY_TOKEN_LIMIT"));
 
-        verify(repository, never()).countQuestionsForUser(any(), any(), any());
+        verify(repository, never()).countQuestionsForUser(userId, WEEK_START, NEXT_WEEK);
         verify(repository, never()).reserve(any(), any(), any(), any(), any());
     }
 
     private static AiUsageGuard guard(AiUsageRepository repository) {
-        return new AiUsageGuard(repository, SUNDAY, true, true, 5, 50, 500, 20);
+        return new AiUsageGuard(repository, SUNDAY, true, true, 5, 50, 500, 20, 100, 16_000);
     }
 }

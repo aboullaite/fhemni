@@ -115,16 +115,26 @@ public class PersonCatalogService {
         String wantedParty = partyCode == null || partyCode.isBlank()
                 ? null
                 : partyCode.strip().toUpperCase(Locale.ROOT);
-        return load().people().values().stream()
-                .filter(builder -> matches(builder, normalizedQuery, wantedParty))
+        Loaded loaded = load();
+        Set<String> wantedPartyCodes = wantedParty == null
+                ? null
+                : loaded.parties().findByCode(wantedParty)
+                        .map(PoliticalParty::catalogueCode)
+                        .map(loaded.parties()::catalogueMemberCodes)
+                        .orElse(Set.of());
+        return loaded.people().values().stream()
+                .filter(builder -> matches(builder, normalizedQuery, wantedPartyCodes))
                 .map(Builder::summary)
                 .sorted(Comparator.comparingInt(PersonSummary::appearances).reversed()
                         .thenComparing(PersonSummary::displayName))
                 .toList();
     }
 
-    private boolean matches(Builder builder, String normalizedQuery, String wantedParty) {
-        if (wantedParty != null && !wantedParty.equals(builder.partyCode())) {
+    private boolean matches(
+            Builder builder,
+            String normalizedQuery,
+            Set<String> wantedPartyCodes) {
+        if (wantedPartyCodes != null && !wantedPartyCodes.contains(builder.partyCode())) {
             return false;
         }
         if (normalizedQuery.isEmpty()) {
@@ -153,25 +163,26 @@ public class PersonCatalogService {
         Set<String> partiesWithProgrammes = loaded.publishedProgrammePartyCodes();
         List<PartySummary> result = new ArrayList<>();
         for (PoliticalParty party : loaded.parties().findAll()) {
-            if (!party.visible()) {
+            if (!party.visible() || !party.code().equals(party.catalogueCode())) {
                 continue;
             }
+            Set<String> memberPartyCodes = loaded.parties().catalogueMemberCodes(party.code());
             List<PersonSummary> members = people.values().stream()
                     .map(Builder::summary)
-                    .filter(member -> party.code().equals(member.partyCode()))
+                    .filter(member -> memberPartyCodes.contains(member.partyCode()))
                     .sorted(Comparator.comparingInt(PersonSummary::appearances).reversed()
                             .thenComparing(PersonSummary::displayName))
                     .toList();
             // Distinct episodes: two same-party guests in one episode count once.
-            int appearances = partyEpisodes(people, party.code()).size();
-            int claims = partyClaimCount(people, party.code());
-            if (appearances == 0 && !partiesWithProgrammes.contains(party.code())) {
+            int appearances = partyEpisodes(people, memberPartyCodes).size();
+            int claims = partyClaimCount(people, memberPartyCodes);
+            if (appearances == 0 && memberPartyCodes.stream().noneMatch(partiesWithProgrammes::contains)) {
                 continue;
             }
             result.add(new PartySummary(
                     party.code(), party.nameFr(), party.nameAr(), party.color(),
                     party.symbolLabelFr(), party.symbolLabelAr(), party.symbolAsset(), party.symbolVerified(),
-                    members.size(), appearances, claims));
+                    memberPartyCodes.stream().sorted().toList(), members.size(), appearances, claims));
         }
         return result;
     }
@@ -188,42 +199,53 @@ public class PersonCatalogService {
 
     public PartyProfile party(String code) {
         Loaded loaded = load();
-        PoliticalParty party = loaded.parties().required(code);
+        PoliticalParty requestedParty = loaded.parties().required(code);
+        PoliticalParty party = loaded.parties().catalogueParty(requestedParty);
         if (!party.visible()) {
             throw new NoSuchElementException("This party page is not available.");
         }
+        Set<String> memberPartyCodes = loaded.parties().catalogueMemberCodes(party.code());
         Map<String, Builder> people = loaded.people();
         List<PersonSummary> members = people.values().stream()
                 .map(Builder::summary)
-                .filter(member -> party.code().equals(member.partyCode()))
+                .filter(member -> memberPartyCodes.contains(member.partyCode()))
                 .sorted(Comparator.comparingInt(PersonSummary::appearances).reversed()
                         .thenComparing(PersonSummary::displayName))
                 .toList();
         // Distinct episodes: two same-party guests in one episode count once.
-        List<EpisodeAppearance> partyEpisodes = partyEpisodes(people, party.code());
-        if (partyEpisodes.isEmpty() && !loaded.publishedProgrammePartyCodes().contains(party.code())) {
+        List<EpisodeAppearance> partyEpisodes = partyEpisodes(people, memberPartyCodes);
+        if (partyEpisodes.isEmpty()
+                && memberPartyCodes.stream().noneMatch(loaded.publishedProgrammePartyCodes()::contains)) {
             throw new NoSuchElementException("This party page is not available yet.");
         }
         int appearances = partyEpisodes.size();
-        int claims = partyClaimCount(people, party.code());
+        int claims = partyClaimCount(people, memberPartyCodes);
+        String programmePartyCode = loaded.publishedProgrammePartyCodes().contains(party.code())
+                ? party.code()
+                : memberPartyCodes.stream()
+                        .filter(loaded.publishedProgrammePartyCodes()::contains)
+                        .sorted()
+                        .findFirst()
+                        .orElse(null);
         return new PartyProfile(
                 party.code(), party.nameFr(), party.nameAr(), party.color(),
                 party.symbolLabelFr(), party.symbolLabelAr(), party.symbolAsset(), party.symbolVerified(),
+                memberPartyCodes.stream().sorted().toList(), programmePartyCode,
                 members.size(), appearances, claims, partyEpisodes);
     }
 
-    private int partyClaimCount(Map<String, Builder> people, String partyCode) {
+    private int partyClaimCount(Map<String, Builder> people, Set<String> partyCodes) {
         return Math.toIntExact(people.values().stream()
                 .flatMap(builder -> builder.claims.stream())
-                .filter(claim -> partyCode.equals(claim.partyCode()))
+                .filter(claim -> partyCodes.contains(claim.partyCode()))
                 .count());
     }
 
-    private List<EpisodeAppearance> partyEpisodes(Map<String, Builder> people, String partyCode) {
+    private List<EpisodeAppearance> partyEpisodes(Map<String, Builder> people, Set<String> partyCodes) {
         Map<String, EpisodeAppearance> unique = new LinkedHashMap<>();
         people.values().stream()
                 .flatMap(builder -> builder.episodes.values().stream())
-                .filter(episode -> partyCode.equals(episode.partyCode()))
+                .filter(episode -> partyCodes.contains(episode.partyCode()))
                 .sorted(Comparator.comparing(
                         EpisodeAppearance::publishedOn, Comparator.nullsLast(Comparator.reverseOrder())))
                 .forEach(episode -> unique.putIfAbsent(episode.slug(), episode));
@@ -514,7 +536,7 @@ public class PersonCatalogService {
             return new PersonSummary(
                     identity.slug(), identity.displayName(), orEmpty(identity.displayNameAr()),
                     identity.curated(),
-                    party.code(), party.nameFr(), party.nameAr(), party.color(),
+                    party.code(), party.catalogueCode(), party.nameFr(), party.nameAr(), party.color(),
                     party.symbolLabelFr(), party.symbolLabelAr(), party.symbolAsset(), party.symbolVerified(),
                     episodes.size(), claims.size(), last, List.copyOf(topics),
                     List.copyOf(identity.spellings()));
@@ -535,7 +557,7 @@ public class PersonCatalogService {
             PoliticalParty party = parties.findByCode(currentPartyCode).orElseGet(parties::fallback);
             return new SpeakerRef(
                     identity.slug(), identity.displayName(), orEmpty(identity.displayNameAr()),
-                    party.code(), party.nameFr(), party.nameAr(), party.color(),
+                    party.code(), party.catalogueCode(), party.nameFr(), party.nameAr(), party.color(),
                     party.symbolLabelFr(), party.symbolLabelAr(), party.symbolAsset(), party.symbolVerified());
         }
 
@@ -596,6 +618,7 @@ public class PersonCatalogService {
             String displayNameAr,
             boolean curated,
             String partyCode,
+            String partyCatalogueCode,
             String partyNameFr,
             String partyNameAr,
             String partyColor,
@@ -652,6 +675,7 @@ public class PersonCatalogService {
             String displayName,
             String displayNameAr,
             String partyCode,
+            String partyCatalogueCode,
             String partyNameFr,
             String partyNameAr,
             String partyColor,
@@ -678,6 +702,7 @@ public class PersonCatalogService {
             String symbolLabelAr,
             String symbolAsset,
             boolean symbolVerified,
+            List<String> memberPartyCodes,
             int members,
             int appearances,
             int claims) {
@@ -692,6 +717,8 @@ public class PersonCatalogService {
             String symbolLabelAr,
             String symbolAsset,
             boolean symbolVerified,
+            List<String> memberPartyCodes,
+            String programmePartyCode,
             int members,
             int appearances,
             int claims,

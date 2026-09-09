@@ -17,9 +17,10 @@ public record PoliticalParty(
         String symbolLabelAr,
         String symbolAsset,
         boolean symbolVerified,
+        String catalogueCode,
         boolean visible) {
 
     PoliticalParty(String code, String nameFr, String nameAr, String color, boolean visible) {
-        this(code, nameFr, nameAr, color, code, code, "/assets/parties/party.svg", false, visible);
+        this(code, nameFr, nameAr, color, code, code, "/assets/parties/party.svg", false, code, visible);
     }
 }
