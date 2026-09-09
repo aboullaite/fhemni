@@ -45,7 +45,7 @@ class ProgrammeChatContextBuilderTest {
                 .contains("Five-year verdict: HARD")
                 .contains("published feasibility=HARD")
                 .contains("assessment=[ASSESSMENT_2]")
-                .contains("evidence=[PROMISE_2_E1] HCP — Jobs report")
+                .contains("Evidence [PROMISE_2_E1]: HCP — Jobs report")
                 .contains("--- Official document extract 1; cite [PROGRAMME] ---")
                 .contains("RECENT PRIVATE CONVERSATION")
                 .doesNotContain("[PROGRAMME, document extract")
@@ -99,9 +99,31 @@ class ProgrammeChatContextBuilderTest {
                 .contains("[PROMISE_10] Promise 10")
                 .contains("assessment=[ASSESSMENT_10]")
                 .contains("published feasibility=HARD")
-                .contains("evidence=[PROMISE_10_E1] HCP — Jobs report")
                 .doesNotContain("Title: Promise 10");
-        assertThat(context.sources()).containsKeys("ASSESSMENT_10", "PROMISE_10_E1");
+        assertThat(context.sources()).containsKey("ASSESSMENT_10");
+        assertThat(context.sources()).doesNotContainKey("PROMISE_10_E1");
+    }
+
+    @Test
+    void boundsTheCompactAssessmentInventoryForLargeProgrammes() {
+        UUID programmeId = UUID.randomUUID();
+        PartyProgramme programme = programme(programmeId, "Short official source");
+        List<ProgrammeChatPromise> promises = new java.util.ArrayList<>();
+        for (int index = 1; index <= 30; index++) {
+            PartyPromise promise = promise(programmeId, "topic-" + index, "Promise " + index, "page " + index);
+            promises.add(new ProgrammeChatPromise(
+                    promise, assessment(promise.id(), "Detailed feasibility summary ".repeat(80))));
+        }
+
+        ProgrammeChatContext context = new ProgrammeChatContextBuilder(90_000).build(
+                new ProgrammeChatDossier(programme, promises),
+                "Give me a general overview", OutputLanguage.ENGLISH, List.of());
+
+        String inventory = context.material().substring(
+                context.material().indexOf("PUBLISHED PROMISE INVENTORY"),
+                context.material().indexOf("RELEVANT OFFICIAL PROGRAMME EXTRACTS"));
+        assertThat(inventory.length()).isLessThan(12_000);
+        assertThat(context.material()).contains("RELEVANT EXTRACTS FROM THE FROZEN OFFICIAL DOCUMENT");
     }
 
     @Test
@@ -143,10 +165,16 @@ class ProgrammeChatContextBuilderTest {
     }
 
     private static PromiseAssessment assessment(UUID promiseId) {
-        LocalizedText text = text("صعيب", "Difficile", "Difficult");
+        return assessment(promiseId, "Difficult");
+    }
+
+    private static PromiseAssessment assessment(UUID promiseId, String summary) {
+        LocalizedText summaryText = text(summary, summary, summary);
+        LocalizedText detailText = text("صعيب", "Difficile", "Difficult");
         return new PromiseAssessment(
                 UUID.randomUUID(), promiseId, 1, 5, FeasibilityVerdict.HARD,
-                text, text, text, text, "v1", "consensus", "models", LocalDate.of(2026, 9, 1),
+                summaryText, detailText, detailText, detailText,
+                "v1", "consensus", "models", LocalDate.of(2026, 9, 1),
                 EditorialStatus.PUBLISHED, Instant.now(), Instant.now(),
                 List.of(new Evidence(
                         UUID.randomUUID(), "HCP", "Jobs report", "https://hcp.example/jobs",

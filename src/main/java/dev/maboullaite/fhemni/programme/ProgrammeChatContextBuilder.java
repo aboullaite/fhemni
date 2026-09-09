@@ -28,6 +28,7 @@ public class ProgrammeChatContextBuilder {
     private static final int CHUNK_OVERLAP = 350;
     private static final int MAX_PROMISES = 8;
     private static final int MAX_DOCUMENT_CHUNKS = 6;
+    private static final int MAX_COMPACT_ASSESSMENT_SUMMARY = 220;
     private static final Pattern MARKS = Pattern.compile("\\p{M}+");
     private static final Pattern NON_WORD = Pattern.compile("[^\\p{L}\\p{N}]+");
     private static final Pattern WHITESPACE = Pattern.compile("\\s+");
@@ -131,15 +132,8 @@ public class ProgrammeChatContextBuilder {
         String assessmentId = assessmentId(promiseId);
         sources.put(assessmentId, assessmentSourceReference(promise, assessment, language));
         append(material, " | assessment=[" + assessmentId + "] published feasibility=" + assessment.verdict());
-        append(material, " | review=" + clipped(localized(assessment.summary(), language), 450));
-        for (int index = 0; index < Math.min(2, assessment.evidence().size()); index++) {
-            Evidence evidence = assessment.evidence().get(index);
-            int evidenceIndex = index + 1;
-            String id = promiseId + "_E" + evidenceIndex;
-            sources.put(id, sourceReference(evidence));
-            append(material, " | evidence=[" + id + "] " + evidence.publisher() + " — "
-                    + clipped(evidence.title(), 180));
-        }
+        append(material, " | review=" + clipped(
+                localized(assessment.summary(), language), MAX_COMPACT_ASSESSMENT_SUMMARY));
     }
 
     private void appendAssessment(

@@ -91,4 +91,38 @@ class ProgrammeChatGatewayTest {
                 .doesNotContain("ASSESSMENT", "PROMISE_", "HARD", "INSUFFICIENT_DATA");
         assertThat(result.citationIds()).containsExactly("ASSESSMENT_1", "PROMISE_2_E1");
     }
+
+    @Test
+    void preservesNaturalUppercaseEnglishWordsThatAreNotInternalVerdicts() {
+        GeminiInteractionsClient client = mock(GeminiInteractionsClient.class);
+        when(client.configured()).thenReturn(true);
+        when(client.model()).thenReturn("gemini-3.8-flash");
+        when(client.createQuestion(any())).thenReturn(new InteractionResponse(
+                "", """
+                {"answer":"Working HARD is POSSIBLE, but it needs funding.","basis":"PROGRAMME","citationIds":["PROMISE_1"]}
+                """, List.of(), AiUsage.empty()));
+        ProgrammeChatGateway gateway = new ProgrammeChatGateway(client, new ObjectMapper(), 2_048);
+
+        ProgrammeChatGateway.Result result = gateway.answer(
+                "Is delivery possible?", OutputLanguage.ENGLISH, "PJD-only dossier");
+
+        assertThat(result.answer()).isEqualTo("Working HARD is POSSIBLE, but it needs funding.");
+    }
+
+    @Test
+    void localizesAnEnglishInternalVerdictWhenItIsPairedWithItsAssessmentId() {
+        GeminiInteractionsClient client = mock(GeminiInteractionsClient.class);
+        when(client.configured()).thenReturn(true);
+        when(client.model()).thenReturn("gemini-3.8-flash");
+        when(client.createQuestion(any())).thenReturn(new InteractionResponse(
+                "", """
+                {"answer":"The published verdict is HARD [ASSESSMENT_1].","basis":"FEASIBILITY","citationIds":["ASSESSMENT_1"]}
+                """, List.of(), AiUsage.empty()));
+        ProgrammeChatGateway gateway = new ProgrammeChatGateway(client, new ObjectMapper(), 2_048);
+
+        ProgrammeChatGateway.Result result = gateway.answer(
+                "Is delivery possible?", OutputLanguage.ENGLISH, "PJD-only dossier");
+
+        assertThat(result.answer()).isEqualTo("The published verdict is difficult but achievable.");
+    }
 }

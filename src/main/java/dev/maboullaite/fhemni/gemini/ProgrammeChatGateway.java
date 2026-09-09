@@ -28,6 +28,10 @@ public class ProgrammeChatGateway {
             "\\[(?:PROGRAMME|PROMISE_\\d+(?:_E\\d+)?|ASSESSMENT_\\d+)]");
     private static final Pattern INTERNAL_VERDICT = Pattern.compile(
             "\\b(POSSIBLE|HARD|NOT_ACHIEVABLE|INSUFFICIENT_DATA)\\b");
+    private static final Pattern INTERNAL_VERDICT_BEFORE_ASSESSMENT = Pattern.compile(
+            "\\b(POSSIBLE|HARD|NOT_ACHIEVABLE|INSUFFICIENT_DATA)\\b(?=\\s*\\[ASSESSMENT_\\d+])");
+    private static final Pattern UNAMBIGUOUS_INTERNAL_VERDICT = Pattern.compile(
+            "\\b(NOT_ACHIEVABLE|INSUFFICIENT_DATA)\\b");
 
     private static final String SYSTEM_INSTRUCTION = """
             You are Fhemni's neutral assistant for one Moroccan political party's official 2026 election programme.
@@ -165,19 +169,29 @@ public class ProgrammeChatGateway {
     }
 
     private String visibleAnswer(String rawAnswer, OutputLanguage language) {
-        String answer = rawAnswer == null ? "" : INTERNAL_SOURCE_ID.matcher(rawAnswer).replaceAll("");
-        Matcher matcher = INTERNAL_VERDICT.matcher(answer);
+        String answer = rawAnswer == null ? "" : rawAnswer;
+        answer = localizedVerdicts(answer, INTERNAL_VERDICT_BEFORE_ASSESSMENT, language);
+        answer = INTERNAL_SOURCE_ID.matcher(answer).replaceAll("");
+        Pattern remainingVerdicts = language == OutputLanguage.ENGLISH
+                ? UNAMBIGUOUS_INTERNAL_VERDICT
+                : INTERNAL_VERDICT;
+        answer = localizedVerdicts(answer, remainingVerdicts, language);
+        return answer
+                .replaceAll("[ \\t]+([,.;:،؛])", "$1")
+                .replaceAll("[ \\t]{2,}", " ")
+                .replaceAll("(?m)^[ \\t]+|[ \\t]+$", "")
+                .strip();
+    }
+
+    private String localizedVerdicts(String answer, Pattern pattern, OutputLanguage language) {
+        Matcher matcher = pattern.matcher(answer);
         StringBuilder localized = new StringBuilder();
         while (matcher.find()) {
             matcher.appendReplacement(localized, Matcher.quoteReplacement(
                     localizedVerdict(matcher.group(1), language)));
         }
         matcher.appendTail(localized);
-        return localized.toString()
-                .replaceAll("[ \\t]+([,.;:،؛])", "$1")
-                .replaceAll("[ \\t]{2,}", " ")
-                .replaceAll("(?m)^[ \\t]+|[ \\t]+$", "")
-                .strip();
+        return localized.toString();
     }
 
     private String localizedVerdict(String verdict, OutputLanguage language) {
