@@ -19,6 +19,30 @@ import org.junit.jupiter.api.Test;
 class PersonDirectoryAdminServiceTest {
 
     @Test
+    void savesANormalPartyMappingWithoutInventingDates() {
+        DirectoryPersonRepository people = mock(DirectoryPersonRepository.class);
+        PoliticalPartyRepository parties = mock(PoliticalPartyRepository.class);
+        PersonCatalogService catalogue = mock(PersonCatalogService.class);
+        PersonDirectoryAdminService service = new PersonDirectoryAdminService(people, parties, catalogue);
+
+        when(people.exists("guest")).thenReturn(true);
+        when(people.findAffiliations("guest")).thenReturn(List.of());
+        when(parties.findAll()).thenReturn(List.of(
+                new PoliticalParty("PJD", "PJD", "PJD", "#000", true)));
+
+        service.addAffiliation("guest", new AffiliationCommand("PJD", null, null));
+
+        verify(people).insertAffiliation(
+                org.mockito.ArgumentMatchers.eq("guest"),
+                org.mockito.ArgumentMatchers.eq("PJD"),
+                org.mockito.ArgumentMatchers.isNull(),
+                org.mockito.ArgumentMatchers.isNull(),
+                org.mockito.ArgumentMatchers.isNull(),
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
     void rejectsTransitioningAHistoricalAffiliationWhenAnotherPeriodIsCurrent() {
         DirectoryPersonRepository people = mock(DirectoryPersonRepository.class);
         PoliticalPartyRepository parties = mock(PoliticalPartyRepository.class);

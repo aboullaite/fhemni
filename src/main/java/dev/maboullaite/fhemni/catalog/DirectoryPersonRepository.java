@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 import dev.maboullaite.fhemni.catalog.PersonDirectory.CuratedPerson;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -131,7 +132,7 @@ public class DirectoryPersonRepository {
                 .param("validUntil", validUntil)
                 .param("sourceUrl", sourceUrl)
                 .param("sourceLabel", sourceLabel)
-                .param("verifiedAt", verifiedAt)
+                .param("verifiedAt", utc(verifiedAt))
                 .update();
     }
 
@@ -153,7 +154,7 @@ public class DirectoryPersonRepository {
                 .param("partyCode", partyCode)
                 .param("validFrom", validFrom, java.sql.Types.DATE)
                 .param("validUntil", validUntil, java.sql.Types.DATE)
-                .param("verifiedAt", verifiedAt)
+                .param("verifiedAt", utc(verifiedAt))
                 .param("id", id)
                 .param("personSlug", personSlug)
                 .update();
@@ -258,6 +259,10 @@ public class DirectoryPersonRepository {
                 resultSet.getString("source_url"),
                 resultSet.getString("source_label"),
                 resultSet.getObject("verified_at", OffsetDateTime.class).toInstant());
+    }
+
+    private static OffsetDateTime utc(Instant instant) {
+        return instant.atOffset(ZoneOffset.UTC);
     }
 
     private String currentParty(List<PersonAffiliation> affiliations) {
