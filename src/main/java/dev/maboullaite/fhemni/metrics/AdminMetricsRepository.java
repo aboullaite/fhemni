@@ -51,46 +51,46 @@ public class AdminMetricsRepository {
                                COALESCE(SUM(thought_tokens), 0) AS all_thought_tokens,
                                COALESCE(SUM(tool_use_tokens), 0) AS all_tool_use_tokens,
                                COALESCE(SUM(grounding_queries), 0) AS all_grounding_queries,
-                               SUM(CASE WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK') THEN 1 ELSE 0 END)
+                               SUM(CASE WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK', 'CHAT_PROGRAMME') THEN 1 ELSE 0 END)
                                    AS chat_requests,
                                COUNT(DISTINCT CASE
-                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK') THEN user_id
+                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK', 'CHAT_PROGRAMME') THEN user_id
                                END) AS chat_users,
                                SUM(CASE
-                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK') AND status = 'SUCCEEDED'
+                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK', 'CHAT_PROGRAMME') AND status = 'SUCCEEDED'
                                        THEN 1 ELSE 0
                                END) AS chat_succeeded,
                                SUM(CASE
-                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK') AND status = 'FAILED'
+                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK', 'CHAT_PROGRAMME') AND status = 'FAILED'
                                        THEN 1 ELSE 0
                                END) AS chat_failed,
                                SUM(CASE
-                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK')
+                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK', 'CHAT_PROGRAMME')
                                        AND status = 'RESERVED' AND requested_at >= :staleBefore
                                        THEN 1 ELSE 0
                                END) AS chat_pending,
                                SUM(CASE
-                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK')
+                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK', 'CHAT_PROGRAMME')
                                        AND status = 'RESERVED' AND requested_at < :staleBefore
                                        THEN 1 ELSE 0
                                END) AS chat_stale,
                                COALESCE(SUM(CASE
-                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK') THEN input_tokens ELSE 0
+                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK', 'CHAT_PROGRAMME') THEN input_tokens ELSE 0
                                END), 0) AS chat_input_tokens,
                                COALESCE(SUM(CASE
-                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK') THEN output_tokens ELSE 0
+                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK', 'CHAT_PROGRAMME') THEN output_tokens ELSE 0
                                END), 0) AS chat_output_tokens,
                                COALESCE(SUM(CASE
-                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK') THEN cached_tokens ELSE 0
+                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK', 'CHAT_PROGRAMME') THEN cached_tokens ELSE 0
                                END), 0) AS chat_cached_tokens,
                                COALESCE(SUM(CASE
-                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK') THEN thought_tokens ELSE 0
+                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK', 'CHAT_PROGRAMME') THEN thought_tokens ELSE 0
                                END), 0) AS chat_thought_tokens,
                                COALESCE(SUM(CASE
-                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK') THEN tool_use_tokens ELSE 0
+                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK', 'CHAT_PROGRAMME') THEN tool_use_tokens ELSE 0
                                END), 0) AS chat_tool_use_tokens,
                                COALESCE(SUM(CASE
-                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK') THEN grounding_queries ELSE 0
+                                   WHEN operation IN ('CHAT_VIDEO', 'CHAT_CHECK', 'CHAT_PROGRAMME') THEN grounding_queries ELSE 0
                                END), 0) AS chat_grounding_queries
                           FROM ai_usage_events
                         """)

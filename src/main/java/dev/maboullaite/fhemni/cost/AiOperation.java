@@ -6,5 +6,6 @@ public enum AiOperation {
     PROGRAMME_EXTRACTION,
     PROMISE_FEASIBILITY,
     CHAT_VIDEO,
-    CHAT_CHECK
+    CHAT_CHECK,
+    CHAT_PROGRAMME
 }

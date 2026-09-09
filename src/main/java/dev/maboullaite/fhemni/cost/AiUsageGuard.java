@@ -124,9 +124,11 @@ public class AiUsageGuard {
         if (!chatEnabled) {
             throw new AiBudgetExceededException(
                     "CHAT_DISABLED",
-                    "Video chat is disabled until the owner enables its production budget.");
+                    "Chat is disabled until the owner enables its production budget.");
         }
-        if (operation != AiOperation.CHAT_VIDEO && operation != AiOperation.CHAT_CHECK) {
+        if (operation != AiOperation.CHAT_VIDEO
+                && operation != AiOperation.CHAT_CHECK
+                && operation != AiOperation.CHAT_PROGRAMME) {
             throw new IllegalArgumentException("A chat operation is required");
         }
         synchronized (reservationMonitor) {

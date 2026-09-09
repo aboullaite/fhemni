@@ -12,6 +12,7 @@ import dev.maboullaite.fhemni.model.AnalysisSnapshot;
 import dev.maboullaite.fhemni.model.FollowUpAnswer;
 import dev.maboullaite.fhemni.model.OutputLanguage;
 import dev.maboullaite.fhemni.model.QuestionMode;
+import dev.maboullaite.fhemni.programme.ProgrammeChatService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,14 +32,17 @@ public class AnalysisController {
 
     private final AnalysisService analysisService;
     private final CurrentUserService currentUser;
+    private final ProgrammeChatService programmeChat;
     private final String analyticsMeasurementId;
 
     public AnalysisController(
             AnalysisService analysisService,
             CurrentUserService currentUser,
+            ProgrammeChatService programmeChat,
             @Value("${fhemni.analytics.measurement-id:}") String analyticsMeasurementId) {
         this.analysisService = analysisService;
         this.currentUser = currentUser;
+        this.programmeChat = programmeChat;
         this.analyticsMeasurementId = analyticsMeasurementId == null ? "" : analyticsMeasurementId.strip();
     }
 
@@ -52,6 +56,7 @@ public class AnalysisController {
                 analysisService.live(),
                 analysisService.analysisEnabled(),
                 analysisService.chatEnabled(),
+                programmeChat.enabled(),
                 analysisService.model(),
                 analyticsMeasurementId,
                 languages);
@@ -105,6 +110,7 @@ public class AnalysisController {
             boolean live,
             boolean analysisEnabled,
             boolean chatEnabled,
+            boolean programmeChatEnabled,
             String model,
             String analyticsMeasurementId,
             List<LanguageOption> languages) {

@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="ar" dir="rtl" data-theme="fhemni">
 <head>
-    <script src="/js/analytics.js"></script>
+    <script src="/js/analytics.js?v=20260909-3"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Guests and recent statements for a political party." data-i18n-content="party.description">
     <title>Party — Fhemni</title>
     <link rel="icon" type="image/png" href="/assets/brand/fhemni-icon.png">
-    <link rel="stylesheet" href="/css/dist.css?v=20260908-17">
+    <link rel="stylesheet" href="/css/dist.css?v=20260909-18">
 </head>
 <body class="public-page" data-i18n-page-title="party.pageTitle">
 <div class="ambient ambient-one"></div>
@@ -56,6 +56,41 @@
                 </div>
                 <a id="partyProgrammeSource" class="secondary-button" target="_blank" rel="noopener noreferrer" data-i18n="programme.officialSource">Official source</a>
             </div>
+
+            <section id="programmeChat" class="programme-chat" aria-labelledby="programmeChatTitle">
+                <div class="programme-chat-heading">
+                    <div>
+                        <div class="section-kicker" data-i18n="programme.chatKicker">Source-locked conversation</div>
+                        <h3 id="programmeChatTitle" data-i18n="programme.chatTitle">Ask this programme</h3>
+                        <p data-i18n="programme.chatIntro">Answers use this party’s published official programme and Fhemni’s published feasibility evidence—nothing from another party.</p>
+                    </div>
+                    <span class="programme-chat-lock" data-i18n="programme.chatLocked">One party · published sources only</span>
+                </div>
+                <div id="programmeChatSuggestions" class="programme-chat-suggestions" aria-label="Suggested questions" data-i18n-aria-label="programme.chatSuggestionsLabel"></div>
+                <div id="programmeConversation" class="programme-conversation" aria-live="polite">
+                    <div class="programme-message assistant-message welcome-message">
+                        <img src="/assets/brand/fhemni-icon.png" alt="">
+                        <div class="programme-message-bubble" data-i18n="programme.chatWelcome">Ask what the programme promises, how it says it will deliver, or what the published feasibility review found.</div>
+                    </div>
+                </div>
+                <div id="programmeChatGate" class="programme-chat-gate" hidden>
+                    <strong id="programmeChatGateTitle" data-i18n="programme.chatSignInTitle">Sign in to ask privately</strong>
+                    <p id="programmeChatGateText" data-i18n="analysis.chatPrivacy">An account keeps your questions private and lets us apply a fair weekly limit. Reading stays public.</p>
+                    <a id="programmeChatLogin" class="primary-button" href="/login" data-i18n="analysis.signInToAskAction">Sign in and ask</a>
+                </div>
+                <form id="programmeQuestionForm" class="programme-question-form">
+                    <label class="sr-only" for="programmeQuestion" data-i18n="programme.chatQuestionLabel">Question about this programme</label>
+                    <textarea id="programmeQuestion" rows="2" maxlength="600" required data-i18n-placeholder="programme.chatPlaceholder" placeholder="What does this programme propose for jobs?"></textarea>
+                    <button id="programmeAskButton" class="primary-button" type="submit" data-i18n="programme.chatAsk">Ask</button>
+                    <span id="programmeChatQuota" class="programme-chat-quota"></span>
+                </form>
+                <div class="programme-chat-disclaimer">
+                    <span aria-hidden="true">AI</span>
+                    <p data-i18n="programme.chatDisclaimer">AI-generated answer based only on this party’s published official 2026 programme and Fhemni’s displayed feasibility evidence. It may miss or misread material; check the cited sources. This is not a certain prediction or voting advice.</p>
+                    <a href="/methodology" data-i18n="common.methodology">Methodology</a>
+                    <a href="https://github.com/aboullaite/fhemni/issues/new" target="_blank" rel="noopener noreferrer" data-i18n="analysis.reportError">Report an error</a>
+                </div>
+            </section>
             <div id="partyPromises" class="promise-grid"></div>
         </section>
 
@@ -68,6 +103,6 @@
 </main>
 
 <footer><img class="footer-logo" src="/assets/brand/fhemni-logo.png" alt="Fhemni — فهّمني"><span data-i18n="common.footer">© 2026 Mohammed Aboullaite</span><a class="footer-feedback-link" href="https://github.com/aboullaite/fhemni/issues" target="_blank" rel="noopener noreferrer" data-i18n="common.suggestFeature">Suggest a feature</a></footer>
-<script src="/js/i18n.js?v=20260908-2" defer></script><script src="/js/auth.js" defer></script><script src="/js/catalog-ui.js?v=20260906-2" defer></script><script src="/js/people-ui.js?v=20260907-2" defer></script><script src="/js/party.js?v=20260908-1" defer></script>
+<script src="/js/i18n.js?v=20260909-13" defer></script><script src="/js/auth.js" defer></script><script src="/js/markdown.js" defer></script><script src="/js/catalog-ui.js?v=20260906-2" defer></script><script src="/js/people-ui.js?v=20260907-2" defer></script><script src="/js/party.js?v=20260909-2" defer></script>
 </body>
 </html>

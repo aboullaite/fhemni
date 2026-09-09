@@ -59,6 +59,8 @@ class AdminMetricsIntegrationTest {
         usage.complete(chat, "SUCCEEDED", new AiUsage(100, 200, 50, 25, 10, 1), now);
         UUID failedChat = usage.reserve(AiOperation.CHAT_CHECK, member.id(), analysisId, "gemini-test", now);
         usage.complete(failedChat, "FAILED", new AiUsage(20, 30, null, 5, null, null), now);
+        UUID programmeChat = usage.reserve(AiOperation.CHAT_PROGRAMME, member.id(), null, "gemini-test", now);
+        usage.complete(programmeChat, "SUCCEEDED", new AiUsage(10, 20, null, null, null, null), now);
         usage.reserve(AiOperation.CHAT_VIDEO, member.id(), analysisId, "gemini-test", now);
         usage.reserve(AiOperation.CHAT_VIDEO, member.id(), analysisId, "gemini-test", now.minus(Duration.ofHours(1)));
         UUID analysis = usage.reserve(AiOperation.ANALYSIS, null, analysisId, "gemini-test", now);
@@ -72,18 +74,18 @@ class AdminMetricsIntegrationTest {
                 .andExpect(jsonPath("$.users.registered").value(2))
                 .andExpect(jsonPath("$.users.newLast24Hours").value(2))
                 .andExpect(jsonPath("$.users.activeLast24Hours").value(2))
-                .andExpect(jsonPath("$.chat.requests").value(4))
+                .andExpect(jsonPath("$.chat.requests").value(5))
                 .andExpect(jsonPath("$.chat.users").value(1))
-                .andExpect(jsonPath("$.chat.succeeded").value(1))
+                .andExpect(jsonPath("$.chat.succeeded").value(2))
                 .andExpect(jsonPath("$.chat.failed").value(1))
                 .andExpect(jsonPath("$.chat.pending").value(1))
                 .andExpect(jsonPath("$.chat.stale").value(1))
-                .andExpect(jsonPath("$.chat.recordedTokens").value(390))
+                .andExpect(jsonPath("$.chat.recordedTokens").value(420))
                 .andExpect(jsonPath("$.chat.cachedTokens").value(50))
-                .andExpect(jsonPath("$.allAi.requests").value(6))
+                .andExpect(jsonPath("$.allAi.requests").value(7))
                 .andExpect(jsonPath("$.allAi.pending").value(1))
                 .andExpect(jsonPath("$.allAi.stale").value(2))
-                .andExpect(jsonPath("$.allAi.recordedTokens").value(3_790))
+                .andExpect(jsonPath("$.allAi.recordedTokens").value(3_820))
                 .andExpect(jsonPath("$.allAi.cachedTokens").value(550));
     }
 }
