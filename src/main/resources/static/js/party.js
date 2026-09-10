@@ -2,6 +2,7 @@
     const QUESTION_TIMEOUT_MS = 45_000;
     const PRIORITY_STORAGE_KEY = 'fhemni.policy-topic-preferences';
     const PRIORITY_PENDING_KEY = 'fhemni.policy-topic-preferences-pending';
+    const PRIORITY_GUEST_IMPORT_KEY = 'fhemni.policy-topic-preferences-guest-import';
     let profile;
     let programme;
     let partyCode;
@@ -12,6 +13,8 @@
     let priorityMaxSelections = 3;
     let selectedPolicyTopics = [];
     let localPrioritySyncPending = false;
+    let guestPriorityImport = [];
+    let guestPriorityImportSignature = '';
     let priorityNoticeKey = '';
     let preferenceSaveQueue = Promise.resolve();
 
@@ -166,19 +169,21 @@
         }
         try {
             if (localPrioritySyncPending) {
-                await saveAccountPriorities(selectedPolicyTopics);
-                localPrioritySyncPending = false;
+                priorityNoticeKey = 'priorities.savingAccount';
+                renderPriorityStatus();
+                await queueAccountPrioritySave();
             } else {
                 const saved = await window.FhemniCatalog.requestJson('/api/account/policy-topics');
                 selectedPolicyTopics = validPriorityCodes(saved.topicCodes);
+                writeLocalPriorities();
+                priorityNoticeKey = 'priorities.savedAccount';
             }
-            writeLocalPriorities();
-            priorityNoticeKey = 'priorities.savedAccount';
         } catch (_) {
             priorityNoticeKey = localPrioritySyncPending || selectedPolicyTopics.length
                 ? 'priorities.saveFailed'
                 : '';
         }
+        prepareGuestPriorityImport();
         renderPriorities();
     }
 
@@ -211,6 +216,7 @@
         const signIn = document.querySelector('#prioritySignIn');
         signIn.hidden = Boolean(authSession?.authenticated);
         signIn.href = window.FhemniAuth.loginPage(window.location.pathname);
+        renderGuestPriorityImport();
         renderPriorityStatus();
         renderPriorityMatches();
     }
@@ -256,6 +262,63 @@
                     renderPriorityStatus();
                 }
             });
+        return preferenceSaveQueue;
+    }
+
+    function prepareGuestPriorityImport() {
+        guestPriorityImport = [];
+        guestPriorityImportSignature = '';
+        if (!authSession?.authenticated || localPrioritySyncPending) return;
+        try {
+            const guest = validPriorityCodes(JSON.parse(
+                window.localStorage.getItem(`${PRIORITY_STORAGE_KEY}.guest`) || '[]'));
+            const signature = JSON.stringify([...guest].sort());
+            const handled = window.localStorage.getItem(scopedPriorityStorageKey(PRIORITY_GUEST_IMPORT_KEY));
+            if (guest.length && !sameCodeSet(guest, selectedPolicyTopics) && handled !== signature) {
+                guestPriorityImport = guest;
+                guestPriorityImportSignature = signature;
+            }
+        } catch (_) { /* The import offer is optional; account preferences still work. */ }
+    }
+
+    function renderGuestPriorityImport() {
+        const panel = document.querySelector('#priorityGuestImport');
+        if (!panel) return;
+        panel.hidden = !guestPriorityImport.length;
+        if (panel.hidden) return;
+        panel.querySelector('[data-priority-import-copy]').textContent = t('priorities.guestImportPrompt');
+        const useButton = panel.querySelector('[data-priority-import-use]');
+        const keepButton = panel.querySelector('[data-priority-import-keep]');
+        useButton.textContent = t('priorities.guestImportUse');
+        keepButton.textContent = t('priorities.guestImportKeep');
+        useButton.onclick = importGuestPriorities;
+        keepButton.onclick = dismissGuestPriorityImport;
+    }
+
+    function importGuestPriorities() {
+        selectedPolicyTopics = [...guestPriorityImport];
+        markGuestPriorityImportHandled();
+        guestPriorityImport = [];
+        localPrioritySyncPending = true;
+        writeLocalPriorities();
+        priorityNoticeKey = 'priorities.savingAccount';
+        renderPriorities();
+        void queueAccountPrioritySave();
+    }
+
+    function dismissGuestPriorityImport() {
+        markGuestPriorityImportHandled();
+        guestPriorityImport = [];
+        renderPriorities();
+    }
+
+    function markGuestPriorityImportHandled() {
+        try {
+            const key = scopedPriorityStorageKey(PRIORITY_GUEST_IMPORT_KEY);
+            if (key && guestPriorityImportSignature) {
+                window.localStorage.setItem(key, guestPriorityImportSignature);
+            }
+        } catch (_) { /* The prompt may return next time if storage is unavailable. */ }
     }
 
     async function saveAccountPriorities(topicCodes) {
@@ -462,6 +525,10 @@
 
     function sameCodes(first, second) {
         return first.length === second.length && first.every((value, index) => value === second[index]);
+    }
+
+    function sameCodeSet(first, second) {
+        return first.length === second.length && first.every(value => second.includes(value));
     }
 
     function renderChatSuggestions() {

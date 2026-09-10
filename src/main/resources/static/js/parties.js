@@ -1,6 +1,7 @@
 (function () {
     const PRIORITY_STORAGE_KEY = 'fhemni.policy-topic-preferences';
     const PRIORITY_PENDING_KEY = 'fhemni.policy-topic-preferences-pending';
+    const PRIORITY_GUEST_IMPORT_KEY = 'fhemni.policy-topic-preferences-guest-import';
     const COMPARE_PARTIES_STORAGE_KEY = 'fhemni.policy-party-comparison';
     const MAX_COMPARE_PARTIES = 4;
     const grid = document.querySelector('#partiesGrid');
@@ -14,6 +15,8 @@
     let selectedParties = [];
     let authSession = { authenticated: false };
     let localSyncPending = false;
+    let guestTopicImport = [];
+    let guestTopicImportSignature = '';
     let topicNoticeKey = '';
     let partyNoticeKey = '';
     let saveQueue = Promise.resolve();
@@ -80,6 +83,7 @@
         } catch (_) {
             topicNoticeKey = localSyncPending || selectedTopics.length ? 'priorities.saveFailed' : '';
         }
+        prepareGuestTopicImport();
     }
 
     function render() {
@@ -115,6 +119,7 @@
         const signIn = document.querySelector('#comparePrioritySignIn');
         signIn.hidden = Boolean(authSession.authenticated);
         signIn.href = window.FhemniAuth.loginPage(window.location.pathname);
+        renderGuestTopicImport();
         void renderComparison();
     }
 
@@ -233,6 +238,63 @@
                     renderSelectionStatus();
                 }
             });
+        return saveQueue;
+    }
+
+    function prepareGuestTopicImport() {
+        guestTopicImport = [];
+        guestTopicImportSignature = '';
+        if (!authSession.authenticated || localSyncPending) return;
+        try {
+            const guest = validTopicCodes(JSON.parse(
+                window.localStorage.getItem(`${PRIORITY_STORAGE_KEY}.guest`) || '[]'));
+            const signature = JSON.stringify([...guest].sort());
+            const handled = window.localStorage.getItem(scopedStorageKey(PRIORITY_GUEST_IMPORT_KEY));
+            if (guest.length && !sameCodeSet(guest, selectedTopics) && handled !== signature) {
+                guestTopicImport = guest;
+                guestTopicImportSignature = signature;
+            }
+        } catch (_) { /* The import offer is optional; account preferences still work. */ }
+    }
+
+    function renderGuestTopicImport() {
+        const panel = document.querySelector('#compareGuestImport');
+        if (!panel) return;
+        panel.hidden = !guestTopicImport.length;
+        if (panel.hidden) return;
+        panel.querySelector('[data-priority-import-copy]').textContent = t('priorities.guestImportPrompt');
+        const useButton = panel.querySelector('[data-priority-import-use]');
+        const keepButton = panel.querySelector('[data-priority-import-keep]');
+        useButton.textContent = t('priorities.guestImportUse');
+        keepButton.textContent = t('priorities.guestImportKeep');
+        useButton.onclick = importGuestTopics;
+        keepButton.onclick = dismissGuestTopicImport;
+    }
+
+    function importGuestTopics() {
+        selectedTopics = [...guestTopicImport];
+        markGuestTopicImportHandled();
+        guestTopicImport = [];
+        localSyncPending = true;
+        writeLocalTopics();
+        topicNoticeKey = 'priorities.savingAccount';
+        renderExplorer();
+        void queueAccountSave();
+    }
+
+    function dismissGuestTopicImport() {
+        markGuestTopicImportHandled();
+        guestTopicImport = [];
+        renderExplorer();
+    }
+
+    function markGuestTopicImportHandled() {
+        try {
+            const key = scopedStorageKey(PRIORITY_GUEST_IMPORT_KEY);
+            if (key && guestTopicImportSignature) {
+                window.localStorage.setItem(key, guestTopicImportSignature);
+            }
+        } catch (_) { /* The prompt may return next time if storage is unavailable. */ }
     }
 
     async function saveAccountTopics(topicCodes) {
@@ -544,6 +606,10 @@
 
     function sameCodes(first, second) {
         return first.length === second.length && first.every((value, index) => value === second[index]);
+    }
+
+    function sameCodeSet(first, second) {
+        return first.length === second.length && first.every(value => second.includes(value));
     }
 
     document.addEventListener('DOMContentLoaded', load);

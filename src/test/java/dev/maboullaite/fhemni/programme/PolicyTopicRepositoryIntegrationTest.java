@@ -47,6 +47,29 @@ class PolicyTopicRepositoryIntegrationTest {
                 });
     }
 
+    @Test
+    void suppressesADirectParentWhenADirectChildExists() {
+        LocalizedText title = localized(
+                "إصلاح التشغيل والعمل الحر",
+                "Réforme de l'emploi et de l'auto-emploi",
+                "Employment and self-employment reform");
+        var programme = programmes.createProgramme(new DraftProgramme(
+                "PJD", title, title, "https://example.org/second-programme", "Official programme", "fr",
+                "Frozen official programme text.", true));
+        var promise = programmes.createPromise(programme.id(), new DraftPromise(
+                "employment-and-self-employment-reform", "employment", title,
+                "Support for business creation.",
+                "Page 2", "Mechanism", "Financing"));
+
+        assertThat(topics.findPromiseTopics(List.of(promise.promise().id()))
+                .get(promise.promise().id()))
+                .anySatisfy(topic -> {
+                    assertThat(topic.code()).isEqualTo("EMPLOYMENT_SELF_EMPLOYMENT");
+                    assertThat(topic.relationship()).isEqualTo(Relationship.DIRECT);
+                })
+                .noneSatisfy(topic -> assertThat(topic.code()).isEqualTo("EMPLOYMENT"));
+    }
+
     private static LocalizedText localized(String ar, String fr, String en) {
         return new LocalizedText(ar, fr, en);
     }
