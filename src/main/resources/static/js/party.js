@@ -22,30 +22,20 @@
             window.FhemniCatalog.requestJson('/api/meta').catch(() => null)
         ]);
         try {
-            const programmeRequest = window.FhemniCatalog.requestJson(
-                `/api/catalog/parties/${encodeURIComponent(partyCode)}/programme`)
-                .catch(error => {
-                    if (error.status === 404) return null;
-                    throw error;
-                });
-            [profile, programme] = await Promise.all([
-                window.FhemniCatalog.requestJson(`/api/catalog/parties/${encodeURIComponent(partyCode)}`),
-                programmeRequest
-            ]);
+            profile = await window.FhemniCatalog.requestJson(
+                `/api/catalog/parties/${encodeURIComponent(partyCode)}`);
             const requestedPartyCode = partyCode;
             const programmePartyCode = profile.programmePartyCode || profile.code;
             if (profile.code !== requestedPartyCode) {
                 window.history.replaceState({}, '', `/parties/${encodeURIComponent(profile.code)}`);
             }
             partyCode = profile.code;
-            if (programmePartyCode !== requestedPartyCode) {
-                programme = await window.FhemniCatalog.requestJson(
-                    `/api/catalog/parties/${encodeURIComponent(programmePartyCode)}/programme`)
-                    .catch(error => {
-                        if (error.status === 404) return null;
-                        throw error;
-                    });
-            }
+            programme = await window.FhemniCatalog.requestJson(
+                `/api/catalog/parties/${encodeURIComponent(programmePartyCode)}/programme`)
+                .catch(error => {
+                    if (error.status === 404) return null;
+                    throw error;
+                });
             render();
             bindChat();
             document.querySelector('#partyLoading').hidden = true;
@@ -189,22 +179,24 @@
         if (!enabled) {
             title.textContent = t('programme.chatUnavailableTitle');
             text.textContent = t('programme.chatUnavailableText');
+        } else if (weeklyExhausted) {
+            title.textContent = t('analysis.chatQuotaUsedTitle');
+            text.textContent = t('analysis.chatQuotaUsedText', { limit: quota.weeklyLimit });
         } else if (dailyRequestsExhausted) {
             title.textContent = t('analysis.chatDailyQuotaUsedTitle');
             text.textContent = t('analysis.chatDailyQuotaUsedText', { limit: quota.dailyRequestLimit });
         } else if (dailyTokensExhausted) {
             title.textContent = t('analysis.chatDailyTokenLimitTitle');
             text.textContent = t('analysis.chatDailyTokenLimit');
-        } else if (weeklyExhausted) {
-            title.textContent = t('analysis.chatQuotaUsedTitle');
-            text.textContent = t('analysis.chatQuotaUsedText', { limit: quota.weeklyLimit });
         } else {
             title.textContent = t('programme.chatSignInTitle');
             text.textContent = t('analysis.chatPrivacy');
         }
         quotaLabel.textContent = quota
             ? t('programme.chatQuota', {
-                remaining: quota.dailyRequestsRemaining,
+                remaining: Math.min(
+                    Math.max(0, Number(quota.dailyRequestsRemaining) || 0),
+                    Math.max(0, Number(quota.remaining) || 0)),
                 limit: quota.dailyRequestLimit
             })
             : '';
