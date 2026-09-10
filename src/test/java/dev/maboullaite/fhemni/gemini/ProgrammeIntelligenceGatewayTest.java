@@ -10,17 +10,30 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
 import java.util.List;
 
+import com.google.genai.gaos.models.interactions.CreateModelInteraction;
 import dev.maboullaite.fhemni.cost.AiUsage;
 import dev.maboullaite.fhemni.model.SourceReference;
 import dev.maboullaite.fhemni.programme.FeasibilityVerdict;
 import dev.maboullaite.fhemni.programme.PartyProgramme.LocalizedText;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.EvidenceDraft;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import tools.jackson.databind.ObjectMapper;
 
 class ProgrammeIntelligenceGatewayTest {
+
+    @Test
+    void allowsTheJointFgdPsuCampaignAsCanonicalFgd() {
+        var partyCodes = new ArrayList<String>();
+        GeminiSchemas.programmeExtraction(new ObjectMapper())
+                .get("properties").get("partyCode").get("enum")
+                .forEach(node -> partyCodes.add(node.stringValue()));
+
+        assertThat(partyCodes).contains("FGD");
+    }
 
     @Test
     void inventoriesTheWholePdfBeforeStructuredExtractionAndCombinesUsage() {
@@ -59,7 +72,13 @@ class ProgrammeIntelligenceGatewayTest {
 
         assertThat(result.programme().promises()).hasSize(1);
         assertThat(result.usage()).isEqualTo(inventoryUsage.plus(extractionUsage));
-        verify(client, times(2)).create(any());
+        ArgumentCaptor<CreateModelInteraction> requests =
+                ArgumentCaptor.forClass(CreateModelInteraction.class);
+        verify(client, times(2)).create(requests.capture());
+        assertThat(requests.getAllValues().getFirst().generationConfig())
+                .hasValueSatisfying(config -> assertThat(config.maxOutputTokens()).contains(24_576));
+        assertThat(requests.getAllValues().get(1).generationConfig())
+                .hasValueSatisfying(config -> assertThat(config.maxOutputTokens()).contains(32_768));
         verify(client).deleteFile("files/one");
     }
 

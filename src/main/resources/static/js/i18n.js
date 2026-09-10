@@ -1,6 +1,11 @@
 (function () {
     const STORAGE_KEY = 'fhemni.site-language';
     const SUPPORTED = ['en', 'fr', 'ar'];
+    const MOBILE_LANGUAGE_CHOICES = [
+        { locale: 'ar', flag: '🇲🇦', label: 'الدارجة' },
+        { locale: 'fr', flag: '🇫🇷', label: 'Français' },
+        { locale: 'en', flag: '🇬🇧', label: 'English' }
+    ];
 
     const messages = {
         en: {
@@ -486,9 +491,7 @@
         'landing.promiseCheckText': 'See the assumptions, calculations, and cited sources.',
         'landing.promiseAsk': 'Understand the full context',
         'landing.promiseAskText': 'Read the episode or ask the video without losing the exact moment.',
-        'landing.factCheckKicker': 'The promise under the lens',
-        'landing.factCheckTitle': 'What can parties realistically deliver in five years?',
-        'landing.factCheckIntro': 'The latest party promises checked against public evidence.',
+        'landing.factCheckTitle': 'Under the lens: what can parties realistically deliver in five years?',
         'landing.viewAllChecks': 'Explore all parties',
         'landing.checksLoading': 'Loading the latest checks…',
         'landing.checksEmpty': 'The first reviewed party promises will appear here.',
@@ -800,7 +803,7 @@
         'admin.programmeAiRateLimited': 'The AI provider is temporarily rate-limited. The job will retry automatically.',
         'admin.programmeAiTimeout': 'The AI provider timed out. This batch will retry automatically.',
         'admin.programmeAiRequestRejected': 'The AI provider rejected this batch. Check the configured provider and credentials.',
-        'admin.programmeAiResultInvalid': 'Gemini returned an incomplete result. Any extracted drafts are still saved; retry the same source.',
+        'admin.programmeAiResultInvalid': 'Gemini could not finish extracting this programme, so no draft was saved. Retry after checking the source or extraction settings.',
         'admin.programmeAiTemporaryFailure': 'The configured AI fact-check could not finish. Any completed drafts and assessments are still saved; retry the missing work.',
         'admin.programmeWorkerInterrupted': 'The previous worker stopped. The saved job will resume automatically.',
         'admin.programmeProviderModeChanged': 'The AI mode changed since this job started. Start a new job for the missing promises.',
@@ -1079,9 +1082,7 @@
         'landing.promiseCheckText': 'Consultez les hypothèses, calculs et sources citées.',
         'landing.promiseAsk': 'Comprendre tout le contexte',
         'landing.promiseAskText': 'Lisez la synthèse ou interrogez la vidéo en gardant le passage exact.',
-        'landing.factCheckKicker': 'La promesse sous la loupe',
-        'landing.factCheckTitle': 'Que peuvent réellement tenir les partis en cinq ans ?',
-        'landing.factCheckIntro': 'Les dernières promesses des partis vérifiées à partir de sources publiques.',
+        'landing.factCheckTitle': 'Sous la loupe : que peuvent réellement tenir les partis en cinq ans ?',
         'landing.viewAllChecks': 'Explorer tous les partis',
         'landing.checksLoading': 'Chargement des dernières vérifications…',
         'landing.checksEmpty': 'Les premières promesses vérifiées apparaîtront ici.',
@@ -1393,7 +1394,7 @@
         'admin.programmeAiRateLimited': 'Le fournisseur IA limite temporairement les requêtes. La tâche sera relancée automatiquement.',
         'admin.programmeAiTimeout': 'Le fournisseur IA a dépassé le délai. Ce lot sera relancé automatiquement.',
         'admin.programmeAiRequestRejected': 'Le fournisseur IA a refusé ce lot. Vérifiez le fournisseur configuré et ses identifiants.',
-        'admin.programmeAiResultInvalid': 'Gemini a renvoyé un résultat incomplet. Les brouillons extraits restent enregistrés ; renvoyez la même source.',
+        'admin.programmeAiResultInvalid': 'Gemini n\u2019a pas terminé l\u2019extraction de ce programme ; aucun brouillon n\u2019a donc été enregistré. Réessayez après avoir vérifié la source ou les paramètres d\u2019extraction.',
         'admin.programmeAiTemporaryFailure': 'La vérification IA configurée n’a pas abouti. Les brouillons et évaluations terminés restent enregistrés ; relancez le travail manquant.',
         'admin.programmeWorkerInterrupted': 'Le traitement précédent s’est arrêté. La tâche enregistrée reprendra automatiquement.',
         'admin.programmeProviderModeChanged': 'Le mode IA a changé depuis le démarrage. Lancez une nouvelle tâche pour les promesses restantes.',
@@ -1672,9 +1673,7 @@
         'landing.promiseCheckText': 'شوف الفرضيات، الحساب، والمصادر اللي بنينا عليهم الحكم.',
         'landing.promiseAsk': 'فهم السياق كامل',
         'landing.promiseAskText': 'قرا الخلاصة ولا سول الفيديو وبقا مربوط باللحظة اللي تقالات فيها الهضرة.',
-        'landing.factCheckKicker': 'الوعد تحت المجهر',
-        'landing.factCheckTitle': 'شنو تقدر الأحزاب تحقق بصح فـ5 سنين؟',
-        'landing.factCheckIntro': 'آخر وعود الأحزاب اللي دققنا فيها بالمصادر العمومية.',
+        'landing.factCheckTitle': 'الوعد تحت المجهر، شنو تقدر الأحزاب تحقق بصح في خمس سنين؟',
         'landing.viewAllChecks': 'شوف الأحزاب ووعودهم',
         'landing.checksLoading': 'كنحمّلو آخر الوعود المدققة…',
         'landing.checksEmpty': 'أول الوعود اللي راجعناها غادي يبانوا هنا.',
@@ -1986,7 +1985,7 @@
         'admin.programmeAiRateLimited': 'مزود الذكاء الاصطناعي موقف الطلبات مؤقتاً. الخدمة غادي تعاود بوحدها.',
         'admin.programmeAiTimeout': 'مزود الذكاء الاصطناعي طول بزاف. هاد الدفعة غادي تعاود بوحدها.',
         'admin.programmeAiRequestRejected': 'مزود الذكاء الاصطناعي رفض هاد الدفعة. راجع الإعدادات والمفاتيح.',
-        'admin.programmeAiResultInvalid': 'Gemini رجع نتيجة ناقصة. المسودات اللي تخرجو باقين محفوظين؛ عاود نفس المصدر.',
+        'admin.programmeAiResultInvalid': 'Gemini ما قدرش يكمل استخراج هاد البرنامج، وداكشي علاش ما تحفظات حتى مسودة. عاود من بعد ما تراجع المصدر ولا إعدادات الاستخراج.',
         'admin.programmeAiTemporaryFailure': 'التدقيق بالذكاء الاصطناعي اللي مختار ما قدرش يسالي. المسودات والتقييمات اللي وجدو محفوظين؛ عاود غير اللي باقي.',
         'admin.programmeWorkerInterrupted': 'الخدمة اللي كانت خدامة وقفات. المهمة المحفوظة غادي ترجع تكمل بوحدها.',
         'admin.programmeProviderModeChanged': 'طريقة التدقيق تبدلات منين بدات المهمة. بدا مهمة جديدة غير للي باقي.',
@@ -2284,6 +2283,7 @@
         root.querySelectorAll('[data-site-language]').forEach(select => {
             select.value = currentLocale;
         });
+        syncMobileLanguageSwitchers(root);
 
         const pageTitle = document.body?.dataset.i18nPageTitle;
         if (pageTitle) document.title = translate(pageTitle);
@@ -2303,6 +2303,34 @@
         document.querySelectorAll('[data-site-language]').forEach(select => {
             select.value = currentLocale;
             select.addEventListener('change', event => setLocale(event.currentTarget.value));
+            const container = select.closest('.site-language') || select;
+            if (container.nextElementSibling?.classList.contains('site-language-options')) return;
+
+            const options = document.createElement('span');
+            options.className = 'site-language-options';
+            options.setAttribute('role', 'group');
+            MOBILE_LANGUAGE_CHOICES.forEach(choice => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'site-language-option';
+                button.dataset.languageOption = choice.locale;
+                button.textContent = choice.flag;
+                button.title = choice.label;
+                button.setAttribute('aria-label', choice.label);
+                button.addEventListener('click', () => setLocale(choice.locale));
+                options.append(button);
+            });
+            container.after(options);
+        });
+        syncMobileLanguageSwitchers();
+    }
+
+    function syncMobileLanguageSwitchers(root = document) {
+        root.querySelectorAll('.site-language-options').forEach(options => {
+            options.setAttribute('aria-label', translate('common.siteLanguage'));
+            options.querySelectorAll('[data-language-option]').forEach(button => {
+                button.setAttribute('aria-pressed', String(button.dataset.languageOption === currentLocale));
+            });
         });
     }
 

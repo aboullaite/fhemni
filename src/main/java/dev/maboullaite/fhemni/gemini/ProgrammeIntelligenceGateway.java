@@ -41,6 +41,7 @@ import tools.jackson.databind.ObjectMapper;
 public class ProgrammeIntelligenceGateway {
 
     private static final Logger log = LoggerFactory.getLogger(ProgrammeIntelligenceGateway.class);
+    private static final int PDF_INVENTORY_MAX_OUTPUT_TOKENS = 24_576;
 
     private static final String SYSTEM_INSTRUCTION = """
             You are Fhemni's neutral electoral-programme research assistant.
@@ -108,7 +109,9 @@ public class ProgrammeIntelligenceGateway {
                     .systemInstruction(SYSTEM_INSTRUCTION)
                     .input(InteractionsInput.ofContent(pdfContent(pdfInventoryPrompt(), file)))
                     .generationConfig(GenerationConfig.builder()
-                            .maxOutputTokens(Math.min(extractionMaxOutputTokens, 16_384))
+                            // Reasoning tokens share this ceiling, so large programmes need extra headroom.
+                            .maxOutputTokens(Math.min(
+                                    extractionMaxOutputTokens, PDF_INVENTORY_MAX_OUTPUT_TOKENS))
                             .thinkingLevel(ThinkingLevel.MEDIUM)
                             .build())
                     .store(false)
@@ -232,7 +235,8 @@ public class ProgrammeIntelligenceGateway {
                 Open this exact public URL with URL Context: %s
 
                 Determine whether it is an official, final programme for Morocco's 2026 legislative election and whether
-                it belongs to one of these curated parties: RNI, PAM, PI, USFP, MP, PPS, UC, PJD, MDS, FFD.
+                it belongs to one of these curated parties: RNI, PAM, PI, USFP, MP, PPS, UC, PJD, MDS, FFD, FGD.
+                For a joint FGD-PSU campaign programme, always use the canonical partyCode FGD.
 
                 Return only the structured result. Set official2026Programme=false if the source is unofficial, refers
                 only to an older election, is a news summary, is inaccessible, or does not clearly establish 2026.
@@ -270,7 +274,8 @@ public class ProgrammeIntelligenceGateway {
 
                 Determine from the attached document whether it is an official, final programme for Morocco's 2026
                 legislative election and whether it belongs to one of these curated parties: RNI, PAM, PI, USFP, MP,
-                PPS, UC, PJD, MDS, FFD. The webpage URL is attribution metadata, not proof of the PDF's contents.
+                PPS, UC, PJD, MDS, FFD, FGD. For a joint FGD-PSU campaign programme, always use the canonical partyCode
+                FGD. The webpage URL is attribution metadata, not proof of the PDF's contents.
 
                 Return only the structured result. Set official2026Programme=false if the PDF is unofficial, refers
                 only to an older election, is merely a news summary, is unreadable, or does not clearly establish 2026.
