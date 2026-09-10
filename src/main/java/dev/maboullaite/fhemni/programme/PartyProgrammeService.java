@@ -36,9 +36,16 @@ public class PartyProgrammeService {
     private static final Pattern SLUG = Pattern.compile("[a-z0-9]+(?:-[a-z0-9]+)*");
 
     private final PartyProgrammeRepository repository;
+    private final PolicyTopicRepository policyTopics;
+    private final PolicyTopicClassifier topicClassifier;
 
-    public PartyProgrammeService(PartyProgrammeRepository repository) {
+    public PartyProgrammeService(
+            PartyProgrammeRepository repository,
+            PolicyTopicRepository policyTopics,
+            PolicyTopicClassifier topicClassifier) {
         this.repository = repository;
+        this.policyTopics = policyTopics;
+        this.topicClassifier = topicClassifier;
     }
 
     public List<AdminProgrammeView> adminProgrammes() {
@@ -197,6 +204,7 @@ public class PartyProgrammeService {
                 EditorialStatus.DRAFT, now, now, null);
         try {
             repository.insertPromise(promise);
+            policyTopics.replaceRuleAssignments(promise.id(), topicClassifier.classify(promise), now);
         } catch (DataIntegrityViolationException exception) {
             throw new IllegalStateException("That promise slug is already in use.", exception);
         }
@@ -349,8 +357,13 @@ public class PartyProgrammeService {
         List<PartyPromise> publishedPromises = repository.findPromises(programme.id(), true);
         Map<UUID, List<PromiseAssessment>> assessments = repository.findAssessments(
                 publishedPromises.stream().map(PartyPromise::id).toList(), true);
+        Map<UUID, List<PromisePolicyTopic>> topics = policyTopics.findPromiseTopics(
+                publishedPromises.stream().map(PartyPromise::id).toList());
         List<PublicPromiseSummary> promises = publishedPromises.stream()
-                .map(promise -> publicPromiseSummary(promise, assessments.getOrDefault(promise.id(), List.of())))
+                .map(promise -> publicPromiseSummary(
+                        promise,
+                        assessments.getOrDefault(promise.id(), List.of()),
+                        topics.getOrDefault(promise.id(), List.of())))
                 .toList();
         return new PublicProgrammeView(
                 programme.partyCode(), programme.electionYear(), programme.termStartYear(), programme.termEndYear(),
@@ -384,7 +397,8 @@ public class PartyProgrammeService {
                 promise.id(), promise.slug(), programme.partyCode(), programme.electionYear(),
                 programme.termStartYear(), programme.termEndYear(), promise.topic(), promise.title(),
                 promise.promiseText(), promise.sourceLocator(), promise.mechanism(), promise.financing(),
-                programme.sourceUrl(), programme.sourceLabel(), assessment);
+                programme.sourceUrl(), programme.sourceLabel(), assessment,
+                policyTopics.findPromiseTopics(List.of(promise.id())).getOrDefault(promise.id(), List.of()));
     }
 
     public List<PublicPromiseHighlight> featuredPublishedPromises(int requestedLimit) {
@@ -427,11 +441,12 @@ public class PartyProgrammeService {
 
     private PublicPromiseSummary publicPromiseSummary(
             PartyPromise promise,
-            List<PromiseAssessment> assessments) {
+            List<PromiseAssessment> assessments,
+            List<PromisePolicyTopic> topics) {
         PromiseAssessment assessment = latestPublishedAssessment(promise.id(), assessments);
         return new PublicPromiseSummary(
                 promise.slug(), promise.topic(), promise.title(), promise.promiseText(),
-                assessment.verdict(), assessment.summary(), assessment.dataCutoff());
+                assessment.verdict(), assessment.summary(), assessment.dataCutoff(), topics);
     }
 
     private PromiseAssessment latestPublishedAssessment(UUID promiseId) {
@@ -707,7 +722,8 @@ public class PartyProgrammeService {
             String promiseText,
             FeasibilityVerdict verdict,
             LocalizedText assessmentSummary,
-            LocalDate dataCutoff) {
+            LocalDate dataCutoff,
+            List<PromisePolicyTopic> policyTopics) {
     }
 
     public record PublicPromiseView(
@@ -725,7 +741,8 @@ public class PartyProgrammeService {
             String financing,
             String programmeSourceUrl,
             String programmeSourceLabel,
-            PromiseAssessment assessment) {
+            PromiseAssessment assessment,
+            List<PromisePolicyTopic> policyTopics) {
     }
 
     public record PublicPromiseHighlight(
