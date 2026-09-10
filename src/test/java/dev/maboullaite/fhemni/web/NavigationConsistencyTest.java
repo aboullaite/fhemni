@@ -57,6 +57,14 @@ class NavigationConsistencyTest {
         assertThat(image.getHeight()).isEqualTo(630);
     }
 
+    @Test
+    void homePageUsesOneConciseFactCheckHeading() throws IOException {
+        assertThat(html("index.html"))
+                .contains("id=\"factCheckTitle\" data-i18n=\"landing.factCheckTitle\"")
+                .doesNotContain("landing.factCheckKicker")
+                .doesNotContain("landing.factCheckIntro");
+    }
+
     private String html(String page) throws IOException {
         return new ClassPathResource("static/" + page).getContentAsString(UTF_8);
     }
