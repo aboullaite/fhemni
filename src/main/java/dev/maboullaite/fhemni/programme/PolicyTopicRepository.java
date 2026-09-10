@@ -140,6 +140,19 @@ public class PolicyTopicRepository {
                                       AND child.parent_code = topic.code
                                       AND child.active = TRUE
                                )
+                               AND (
+                                   link.relationship <> 'DIRECT'
+                                   OR EXISTS (
+                                       SELECT 1
+                                         FROM promise_policy_topics direct_child_link
+                                         JOIN policy_topics direct_child
+                                           ON direct_child.code = direct_child_link.topic_code
+                                        WHERE direct_child_link.promise_id = link.promise_id
+                                          AND direct_child.parent_code = topic.code
+                                          AND direct_child.active = TRUE
+                                          AND direct_child_link.relationship = 'DIRECT'
+                                   )
+                               )
                            )
                          ORDER BY link.promise_id, broad_code, topic.sort_order
                         """)

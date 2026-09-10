@@ -165,20 +165,19 @@
             return;
         }
         try {
-            const saved = await window.FhemniCatalog.requestJson('/api/account/policy-topics');
-            if ((saved.topicCodes || []).length || !localPrioritySyncPending) {
-                selectedPolicyTopics = validPriorityCodes(saved.topicCodes);
-                localPrioritySyncPending = false;
-                writeLocalPriorities();
-                priorityNoticeKey = 'priorities.savedAccount';
-            } else if (selectedPolicyTopics.length) {
+            if (localPrioritySyncPending) {
                 await saveAccountPriorities(selectedPolicyTopics);
                 localPrioritySyncPending = false;
-                writeLocalPriorities();
-                priorityNoticeKey = 'priorities.savedAccount';
+            } else {
+                const saved = await window.FhemniCatalog.requestJson('/api/account/policy-topics');
+                selectedPolicyTopics = validPriorityCodes(saved.topicCodes);
             }
+            writeLocalPriorities();
+            priorityNoticeKey = 'priorities.savedAccount';
         } catch (_) {
-            priorityNoticeKey = selectedPolicyTopics.length ? 'priorities.saveFailed' : '';
+            priorityNoticeKey = localPrioritySyncPending || selectedPolicyTopics.length
+                ? 'priorities.saveFailed'
+                : '';
         }
         renderPriorities();
     }
@@ -452,10 +451,9 @@
         [PRIORITY_STORAGE_KEY, PRIORITY_PENDING_KEY].forEach(base => {
             try {
                 const legacy = window.localStorage.getItem(base);
-                const scoped = scopedPriorityStorageKey(base);
-                if (!authSession?.authenticated && scoped && legacy !== null
-                        && window.localStorage.getItem(scoped) === null) {
-                    window.localStorage.setItem(scoped, legacy);
+                const guestKey = `${base}.guest`;
+                if (legacy !== null && window.localStorage.getItem(guestKey) === null) {
+                    window.localStorage.setItem(guestKey, legacy);
                 }
                 window.localStorage.removeItem(base);
             } catch (_) { /* Preferences still work for the current page. */ }

@@ -68,19 +68,17 @@
     async function initializeAccountTopics() {
         if (!authSession.authenticated) return;
         try {
-            const saved = await window.FhemniCatalog.requestJson('/api/account/policy-topics');
-            if ((saved.topicCodes || []).length || !localSyncPending) {
-                selectedTopics = validTopicCodes(saved.topicCodes);
-                localSyncPending = false;
-                writeLocalTopics();
-            } else if (selectedTopics.length) {
+            if (localSyncPending) {
                 await saveAccountTopics(selectedTopics);
                 localSyncPending = false;
-                writeLocalTopics();
+            } else {
+                const saved = await window.FhemniCatalog.requestJson('/api/account/policy-topics');
+                selectedTopics = validTopicCodes(saved.topicCodes);
             }
+            writeLocalTopics();
             topicNoticeKey = 'priorities.savedAccount';
         } catch (_) {
-            topicNoticeKey = selectedTopics.length ? 'priorities.saveFailed' : '';
+            topicNoticeKey = localSyncPending || selectedTopics.length ? 'priorities.saveFailed' : '';
         }
     }
 
@@ -536,10 +534,9 @@
     function migrateLegacyStorageValue(base) {
         try {
             const legacy = window.localStorage.getItem(base);
-            const scoped = scopedStorageKey(base);
-            if (!authSession?.authenticated && scoped && legacy !== null
-                    && window.localStorage.getItem(scoped) === null) {
-                window.localStorage.setItem(scoped, legacy);
+            const guestKey = `${base}.guest`;
+            if (legacy !== null && window.localStorage.getItem(guestKey) === null) {
+                window.localStorage.setItem(guestKey, legacy);
             }
             window.localStorage.removeItem(base);
         } catch (_) { /* Keep the current-page selection in memory. */ }
