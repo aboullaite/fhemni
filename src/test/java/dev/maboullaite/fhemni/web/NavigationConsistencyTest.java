@@ -49,7 +49,8 @@ class NavigationConsistencyTest {
                 .contains("property=\"og:description\"")
                 .contains("property=\"og:site_name\"")
                 .contains("name=\"twitter:card\" content=\"summary_large_image\"")
-                .contains("https://fhemni.ma/assets/social/fhemni-og.png");
+                .contains("https://fhemni.ma/assets/social/fhemni-og.png?v=20260910-2")
+                .doesNotContain("fhemni.aboullaite.me");
 
         var imageResource = new ClassPathResource("static/assets/social/fhemni-og.png");
         var image = ImageIO.read(imageResource.getInputStream());
