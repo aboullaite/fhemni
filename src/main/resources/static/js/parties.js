@@ -49,11 +49,14 @@
             topicCatalog = topics.topics || [];
             maxTopics = Number(topics.maxSelections) || 3;
             authSession = session;
-            selectedTopics = readLocalTopics();
-            selectedParties = readLocalParties();
-            if (explorer) includeRequestedParty();
-            localSyncPending = readLocalPending();
-            await initializeAccountTopics();
+            if (explorer) {
+                migrateLegacyLocalState();
+                selectedTopics = readLocalTopics();
+                selectedParties = readLocalParties();
+                includeRequestedParty();
+                localSyncPending = readLocalPending();
+                await initializeAccountTopics();
+            }
             render();
         } catch (error) {
             if (count) count.textContent = '';
@@ -270,7 +273,10 @@
             programmeCache.set(code, window.FhemniCatalog
                 .requestJson(`/api/catalog/parties/${encodeURIComponent(code)}/programme?view=policy-topics-v1`)
                 .then(programme => ({ programme, error: null }))
-                .catch(error => ({ programme: null, error })));
+                .catch(error => {
+                    programmeCache.delete(code);
+                    return { programme: null, error };
+                }));
         }
         return programmeCache.get(code);
     }
@@ -474,7 +480,8 @@
 
     function readLocalTopics() {
         try {
-            return validTopicCodes(JSON.parse(window.localStorage.getItem(PRIORITY_STORAGE_KEY) || '[]'));
+            const key = scopedStorageKey(PRIORITY_STORAGE_KEY);
+            return key ? validTopicCodes(JSON.parse(window.localStorage.getItem(key) || '[]')) : [];
         } catch (_) {
             return [];
         }
@@ -482,7 +489,8 @@
 
     function readLocalParties() {
         try {
-            return validPartyCodes(JSON.parse(window.localStorage.getItem(COMPARE_PARTIES_STORAGE_KEY) || '[]'));
+            const key = scopedStorageKey(COMPARE_PARTIES_STORAGE_KEY);
+            return key ? validPartyCodes(JSON.parse(window.localStorage.getItem(key) || '[]')) : [];
         } catch (_) {
             return [];
         }
@@ -490,7 +498,8 @@
 
     function readLocalPending() {
         try {
-            return window.localStorage.getItem(PRIORITY_PENDING_KEY) === 'true';
+            const key = scopedStorageKey(PRIORITY_PENDING_KEY);
+            return key ? window.localStorage.getItem(key) === 'true' : false;
         } catch (_) {
             return false;
         }
@@ -498,14 +507,41 @@
 
     function writeLocalTopics() {
         try {
-            window.localStorage.setItem(PRIORITY_STORAGE_KEY, JSON.stringify(selectedTopics));
-            window.localStorage.setItem(PRIORITY_PENDING_KEY, String(localSyncPending));
+            const topicsKey = scopedStorageKey(PRIORITY_STORAGE_KEY);
+            const pendingKey = scopedStorageKey(PRIORITY_PENDING_KEY);
+            if (!topicsKey || !pendingKey) return;
+            window.localStorage.setItem(topicsKey, JSON.stringify(selectedTopics));
+            window.localStorage.setItem(pendingKey, String(localSyncPending));
         } catch (_) { /* Keep the current-page selection in memory. */ }
     }
 
     function writeLocalParties() {
         try {
-            window.localStorage.setItem(COMPARE_PARTIES_STORAGE_KEY, JSON.stringify(selectedParties));
+            const key = scopedStorageKey(COMPARE_PARTIES_STORAGE_KEY);
+            if (key) window.localStorage.setItem(key, JSON.stringify(selectedParties));
+        } catch (_) { /* Keep the current-page selection in memory. */ }
+    }
+
+    function scopedStorageKey(base) {
+        if (!authSession?.authenticated) return `${base}.guest`;
+        const userId = authSession.user?.id;
+        return userId ? `${base}.user.${userId}` : null;
+    }
+
+    function migrateLegacyLocalState() {
+        [PRIORITY_STORAGE_KEY, PRIORITY_PENDING_KEY, COMPARE_PARTIES_STORAGE_KEY]
+            .forEach(migrateLegacyStorageValue);
+    }
+
+    function migrateLegacyStorageValue(base) {
+        try {
+            const legacy = window.localStorage.getItem(base);
+            const scoped = scopedStorageKey(base);
+            if (!authSession?.authenticated && scoped && legacy !== null
+                    && window.localStorage.getItem(scoped) === null) {
+                window.localStorage.setItem(scoped, legacy);
+            }
+            window.localStorage.removeItem(base);
         } catch (_) { /* Keep the current-page selection in memory. */ }
     }
 

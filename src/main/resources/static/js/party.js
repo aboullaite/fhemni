@@ -25,8 +25,9 @@
 
     async function load() {
         partyCode = decodeURIComponent(window.location.pathname.split('/').filter(Boolean).at(-1) || '');
+        const sessionRequest = window.FhemniAuth.session().catch(() => ({ authenticated: false }));
         const chatStateRequest = Promise.all([
-            window.FhemniAuth.session().catch(() => ({ authenticated: false })),
+            sessionRequest,
             window.FhemniCatalog.requestJson('/api/meta').catch(() => null)
         ]);
         try {
@@ -36,9 +37,11 @@
             const programmeRequest = requestProgramme(requestedPartyCode);
             const policyTopicsRequest = window.FhemniCatalog.requestJson('/api/catalog/policy-topics')
                 .catch(() => ({ maxSelections: 3, topics: [] }));
-            const topicCatalog = await policyTopicsRequest;
+            const [topicCatalog, session] = await Promise.all([policyTopicsRequest, sessionRequest]);
             policyTopicCatalog = topicCatalog.topics || [];
             priorityMaxSelections = Number(topicCatalog.maxSelections) || 3;
+            authSession = session;
+            migrateLegacyLocalPriorities();
             selectedPolicyTopics = readLocalPriorities();
             localPrioritySyncPending = readLocalPriorityPending();
             [profile, programme] = await Promise.all([profileRequest, programmeRequest]);
@@ -413,7 +416,8 @@
 
     function readLocalPriorities() {
         try {
-            return validPriorityCodes(JSON.parse(window.localStorage.getItem(PRIORITY_STORAGE_KEY) || '[]'));
+            const key = scopedPriorityStorageKey(PRIORITY_STORAGE_KEY);
+            return key ? validPriorityCodes(JSON.parse(window.localStorage.getItem(key) || '[]')) : [];
         } catch (_) {
             return [];
         }
@@ -421,17 +425,41 @@
 
     function writeLocalPriorities() {
         try {
-            window.localStorage.setItem(PRIORITY_STORAGE_KEY, JSON.stringify(selectedPolicyTopics));
-            window.localStorage.setItem(PRIORITY_PENDING_KEY, String(localPrioritySyncPending));
+            const topicsKey = scopedPriorityStorageKey(PRIORITY_STORAGE_KEY);
+            const pendingKey = scopedPriorityStorageKey(PRIORITY_PENDING_KEY);
+            if (!topicsKey || !pendingKey) return;
+            window.localStorage.setItem(topicsKey, JSON.stringify(selectedPolicyTopics));
+            window.localStorage.setItem(pendingKey, String(localPrioritySyncPending));
         } catch (_) { /* Preferences still work for the current page. */ }
     }
 
     function readLocalPriorityPending() {
         try {
-            return window.localStorage.getItem(PRIORITY_PENDING_KEY) === 'true';
+            const key = scopedPriorityStorageKey(PRIORITY_PENDING_KEY);
+            return key ? window.localStorage.getItem(key) === 'true' : false;
         } catch (_) {
             return false;
         }
+    }
+
+    function scopedPriorityStorageKey(base) {
+        if (!authSession?.authenticated) return `${base}.guest`;
+        const userId = authSession.user?.id;
+        return userId ? `${base}.user.${userId}` : null;
+    }
+
+    function migrateLegacyLocalPriorities() {
+        [PRIORITY_STORAGE_KEY, PRIORITY_PENDING_KEY].forEach(base => {
+            try {
+                const legacy = window.localStorage.getItem(base);
+                const scoped = scopedPriorityStorageKey(base);
+                if (!authSession?.authenticated && scoped && legacy !== null
+                        && window.localStorage.getItem(scoped) === null) {
+                    window.localStorage.setItem(scoped, legacy);
+                }
+                window.localStorage.removeItem(base);
+            } catch (_) { /* Preferences still work for the current page. */ }
+        });
     }
 
     function sameCodes(first, second) {

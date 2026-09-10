@@ -204,10 +204,10 @@ public class PartyProgrammeService {
                 EditorialStatus.DRAFT, now, now, null);
         try {
             repository.insertPromise(promise);
-            policyTopics.replaceRuleAssignments(promise.id(), topicClassifier.classify(promise), now);
         } catch (DataIntegrityViolationException exception) {
             throw new IllegalStateException("That promise slug is already in use.", exception);
         }
+        policyTopics.replaceRuleAssignments(promise.id(), topicClassifier.classify(promise), now);
         return adminPromiseView(promise);
     }
 

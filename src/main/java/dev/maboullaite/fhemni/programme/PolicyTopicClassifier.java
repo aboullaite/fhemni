@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class PolicyTopicClassifier {
 
-    public static final String VERSION = "policy-topics-v2";
+    public static final String VERSION = "policy-topics-v3";
 
     private static final Pattern EDUCATION = pattern(
             "education|enseignement|ecole|school|universit|research|recherche|تعليم|مدرس|جامع|بحث علمي|تربوي");
@@ -47,7 +47,7 @@ public class PolicyTopicClassifier {
             rule("PURCHASING_POWER", "purchasing power|pouvoir d.achat|cost of living|قدرة شرائية|القدرة الشرائية|اسعار|الاسعار|غلاء|اجور|الاجور|معاش"),
             rule("HOUSING", "housing|logement|habitat|سكن|السكن|ايجار|كراء"),
             rule("SOCIAL_PROTECTION", "social protection|protection sociale|social security|securite sociale|pension|retraite|حماية اجتماعية|الحماية الاجتماعية|تقاعد|معاش|دعم اجتماعي"),
-            rule("JUSTICE_SECURITY", "justice|judicial|courts?|security|securite|عدالة|العدالة|قضاء|محكم|الامن(?!\\s+(?:المائي|الطاقي|الغذائي))"),
+            rule("JUSTICE_SECURITY", "justice|judicial|courts?|(?<!social\\s)(?<!energy\\s)(?<!water\\s)(?<!food\\s)security|securite(?!\\s+(?:sociale|energetique|hydrique|alimentaire))|عدالة|العدالة|قضاء|محكم|الامن(?!\\s+(?:المايي|الطاقي|الغذايي))"),
             rule("WATER_ENERGY_ENVIRONMENT", "water|energy|environment|climate|eau|energie|environnement|climat|ماء|مياه|الماء|الطاقة|طاقي|بيئ|مناخ|محروقات"),
             rule("GOVERNANCE", "governance|corruption|transparen|election|institutions?|حكامة|فساد|شفاف|نزاهة|انتخاب|ديمقراط|مؤسسات"),
             rule("REGIONAL_DEVELOPMENT", "regional|territorial|rural|regions?|جهوي|الجهات|مجالي|تراب|قروي|القرى|العالم القروي"));
@@ -93,9 +93,12 @@ public class PolicyTopicClassifier {
         if (!broadPattern.matcher(complete).find()) {
             return;
         }
+        boolean broadHeadlineMatch = broadPattern.matcher(headline).find();
         int before = matches.size();
         details.forEach(rule -> addIfMatched(rule, headline, complete, matches));
-        if (matches.size() == before) {
+        if (broadHeadlineMatch) {
+            matches.put(broadCode, Relationship.DIRECT);
+        } else if (matches.size() == before) {
             matches.put(broadCode, relationship(broadPattern, headline));
         }
     }

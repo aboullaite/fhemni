@@ -53,6 +53,51 @@ class PolicyTopicClassifierTest {
     }
 
     @Test
+    void keepsADirectBroadMatchWhenOnlyTheDetailedMatchComesFromTheBody() {
+        var assignments = classifier.classify(promise(
+                "إصلاح التشغيل",
+                "Réforme de l'emploi",
+                "Employment reform",
+                "The delivery plan includes support for self-employment."));
+
+        assertThat(assignments)
+                .anySatisfy(item -> {
+                    assertThat(item.code()).isEqualTo("EMPLOYMENT");
+                    assertThat(item.relationship()).isEqualTo(Relationship.DIRECT);
+                })
+                .anySatisfy(item -> {
+                    assertThat(item.code()).isEqualTo("EMPLOYMENT_SELF_EMPLOYMENT");
+                    assertThat(item.relationship()).isEqualTo(Relationship.RELATED);
+                });
+    }
+
+    @Test
+    void doesNotTreatEnglishCompoundSecurityTermsAsJusticeAndSecurity() {
+        var assignments = classifier.classify(promise(
+                "الحماية الاجتماعية والأمن الطاقي",
+                "Protection sociale et sécurité énergétique",
+                "Social security and energy security",
+                "Protect households and ensure stable energy supply."));
+
+        assertThat(assignments).extracting(PromisePolicyTopic.Assignment::code)
+                .contains("SOCIAL_PROTECTION", "WATER_ENERGY_ENVIRONMENT")
+                .doesNotContain("JUSTICE_SECURITY");
+    }
+
+    @Test
+    void doesNotTreatFrenchCompoundSecurityTermsAsJusticeAndSecurity() {
+        var assignments = classifier.classify(promise(
+                "الأمن الغذائي والمائي",
+                "Sécurité alimentaire et sécurité hydrique",
+                "Food and water resilience",
+                "Renforcer la sécurité alimentaire et la sécurité hydrique."));
+
+        assertThat(assignments).extracting(PromisePolicyTopic.Assignment::code)
+                .contains("WATER_ENERGY_ENVIRONMENT")
+                .doesNotContain("JUSTICE_SECURITY");
+    }
+
+    @Test
     void keepsUnclassifiedPromisesDiscoverableWithoutGuessing() {
         var assignments = classifier.classify(promise(
                 "تبسيط المساطر",
