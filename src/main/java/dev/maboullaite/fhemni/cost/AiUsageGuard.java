@@ -150,24 +150,25 @@ public class AiUsageGuard {
                         "CHAT_DAILY_LIMIT",
                         "The daily chat budget has been reached.");
             }
-            if (repository.countQuestionsForUser(userId, dailyWindow.from(), dailyWindow.to())
-                    >= maxDailyChatRoundsPerUser) {
+            Window weeklyWindow = currentWeek();
+            AiUsageRepository.UserChatUsage userUsage = repository.chatUsageForUser(
+                    userId,
+                    dailyWindow.from(), dailyWindow.to(),
+                    weeklyWindow.from(), weeklyWindow.to());
+            if (userUsage.weeklyRequests() >= maxWeeklyChatRoundsPerUser) {
+                throw new AiBudgetExceededException(
+                        "CHAT_WEEKLY_LIMIT",
+                        "Your weekly chat allowance has been reached.");
+            }
+            if (userUsage.dailyRequests() >= maxDailyChatRoundsPerUser) {
                 throw new AiBudgetExceededException(
                         "CHAT_USER_DAILY_LIMIT",
                         "Your daily chat allowance has been reached.");
             }
-            if (repository.sumQuestionOutputTokensForUser(userId, dailyWindow.from(), dailyWindow.to())
-                    >= maxDailyChatOutputTokensPerUser) {
+            if (userUsage.dailyOutputTokens() >= maxDailyChatOutputTokensPerUser) {
                 throw new AiBudgetExceededException(
                         "CHAT_DAILY_TOKEN_LIMIT",
                         "Your daily answer-token allowance has been reached.");
-            }
-            Window weeklyWindow = currentWeek();
-            if (repository.countQuestionsForUser(userId, weeklyWindow.from(), weeklyWindow.to())
-                    >= maxWeeklyChatRoundsPerUser) {
-                throw new AiBudgetExceededException(
-                        "CHAT_WEEKLY_LIMIT",
-                        "Your weekly chat allowance has been reached.");
             }
             return new Reservation(repository.reserve(
                     operation, userId, analysisId, model, clock.instant()));
@@ -180,24 +181,23 @@ public class AiUsageGuard {
         }
         synchronized (reservationMonitor) {
             Window weeklyWindow = currentWeek();
-            long weeklyUsed = repository.countQuestionsForUser(userId, weeklyWindow.from(), weeklyWindow.to());
             Window dailyWindow = today();
-            long dailyRequestsUsed = repository.countQuestionsForUser(
-                    userId, dailyWindow.from(), dailyWindow.to());
-            long dailyOutputTokensUsed = repository.sumQuestionOutputTokensForUser(
-                    userId, dailyWindow.from(), dailyWindow.to());
+            AiUsageRepository.UserChatUsage userUsage = repository.chatUsageForUser(
+                    userId,
+                    dailyWindow.from(), dailyWindow.to(),
+                    weeklyWindow.from(), weeklyWindow.to());
             return new ChatQuota(
                     maxWeeklyChatRoundsPerUser,
-                    weeklyUsed,
-                    Math.max(0L, maxWeeklyChatRoundsPerUser - weeklyUsed),
+                    userUsage.weeklyRequests(),
+                    Math.max(0L, maxWeeklyChatRoundsPerUser - userUsage.weeklyRequests()),
                     weeklyWindow.to(),
                     maxDailyChatRoundsPerUser,
-                    dailyRequestsUsed,
-                    Math.max(0L, maxDailyChatRoundsPerUser - dailyRequestsUsed),
+                    userUsage.dailyRequests(),
+                    Math.max(0L, maxDailyChatRoundsPerUser - userUsage.dailyRequests()),
                     dailyWindow.to(),
                     maxDailyChatOutputTokensPerUser,
-                    dailyOutputTokensUsed,
-                    Math.max(0L, maxDailyChatOutputTokensPerUser - dailyOutputTokensUsed),
+                    userUsage.dailyOutputTokens(),
+                    Math.max(0L, maxDailyChatOutputTokensPerUser - userUsage.dailyOutputTokens()),
                     dailyWindow.to());
         }
     }

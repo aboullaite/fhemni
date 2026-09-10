@@ -33,8 +33,10 @@ class AiUsageGuardWeeklyLimitTest {
         AiUsageRepository repository = mock(AiUsageRepository.class);
         UUID userId = UUID.randomUUID();
         UUID analysisId = UUID.randomUUID();
-        when(repository.countQuestionsForUser(userId, DAY_START, NEXT_DAY)).thenReturn(7L, 8L);
-        when(repository.countQuestionsForUser(userId, WEEK_START, NEXT_WEEK)).thenReturn(99L, 100L);
+        when(repository.chatUsageForUser(userId, DAY_START, NEXT_DAY, WEEK_START, NEXT_WEEK))
+                .thenReturn(
+                        new AiUsageRepository.UserChatUsage(7L, 99L, 0L),
+                        new AiUsageRepository.UserChatUsage(8L, 100L, 0L));
         when(repository.reserve(
                 eq(AiOperation.CHAT_VIDEO), eq(userId), eq(analysisId), eq("test-model"), any()))
                 .thenReturn(UUID.randomUUID());
@@ -52,14 +54,16 @@ class AiUsageGuardWeeklyLimitTest {
         assertThat(quota.remaining()).isZero();
         assertThat(quota.resetsAt()).isEqualTo(NEXT_WEEK);
         assertThat(quota.dailyOutputTokenLimit()).isEqualTo(16_000);
-        verify(repository, times(2)).countQuestionsForUser(userId, WEEK_START, NEXT_WEEK);
+        verify(repository, times(2)).chatUsageForUser(
+                userId, DAY_START, NEXT_DAY, WEEK_START, NEXT_WEEK);
     }
 
     @Test
     void rejectsTheTwentyFirstDailyAttemptEvenWhenEarlierProviderCallsFailed() {
         AiUsageRepository repository = mock(AiUsageRepository.class);
         UUID userId = UUID.randomUUID();
-        when(repository.countQuestionsForUser(userId, DAY_START, NEXT_DAY)).thenReturn(20L);
+        when(repository.chatUsageForUser(userId, DAY_START, NEXT_DAY, WEEK_START, NEXT_WEEK))
+                .thenReturn(new AiUsageRepository.UserChatUsage(20L, 80L, 0L));
         AiUsageGuard guard = guard(repository);
 
         assertThatThrownBy(() -> guard.reserveQuestion(
@@ -72,11 +76,11 @@ class AiUsageGuardWeeklyLimitTest {
     }
 
     @Test
-    void rejectsTheHundredAndFirstWeeklyAttemptBeforeReservation() {
+    void rejectsTheWeeklyLimitBeforeTheDailyLimitWhenBothAreExhausted() {
         AiUsageRepository repository = mock(AiUsageRepository.class);
         UUID userId = UUID.randomUUID();
-        when(repository.countQuestionsForUser(userId, DAY_START, NEXT_DAY)).thenReturn(19L);
-        when(repository.countQuestionsForUser(userId, WEEK_START, NEXT_WEEK)).thenReturn(100L);
+        when(repository.chatUsageForUser(userId, DAY_START, NEXT_DAY, WEEK_START, NEXT_WEEK))
+                .thenReturn(new AiUsageRepository.UserChatUsage(20L, 100L, 0L));
         AiUsageGuard guard = guard(repository);
 
         assertThatThrownBy(() -> guard.reserveQuestion(
@@ -99,7 +103,7 @@ class AiUsageGuardWeeklyLimitTest {
                 .isInstanceOfSatisfying(AiBudgetExceededException.class, exception ->
                         assertThat(exception.code()).isEqualTo("CHAT_HOURLY_LIMIT"));
 
-        verify(repository, never()).countQuestionsForUser(any(), any(), any());
+        verify(repository, never()).chatUsageForUser(any(), any(), any(), any(), any());
         verify(repository, never()).reserve(any(), any(), any(), any(), any());
     }
 
@@ -115,7 +119,7 @@ class AiUsageGuardWeeklyLimitTest {
                 .isInstanceOfSatisfying(AiBudgetExceededException.class, exception ->
                         assertThat(exception.code()).isEqualTo("CHAT_DAILY_LIMIT"));
 
-        verify(repository, never()).countQuestionsForUser(any(), any(), any());
+        verify(repository, never()).chatUsageForUser(any(), any(), any(), any(), any());
         verify(repository, never()).reserve(any(), any(), any(), any(), any());
     }
 
@@ -125,7 +129,8 @@ class AiUsageGuardWeeklyLimitTest {
         UUID userId = UUID.randomUUID();
         when(repository.countGlobal(HOUR_START, NEXT_HOUR, false)).thenReturn(12L);
         when(repository.countGlobal(DAY_START, NEXT_DAY, false)).thenReturn(80L);
-        when(repository.sumQuestionOutputTokensForUser(userId, DAY_START, NEXT_DAY)).thenReturn(16_250L);
+        when(repository.chatUsageForUser(userId, DAY_START, NEXT_DAY, WEEK_START, NEXT_WEEK))
+                .thenReturn(new AiUsageRepository.UserChatUsage(12L, 80L, 16_250L));
         AiUsageGuard guard = guard(repository);
 
         assertThatThrownBy(() -> guard.reserveQuestion(
@@ -133,7 +138,6 @@ class AiUsageGuardWeeklyLimitTest {
                 .isInstanceOfSatisfying(AiBudgetExceededException.class, exception ->
                         assertThat(exception.code()).isEqualTo("CHAT_DAILY_TOKEN_LIMIT"));
 
-        verify(repository, never()).countQuestionsForUser(userId, WEEK_START, NEXT_WEEK);
         verify(repository, never()).reserve(any(), any(), any(), any(), any());
     }
 

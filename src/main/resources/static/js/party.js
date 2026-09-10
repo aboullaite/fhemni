@@ -22,20 +22,19 @@
             window.FhemniCatalog.requestJson('/api/meta').catch(() => null)
         ]);
         try {
-            profile = await window.FhemniCatalog.requestJson(
-                `/api/catalog/parties/${encodeURIComponent(partyCode)}`);
             const requestedPartyCode = partyCode;
+            const profileRequest = window.FhemniCatalog.requestJson(
+                `/api/catalog/parties/${encodeURIComponent(requestedPartyCode)}`);
+            const programmeRequest = requestProgramme(requestedPartyCode);
+            [profile, programme] = await Promise.all([profileRequest, programmeRequest]);
             const programmePartyCode = profile.programmePartyCode || profile.code;
             if (profile.code !== requestedPartyCode) {
                 window.history.replaceState({}, '', `/parties/${encodeURIComponent(profile.code)}`);
             }
             partyCode = profile.code;
-            programme = await window.FhemniCatalog.requestJson(
-                `/api/catalog/parties/${encodeURIComponent(programmePartyCode)}/programme`)
-                .catch(error => {
-                    if (error.status === 404) return null;
-                    throw error;
-                });
+            if (programmePartyCode.toUpperCase() !== requestedPartyCode.toUpperCase()) {
+                programme = await requestProgramme(programmePartyCode);
+            }
             render();
             bindChat();
             document.querySelector('#partyLoading').hidden = true;
@@ -52,6 +51,15 @@
             panel.textContent = error.message;
             panel.hidden = false;
         }
+    }
+
+    function requestProgramme(code) {
+        return window.FhemniCatalog.requestJson(
+            `/api/catalog/parties/${encodeURIComponent(code)}/programme`)
+            .catch(error => {
+                if (error.status === 404) return null;
+                throw error;
+            });
     }
 
     function render() {
