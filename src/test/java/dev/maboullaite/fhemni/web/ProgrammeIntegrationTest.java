@@ -213,7 +213,9 @@ class ProgrammeIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("promiseDetail")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("promise-deep-dive")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("promise-ai-attribution")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("promise-disclaimer")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("promise-ai-attribution"))));
     }
 
     @Test

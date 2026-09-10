@@ -679,21 +679,45 @@ footer { display: flex; align-items: center; justify-content: space-between; fle
 .admin-video-actions .primary-button, .admin-video-actions .secondary-button { min-height: 38px; padding-inline: 14px; white-space: nowrap; }
 .admin-video-actions button:disabled, .admin-video-actions select:disabled { cursor: not-allowed; opacity: .48; }
 
-html[dir="rtl"] .catalog-card h3,
 html[dir="rtl"] .section-heading h2,
 html[dir="rtl"] .editorial-note strong,
 html[dir="rtl"] .video-detail-heading h1,
 html[dir="rtl"] .analysis-state-card h2,
-html[dir="rtl"] .admin-panel h2 {
+html[dir="rtl"] .admin-panel h2,
+html[dir="rtl"] .programme-heading h2 {
     font-family: "Tajawal Heading Numerals", "Arabswell", "Tajawal", Tahoma, Arial, "Segoe UI", sans-serif;
     letter-spacing: normal;
     line-height: 1.32;
 }
 
-h1:dir(rtl), h2:dir(rtl), h3:dir(rtl), h4:dir(rtl) {
+h1:dir(rtl) {
     font-family: "Tajawal Heading Numerals", "Arabswell", "Tajawal", Tahoma, Arial, "Segoe UI", sans-serif;
     letter-spacing: normal;
     line-height: 1.32;
+}
+
+h2:dir(rtl), h3:dir(rtl), h4:dir(rtl) {
+    font-family: "Tajawal", Tahoma, Arial, "Segoe UI", sans-serif;
+    letter-spacing: normal;
+}
+
+html[dir="rtl"] .featured-promise-card h3,
+html[dir="rtl"] .promise-card h3,
+html[dir="rtl"] .catalog-card h3 {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+html[dir="rtl"] #partiesGrid .party-directory-card .person-card-title,
+html[dir="rtl"] .priority-comparison-party h3 {
+    font-family: "Tajawal Heading Numerals", "Arabswell", "Tajawal", Tahoma, Arial, "Segoe UI", sans-serif;
+    font-weight: 500;
+    line-height: 1.35;
+}
+
+html[dir="rtl"] #partiesGrid .party-directory-card .person-card-title {
+    font-size: clamp(22px, 2.1vw, 26px);
 }
 
 @media (max-width: 900px) {
@@ -830,12 +854,12 @@ span.party-badge { cursor: default; }
 .priority-match-group { min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 15px; background: var(--white); }
 .priority-match-group h4 { margin: 0; font-size: 16px; }
 .priority-match-meta { margin: 3px 0 0; color: var(--muted); font-size: 9px; }
-.priority-promise-list { display: grid; gap: 8px; margin-top: 11px; }
-.priority-promise-link { display: grid; gap: 3px; padding-top: 8px; border-top: 1px solid var(--line); color: var(--ink); text-decoration: none; }
+.priority-promise-list { display: grid; min-width: 0; gap: 8px; margin-top: 11px; }
+.priority-promise-link { display: grid; min-width: 0; gap: 3px; padding-top: 8px; border-top: 1px solid var(--line); color: var(--ink); text-decoration: none; }
 .priority-promise-link:first-child { padding-top: 0; border-top: 0; }
-.priority-promise-topline { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.priority-promise-topline { display: flex; align-items: center; justify-content: space-between; min-width: 0; gap: 8px; }
 .priority-promise-topic { overflow: hidden; color: var(--teal-dark); font-size: 9px; font-weight: 850; text-overflow: ellipsis; white-space: nowrap; }
-.priority-promise-link strong { display: -webkit-box; overflow: hidden; font-size: 12px; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.priority-promise-link strong { display: -webkit-box; min-width: 0; overflow: hidden; font-family: "Tajawal", Tahoma, Arial, "Segoe UI", sans-serif; font-size: 12px; font-weight: 500; line-height: 1.55; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .priority-promise-link .feasibility-badge { flex: none; padding: 3px 7px; font-size: 8px; }
 .priority-empty { margin: 11px 0 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
 .priority-disclaimer { margin: 11px 0 0; color: var(--muted); font-size: 9px; line-height: 1.55; }
@@ -871,11 +895,11 @@ span.party-badge { cursor: default; }
 .priority-comparison-topic-heading { display: flex; align-items: center; justify-content: space-between; gap: 9px; }
 .priority-comparison-topic-heading h4 { margin: 0; font-size: 14px; }
 .priority-comparison-topic-heading span { color: var(--muted); font-size: 8px; font-weight: 800; white-space: nowrap; }
-.priority-comparison-promises { display: grid; gap: 7px; margin-top: 8px; }
-.priority-comparison-promise { display: grid; gap: 2px; color: var(--ink); text-decoration: none; }
+.priority-comparison-promises { display: grid; min-width: 0; gap: 7px; margin-top: 8px; }
+.priority-comparison-promise { display: grid; min-width: 0; gap: 2px; color: var(--ink); text-decoration: none; }
 .priority-comparison-promise + .priority-comparison-promise { padding-top: 7px; border-top: 1px solid var(--line); }
 .priority-comparison-promise > span { color: var(--teal-dark); font-size: 8px; font-weight: 800; }
-.priority-comparison-promise > strong { display: -webkit-box; min-width: 0; overflow: hidden; font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.priority-comparison-promise > strong { display: -webkit-box; min-width: 0; overflow: hidden; font-family: "Tajawal", Tahoma, Arial, "Segoe UI", sans-serif; font-size: 11px; font-weight: 500; line-height: 1.55; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .priority-more-count { display: inline-flex; align-items: center; margin-top: 8px; padding: 3px 0; border: 0; background: transparent; color: var(--teal-dark); cursor: pointer; font: inherit; font-size: 9px; font-weight: 850; text-decoration: underline; text-underline-offset: 3px; }
 .priority-more-count::after { content: '↓'; margin-inline-start: 5px; text-decoration: none; }
 .priority-more-count[aria-expanded="true"]::after { content: '↑'; }
@@ -972,7 +996,6 @@ html[dir="rtl"] .programme-heading h2 { margin-bottom: 18px; line-height: 1.32; 
 .promise-disclaimer { margin: 28px auto 0; max-width: 78ch; color: var(--muted); font-size: 11px; text-align: center; }
 .promise-footer-notes { display: grid; gap: 7px; margin: 24px auto 0; max-width: 78ch; color: var(--muted); font-size: 11px; text-align: center; }
 .promise-footer-notes p { margin: 0; }
-.promise-ai-attribution { color: var(--teal-dark); font-weight: 800; }
 @media (max-width: 760px) {
     .party-detail-heading { align-items: center; flex-direction: row; gap: 14px; margin-block: 18px 24px; }
     .party-detail-heading h1 { margin-top: 0; font-size: clamp(1.75rem, 8vw, 2.35rem); }

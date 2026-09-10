@@ -56,12 +56,6 @@
         document.querySelector('#promiseDataCutoff').textContent = t('promise.dataCutoff', {
             date: formatDate(assessment.dataCutoff)
         });
-        const provider = ['gemini', 'openai', 'consensus', 'editorial'].includes(assessment.providerMode)
-            ? assessment.providerMode
-            : 'gemini';
-        document.querySelector('#promiseAiAttribution').textContent = t(`promise.aiAttribution.${provider}`, {
-            models: assessment.modelNames || 'Gemini 3.8 Flash'
-        });
         const correctionParameters = new URLSearchParams({
             title: `[Correction] ${localized(promise.title)}`,
             body: `Assessment: ${window.location.href.split('#')[0]}\n\nWhat appears incorrect?\n`

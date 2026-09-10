@@ -462,7 +462,7 @@
 
     function partyCard(party) {
         const article = document.createElement('article');
-        article.className = 'catalog-card';
+        article.className = 'catalog-card party-directory-card';
         const body = document.createElement('div');
         body.className = 'catalog-card-body';
 

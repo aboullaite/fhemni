@@ -38,8 +38,7 @@
             const profileRequest = window.FhemniCatalog.requestJson(
                 `/api/catalog/parties/${encodeURIComponent(requestedPartyCode)}`);
             const programmeRequest = requestProgramme(requestedPartyCode);
-            const policyTopicsRequest = window.FhemniCatalog.requestJson('/api/catalog/policy-topics')
-                .catch(() => ({ maxSelections: 3, topics: [] }));
+            const policyTopicsRequest = window.FhemniCatalog.requestJson('/api/catalog/policy-topics');
             const [topicCatalog, session] = await Promise.all([policyTopicsRequest, sessionRequest]);
             policyTopicCatalog = topicCatalog.topics || [];
             priorityMaxSelections = Number(topicCatalog.maxSelections) || 3;
@@ -56,6 +55,7 @@
             if (programmePartyCode.toUpperCase() !== requestedPartyCode.toUpperCase()) {
                 programme = await requestProgramme(programmePartyCode);
             }
+            await initializePriorities(session);
             render();
             bindChat();
             document.querySelector('#partyLoading').hidden = true;
@@ -65,7 +65,6 @@
                 meta = metadata;
                 chatStateResolved = true;
                 configureChatAccess();
-                void initializePriorities(session);
             });
         } catch (error) {
             document.querySelector('#partyLoading').hidden = true;
@@ -163,10 +162,7 @@
 
     async function initializePriorities(session) {
         authSession = session;
-        if (!session.authenticated) {
-            renderPriorities();
-            return;
-        }
+        if (!session.authenticated) return;
         try {
             if (localPrioritySyncPending) {
                 priorityNoticeKey = 'priorities.savingAccount';
@@ -184,7 +180,6 @@
                 : '';
         }
         prepareGuestPriorityImport();
-        renderPriorities();
     }
 
     function renderPriorities() {
