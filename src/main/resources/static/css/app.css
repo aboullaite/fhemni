@@ -773,6 +773,13 @@ html[dir="rtl"] #partiesGrid .party-directory-card .person-card-title {
     .programme-verification { align-items: flex-start; flex-direction: column; }
 }
 
+@media (max-width: 360px) {
+    .admin-page .public-header .header-actions { display: contents; }
+    .admin-page .public-header .header-actions > #authNav { grid-column: 2; grid-row: 1; justify-self: end; min-width: 0; }
+    .admin-page .public-header .header-actions > .site-language-options { grid-column: 1; grid-row: 2; justify-self: start; }
+    .admin-page .public-header .primary-nav { grid-column: 2; grid-row: 2; }
+}
+
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }

@@ -13,6 +13,13 @@ import org.springframework.core.io.ClassPathResource;
 
 class NavigationConsistencyTest {
 
+    private static final List<String> ADMIN_PAGES = List.of(
+            "admin.html",
+            "admin-episodes.html",
+            "admin-people.html",
+            "admin-programmes.html",
+            "admin-suggestions.html");
+
     private static final List<String> SECONDARY_PAGES = List.of(
             "admin.html",
             "admin-episodes.html",
@@ -65,6 +72,24 @@ class NavigationConsistencyTest {
                 .contains("id=\"factCheckTitle\" data-i18n=\"landing.factCheckTitle\"")
                 .doesNotContain("landing.factCheckKicker")
                 .doesNotContain("landing.factCheckIntro");
+    }
+
+    @Test
+    void adminPagesUseTheLatestMobileAssets() throws IOException {
+        for (String page : ADMIN_PAGES) {
+            assertThat(html(page))
+                    .as("mobile assets in %s", page)
+                    .contains("/css/dist.css?v=20260910-31")
+                    .contains("/js/i18n.js?v=20260910-12");
+        }
+    }
+
+    @Test
+    void narrowAdminHeadersPutLanguageChoicesBesideTheNavigation() throws IOException {
+        assertThat(html("css/dist.css"))
+                .contains("@media (max-width:360px)")
+                .contains(".admin-page .public-header .header-actions{display:contents}")
+                .contains(".admin-page .public-header .header-actions>.site-language-options{grid-area:2/1");
     }
 
     private String html(String page) throws IOException {
