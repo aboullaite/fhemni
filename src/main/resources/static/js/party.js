@@ -572,7 +572,7 @@
         form.hidden = !canAsk;
         gate.hidden = canAsk;
         login.hidden = authenticated || !enabled;
-        login.href = window.FhemniAuth.loginPage(window.location.pathname, 'chat');
+        login.href = window.FhemniAuth.loginPage(window.location.pathname, 'programme');
 
         const title = document.querySelector('#programmeChatGateTitle');
         const text = document.querySelector('#programmeChatGateText');

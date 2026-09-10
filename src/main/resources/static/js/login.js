@@ -9,7 +9,7 @@ async function renderLogin() {
     const providers = document.querySelector('#loginProviders');
     const error = document.querySelector('#loginError');
     const parameters = new URLSearchParams(window.location.search);
-    const intent = ['chat', 'suggest', 'vote'].includes(parameters.get('intent'))
+    const intent = ['chat', 'programme', 'suggest', 'vote'].includes(parameters.get('intent'))
         ? parameters.get('intent')
         : 'default';
     const requestedDestination = parameters.get('continue');

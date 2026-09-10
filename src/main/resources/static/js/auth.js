@@ -47,7 +47,7 @@
     function loginPage(returnTo = window.location.pathname, intent = '') {
         const target = returnTo.startsWith('/') ? returnTo : '/';
         const parameters = new URLSearchParams({ continue: target });
-        if (['chat', 'suggest', 'vote'].includes(intent)) parameters.set('intent', intent);
+        if (['chat', 'programme', 'suggest', 'vote'].includes(intent)) parameters.set('intent', intent);
         return `/login?${parameters}`;
     }
 
