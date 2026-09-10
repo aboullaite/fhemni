@@ -22,16 +22,19 @@
             window.FhemniCatalog.requestJson('/api/meta').catch(() => null)
         ]);
         try {
-            const programmeRequest = window.FhemniCatalog.requestJson(
-                `/api/catalog/parties/${encodeURIComponent(partyCode)}/programme`)
-                .catch(error => {
-                    if (error.status === 404) return null;
-                    throw error;
-                });
-            [profile, programme] = await Promise.all([
-                window.FhemniCatalog.requestJson(`/api/catalog/parties/${encodeURIComponent(partyCode)}`),
-                programmeRequest
-            ]);
+            const requestedPartyCode = partyCode;
+            const profileRequest = window.FhemniCatalog.requestJson(
+                `/api/catalog/parties/${encodeURIComponent(requestedPartyCode)}`);
+            const programmeRequest = requestProgramme(requestedPartyCode);
+            [profile, programme] = await Promise.all([profileRequest, programmeRequest]);
+            const programmePartyCode = profile.programmePartyCode || profile.code;
+            if (profile.code !== requestedPartyCode) {
+                window.history.replaceState({}, '', `/parties/${encodeURIComponent(profile.code)}`);
+            }
+            partyCode = profile.code;
+            if (programmePartyCode.toUpperCase() !== requestedPartyCode.toUpperCase()) {
+                programme = await requestProgramme(programmePartyCode);
+            }
             render();
             bindChat();
             document.querySelector('#partyLoading').hidden = true;
@@ -50,10 +53,20 @@
         }
     }
 
+    function requestProgramme(code) {
+        return window.FhemniCatalog.requestJson(
+            `/api/catalog/parties/${encodeURIComponent(code)}/programme`)
+            .catch(error => {
+                if (error.status === 404) return null;
+                throw error;
+            });
+    }
+
     function render() {
         const name = people().partyDisplayName(profile);
         const alt = (people().locale() === 'ar' ? profile.nameFr : profile.nameAr) || '';
-        document.querySelector('#partyName').textContent = `${profile.code} · ${name}`;
+        const codeLabel = (profile.memberPartyCodes || [profile.code]).join(' + ');
+        document.querySelector('#partyName').textContent = `${codeLabel} · ${name}`;
         document.querySelector('#partyNameAlt').textContent = alt;
         const symbol = document.querySelector('#partySymbol');
         symbol.replaceChildren(people().partySymbol(profile, true));
@@ -157,9 +170,13 @@
         const authenticated = Boolean(authSession?.authenticated);
         const enabled = Boolean(meta?.programmeChatEnabled);
         const quota = authSession?.chatQuota;
+        const dailyRequestsExhausted = authenticated && quota
+            && Number(quota.dailyRequestsRemaining) <= 0;
         const weeklyExhausted = authenticated && quota && Number(quota.remaining) <= 0;
-        const dailyExhausted = authenticated && quota && Number(quota.dailyOutputTokensRemaining) <= 0;
-        const canAsk = enabled && authenticated && !weeklyExhausted && !dailyExhausted;
+        const dailyTokensExhausted = authenticated && quota
+            && Number(quota.dailyOutputTokensRemaining) <= 0;
+        const canAsk = enabled && authenticated
+            && !dailyRequestsExhausted && !weeklyExhausted && !dailyTokensExhausted;
         form.hidden = !canAsk;
         gate.hidden = canAsk;
         login.hidden = authenticated || !enabled;
@@ -170,21 +187,33 @@
         if (!enabled) {
             title.textContent = t('programme.chatUnavailableTitle');
             text.textContent = t('programme.chatUnavailableText');
-        } else if (dailyExhausted) {
-            title.textContent = t('analysis.chatDailyTokenLimitTitle');
-            text.textContent = t('analysis.chatDailyTokenLimit');
         } else if (weeklyExhausted) {
             title.textContent = t('analysis.chatQuotaUsedTitle');
             text.textContent = t('analysis.chatQuotaUsedText', { limit: quota.weeklyLimit });
+        } else if (dailyRequestsExhausted) {
+            title.textContent = t('analysis.chatDailyQuotaUsedTitle');
+            text.textContent = t('analysis.chatDailyQuotaUsedText', { limit: quota.dailyRequestLimit });
+        } else if (dailyTokensExhausted) {
+            title.textContent = t('analysis.chatDailyTokenLimitTitle');
+            text.textContent = t('analysis.chatDailyTokenLimit');
         } else {
             title.textContent = t('programme.chatSignInTitle');
             text.textContent = t('analysis.chatPrivacy');
         }
         quotaLabel.textContent = quota
-            ? t('programme.chatQuota', { remaining: quota.remaining, limit: quota.weeklyLimit })
+            ? t('programme.chatQuota', {
+                remaining: Math.min(
+                    Math.max(0, Number(quota.dailyRequestsRemaining) || 0),
+                    Math.max(0, Number(quota.remaining) || 0)),
+                limit: quota.dailyRequestLimit
+            })
             : '';
         quotaLabel.title = quota ? t('analysis.chatUsageSummary', {
-            percent: dailyTokenPercent(quota), remaining: quota.remaining, limit: quota.weeklyLimit
+            percent: dailyTokenPercent(quota),
+            dailyRemaining: quota.dailyRequestsRemaining,
+            dailyLimit: quota.dailyRequestLimit,
+            weeklyRemaining: quota.remaining,
+            weeklyLimit: quota.weeklyLimit
         }) : '';
     }
 
@@ -205,7 +234,7 @@
         window.FhemniAnalytics?.trackEvent('programme_chat_started', { party_code: profile.code });
         try {
             const answer = await request(
-                `/api/catalog/parties/${encodeURIComponent(profile.code)}/programme/questions`,
+                `/api/catalog/parties/${encodeURIComponent(programme.partyCode)}/programme/questions`,
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -305,8 +334,13 @@
     }
 
     function chatErrorMessage(error) {
+        if (error.code === 'CHAT_USER_DAILY_LIMIT') {
+            return t('analysis.chatDailyQuotaUsedText', {
+                limit: authSession?.chatQuota?.dailyRequestLimit || 20
+            });
+        }
         if (error.code === 'CHAT_WEEKLY_LIMIT') {
-            return t('analysis.chatQuotaUsedText', { limit: authSession?.chatQuota?.weeklyLimit || 20 });
+            return t('analysis.chatQuotaUsedText', { limit: authSession?.chatQuota?.weeklyLimit || 100 });
         }
         if (error.code === 'CHAT_HOURLY_LIMIT') return t('analysis.chatHourlyLimit');
         if (error.code === 'CHAT_DAILY_LIMIT') return t('analysis.chatDailyLimit');

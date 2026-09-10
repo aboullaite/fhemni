@@ -72,7 +72,10 @@ class PublicPeopleIntegrationTest {
                 "Episode with guests",
                 "Summary.",
                 "Details.",
-                List.of(new Participant("Nizar Baraka", "Guest")),
+                List.of(
+                        new Participant("Nizar Baraka", "Guest"),
+                        new Participant("Nabila Mounib", "Guest"),
+                        new Participant("Abdeslam El Aziz", "Guest")),
                 List.of(new Chapter("Introduction", 0, "Opening")),
                 List.of(new Claim("c1", "A checkable statement.", "Nizar Baraka", 60,
                         ClaimKind.FACT, ClaimVerdict.NEEDS_CONTEXT, "Needs context.", "MEDIUM", List.of())),
@@ -95,10 +98,9 @@ class PublicPeopleIntegrationTest {
         mvc.perform(get("/api/catalog/people"))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("max-age=300")))
-                .andExpect(jsonPath("$[0].slug").value("nizar-baraka"))
-                .andExpect(jsonPath("$[0].partyCode").value("PI"))
-                .andExpect(jsonPath("$[0].displayName").value("Nizar Baraka"))
-                .andExpect(jsonPath("$[0].displayNameAr").value("نزار بركة"));
+                .andExpect(jsonPath("$[?(@.slug == 'nizar-baraka')].partyCode").value(hasItem("PI")))
+                .andExpect(jsonPath("$[?(@.slug == 'nizar-baraka')].displayName").value(hasItem("Nizar Baraka")))
+                .andExpect(jsonPath("$[?(@.slug == 'nizar-baraka')].displayNameAr").value(hasItem("نزار بركة")));
 
         mvc.perform(get("/api/catalog/people").param("q", "baraka"))
                 .andExpect(status().isOk())
@@ -121,6 +123,8 @@ class PublicPeopleIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("max-age=300")))
                 .andExpect(jsonPath("$[*].code", hasItem("PI")))
+                .andExpect(jsonPath("$[*].code", hasItem("FGD")))
+                .andExpect(jsonPath("$[*].code").value(org.hamcrest.Matchers.not(hasItem("PSU"))))
                 .andExpect(jsonPath("$[*].code").value(org.hamcrest.Matchers.not(hasItem("PJD"))))
                 .andExpect(jsonPath("$[0].symbolAsset").value("/assets/parties/pi-display.png"));
 
@@ -130,6 +134,22 @@ class PublicPeopleIntegrationTest {
                 .andExpect(jsonPath("$.topMembers").doesNotExist())
                 .andExpect(jsonPath("$.recentClaims").doesNotExist())
                 .andExpect(jsonPath("$.episodes[0].slug").value("episode-n5B3boj2MFM"));
+
+        mvc.perform(get("/api/catalog/parties/FGD"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.memberPartyCodes", hasItem("FGD")))
+                .andExpect(jsonPath("$.memberPartyCodes", hasItem("PSU")))
+                .andExpect(jsonPath("$.members").value(2))
+                .andExpect(jsonPath("$.appearances").value(1));
+
+        mvc.perform(get("/api/catalog/parties/PSU"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value("FGD"));
+
+        mvc.perform(get("/api/catalog/people").param("party", "FGD"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].slug", hasItem("nabila-mounib")))
+                .andExpect(jsonPath("$[*].slug", hasItem("abdeslam-el-aziz")));
 
         mvc.perform(get("/api/catalog/parties/XX"))
                 .andExpect(status().isNotFound());

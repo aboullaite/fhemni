@@ -21,7 +21,7 @@ public class PoliticalPartyRepository {
         return jdbc.sql("""
                         SELECT code, name_fr, name_ar, color,
                                symbol_label_fr, symbol_label_ar, symbol_asset,
-                               symbol_verified, visible
+                               symbol_verified, catalogue_code, visible
                           FROM political_parties
                          ORDER BY sort_order
                         """)
@@ -34,6 +34,7 @@ public class PoliticalPartyRepository {
                         resultSet.getString("symbol_label_ar"),
                         resultSet.getString("symbol_asset"),
                         resultSet.getBoolean("symbol_verified"),
+                        resultSet.getString("catalogue_code"),
                         resultSet.getBoolean("visible")))
                 .list();
     }

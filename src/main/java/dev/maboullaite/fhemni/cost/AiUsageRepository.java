@@ -34,36 +34,44 @@ public class AiUsageRepository {
                 .single();
     }
 
-    public long countQuestionsForUser(UUID userId, Instant fromInclusive, Instant toExclusive) {
+    public UserChatUsage chatUsageForUser(
+            UUID userId,
+            Instant dailyFromInclusive,
+            Instant dailyToExclusive,
+            Instant weeklyFromInclusive,
+            Instant weeklyToExclusive) {
         return jdbc.sql("""
-                        SELECT COUNT(*)
+                        SELECT COALESCE(SUM(CASE
+                                   WHEN requested_at >= :dailyFromInclusive
+                                    AND requested_at < :dailyToExclusive THEN 1
+                                   ELSE 0
+                               END), 0) AS daily_requests,
+                               COUNT(*) AS weekly_requests,
+                               COALESCE(SUM(CASE
+                                   WHEN requested_at >= :dailyFromInclusive
+                                    AND requested_at < :dailyToExclusive
+                                   THEN COALESCE(output_tokens, 0)
+                                   ELSE 0
+                               END), 0) AS daily_output_tokens
                           FROM ai_usage_events
                          WHERE operation IN ('CHAT_VIDEO', 'CHAT_CHECK', 'CHAT_PROGRAMME')
                            AND user_id = :userId
-                           AND requested_at >= :fromInclusive
-                           AND requested_at < :toExclusive
+                           AND requested_at >= :weeklyFromInclusive
+                           AND requested_at < :weeklyToExclusive
                         """)
                 .param("userId", userId)
-                .param("fromInclusive", utc(fromInclusive))
-                .param("toExclusive", utc(toExclusive))
-                .query(Long.class)
+                .param("dailyFromInclusive", utc(dailyFromInclusive))
+                .param("dailyToExclusive", utc(dailyToExclusive))
+                .param("weeklyFromInclusive", utc(weeklyFromInclusive))
+                .param("weeklyToExclusive", utc(weeklyToExclusive))
+                .query((resultSet, ignored) -> new UserChatUsage(
+                        resultSet.getLong("daily_requests"),
+                        resultSet.getLong("weekly_requests"),
+                        resultSet.getLong("daily_output_tokens")))
                 .single();
     }
 
-    public long sumQuestionOutputTokensForUser(UUID userId, Instant fromInclusive, Instant toExclusive) {
-        return jdbc.sql("""
-                        SELECT COALESCE(SUM(output_tokens), 0)
-                          FROM ai_usage_events
-                         WHERE operation IN ('CHAT_VIDEO', 'CHAT_CHECK', 'CHAT_PROGRAMME')
-                           AND user_id = :userId
-                           AND requested_at >= :fromInclusive
-                           AND requested_at < :toExclusive
-                        """)
-                .param("userId", userId)
-                .param("fromInclusive", utc(fromInclusive))
-                .param("toExclusive", utc(toExclusive))
-                .query(Long.class)
-                .single();
+    public record UserChatUsage(long dailyRequests, long weeklyRequests, long dailyOutputTokens) {
     }
 
     public UUID reserve(AiOperation operation, UUID userId, UUID analysisId, String model, Instant requestedAt) {

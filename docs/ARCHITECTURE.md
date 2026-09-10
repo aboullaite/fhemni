@@ -76,7 +76,8 @@ Chat is protected independently from analysis:
 - only authenticated users can submit questions;
 - each submitted question is one billable chat round, whether it succeeds or
   the provider fails after accepting it;
-- the default allowance is 20 rounds per user per Monday-to-Monday UTC week;
+- the default allowance is 20 rounds per user per UTC day, with a 100-round
+  Monday-to-Monday UTC weekly ceiling;
 - global ceilings default to 50 rounds per UTC hour and 500 per UTC day;
 - question text, provider context depth, response tokens, and request time are
   bounded;

@@ -88,7 +88,8 @@ fhemni:
     max-daily-analyses: ${FHEMNI_MAX_DAILY_ANALYSES:5}
     max-hourly-chat-rounds: ${FHEMNI_MAX_HOURLY_CHAT_ROUNDS:50}
     max-daily-chat-rounds: ${FHEMNI_MAX_DAILY_CHAT_ROUNDS:500}
-    max-weekly-chat-rounds-per-user: ${FHEMNI_MAX_WEEKLY_CHAT_ROUNDS_PER_USER:20}
+    max-daily-chat-rounds-per-user: ${FHEMNI_MAX_DAILY_CHAT_ROUNDS_PER_USER:20}
+    max-weekly-chat-rounds-per-user: ${FHEMNI_MAX_WEEKLY_CHAT_ROUNDS_PER_USER:100}
     max-daily-chat-output-tokens-per-user: ${FHEMNI_MAX_DAILY_CHAT_OUTPUT_TOKENS_PER_USER:16000}
   programme-chat:
     max-context-characters: ${FHEMNI_PROGRAMME_CHAT_MAX_CONTEXT_CHARACTERS:90000}

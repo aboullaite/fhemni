@@ -56,7 +56,7 @@
         const alt = document.createElement('p');
         alt.className = 'catalog-card-meta';
         alt.dir = 'auto';
-        alt.textContent = party.code;
+        alt.textContent = (party.memberPartyCodes || [party.code]).join(' + ');
 
         const stats = document.createElement('div');
         stats.className = 'person-stats';

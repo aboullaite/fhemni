@@ -47,6 +47,7 @@
 
     function partyBadge(personOrParty, { link = true } = {}) {
         const code = personOrParty.partyCode || personOrParty.code || 'UNKNOWN';
+        const catalogueCode = personOrParty.partyCatalogueCode || personOrParty.catalogueCode || code;
         const name = personOrParty.partyNameFr || personOrParty.nameFr
             ? partyDisplayName({
                 nameFr: personOrParty.partyNameFr || personOrParty.nameFr,
@@ -56,7 +57,7 @@
             : code;
         const element = document.createElement(link ? 'a' : 'span');
         element.className = `party-badge ${partyClass(code)}`;
-        if (link) element.href = `/parties/${encodeURIComponent(code)}`;
+        if (link) element.href = `/parties/${encodeURIComponent(catalogueCode)}`;
         const symbol = partySymbol(personOrParty);
         const label = document.createElement('span');
         label.textContent = code === 'UNKNOWN' ? name : `${code} · ${name}`;
