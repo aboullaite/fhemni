@@ -47,6 +47,7 @@ class NavigationConsistencyTest {
         assertThat(home)
                 .contains("property=\"og:title\"")
                 .contains("property=\"og:description\"")
+                .contains("دقق فوعود الأحزاب المغربية وقارن البرامج والتقييمات والمصادر")
                 .contains("property=\"og:site_name\"")
                 .contains("name=\"twitter:card\" content=\"summary_large_image\"")
                 .contains("https://fhemni.ma/assets/social/fhemni-og.png?v=20260910-2")
