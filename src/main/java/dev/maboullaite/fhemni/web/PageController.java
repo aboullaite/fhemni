@@ -42,6 +42,11 @@ public class PageController {
         return "forward:/parties.html";
     }
 
+    @GetMapping({"/parties/compare", "/parties/compare/"})
+    public String compareProgrammesPage() {
+        return "forward:/compare-programmes.html";
+    }
+
     @GetMapping({"/people/{slug}", "/people/{slug}/"})
     public String personPage(@PathVariable String slug) {
         return "forward:/person.html";

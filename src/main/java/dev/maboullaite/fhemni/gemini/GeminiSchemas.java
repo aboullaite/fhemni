@@ -74,7 +74,7 @@ final class GeminiSchemas {
                   "type": "object",
                   "additionalProperties": false,
                   "properties": {
-                    "partyCode": {"type": "string", "enum": ["RNI", "PAM", "PI", "USFP", "MP", "PPS", "UC", "PJD", "MDS", "FFD"]},
+                    "partyCode": {"type": "string", "enum": ["RNI", "PAM", "PI", "USFP", "MP", "PPS", "UC", "PJD", "MDS", "FFD", "FGD"]},
                     "electionYear": {"type": "integer", "enum": [2026]},
                     "official2026Programme": {"type": "boolean"},
                     "sourceLabel": {"type": "string"},

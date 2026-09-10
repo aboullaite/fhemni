@@ -179,10 +179,18 @@ public class PersonCatalogService {
             if (appearances == 0 && memberPartyCodes.stream().noneMatch(partiesWithProgrammes::contains)) {
                 continue;
             }
+            String programmePartyCode = partiesWithProgrammes.contains(party.code())
+                    ? party.code()
+                    : memberPartyCodes.stream()
+                            .filter(partiesWithProgrammes::contains)
+                            .sorted()
+                            .findFirst()
+                            .orElse(null);
             result.add(new PartySummary(
                     party.code(), party.nameFr(), party.nameAr(), party.color(),
                     party.symbolLabelFr(), party.symbolLabelAr(), party.symbolAsset(), party.symbolVerified(),
-                    memberPartyCodes.stream().sorted().toList(), members.size(), appearances, claims));
+                    memberPartyCodes.stream().sorted().toList(), programmePartyCode,
+                    members.size(), appearances, claims));
         }
         return result;
     }
@@ -703,6 +711,7 @@ public class PersonCatalogService {
             String symbolAsset,
             boolean symbolVerified,
             List<String> memberPartyCodes,
+            String programmePartyCode,
             int members,
             int appearances,
             int claims) {

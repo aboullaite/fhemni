@@ -1,11 +1,22 @@
 (function () {
     const QUESTION_TIMEOUT_MS = 45_000;
+    const PRIORITY_STORAGE_KEY = 'fhemni.policy-topic-preferences';
+    const PRIORITY_PENDING_KEY = 'fhemni.policy-topic-preferences-pending';
+    const PRIORITY_GUEST_IMPORT_KEY = 'fhemni.policy-topic-preferences-guest-import';
     let profile;
     let programme;
     let partyCode;
     let authSession;
     let meta;
     let chatStateResolved = false;
+    let policyTopicCatalog = [];
+    let priorityMaxSelections = 3;
+    let selectedPolicyTopics = [];
+    let localPrioritySyncPending = false;
+    let guestPriorityImport = [];
+    let guestPriorityImportSignature = '';
+    let priorityNoticeKey = '';
+    let preferenceSaveQueue = Promise.resolve();
 
     function t(key, parameters = {}) {
         return window.FhemniI18n?.t(key, parameters) ?? key;
@@ -17,8 +28,9 @@
 
     async function load() {
         partyCode = decodeURIComponent(window.location.pathname.split('/').filter(Boolean).at(-1) || '');
+        const sessionRequest = window.FhemniAuth.session().catch(() => ({ authenticated: false }));
         const chatStateRequest = Promise.all([
-            window.FhemniAuth.session().catch(() => ({ authenticated: false })),
+            sessionRequest,
             window.FhemniCatalog.requestJson('/api/meta').catch(() => null)
         ]);
         try {
@@ -26,6 +38,14 @@
             const profileRequest = window.FhemniCatalog.requestJson(
                 `/api/catalog/parties/${encodeURIComponent(requestedPartyCode)}`);
             const programmeRequest = requestProgramme(requestedPartyCode);
+            const policyTopicsRequest = window.FhemniCatalog.requestJson('/api/catalog/policy-topics');
+            const [topicCatalog, session] = await Promise.all([policyTopicsRequest, sessionRequest]);
+            policyTopicCatalog = topicCatalog.topics || [];
+            priorityMaxSelections = Number(topicCatalog.maxSelections) || 3;
+            authSession = session;
+            migrateLegacyLocalPriorities();
+            selectedPolicyTopics = readLocalPriorities();
+            localPrioritySyncPending = readLocalPriorityPending();
             [profile, programme] = await Promise.all([profileRequest, programmeRequest]);
             const programmePartyCode = profile.programmePartyCode || profile.code;
             if (profile.code !== requestedPartyCode) {
@@ -35,6 +55,7 @@
             if (programmePartyCode.toUpperCase() !== requestedPartyCode.toUpperCase()) {
                 programme = await requestProgramme(programmePartyCode);
             }
+            await initializePriorities(session);
             render();
             bindChat();
             document.querySelector('#partyLoading').hidden = true;
@@ -55,7 +76,7 @@
 
     function requestProgramme(code) {
         return window.FhemniCatalog.requestJson(
-            `/api/catalog/parties/${encodeURIComponent(code)}/programme`)
+            `/api/catalog/parties/${encodeURIComponent(code)}/programme?view=policy-topics-v1`)
             .catch(error => {
                 if (error.status === 404) return null;
                 throw error;
@@ -66,10 +87,14 @@
         const name = people().partyDisplayName(profile);
         const alt = (people().locale() === 'ar' ? profile.nameFr : profile.nameAr) || '';
         const codeLabel = (profile.memberPartyCodes || [profile.code]).join(' + ');
-        document.querySelector('#partyName').textContent = `${codeLabel} · ${name}`;
+        document.querySelector('#partyName').textContent = people().locale() === 'ar'
+            ? `${name} · ${codeLabel}`
+            : `${codeLabel} · ${name}`;
         document.querySelector('#partyNameAlt').textContent = alt;
         const symbol = document.querySelector('#partySymbol');
         symbol.replaceChildren(people().partySymbol(profile, true));
+        document.querySelector('#priorityCompareLink').href =
+            `/parties/compare?party=${encodeURIComponent(profile.code)}`;
         const hasProgramme = renderProgramme();
 
         const stats = document.querySelector('#partyStats');
@@ -98,6 +123,7 @@
         renderChatSuggestions();
         refreshChatTranslations();
         configureChatAccess();
+        renderPriorities();
         setupTabs(hasProgramme);
         document.title = `${profile.code} — Fhemni`;
     }
@@ -132,6 +158,372 @@
                 form.requestSubmit();
             }
         });
+    }
+
+    async function initializePriorities(session) {
+        authSession = session;
+        if (!session.authenticated) return;
+        try {
+            if (localPrioritySyncPending) {
+                priorityNoticeKey = 'priorities.savingAccount';
+                renderPriorityStatus();
+                await queueAccountPrioritySave();
+            } else {
+                const saved = await window.FhemniCatalog.requestJson('/api/account/policy-topics');
+                selectedPolicyTopics = validPriorityCodes(saved.topicCodes);
+                writeLocalPriorities();
+                priorityNoticeKey = 'priorities.savedAccount';
+            }
+        } catch (_) {
+            priorityNoticeKey = localPrioritySyncPending || selectedPolicyTopics.length
+                ? 'priorities.saveFailed'
+                : '';
+        }
+        prepareGuestPriorityImport();
+    }
+
+    function renderPriorities() {
+        const panel = document.querySelector('#partyPriorities');
+        const tab = document.querySelector('#partyPrioritiesTab');
+        const selectable = policyTopicCatalog.filter(topic => topic.selectable);
+        const available = Boolean(programme && selectable.length);
+        tab.hidden = !available;
+        if (!available) {
+            panel.hidden = true;
+            return;
+        }
+        panel.hidden = tab.getAttribute('aria-selected') !== 'true';
+
+        selectedPolicyTopics = validPriorityCodes(selectedPolicyTopics);
+        const choices = document.querySelector('#priorityTopicChoices');
+        choices.replaceChildren();
+        selectable.forEach(topic => {
+            const button = document.createElement('button');
+            button.className = 'priority-topic-choice';
+            button.type = 'button';
+            button.dataset.topicCode = topic.code;
+            button.setAttribute('aria-pressed', String(selectedPolicyTopics.includes(topic.code)));
+            button.textContent = localized(topic.label);
+            button.addEventListener('click', () => togglePriority(topic.code));
+            choices.append(button);
+        });
+
+        const signIn = document.querySelector('#prioritySignIn');
+        signIn.hidden = Boolean(authSession?.authenticated);
+        signIn.href = window.FhemniAuth.loginPage(window.location.pathname);
+        renderGuestPriorityImport();
+        renderPriorityStatus();
+        renderPriorityMatches();
+    }
+
+    function togglePriority(code) {
+        priorityNoticeKey = '';
+        if (selectedPolicyTopics.includes(code)) {
+            selectedPolicyTopics = selectedPolicyTopics.filter(item => item !== code);
+        } else if (selectedPolicyTopics.length >= priorityMaxSelections) {
+            priorityNoticeKey = 'priorities.limitReached';
+            renderPriorityStatus();
+            return;
+        } else {
+            selectedPolicyTopics = [...selectedPolicyTopics, code];
+        }
+        localPrioritySyncPending = true;
+        writeLocalPriorities();
+        priorityNoticeKey = authSession?.authenticated
+            ? 'priorities.savingAccount'
+            : selectedPolicyTopics.length ? 'priorities.savedLocal' : '';
+        renderPriorities();
+        if (authSession?.authenticated) queueAccountPrioritySave();
+    }
+
+    function queueAccountPrioritySave() {
+        const snapshot = [...selectedPolicyTopics];
+        preferenceSaveQueue = preferenceSaveQueue
+            .catch(() => undefined)
+            .then(() => saveAccountPriorities(snapshot))
+            .then(() => {
+                if (sameCodes(snapshot, selectedPolicyTopics)) {
+                    localPrioritySyncPending = false;
+                    writeLocalPriorities();
+                    priorityNoticeKey = 'priorities.savedAccount';
+                    renderPriorityStatus();
+                }
+            })
+            .catch(() => {
+                if (sameCodes(snapshot, selectedPolicyTopics)) {
+                    localPrioritySyncPending = true;
+                    writeLocalPriorities();
+                    priorityNoticeKey = 'priorities.saveFailed';
+                    renderPriorityStatus();
+                }
+            });
+        return preferenceSaveQueue;
+    }
+
+    function prepareGuestPriorityImport() {
+        guestPriorityImport = [];
+        guestPriorityImportSignature = '';
+        if (!authSession?.authenticated || localPrioritySyncPending) return;
+        try {
+            const guest = validPriorityCodes(JSON.parse(
+                window.localStorage.getItem(`${PRIORITY_STORAGE_KEY}.guest`) || '[]'));
+            const signature = JSON.stringify([...guest].sort());
+            const handled = window.localStorage.getItem(scopedPriorityStorageKey(PRIORITY_GUEST_IMPORT_KEY));
+            if (guest.length && !sameCodeSet(guest, selectedPolicyTopics) && handled !== signature) {
+                guestPriorityImport = guest;
+                guestPriorityImportSignature = signature;
+            }
+        } catch (_) { /* The import offer is optional; account preferences still work. */ }
+    }
+
+    function renderGuestPriorityImport() {
+        const panel = document.querySelector('#priorityGuestImport');
+        if (!panel) return;
+        panel.hidden = !guestPriorityImport.length;
+        if (panel.hidden) return;
+        panel.querySelector('[data-priority-import-copy]').textContent = t('priorities.guestImportPrompt');
+        const useButton = panel.querySelector('[data-priority-import-use]');
+        const keepButton = panel.querySelector('[data-priority-import-keep]');
+        useButton.textContent = t('priorities.guestImportUse');
+        keepButton.textContent = t('priorities.guestImportKeep');
+        useButton.onclick = importGuestPriorities;
+        keepButton.onclick = dismissGuestPriorityImport;
+    }
+
+    function importGuestPriorities() {
+        selectedPolicyTopics = [...guestPriorityImport];
+        markGuestPriorityImportHandled();
+        guestPriorityImport = [];
+        localPrioritySyncPending = true;
+        writeLocalPriorities();
+        priorityNoticeKey = 'priorities.savingAccount';
+        renderPriorities();
+        void queueAccountPrioritySave();
+    }
+
+    function dismissGuestPriorityImport() {
+        markGuestPriorityImportHandled();
+        guestPriorityImport = [];
+        renderPriorities();
+    }
+
+    function markGuestPriorityImportHandled() {
+        try {
+            const key = scopedPriorityStorageKey(PRIORITY_GUEST_IMPORT_KEY);
+            if (key && guestPriorityImportSignature) {
+                window.localStorage.setItem(key, guestPriorityImportSignature);
+            }
+        } catch (_) { /* The prompt may return next time if storage is unavailable. */ }
+    }
+
+    async function saveAccountPriorities(topicCodes) {
+        const options = await window.FhemniAuth.withCsrf({
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topicCodes })
+        });
+        return window.FhemniCatalog.requestJson('/api/account/policy-topics', options);
+    }
+
+    function renderPriorityStatus() {
+        const status = document.querySelector('#prioritySelectionStatus');
+        const count = t('priorities.selectedCount', {
+            count: selectedPolicyTopics.length,
+            limit: priorityMaxSelections
+        });
+        const notice = priorityNoticeKey
+            ? t(priorityNoticeKey, { limit: priorityMaxSelections })
+            : '';
+        status.textContent = [count, notice].filter(Boolean).join(' · ');
+    }
+
+    function renderPriorityMatches() {
+        const panel = document.querySelector('#partyPriorityMatch');
+        panel.hidden = !selectedPolicyTopics.length;
+        if (panel.hidden) return;
+
+        const groups = document.querySelector('#priorityMatchGroups');
+        groups.replaceChildren();
+        const uniqueMatches = new Set();
+        selectedPolicyTopics.forEach(code => {
+            const matches = (programme?.promises || []).filter(promise =>
+                promiseMatchesBroadTopic(promise, code));
+            matches.forEach(promise => uniqueMatches.add(promise.slug));
+            groups.append(priorityMatchGroup(code, matches));
+        });
+        document.querySelector('#priorityCoverageSummary').textContent = programme
+            ? t('priorities.coverage', {
+                matched: uniqueMatches.size,
+                selected: selectedPolicyTopics.length
+            })
+            : t('priorities.noProgramme');
+    }
+
+    function priorityMatchGroup(code, promises) {
+        const group = document.createElement('section');
+        group.className = 'priority-match-group';
+        const heading = document.createElement('h4');
+        heading.textContent = policyTopicLabel(code);
+        group.append(heading);
+        if (!programme || !promises.length) {
+            const empty = document.createElement('p');
+            empty.className = 'priority-empty';
+            empty.textContent = programme ? t('priorities.noMatches') : t('priorities.noProgramme');
+            group.append(empty);
+            return group;
+        }
+
+        const direct = promises.filter(promise => topicRelationship(promise, code) === 'DIRECT').length;
+        const metaLine = document.createElement('p');
+        metaLine.className = 'priority-match-meta';
+        metaLine.textContent = t('priorities.topicMeta', {
+            count: promises.length,
+            direct,
+            related: promises.length - direct
+        });
+        group.append(metaLine);
+
+        const list = document.createElement('div');
+        list.className = 'priority-promise-list';
+        const extraPromises = [];
+        [...promises]
+            .sort((first, second) => relationshipRank(first, code) - relationshipRank(second, code))
+            .forEach((promise, index) => {
+                const link = priorityPromiseLink(promise, code);
+                if (index >= 3) {
+                    link.hidden = true;
+                    extraPromises.push(link);
+                }
+                list.append(link);
+            });
+        group.append(list);
+        if (extraPromises.length) {
+            const more = document.createElement('button');
+            more.type = 'button';
+            more.className = 'priority-more-count';
+            more.setAttribute('aria-expanded', 'false');
+            more.textContent = showMorePromisesLabel(extraPromises.length);
+            more.addEventListener('click', () => {
+                const expanded = more.getAttribute('aria-expanded') !== 'true';
+                more.setAttribute('aria-expanded', String(expanded));
+                extraPromises.forEach(link => { link.hidden = !expanded; });
+                more.textContent = expanded
+                    ? t('priorities.showFewerPromises')
+                    : showMorePromisesLabel(extraPromises.length);
+            });
+            group.append(more);
+        }
+        return group;
+    }
+
+    function priorityPromiseLink(promise, broadCode) {
+        const link = document.createElement('a');
+        link.className = 'priority-promise-link';
+        link.href = `/promises/${encodeURIComponent(promise.slug)}`;
+        const topline = document.createElement('span');
+        topline.className = 'priority-promise-topline';
+        const subtopic = document.createElement('span');
+        subtopic.className = 'priority-promise-topic';
+        const relationship = topicRelationship(promise, broadCode);
+        subtopic.textContent = `${promiseTopicLabels(promise, broadCode)} · ${t(`priorities.${relationship.toLowerCase()}`)}`;
+        const verdict = document.createElement('span');
+        verdict.className = `feasibility-badge ${String(promise.verdict).toLowerCase().replace('_', '-')}`;
+        verdict.textContent = t(`promise.verdict.${promise.verdict}`);
+        topline.append(subtopic, verdict);
+        const title = document.createElement('strong');
+        title.textContent = localized(promise.title);
+        link.append(topline, title);
+        return link;
+    }
+
+    function showMorePromisesLabel(count) {
+        return count === 1
+            ? t('priorities.showOneMorePromise')
+            : t('priorities.showMorePromises', { count });
+    }
+
+    function promiseMatchesBroadTopic(promise, broadCode) {
+        return (promise.policyTopics || []).some(topic => topic.broadCode === broadCode);
+    }
+
+    function topicRelationship(promise, broadCode) {
+        const matches = (promise.policyTopics || []).filter(topic => topic.broadCode === broadCode);
+        return matches.some(topic => topic.relationship === 'DIRECT') ? 'DIRECT' : 'RELATED';
+    }
+
+    function relationshipRank(promise, broadCode) {
+        return topicRelationship(promise, broadCode) === 'DIRECT' ? 0 : 1;
+    }
+
+    function policyTopicLabel(code) {
+        return localized(policyTopicCatalog.find(topic => topic.code === code)?.label) || code;
+    }
+
+    function promiseTopicLabels(promise, broadCode) {
+        const labels = [...new Set((promise.policyTopics || [])
+            .filter(topic => topic.broadCode === broadCode)
+            .map(topic => policyTopicLabel(topic.code)))];
+        return (labels.length ? labels : [policyTopicLabel(broadCode)]).slice(0, 3).join(' / ');
+    }
+
+    function validPriorityCodes(codes) {
+        const available = new Set(policyTopicCatalog.filter(topic => topic.selectable).map(topic => topic.code));
+        return [...new Set(codes || [])].filter(code => available.has(code)).slice(0, priorityMaxSelections);
+    }
+
+    function readLocalPriorities() {
+        try {
+            const key = scopedPriorityStorageKey(PRIORITY_STORAGE_KEY);
+            return key ? validPriorityCodes(JSON.parse(window.localStorage.getItem(key) || '[]')) : [];
+        } catch (_) {
+            return [];
+        }
+    }
+
+    function writeLocalPriorities() {
+        try {
+            const topicsKey = scopedPriorityStorageKey(PRIORITY_STORAGE_KEY);
+            const pendingKey = scopedPriorityStorageKey(PRIORITY_PENDING_KEY);
+            if (!topicsKey || !pendingKey) return;
+            window.localStorage.setItem(topicsKey, JSON.stringify(selectedPolicyTopics));
+            window.localStorage.setItem(pendingKey, String(localPrioritySyncPending));
+        } catch (_) { /* Preferences still work for the current page. */ }
+    }
+
+    function readLocalPriorityPending() {
+        try {
+            const key = scopedPriorityStorageKey(PRIORITY_PENDING_KEY);
+            return key ? window.localStorage.getItem(key) === 'true' : false;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    function scopedPriorityStorageKey(base) {
+        if (!authSession?.authenticated) return `${base}.guest`;
+        const userId = authSession.user?.id;
+        return userId ? `${base}.user.${userId}` : null;
+    }
+
+    function migrateLegacyLocalPriorities() {
+        [PRIORITY_STORAGE_KEY, PRIORITY_PENDING_KEY].forEach(base => {
+            try {
+                const legacy = window.localStorage.getItem(base);
+                const guestKey = `${base}.guest`;
+                if (legacy !== null && window.localStorage.getItem(guestKey) === null) {
+                    window.localStorage.setItem(guestKey, legacy);
+                }
+                window.localStorage.removeItem(base);
+            } catch (_) { /* Preferences still work for the current page. */ }
+        });
+    }
+
+    function sameCodes(first, second) {
+        return first.length === second.length && first.every((value, index) => value === second[index]);
+    }
+
+    function sameCodeSet(first, second) {
+        return first.length === second.length && first.every(value => second.includes(value));
     }
 
     function renderChatSuggestions() {
@@ -394,24 +786,37 @@
 
     function setupTabs(hasProgramme) {
         const programmeTab = document.querySelector('#partyProgrammeTab');
+        const prioritiesTab = document.querySelector('#partyPrioritiesTab');
         const episodesTab = document.querySelector('#partyEpisodesTab');
         programmeTab.onclick = () => selectTab('programme');
+        prioritiesTab.onclick = () => selectTab('priorities');
         episodesTab.onclick = () => selectTab('episodes');
         selectTab(hasProgramme ? 'programme' : 'episodes');
     }
 
     function selectTab(name) {
-        const programmeSelected = name === 'programme' && programme;
         const programmeTab = document.querySelector('#partyProgrammeTab');
+        const prioritiesTab = document.querySelector('#partyPrioritiesTab');
         const episodesTab = document.querySelector('#partyEpisodesTab');
         const programmePanel = document.querySelector('#partyProgramme');
+        const prioritiesPanel = document.querySelector('#partyPriorities');
         const episodesPanel = document.querySelector('#partyEpisodesSection');
-        programmeTab.setAttribute('aria-selected', String(Boolean(programmeSelected)));
-        programmeTab.tabIndex = programmeSelected ? 0 : -1;
-        episodesTab.setAttribute('aria-selected', String(!programmeSelected));
-        episodesTab.tabIndex = programmeSelected ? -1 : 0;
-        programmePanel.hidden = !programmeSelected;
-        episodesPanel.hidden = Boolean(programmeSelected);
+        const prioritiesAvailable = !prioritiesTab.hidden;
+        const selected = name === 'programme' && programme
+            ? 'programme'
+            : name === 'priorities' && prioritiesAvailable
+                ? 'priorities'
+                : 'episodes';
+        [
+            ['programme', programmeTab, programmePanel],
+            ['priorities', prioritiesTab, prioritiesPanel],
+            ['episodes', episodesTab, episodesPanel]
+        ].forEach(([tabName, tab, panel]) => {
+            const active = selected === tabName;
+            tab.setAttribute('aria-selected', String(active));
+            tab.tabIndex = active ? 0 : -1;
+            panel.hidden = !active;
+        });
     }
 
     function episodeCard(episode) {

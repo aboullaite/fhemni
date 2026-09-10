@@ -198,6 +198,26 @@ public class PartyProgrammeRepository {
                 .list();
     }
 
+    public List<PartyPromise> findPromisesRequiringPolicyTopicMapping(String mappingVersion) {
+        return jdbc.sql("""
+                        SELECT p.id, p.programme_id, p.slug, p.topic,
+                               p.title_ar, p.title_fr, p.title_en,
+                               p.promise_text, p.source_locator, p.mechanism, p.financing,
+                               p.editorial_status, p.created_at, p.updated_at, p.published_at
+                          FROM party_promises p
+                         WHERE NOT EXISTS (
+                             SELECT 1 FROM promise_policy_topics mapped
+                              WHERE mapped.promise_id = p.id
+                                AND mapped.mapping_source = 'RULE'
+                                AND mapped.mapping_version = :mappingVersion
+                         )
+                         ORDER BY p.created_at
+                        """)
+                .param("mappingVersion", mappingVersion)
+                .query(this::mapPromise)
+                .list();
+    }
+
     public Optional<PartyPromise> findPromise(UUID id) {
         return jdbc.sql("SELECT " + PROMISE_COLUMNS + " FROM party_promises WHERE id = :id")
                 .param("id", id)

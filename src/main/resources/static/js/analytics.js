@@ -68,6 +68,9 @@
             return page('catalogue', 'Catalogue');
         }
         if (path === '/parties' || path === '/parties.html') return page('parties', 'Parties');
+        if (path === '/parties/compare' || path === '/compare-programmes.html') {
+            return page('programme_compare', 'Programme comparison');
+        }
         if (segments[0] === 'parties' && segments.length > 1) {
             return page('party', 'Party', safeValue(segments[1]));
         }

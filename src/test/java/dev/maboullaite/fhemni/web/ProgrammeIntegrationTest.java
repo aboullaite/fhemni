@@ -134,7 +134,16 @@ class ProgrammeIntegrationTest {
                 .andExpect(jsonPath("$.termEndYear").value(2031))
                 .andExpect(jsonPath("$.promises[0].slug").value("million-net-jobs"))
                 .andExpect(jsonPath("$.promises[0].verdict").value("HARD"))
+                .andExpect(jsonPath("$.promises[0].policyTopics[0].code")
+                        .value("EMPLOYMENT_JOB_CREATION"))
+                .andExpect(jsonPath("$.promises[0].policyTopics[0].broadCode")
+                        .value("EMPLOYMENT"))
                 .andExpect(jsonPath("$.sourceSnapshot").doesNotExist());
+
+        mvc.perform(get("/api/catalog/parties"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.code == 'PAM')].programmePartyCode")
+                        .value(org.hamcrest.Matchers.contains("PAM")));
 
         mvc.perform(get("/api/catalog/promises/million-net-jobs"))
                 .andExpect(status().isOk())
@@ -204,7 +213,9 @@ class ProgrammeIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("promiseDetail")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("promise-deep-dive")))
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("promise-ai-attribution")));
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("promise-disclaimer")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("promise-ai-attribution"))));
     }
 
     @Test
