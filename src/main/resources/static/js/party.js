@@ -82,10 +82,14 @@
         const name = people().partyDisplayName(profile);
         const alt = (people().locale() === 'ar' ? profile.nameFr : profile.nameAr) || '';
         const codeLabel = (profile.memberPartyCodes || [profile.code]).join(' + ');
-        document.querySelector('#partyName').textContent = `${codeLabel} · ${name}`;
+        document.querySelector('#partyName').textContent = people().locale() === 'ar'
+            ? `${name} · ${codeLabel}`
+            : `${codeLabel} · ${name}`;
         document.querySelector('#partyNameAlt').textContent = alt;
         const symbol = document.querySelector('#partySymbol');
         symbol.replaceChildren(people().partySymbol(profile, true));
+        document.querySelector('#priorityCompareLink').href =
+            `/parties/compare?party=${encodeURIComponent(profile.code)}`;
         const hasProgramme = renderProgramme();
 
         const stats = document.querySelector('#partyStats');
@@ -178,9 +182,15 @@
 
     function renderPriorities() {
         const panel = document.querySelector('#partyPriorities');
+        const tab = document.querySelector('#partyPrioritiesTab');
         const selectable = policyTopicCatalog.filter(topic => topic.selectable);
-        panel.hidden = !selectable.length;
-        if (!selectable.length) return;
+        const available = Boolean(programme && selectable.length);
+        tab.hidden = !available;
+        if (!available) {
+            panel.hidden = true;
+            return;
+        }
+        panel.hidden = tab.getAttribute('aria-selected') !== 'true';
 
         selectedPolicyTopics = validPriorityCodes(selectedPolicyTopics);
         const choices = document.querySelector('#priorityTopicChoices');
@@ -315,15 +325,32 @@
 
         const list = document.createElement('div');
         list.className = 'priority-promise-list';
+        const extraPromises = [];
         [...promises]
             .sort((first, second) => relationshipRank(first, code) - relationshipRank(second, code))
-            .slice(0, 3)
-            .forEach(promise => list.append(priorityPromiseLink(promise, code)));
+            .forEach((promise, index) => {
+                const link = priorityPromiseLink(promise, code);
+                if (index >= 3) {
+                    link.hidden = true;
+                    extraPromises.push(link);
+                }
+                list.append(link);
+            });
         group.append(list);
-        if (promises.length > 3) {
-            const more = document.createElement('span');
+        if (extraPromises.length) {
+            const more = document.createElement('button');
+            more.type = 'button';
             more.className = 'priority-more-count';
-            more.textContent = t('priorities.morePromises', { count: promises.length - 3 });
+            more.setAttribute('aria-expanded', 'false');
+            more.textContent = showMorePromisesLabel(extraPromises.length);
+            more.addEventListener('click', () => {
+                const expanded = more.getAttribute('aria-expanded') !== 'true';
+                more.setAttribute('aria-expanded', String(expanded));
+                extraPromises.forEach(link => { link.hidden = !expanded; });
+                more.textContent = expanded
+                    ? t('priorities.showFewerPromises')
+                    : showMorePromisesLabel(extraPromises.length);
+            });
             group.append(more);
         }
         return group;
@@ -347,6 +374,12 @@
         title.textContent = localized(promise.title);
         link.append(topline, title);
         return link;
+    }
+
+    function showMorePromisesLabel(count) {
+        return count === 1
+            ? t('priorities.showOneMorePromise')
+            : t('priorities.showMorePromises', { count });
     }
 
     function promiseMatchesBroadTopic(promise, broadCode) {
@@ -665,24 +698,37 @@
 
     function setupTabs(hasProgramme) {
         const programmeTab = document.querySelector('#partyProgrammeTab');
+        const prioritiesTab = document.querySelector('#partyPrioritiesTab');
         const episodesTab = document.querySelector('#partyEpisodesTab');
         programmeTab.onclick = () => selectTab('programme');
+        prioritiesTab.onclick = () => selectTab('priorities');
         episodesTab.onclick = () => selectTab('episodes');
         selectTab(hasProgramme ? 'programme' : 'episodes');
     }
 
     function selectTab(name) {
-        const programmeSelected = name === 'programme' && programme;
         const programmeTab = document.querySelector('#partyProgrammeTab');
+        const prioritiesTab = document.querySelector('#partyPrioritiesTab');
         const episodesTab = document.querySelector('#partyEpisodesTab');
         const programmePanel = document.querySelector('#partyProgramme');
+        const prioritiesPanel = document.querySelector('#partyPriorities');
         const episodesPanel = document.querySelector('#partyEpisodesSection');
-        programmeTab.setAttribute('aria-selected', String(Boolean(programmeSelected)));
-        programmeTab.tabIndex = programmeSelected ? 0 : -1;
-        episodesTab.setAttribute('aria-selected', String(!programmeSelected));
-        episodesTab.tabIndex = programmeSelected ? -1 : 0;
-        programmePanel.hidden = !programmeSelected;
-        episodesPanel.hidden = Boolean(programmeSelected);
+        const prioritiesAvailable = !prioritiesTab.hidden;
+        const selected = name === 'programme' && programme
+            ? 'programme'
+            : name === 'priorities' && prioritiesAvailable
+                ? 'priorities'
+                : 'episodes';
+        [
+            ['programme', programmeTab, programmePanel],
+            ['priorities', prioritiesTab, prioritiesPanel],
+            ['episodes', episodesTab, episodesPanel]
+        ].forEach(([tabName, tab, panel]) => {
+            const active = selected === tabName;
+            tab.setAttribute('aria-selected', String(active));
+            tab.tabIndex = active ? 0 : -1;
+            panel.hidden = !active;
+        });
     }
 
     function episodeCard(episode) {

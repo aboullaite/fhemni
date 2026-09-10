@@ -5,6 +5,7 @@
     const MAX_COMPARE_PARTIES = 4;
     const grid = document.querySelector('#partiesGrid');
     const count = document.querySelector('#partiesCount');
+    const explorer = document.querySelector('#priorityExplorer');
     const programmeCache = new Map();
     let parties = [];
     let topicCatalog = [];
@@ -33,10 +34,16 @@
 
     async function load() {
         try {
+            const topicsRequest = explorer
+                ? window.FhemniCatalog.requestJson('/api/catalog/policy-topics')
+                : Promise.resolve({ maxSelections: 3, topics: [] });
+            const sessionRequest = explorer
+                ? window.FhemniAuth.session().catch(() => ({ authenticated: false }))
+                : Promise.resolve({ authenticated: false });
             const [partyResponse, topics, session] = await Promise.all([
                 window.FhemniCatalog.requestJson('/api/catalog/parties'),
-                window.FhemniCatalog.requestJson('/api/catalog/policy-topics'),
-                window.FhemniAuth.session().catch(() => ({ authenticated: false }))
+                topicsRequest,
+                sessionRequest
             ]);
             parties = partyResponse;
             topicCatalog = topics.topics || [];
@@ -44,12 +51,14 @@
             authSession = session;
             selectedTopics = readLocalTopics();
             selectedParties = readLocalParties();
+            if (explorer) includeRequestedParty();
             localSyncPending = readLocalPending();
             await initializeAccountTopics();
             render();
         } catch (error) {
-            count.textContent = '';
-            window.FhemniCatalog.renderError(grid, error.message);
+            if (count) count.textContent = '';
+            const target = grid || document.querySelector('#priorityComparison') || explorer;
+            if (target) window.FhemniCatalog.renderError(target, error.message);
         }
     }
 
@@ -73,8 +82,8 @@
     }
 
     function render() {
-        renderDirectory();
-        renderExplorer();
+        if (grid) renderDirectory();
+        if (explorer) renderExplorer();
     }
 
     function renderDirectory() {
@@ -92,7 +101,6 @@
     }
 
     function renderExplorer() {
-        const explorer = document.querySelector('#priorityExplorer');
         const selectableTopics = topicCatalog.filter(topic => topic.selectable);
         const programmeParties = parties.filter(party => party.programmePartyCode);
         explorer.hidden = !selectableTopics.length || !programmeParties.length;
@@ -107,6 +115,14 @@
         signIn.hidden = Boolean(authSession.authenticated);
         signIn.href = window.FhemniAuth.loginPage(window.location.pathname);
         void renderComparison();
+    }
+
+    function includeRequestedParty() {
+        const requested = new URLSearchParams(window.location.search).get('party')?.toUpperCase();
+        const party = parties.find(item => item.code.toUpperCase() === requested && item.programmePartyCode);
+        if (!party || selectedParties.includes(party.code)) return;
+        selectedParties = [party.code, ...selectedParties].slice(0, MAX_COMPARE_PARTIES);
+        writeLocalParties();
     }
 
     function renderTopicChoices(selectableTopics) {
@@ -270,6 +286,7 @@
         const code = document.createElement('span');
         code.textContent = party.code;
         const name = document.createElement('h3');
+        name.dir = 'auto';
         name.textContent = people().partyDisplayName(party);
         title.append(code, name);
         const open = document.createElement('a');
@@ -287,12 +304,15 @@
             return article;
         }
 
+        const topics = document.createElement('div');
+        topics.className = 'priority-comparison-topics';
         selectedTopics.forEach(topicCode => {
             const matches = (result.programme.promises || [])
                 .filter(promise => promiseMatches(promise, topicCode))
                 .sort((first, second) => relationshipRank(first, topicCode) - relationshipRank(second, topicCode));
-            article.append(comparisonTopic(topicCode, matches));
+            topics.append(comparisonTopic(topicCode, matches));
         });
+        article.append(topics);
         return article;
     }
 
@@ -316,12 +336,30 @@
         }
         const list = document.createElement('div');
         list.className = 'priority-comparison-promises';
-        matches.slice(0, 2).forEach(promise => list.append(comparisonPromise(promise, topicCode)));
+        const extraPromises = [];
+        matches.forEach((promise, index) => {
+            const link = comparisonPromise(promise, topicCode);
+            if (index >= 2) {
+                link.hidden = true;
+                extraPromises.push(link);
+            }
+            list.append(link);
+        });
         section.append(list);
-        if (matches.length > 2) {
-            const more = document.createElement('span');
+        if (extraPromises.length) {
+            const more = document.createElement('button');
+            more.type = 'button';
             more.className = 'priority-more-count';
-            more.textContent = t('priorities.morePromises', { count: matches.length - 2 });
+            more.setAttribute('aria-expanded', 'false');
+            more.textContent = showMorePromisesLabel(extraPromises.length);
+            more.addEventListener('click', () => {
+                const expanded = more.getAttribute('aria-expanded') !== 'true';
+                more.setAttribute('aria-expanded', String(expanded));
+                extraPromises.forEach(link => { link.hidden = !expanded; });
+                more.textContent = expanded
+                    ? t('priorities.showFewerPromises')
+                    : showMorePromisesLabel(extraPromises.length);
+            });
             section.append(more);
         }
         return section;
@@ -335,9 +373,16 @@
         const relationship = topicRelationship(promise, broadCode);
         meta.textContent = `${promiseTopicLabels(promise, broadCode)} · ${t(`priorities.${relationship.toLowerCase()}`)}`;
         const title = document.createElement('strong');
+        title.dir = 'auto';
         title.textContent = localized(promise.title);
         link.append(meta, title);
         return link;
+    }
+
+    function showMorePromisesLabel(count) {
+        return count === 1
+            ? t('priorities.showOneMorePromise')
+            : t('priorities.showMorePromises', { count });
     }
 
     function renderComparisonState(container, key) {

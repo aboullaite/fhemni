@@ -175,6 +175,9 @@ class PublicPeopleIntegrationTest {
         mvc.perform(get("/parties"))
                 .andExpect(status().isOk())
                 .andExpect(forwardedUrl("/parties.html"));
+        mvc.perform(get("/parties/compare"))
+                .andExpect(status().isOk())
+                .andExpect(forwardedUrl("/compare-programmes.html"));
         mvc.perform(get("/parties/PI"))
                 .andExpect(status().isOk())
                 .andExpect(forwardedUrl("/party.html"));
@@ -188,6 +191,9 @@ class PublicPeopleIntegrationTest {
         mvc.perform(get("/parties.html"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("partiesGrid")));
+        mvc.perform(get("/compare-programmes.html"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("priorityComparison")));
         mvc.perform(get("/party.html"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("partyDetail")));

@@ -7,7 +7,7 @@
     <meta name="description" content="Guests and recent statements for a political party." data-i18n-content="party.description">
     <title>Party — Fhemni</title>
     <link rel="icon" type="image/png" href="/assets/brand/fhemni-icon.png">
-    <link rel="stylesheet" href="/css/dist.css?v=20260910-20">
+    <link rel="stylesheet" href="/css/dist.css?v=20260910-24">
 </head>
 <body class="public-page" data-i18n-page-title="party.pageTitle">
 <div class="ambient ambient-one"></div>
@@ -33,7 +33,7 @@
     <div id="partyLoading" class="catalog-loading detail-loading" data-i18n="party.loading">Loading this party…</div>
     <section id="partyDetail" class="video-detail" hidden>
         <a class="back-link" href="/parties">← <span data-i18n="party.back">Back to parties</span></a>
-        <div class="video-detail-heading">
+        <div class="video-detail-heading party-detail-heading">
             <div id="partySymbol" class="party-symbol-hero" aria-hidden="true"></div>
             <div>
                 <h1 id="partyName" dir="auto"></h1>
@@ -42,14 +42,22 @@
             </div>
         </div>
 
-        <section id="partyPriorities" class="party-priorities" aria-labelledby="partyPrioritiesTitle" hidden>
+        <div class="party-tabs" role="tablist" aria-label="Party content" data-i18n-aria-label="party.tabsLabel">
+            <button id="partyProgrammeTab" class="party-tab" type="button" role="tab" aria-controls="partyProgramme" data-i18n="programme.allTab" hidden>Full programme</button>
+            <button id="partyPrioritiesTab" class="party-tab" type="button" role="tab" aria-controls="partyPriorities" data-i18n="priorities.tab" hidden>Dive &amp; compare</button>
+            <button id="partyEpisodesTab" class="party-tab" type="button" role="tab" aria-controls="partyEpisodesSection" data-i18n="party.episodes">Episodes</button>
+        </div>
+
+        <section id="partyPriorities" class="party-priorities party-tab-panel" role="tabpanel" aria-labelledby="partyPrioritiesTab" hidden>
             <div class="party-priorities-heading">
                 <div>
                     <div class="section-kicker" data-i18n="priorities.kicker">Your priorities</div>
                     <h2 id="partyPrioritiesTitle" data-i18n="priorities.title">What matters most to you?</h2>
                     <p data-i18n="priorities.intro">Choose up to three subjects. Fhemni will surface the relevant published promises without turning them into a voting recommendation.</p>
                 </div>
-                <span class="priority-stored-badge" data-i18n="priorities.noAi">Stored matches · no AI call</span>
+                <div class="party-priorities-actions">
+                    <a id="priorityCompareLink" class="secondary-button priority-compare-link" href="/parties/compare" data-i18n="priorities.compareOtherParties">Compare with other parties</a>
+                </div>
             </div>
             <div id="priorityTopicChoices" class="priority-topic-choices" role="group" data-i18n-aria-label="priorities.choicesLabel"></div>
             <div class="priority-selection-footer">
@@ -68,11 +76,6 @@
                 <p class="priority-disclaimer" data-i18n="priorities.disclaimer">Topic coverage is not political compatibility or voting advice. It only reflects the published promises currently reviewed by Fhemni.</p>
             </div>
         </section>
-
-        <div class="party-tabs" role="tablist" aria-label="Party content" data-i18n-aria-label="party.tabsLabel">
-            <button id="partyProgrammeTab" class="party-tab" type="button" role="tab" aria-controls="partyProgramme" data-i18n="programme.title" hidden>Promise under the microscope</button>
-            <button id="partyEpisodesTab" class="party-tab" type="button" role="tab" aria-controls="partyEpisodesSection" data-i18n="party.episodes">Episodes</button>
-        </div>
 
         <section id="partyProgramme" class="profile-section programme-section party-tab-panel" role="tabpanel" aria-labelledby="partyProgrammeTab" hidden>
             <div class="programme-heading">
@@ -130,6 +133,6 @@
 </main>
 
 <footer><img class="footer-logo" src="/assets/brand/fhemni-logo.png" alt="Fhemni — فهّمني"><a href="https://x.com/laytoun" target="_blank" rel="me noopener noreferrer" title="@laytoun on X" data-i18n="common.footer">© 2026 Mohammed Aboullaite</a><a class="footer-feedback-link" href="https://github.com/aboullaite/fhemni/issues" target="_blank" rel="noopener noreferrer" data-i18n="common.suggestFeature">Suggest a feature</a></footer>
-<script src="/js/i18n.js?v=20260910-3" defer></script><script src="/js/auth.js" defer></script><script src="/js/markdown.js" defer></script><script src="/js/catalog-ui.js?v=20260906-2" defer></script><script src="/js/people-ui.js?v=20260910-1" defer></script><script src="/js/party.js?v=20260910-5" defer></script>
+<script src="/js/i18n.js?v=20260910-9" defer></script><script src="/js/auth.js" defer></script><script src="/js/markdown.js" defer></script><script src="/js/catalog-ui.js?v=20260906-2" defer></script><script src="/js/people-ui.js?v=20260910-1" defer></script><script src="/js/party.js?v=20260910-10" defer></script>
 </body>
 </html>

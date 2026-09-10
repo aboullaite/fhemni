@@ -20,6 +20,7 @@ class NavigationConsistencyTest {
             "admin-programmes.html",
             "admin-suggestions.html",
             "community.html",
+            "compare-programmes.html",
             "methodology.html",
             "parties.html",
             "party.html",

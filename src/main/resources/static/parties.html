@@ -7,7 +7,7 @@
     <meta name="description" content="Moroccan political parties mentioned across Fhemni’s published episodes." data-i18n-content="parties.description">
     <title>Parties — Fhemni</title>
     <link rel="icon" type="image/png" href="/assets/brand/fhemni-icon.png">
-    <link rel="stylesheet" href="/css/dist.css?v=20260910-20">
+    <link rel="stylesheet" href="/css/dist.css?v=20260910-24">
 </head>
 <body class="public-page" data-i18n-page-title="parties.pageTitle">
 <div class="ambient ambient-one"></div>
@@ -30,43 +30,22 @@
 </header>
 
 <main>
-    <section class="catalog-hero">
+    <section class="catalog-hero directory-hero">
         <div class="eyebrow"><span></span><span class="eyebrow-text" data-i18n="parties.eyebrow">Political parties</span></div>
         <h1 data-i18n="parties.title">Browse the parties.</h1>
+        <nav class="catalog-view-tabs" aria-label="Party views" data-i18n-aria-label="priorities.viewsLabel">
+            <a class="active" href="/parties" aria-current="page" data-i18n="priorities.browseAllParties">All parties</a>
+            <a href="/parties/compare" data-i18n="priorities.compareProgrammes">Compare programmes</a>
+        </nav>
     </section>
 
-    <section id="priorityExplorer" class="catalog-priority-explorer" hidden>
-        <div class="priority-explorer-heading">
-            <div>
-                <p class="eyebrow-text" data-i18n="priorities.compareKicker">Compare by subject</p>
-                <h2 data-i18n="priorities.compareTitle">See what each programme addresses.</h2>
-                <p data-i18n="priorities.compareIntro">Choose up to three interests and four parties. The comparison shows programme coverage and preserves the different promises—without ranking parties.</p>
-            </div>
-            <span class="priority-stored-badge" data-i18n="priorities.noAi">Stored matches · no AI call</span>
-        </div>
-        <div id="compareTopicChoices" class="priority-topic-choices" role="group" data-i18n-aria-label="priorities.choicesLabel" aria-label="Policy interests"></div>
-        <div class="priority-selection-footer">
-            <span id="compareTopicStatus" aria-live="polite"></span>
-            <a id="comparePrioritySignIn" class="text-link" href="/login" data-i18n="priorities.signIn">Sign in to keep these interests across devices</a>
-        </div>
-        <div class="priority-party-picker">
-            <div class="priority-picker-label">
-                <strong data-i18n="priorities.pickParties">Parties to compare</strong>
-                <span id="comparePartyStatus" aria-live="polite"></span>
-            </div>
-            <div id="comparePartyChoices" class="priority-party-choices" role="group" data-i18n-aria-label="priorities.pickParties" aria-label="Parties to compare"></div>
-        </div>
-        <div id="priorityComparison" class="priority-comparison" aria-live="polite"></div>
-        <p class="priority-disclaimer" data-i18n="priorities.compareDisclaimer">This compares coverage in the official programmes currently published by Fhemni. It is not a compatibility score, a ranking or voting advice. Missing coverage does not mean a party opposes a subject.</p>
-    </section>
-
-    <section class="catalog-results">
+    <section class="catalog-results directory-results">
         <div class="catalog-result-heading"><span id="partiesCount"></span></div>
         <div id="partiesGrid" class="catalog-grid" aria-live="polite"><div class="catalog-loading" data-i18n="parties.loading">Loading the parties…</div></div>
     </section>
 </main>
 
 <footer><img class="footer-logo" src="/assets/brand/fhemni-logo.png" alt="Fhemni — فهّمني"><a href="https://x.com/laytoun" target="_blank" rel="me noopener noreferrer" title="@laytoun on X" data-i18n="common.footer">© 2026 Mohammed Aboullaite</a><a class="footer-feedback-link" href="https://github.com/aboullaite/fhemni/issues" target="_blank" rel="noopener noreferrer" data-i18n="common.suggestFeature">Suggest a feature</a></footer>
-<script src="/js/i18n.js?v=20260910-3" defer></script><script src="/js/auth.js" defer></script><script src="/js/catalog-ui.js?v=20260906-2" defer></script><script src="/js/people-ui.js?v=20260910-1" defer></script><script src="/js/parties.js?v=20260910-6" defer></script>
+<script src="/js/i18n.js?v=20260910-9" defer></script><script src="/js/auth.js" defer></script><script src="/js/catalog-ui.js?v=20260906-2" defer></script><script src="/js/people-ui.js?v=20260910-1" defer></script><script src="/js/parties.js?v=20260910-10" defer></script>
 </body>
 </html>

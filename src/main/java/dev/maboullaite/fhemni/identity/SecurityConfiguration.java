@@ -77,7 +77,7 @@ public class SecurityConfiguration {
                                 "/", "/index.html", "/videos", "/videos/**",
                                 "/analyses/**", "/analysis.html",
                                 "/people/**", "/person.html",
-                                "/parties", "/parties/**", "/parties.html", "/party.html",
+                                "/parties", "/parties/**", "/parties.html", "/party.html", "/compare-programmes.html",
                                 "/promises/**", "/promise.html",
                                 "/catalog", "/catalog/**",
                                 "/community", "/community/", "/community.html",
