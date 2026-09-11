@@ -131,9 +131,31 @@ class NavigationConsistencyTest {
         for (String page : ADMIN_PAGES) {
             assertThat(html(page))
                     .as("mobile assets in %s", page)
-                    .contains("/css/dist.css?v=20260911-1")
-                    .contains("/js/i18n.js?v=20260911-1");
+                    .contains("/css/dist.css?v=20260911-18")
+                    .contains("/js/i18n.js?v=20260911-18");
         }
+    }
+
+    @Test
+    void adminDashboardSurfacesOpenReaderReports() throws IOException {
+        assertThat(html("admin.html"))
+                .contains("id=\"adminAssessmentReportsAlert\"")
+                .contains("href=\"/admin/programmes?focus=reports\"")
+                .contains("admin.readerReportsAlertTitle")
+                .contains("/js/admin.js?v=20260911-1");
+        assertThat(html("js/admin.js"))
+                .contains("/api/admin/programmes/assessment-reports")
+                .contains("renderAssessmentReportsAlert");
+        assertThat(html("js/programme-admin.js"))
+                .contains("focusReaderReports")
+                .contains("programme-report-flag")
+                .contains("programme-promise-row.has-reader-reports")
+                .contains("expandedPromises")
+                .contains("expandedAssessmentDetails")
+                .contains("admin.focusedReviewActive")
+                .contains("dismissAssessmentReportConfirm")
+                .contains("assessmentReportDismissed")
+                .contains("/assessment-reports/${reportId}/dismiss");
     }
 
     @Test
@@ -155,11 +177,12 @@ class NavigationConsistencyTest {
                 .contains("id=\"programmeMedia\" class=\"programme-media\"")
                 .contains("class=\"video-js vjs-big-play-centered\"")
                 .contains("/webjars/video.js/8.23.8/dist/video-js.min.css")
-                .contains("/css/dist.css?v=20260911-11")
+                .contains("/css/dist.css?v=20260911-18")
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.23.8/dist/video.min.js")
-                .contains("/js/i18n.js?v=20260911-6")
-                .contains("/js/party.js?v=20260911-8")
+                .contains("/js/i18n.js?v=20260911-18")
+                .contains("/js/party.js?v=20260911-9")
+                .containsOnlyOnce("data-i18n=\"programme.kicker\"")
                 .doesNotContain("data-i18n=\"programme.mediaPowered\"")
                 .doesNotContain("id=\"partyBriefingTab\"")
                 .doesNotContain("id=\"programmeMediaAudio\"")

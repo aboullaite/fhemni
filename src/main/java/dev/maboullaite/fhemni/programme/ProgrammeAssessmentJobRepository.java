@@ -21,7 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProgrammeAssessmentJobRepository {
 
     private static final String JOB_COLUMNS = """
-            id, programme_id, status, provider_mode, total_items, completed_items, failed_items,
+            id, programme_id, status, provider_mode, reassessment, review_context,
+            total_items, completed_items, failed_items,
             current_promise_slug, last_error_code, last_error_message,
             created_at, started_at, updated_at, finished_at
             """;
@@ -46,11 +47,11 @@ public class ProgrammeAssessmentJobRepository {
         UUID jobId = UUID.randomUUID();
         jdbc.sql("""
                         INSERT INTO programme_assessment_jobs (
-                            id, programme_id, status, provider_mode, total_items,
+                            id, programme_id, status, provider_mode, reassessment, review_context, total_items,
                             completed_items, failed_items, active_marker,
                             created_at, updated_at
                         ) VALUES (
-                            :id, :programmeId, 'QUEUED', :providerMode, :totalItems,
+                            :id, :programmeId, 'QUEUED', :providerMode, FALSE, NULL, :totalItems,
                             0, 0, TRUE, :createdAt, :updatedAt
                         )
                         """)
@@ -82,6 +83,51 @@ public class ProgrammeAssessmentJobRepository {
         if (promises.isEmpty()) {
             finish(jobId, Status.COMPLETED, now, null, null);
         }
+        return find(jobId).orElseThrow();
+    }
+
+    @Transactional
+    public ProgrammeAssessmentJob createReassessment(
+            UUID programmeId,
+            String providerMode,
+            PartyPromise promise,
+            String reviewContext,
+            int maxAttempts,
+            Instant now) {
+        UUID jobId = UUID.randomUUID();
+        jdbc.sql("""
+                        INSERT INTO programme_assessment_jobs (
+                            id, programme_id, status, provider_mode, reassessment, review_context,
+                            total_items, completed_items, failed_items, active_marker,
+                            created_at, updated_at
+                        ) VALUES (
+                            :id, :programmeId, 'QUEUED', :providerMode, TRUE, :reviewContext,
+                            1, 0, 0, TRUE, :createdAt, :updatedAt
+                        )
+                        """)
+                .param("id", jobId)
+                .param("programmeId", programmeId)
+                .param("providerMode", providerMode)
+                .param("reviewContext", reviewContext)
+                .param("createdAt", utc(now))
+                .param("updatedAt", utc(now))
+                .update();
+        jdbc.sql("""
+                        INSERT INTO programme_assessment_job_items (
+                            job_id, promise_id, promise_slug, status, attempt_count,
+                            max_attempts, created_at, updated_at
+                        ) VALUES (
+                            :jobId, :promiseId, :promiseSlug, 'PENDING', 0,
+                            :maxAttempts, :createdAt, :updatedAt
+                        )
+                        """)
+                .param("jobId", jobId)
+                .param("promiseId", promise.id())
+                .param("promiseSlug", promise.slug())
+                .param("maxAttempts", maxAttempts)
+                .param("createdAt", utc(now))
+                .param("updatedAt", utc(now))
+                .update();
         return find(jobId).orElseThrow();
     }
 
@@ -530,6 +576,7 @@ public class ProgrammeAssessmentJobRepository {
         return new ProgrammeAssessmentJob(
                 rs.getObject("id", UUID.class), rs.getObject("programme_id", UUID.class),
                 Status.valueOf(rs.getString("status")), rs.getString("provider_mode"),
+                rs.getBoolean("reassessment"), rs.getString("review_context"),
                 rs.getInt("total_items"), rs.getInt("completed_items"), rs.getInt("failed_items"),
                 rs.getString("current_promise_slug"), rs.getString("last_error_code"),
                 rs.getString("last_error_message"), instant(rs, "created_at"),

@@ -141,6 +141,41 @@ public class ProgrammeAssessmentJobService {
         }
     }
 
+    public synchronized ProgrammeAssessmentJob startReassessment(UUID promiseId, String reviewContext) {
+        if (!factChecks.ready()) {
+            throw new IllegalStateException(
+                    "The credentials required by the selected programme fact-check mode are not configured.");
+        }
+        AdminPromiseView promise = programmes.adminPromise(promiseId);
+        if (promise.promise().status() != EditorialStatus.PUBLISHED) {
+            throw new IllegalStateException("Only a published promise can be reanalysed.");
+        }
+        boolean hasPublished = promise.assessments().stream()
+                .anyMatch(assessment -> assessment.status() == EditorialStatus.PUBLISHED);
+        boolean hasDraft = promise.assessments().stream()
+                .anyMatch(assessment -> assessment.status() == EditorialStatus.DRAFT);
+        if (!hasPublished) {
+            throw new IllegalStateException("Publish the first assessment before requesting a revision.");
+        }
+        if (hasDraft) {
+            throw new IllegalStateException("Review or discard the existing draft revision first.");
+        }
+        UUID programmeId = promise.promise().programmeId();
+        ProgrammeAssessmentJob active = jobs.activeForProgramme(programmeId).orElse(null);
+        if (active != null) {
+            throw new IllegalStateException("Another assessment job is already active for this programme.");
+        }
+        try {
+            ProgrammeAssessmentJob created = jobs.createReassessment(
+                    programmeId, factChecks.mode().value(), promise.promise(), reviewContext,
+                    maxAttempts, clock.instant());
+            dispatch();
+            return created;
+        } catch (DataIntegrityViolationException race) {
+            throw new IllegalStateException("Another assessment job started for this programme.", race);
+        }
+    }
+
     public ProgrammeAssessmentJob latest(UUID programmeId) {
         return jobs.latestForProgramme(programmeId)
                 .orElseThrow(() -> new NoSuchElementException("No assessment job exists for this programme."));
@@ -229,7 +264,8 @@ public class ProgrammeAssessmentJobService {
             Map<UUID, AdminPromiseView> byId = programme.promises().stream()
                     .collect(java.util.stream.Collectors.toMap(item -> item.promise().id(), item -> item));
             List<ProgrammeAssessmentJobItem> alreadyDone = ready.stream()
-                    .filter(item -> byId.get(item.promiseId()) != null
+                    .filter(item -> !claimed.reassessment()
+                            && byId.get(item.promiseId()) != null
                             && !byId.get(item.promiseId()).assessments().isEmpty())
                     .toList();
             if (!alreadyDone.isEmpty()) {
@@ -259,9 +295,12 @@ public class ProgrammeAssessmentJobService {
                     .toList();
             jobs.markRunning(lease, ids(batch), batch.getFirst().promiseSlug(), now);
             try {
-                var result = factChecks.assess(programme.sourceUrl(), requested);
+                var result = claimed.reviewContext() == null || claimed.reviewContext().isBlank()
+                        ? factChecks.assess(programme.sourceUrl(), requested)
+                        : factChecks.assess(programme.sourceUrl(), requested, claimed.reviewContext());
                 committer.saveAndComplete(
-                        lease, programme.id(), requested, result, ids(batch), clock.instant());
+                        lease, programme.id(), requested, result, ids(batch),
+                        claimed.reassessment(), clock.instant());
             } catch (RuntimeException failure) {
                 if (failure instanceof ProgrammeJobLeaseLostException) {
                     throw failure;

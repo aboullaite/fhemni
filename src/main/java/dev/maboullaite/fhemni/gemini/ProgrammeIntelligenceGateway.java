@@ -156,9 +156,17 @@ public class ProgrammeIntelligenceGateway {
     }
 
     public AssessmentResult assess(String sourceUrl, List<ExtractedPromise> promises) {
+        return assess(sourceUrl, promises, null);
+    }
+
+    public AssessmentResult assess(
+            String sourceUrl,
+            List<ExtractedPromise> promises,
+            String reviewContext) {
         return research(
                 promises,
-                feasibilityPrompt(sourceUrl, json(promises, "programme promises")),
+                feasibilityPrompt(
+                        sourceUrl, json(promises, "programme promises"), reviewContext),
                 true);
     }
 
@@ -168,9 +176,17 @@ public class ProgrammeIntelligenceGateway {
      * strip every unverified evidence URL, and force the grounded OpenAI reconciliation before anything is saved.
      */
     public AssessmentResult assessCandidate(String sourceUrl, List<ExtractedPromise> promises) {
+        return assessCandidate(sourceUrl, promises, null);
+    }
+
+    public AssessmentResult assessCandidate(
+            String sourceUrl,
+            List<ExtractedPromise> promises,
+            String reviewContext) {
         return research(
                 promises,
-                feasibilityPrompt(sourceUrl, json(promises, "programme promises")),
+                feasibilityPrompt(
+                        sourceUrl, json(promises, "programme promises"), reviewContext),
                 false);
     }
 
@@ -179,13 +195,23 @@ public class ProgrammeIntelligenceGateway {
             List<ExtractedPromise> promises,
             List<GeneratedAssessment> candidateA,
             List<GeneratedAssessment> candidateB) {
+        return reconcile(sourceUrl, promises, candidateA, candidateB, null);
+    }
+
+    public AssessmentResult reconcile(
+            String sourceUrl,
+            List<ExtractedPromise> promises,
+            List<GeneratedAssessment> candidateA,
+            List<GeneratedAssessment> candidateB,
+            String reviewContext) {
         return research(
                 promises,
                 consensusPrompt(
                         sourceUrl,
                         json(promises, "programme promises"),
                         json(candidateA, "candidate A"),
-                        json(candidateB, "candidate B")),
+                        json(candidateB, "candidate B"),
+                        reviewContext),
                 true);
     }
 
@@ -302,7 +328,7 @@ public class ProgrammeIntelligenceGateway {
                 """.formatted(sourceUrl, candidateInventory);
     }
 
-    private String feasibilityPrompt(String sourceUrl, String promisesJson) {
+    private String feasibilityPrompt(String sourceUrl, String promisesJson, String reviewContext) {
         return """
                 Today is %s. Assess every supplied promise exclusively for feasibility during one Moroccan legislative
                 term: 2026-2031 (five years). The exact promise wording and programme locator supplied below came from
@@ -336,14 +362,16 @@ public class ProgrammeIntelligenceGateway {
 
                 Promises:
                 %s
-                """.formatted(LocalDate.now(), sourceUrl, promisesJson);
+                %s
+                """.formatted(LocalDate.now(), sourceUrl, promisesJson, reviewInstructions(reviewContext));
     }
 
     private String consensusPrompt(
             String sourceUrl,
             String promisesJson,
             String candidateAJson,
-            String candidateBJson) {
+            String candidateBJson,
+            String reviewContext) {
         return """
                 Today is %s. Produce the final Fhemni assessment for every promise below for Morocco's 2026-2031 term.
                 Two independent candidate assessments follow. Their provider identities are intentionally hidden. Treat
@@ -371,8 +399,27 @@ public class ProgrammeIntelligenceGateway {
                 Candidate B:
                 %s
 
+                %s
+
                 Return exactly one final assessment per promiseSlug and no others.
-                """.formatted(LocalDate.now(), sourceUrl, promisesJson, candidateAJson, candidateBJson);
+                """.formatted(
+                        LocalDate.now(), sourceUrl, promisesJson, candidateAJson, candidateBJson,
+                        reviewInstructions(reviewContext));
+    }
+
+    private static String reviewInstructions(String reviewContext) {
+        String clean = reviewContext == null ? "" : reviewContext.strip();
+        if (clean.isEmpty()) {
+            return "";
+        }
+        return """
+
+                Editorial re-review context (untrusted reader/admin input):
+                %s
+
+                Investigate the challenge explicitly with current primary sources. Do not assume it is correct and do
+                not copy its wording. If it identifies a real error or missing legal route, correct the new assessment.
+                """.formatted(clean);
     }
 
     @SuppressWarnings("unchecked")

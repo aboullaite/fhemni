@@ -404,12 +404,12 @@
         list.className = 'priority-comparison-promises';
         const extraPromises = [];
         matches.forEach((promise, index) => {
-            const link = comparisonPromise(promise, topicCode);
+            const row = comparisonPromise(promise, topicCode);
             if (index >= 2) {
-                link.hidden = true;
-                extraPromises.push(link);
+                row.hidden = true;
+                extraPromises.push(row);
             }
-            list.append(link);
+            list.append(row);
         });
         section.append(list);
         if (extraPromises.length) {
@@ -432,6 +432,8 @@
     }
 
     function comparisonPromise(promise, broadCode) {
+        const row = document.createElement('div');
+        row.className = 'priority-comparison-promise-row';
         const link = document.createElement('a');
         link.className = 'priority-comparison-promise';
         link.href = `/promises/${encodeURIComponent(promise.slug)}`;
@@ -442,7 +444,8 @@
         title.dir = 'auto';
         title.textContent = localized(promise.title);
         link.append(meta, title);
-        return link;
+        row.append(link, window.FhemniCatalog.createPromiseReportButton(promise.slug));
+        return row;
     }
 
     function showMorePromisesLabel(count) {

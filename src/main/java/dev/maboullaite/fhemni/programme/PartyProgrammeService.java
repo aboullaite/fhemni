@@ -114,6 +114,15 @@ public class PartyProgrammeService {
             UUID programmeId,
             List<ExtractedPromise> requestedPromises,
             FactCheckResult generatedResult) {
+        return saveGeneratedAssessments(programmeId, requestedPromises, generatedResult, false);
+    }
+
+    @Transactional
+    public AdminProgrammeView saveGeneratedAssessments(
+            UUID programmeId,
+            List<ExtractedPromise> requestedPromises,
+            FactCheckResult generatedResult,
+            boolean reassessment) {
         AdminProgrammeView programme = adminView(programme(programmeId));
         Map<String, AdminPromiseView> pending = new LinkedHashMap<>();
         for (ExtractedPromise requested : requestedPromises) {
@@ -122,9 +131,16 @@ public class PartyProgrammeService {
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException(
                             "The fact-check batch contains an unknown promise."));
-            if (!promise.assessments().isEmpty() || pending.put(requested.slug(), promise) != null) {
+            boolean invalidInitialAssessment = !reassessment && !promise.assessments().isEmpty();
+            boolean invalidReassessment = reassessment && (
+                    promise.assessments().stream().noneMatch(assessment ->
+                            assessment.status() == EditorialStatus.PUBLISHED)
+                    || promise.assessments().stream().anyMatch(assessment ->
+                            assessment.status() == EditorialStatus.DRAFT));
+            if (invalidInitialAssessment || invalidReassessment
+                    || pending.put(requested.slug(), promise) != null) {
                 throw new IllegalArgumentException(
-                        "The fact-check batch contains an assessed or duplicate promise.");
+                        "The fact-check batch contains a promise that cannot receive this assessment revision.");
             }
         }
         List<GeneratedAssessment> assessments = generatedResult == null || generatedResult.assessments() == null
@@ -444,6 +460,10 @@ public class PartyProgrammeService {
 
     private AdminPromiseView adminPromiseView(PartyPromise promise) {
         return new AdminPromiseView(promise, repository.findAssessments(promise.id(), false));
+    }
+
+    public AdminPromiseView adminPromise(UUID promiseId) {
+        return adminPromiseView(promise(promiseId));
     }
 
     private PublicPromiseSummary publicPromiseSummary(

@@ -125,8 +125,19 @@ class CatalogIntegrationTest {
                 .andExpect(content().string(containsString("id=\"analysisReportErrorLink\"")));
         mvc.perform(get("/promise.html"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("id=\"promiseReportErrorLink\"")))
+                .andExpect(content().string(containsString("id=\"promiseReportAction\"")))
+                .andExpect(content().string(containsString("/js/catalog-ui.js?v=20260911-3")))
                 .andExpect(content().string(containsString("data-i18n=\"promise.disclaimer\"")));
+        mvc.perform(get("/js/catalog-ui.js"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(
+                        "button.dataset.tooltip = t('promise.reportTooltip')")))
+                .andExpect(content().string(containsString(
+                        "button.setAttribute('aria-haspopup', 'dialog')")))
+                .andExpect(content().string(containsString("form.hidden = true")))
+                .andExpect(content().string(containsString("success.hidden = false")))
+                .andExpect(content().string(containsString(
+                        "M21 15a4 4 0 0 1-4 4H7l-4 4V7")));
         mvc.perform(get("/suggestions"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/community"));

@@ -16,6 +16,8 @@ import dev.maboullaite.fhemni.programme.PartyProgrammeService.DraftAssessment;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.DraftProgramme;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.DraftPromise;
 import dev.maboullaite.fhemni.programme.PromiseAssessment;
+import dev.maboullaite.fhemni.programme.PromiseAssessmentReport;
+import dev.maboullaite.fhemni.programme.PromiseAssessmentReportService;
 import dev.maboullaite.fhemni.programme.media.ProgrammeMedia;
 import dev.maboullaite.fhemni.programme.media.ProgrammeMediaScript;
 import dev.maboullaite.fhemni.programme.media.ProgrammeMediaService;
@@ -40,16 +42,19 @@ public class AdminProgrammeController {
     private final PartyProgrammeService programmes;
     private final ProgrammeIngestionService ingestion;
     private final ProgrammeAssessmentJobService assessmentJobs;
+    private final PromiseAssessmentReportService assessmentReports;
     private final ProgrammeMediaService media;
 
     public AdminProgrammeController(
             PartyProgrammeService programmes,
             ProgrammeIngestionService ingestion,
             ProgrammeAssessmentJobService assessmentJobs,
+            PromiseAssessmentReportService assessmentReports,
             ProgrammeMediaService media) {
         this.programmes = programmes;
         this.ingestion = ingestion;
         this.assessmentJobs = assessmentJobs;
+        this.assessmentReports = assessmentReports;
         this.media = media;
     }
 
@@ -80,6 +85,11 @@ public class AdminProgrammeController {
     @GetMapping("/assessment-jobs")
     public ResponseEntity<Map<UUID, ProgrammeAssessmentJob>> assessmentJobs() {
         return noStore(assessmentJobs.latest());
+    }
+
+    @GetMapping("/assessment-reports")
+    public ResponseEntity<List<PromiseAssessmentReport>> assessmentReports() {
+        return noStore(assessmentReports.openReports());
     }
 
     @GetMapping("/media")
@@ -141,6 +151,23 @@ public class AdminProgrammeController {
                 .body(assessmentJobs.start(programmeId));
     }
 
+    @PostMapping("/promises/{promiseId}/assessment-jobs")
+    public ResponseEntity<ProgrammeAssessmentJob> startPromiseAssessmentJob(
+            @PathVariable UUID promiseId,
+            @RequestBody(required = false) ReassessmentRequest request) {
+        String context = assessmentReports.reviewContext(
+                promiseId, request == null ? null : request.note());
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
+                .cacheControl(CacheControl.noStore())
+                .body(assessmentJobs.startReassessment(promiseId, context));
+    }
+
+    @PostMapping("/assessment-reports/{reportId}/dismiss")
+    public ResponseEntity<Void> dismissAssessmentReport(@PathVariable UUID reportId) {
+        assessmentReports.dismiss(reportId);
+        return ResponseEntity.noContent().cacheControl(CacheControl.noStore()).build();
+    }
+
     @PostMapping
     public ResponseEntity<AdminProgrammeView> create(@RequestBody DraftProgramme request) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -168,7 +195,9 @@ public class AdminProgrammeController {
 
     @PostMapping("/assessments/{assessmentId}/publish")
     public ResponseEntity<PromiseAssessment> publishAssessment(@PathVariable UUID assessmentId) {
-        return noStore(programmes.publishAssessment(assessmentId));
+        PromiseAssessment published = programmes.publishAssessment(assessmentId);
+        assessmentReports.resolveForPromise(published.promiseId());
+        return noStore(published);
     }
 
     @PostMapping("/promises/{promiseId}/publish")
@@ -225,5 +254,8 @@ public class AdminProgrammeController {
             boolean extracted,
             List<String> warnings,
             ProgrammeAssessmentJob job) {
+    }
+
+    public record ReassessmentRequest(String note) {
     }
 }

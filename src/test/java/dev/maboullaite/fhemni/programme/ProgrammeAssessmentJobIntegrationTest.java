@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
@@ -108,6 +109,38 @@ class ProgrammeAssessmentJobIntegrationTest {
     }
 
     @Test
+    void reanalysesOnlyOnePublishedPromiseAndKeepsTheCurrentAssessmentLive() throws Exception {
+        var programme = programme();
+        var selected = programmes.createPromise(programme.id(), promise("pjd-selected"));
+        var untouched = programmes.createPromise(programme.id(), promise("pjd-untouched"));
+        programmes.createAssessment(selected.promise().id(), draftAssessment());
+        programmes.createAssessment(untouched.promise().id(), draftAssessment());
+        programmes.publishAll(programme.id());
+
+        String reviewContext = "Investigate the reported interpretation of the competition law.";
+        when(factChecks.ready()).thenReturn(true);
+        when(factChecks.mode()).thenReturn(ProgrammeFactCheckMode.CONSENSUS);
+        when(factChecks.assess(anyString(), anyList(), eq(reviewContext)))
+                .thenAnswer(invocation -> result(invocation.getArgument(1)));
+
+        ProgrammeAssessmentJob started = jobs.startReassessment(selected.promise().id(), reviewContext);
+        ProgrammeAssessmentJob completed = eventually(
+                () -> dispatchAndGet(programme.id()),
+                job -> job.status() == Status.COMPLETED);
+
+        assertThat(started.reassessment()).isTrue();
+        assertThat(completed.totalItems()).isOne();
+        assertThat(completed.completedItems()).isOne();
+        assertThat(programmes.adminPromise(selected.promise().id()).assessments())
+                .hasSize(2)
+                .anyMatch(assessment -> assessment.status() == EditorialStatus.PUBLISHED)
+                .anyMatch(assessment -> assessment.status() == EditorialStatus.DRAFT);
+        assertThat(programmes.adminPromise(untouched.promise().id()).assessments())
+                .singleElement()
+                .satisfies(assessment -> assertThat(assessment.status()).isEqualTo(EditorialStatus.PUBLISHED));
+    }
+
+    @Test
     void recoversRunningItemsAfterAWorkerLeaseExpires() {
         var programme = programme();
         var promise = programmes.createPromise(programme.id(), promise("pjd-recover"));
@@ -192,7 +225,7 @@ class ProgrammeAssessmentJobIntegrationTest {
                 "PJD", text("برنامج", "Programme", "Programme"),
                 text("خلاصة", "Résumé", "Summary"),
                 "https://party.ma/programme-2026.pdf", "Official 2026 programme", "ar",
-                "Frozen official source snapshot.", false, List.of()));
+                "Frozen official source snapshot.", true, List.of()));
     }
 
     private static DraftPromise promise(String slug) {
@@ -214,6 +247,19 @@ class ProgrammeAssessmentJobIntegrationTest {
                                 LocalDate.of(2026, 8, 1), "Official baseline"))))
                 .toList();
         return new FactCheckResult(assessments, "consensus", "models", "method-v1");
+    }
+
+    private static PartyProgrammeService.DraftAssessment draftAssessment() {
+        return new PartyProgrammeService.DraftAssessment(
+                FeasibilityVerdict.HARD,
+                text("صعيب", "Difficile", "Hard"),
+                text("شروط", "Conditions", "Conditions"),
+                text("فرضيات", "Hypothèses", "Assumptions"),
+                text("حساب", "Calcul", "Calculation"),
+                "method-v1", LocalDate.of(2026, 9, 1),
+                List.of(new EvidenceDraft(
+                        "HCP", "Official indicator", "https://www.hcp.ma/indicator",
+                        LocalDate.of(2026, 8, 1), "Official baseline")));
     }
 
     private static LocalizedText text(String ar, String fr, String en) {
