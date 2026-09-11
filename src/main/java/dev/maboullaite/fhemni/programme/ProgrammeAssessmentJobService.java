@@ -141,7 +141,9 @@ public class ProgrammeAssessmentJobService {
         }
     }
 
-    public synchronized ProgrammeAssessmentJob startReassessment(UUID promiseId, String reviewContext) {
+    public synchronized ProgrammeAssessmentJob startReassessment(
+            UUID promiseId,
+            ProgrammeReviewContext reviewContext) {
         if (!factChecks.ready()) {
             throw new IllegalStateException(
                     "The credentials required by the selected programme fact-check mode are not configured.");
@@ -172,7 +174,10 @@ public class ProgrammeAssessmentJobService {
             dispatch();
             return created;
         } catch (DataIntegrityViolationException race) {
-            throw new IllegalStateException("Another assessment job started for this programme.", race);
+            if (jobs.activeForProgramme(programmeId).isPresent()) {
+                throw new IllegalStateException("Another assessment job started for this programme.", race);
+            }
+            throw race;
         }
     }
 

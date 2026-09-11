@@ -64,7 +64,7 @@ class PromiseAssessmentReportRepositoryIntegrationTest {
         assertThat(updated.sourceUrl()).endsWith("consolidated.pdf");
         assertThat(reports.openReports(promise.id())).containsExactly(updated);
 
-        reports.resolveForPromise(promise.id(), firstAt.plusSeconds(180));
+        reports.close(updated.id(), Status.RESOLVED, firstAt.plusSeconds(180));
         assertThat(reports.openReports(promise.id())).isEmpty();
     }
 

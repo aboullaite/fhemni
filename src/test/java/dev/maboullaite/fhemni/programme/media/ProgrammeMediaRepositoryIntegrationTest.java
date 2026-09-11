@@ -89,6 +89,13 @@ class ProgrammeMediaRepositoryIntegrationTest {
             assertThat(value.captionsUrl()).endsWith("/programme/media/captions?v=" + published.id());
             assertThat(value.transcript()).hasSize(10);
         });
+
+        service.invalidateForAssessment(programme.promises().getFirst().promise().id());
+
+        assertThat(media.published(programme.id())).isEmpty();
+        assertThat(media.find(published.id()).orElseThrow().status()).isEqualTo(ProgrammeMediaStatus.STALE);
+        assertThatThrownBy(() -> service.published("PJD"))
+                .isInstanceOf(java.util.NoSuchElementException.class);
     }
 
     @Test

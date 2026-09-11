@@ -91,7 +91,7 @@ public class ProgrammeAssessmentJobRepository {
             UUID programmeId,
             String providerMode,
             PartyPromise promise,
-            String reviewContext,
+            ProgrammeReviewContext reviewContext,
             int maxAttempts,
             Instant now) {
         UUID jobId = UUID.randomUUID();
@@ -108,7 +108,7 @@ public class ProgrammeAssessmentJobRepository {
                 .param("id", jobId)
                 .param("programmeId", programmeId)
                 .param("providerMode", providerMode)
-                .param("reviewContext", reviewContext)
+                .param("reviewContext", reviewContext.prompt())
                 .param("createdAt", utc(now))
                 .param("updatedAt", utc(now))
                 .update();
@@ -128,6 +128,19 @@ public class ProgrammeAssessmentJobRepository {
                 .param("createdAt", utc(now))
                 .param("updatedAt", utc(now))
                 .update();
+        for (ProgrammeReviewContext.ReportSnapshot report : reviewContext.reports()) {
+            jdbc.sql("""
+                            INSERT INTO programme_assessment_job_reports (
+                                job_id, report_id, report_updated_at
+                            ) VALUES (
+                                :jobId, :reportId, :reportUpdatedAt
+                            )
+                            """)
+                    .param("jobId", jobId)
+                    .param("reportId", report.id())
+                    .param("reportUpdatedAt", utc(report.updatedAt()))
+                    .update();
+        }
         return find(jobId).orElseThrow();
     }
 
@@ -305,6 +318,41 @@ public class ProgrammeAssessmentJobRepository {
         requireOwnedLease(lease, now);
         updateItemStatus(lease, promiseIds, "COMPLETED", now, null, null, null);
         refreshCounts(lease.jobId(), now);
+    }
+
+    @Transactional
+    public void linkGeneratedAssessments(Lease lease, List<UUID> promiseIds, Instant now) {
+        requireOwnedLease(lease, now);
+        for (UUID promiseId : promiseIds) {
+            int updated = jdbc.sql("""
+                            UPDATE programme_assessment_job_items item
+                               SET generated_assessment_id = (
+                                       SELECT assessment.id
+                                         FROM promise_assessments assessment
+                                        WHERE assessment.promise_id = :promiseId
+                                          AND assessment.editorial_status = 'DRAFT'
+                                        ORDER BY assessment.revision_number DESC
+                                        LIMIT 1
+                                   ),
+                                   updated_at = :now
+                             WHERE item.job_id = :jobId
+                               AND item.promise_id = :promiseId
+                               AND item.status = 'RUNNING'
+                               AND EXISTS (
+                                   SELECT 1
+                                     FROM promise_assessments assessment
+                                    WHERE assessment.promise_id = :promiseId
+                                      AND assessment.editorial_status = 'DRAFT'
+                               )
+                            """)
+                    .param("promiseId", promiseId)
+                    .param("now", utc(now))
+                    .param("jobId", lease.jobId())
+                    .update();
+            if (updated != 1) {
+                throw new ProgrammeJobLeaseLostException();
+            }
+        }
     }
 
     @Transactional

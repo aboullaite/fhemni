@@ -43,6 +43,7 @@ class ProgrammeAssessmentCommitter {
             Instant now) {
         jobs.requireOwnedLease(lease, now);
         programmes.saveGeneratedAssessments(programmeId, requested, result, reassessment);
+        jobs.linkGeneratedAssessments(lease, promiseIds, now);
         jobs.completeItems(lease, promiseIds, now);
     }
 }

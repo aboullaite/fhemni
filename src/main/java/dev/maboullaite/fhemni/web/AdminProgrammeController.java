@@ -25,6 +25,7 @@ import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -155,7 +156,7 @@ public class AdminProgrammeController {
     public ResponseEntity<ProgrammeAssessmentJob> startPromiseAssessmentJob(
             @PathVariable UUID promiseId,
             @RequestBody(required = false) ReassessmentRequest request) {
-        String context = assessmentReports.reviewContext(
+        var context = assessmentReports.reviewContext(
                 promiseId, request == null ? null : request.note());
         return ResponseEntity.status(HttpStatus.ACCEPTED)
                 .cacheControl(CacheControl.noStore())
@@ -194,9 +195,11 @@ public class AdminProgrammeController {
     }
 
     @PostMapping("/assessments/{assessmentId}/publish")
+    @Transactional
     public ResponseEntity<PromiseAssessment> publishAssessment(@PathVariable UUID assessmentId) {
         PromiseAssessment published = programmes.publishAssessment(assessmentId);
-        assessmentReports.resolveForPromise(published.promiseId());
+        assessmentReports.resolveForAssessment(published.id());
+        media.invalidateForAssessment(published.promiseId());
         return noStore(published);
     }
 

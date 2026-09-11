@@ -108,6 +108,25 @@ public class ProgrammeMediaRepository {
                 .optional();
     }
 
+    @Transactional
+    public void invalidateForPromise(UUID promiseId, Instant now) {
+        jdbc.sql("""
+                        UPDATE programme_media
+                           SET status = 'STALE', working_marker = NULL, published_marker = NULL,
+                               lock_owner = NULL, lease_until = NULL, lease_token = lease_token + 1,
+                               available_at = NULL, last_error_code = 'ASSESSMENT_CHANGED',
+                               last_error_message = 'A published assessment changed; generate a fresh briefing.',
+                               updated_at = :now
+                         WHERE programme_id = (
+                                   SELECT programme_id FROM party_promises WHERE id = :promiseId
+                               )
+                           AND (working_marker = TRUE OR published_marker = TRUE)
+                        """)
+                .param("promiseId", promiseId)
+                .param("now", utc(now))
+                .update();
+    }
+
     public List<ProgrammeMedia> history(UUID programmeId) {
         return jdbc.sql("""
                         SELECT %s FROM programme_media

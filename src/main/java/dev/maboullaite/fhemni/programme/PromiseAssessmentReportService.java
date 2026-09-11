@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class PromiseAssessmentReportService {
 
+    private static final int MAX_REPORTS_PER_REASSESSMENT = 8;
+
     private final PromiseAssessmentReportRepository reports;
     private final PartyProgrammeService programmes;
     private final Clock clock;
@@ -53,8 +55,10 @@ public class PromiseAssessmentReportService {
         return reports.openReports();
     }
 
-    public String reviewContext(UUID promiseId, String administratorNote) {
-        List<PromiseAssessmentReport> open = reports.openReports(promiseId);
+    public ProgrammeReviewContext reviewContext(UUID promiseId, String administratorNote) {
+        List<PromiseAssessmentReport> open = reports.openReports(promiseId).stream()
+                .limit(MAX_REPORTS_PER_REASSESSMENT)
+                .toList();
         String note = optionalText(administratorNote, 1500);
         if (open.isEmpty() && note == null) {
             throw new IllegalArgumentException("Add a review note or wait for a reader report before reanalysing.");
@@ -64,7 +68,7 @@ public class PromiseAssessmentReportService {
         for (int index = 0; index < open.size(); index++) {
             PromiseAssessmentReport report = open.get(index);
             context.append("\nReader report ").append(index + 1)
-                    .append(" [").append(report.category()).append("): ")
+                    .append(" [").append(report.category()).append("]: ")
                     .append(report.details());
             if (report.sourceUrl() != null) {
                 context.append("\nSuggested source: ").append(report.sourceUrl());
@@ -74,15 +78,20 @@ public class PromiseAssessmentReportService {
         if (note != null) {
             context.append("\nAdministrator review note: ").append(note).append('\n');
         }
-        return context.toString().strip();
+        return new ProgrammeReviewContext(
+                context.toString().strip(),
+                open.stream()
+                        .map(report -> new ProgrammeReviewContext.ReportSnapshot(
+                                report.id(), report.updatedAt()))
+                        .toList());
     }
 
     public void dismiss(UUID reportId) {
         reports.close(reportId, Status.DISMISSED, clock.instant());
     }
 
-    public void resolveForPromise(UUID promiseId) {
-        reports.resolveForPromise(promiseId, clock.instant());
+    public void resolveForAssessment(UUID assessmentId) {
+        reports.resolveForAssessment(assessmentId, clock.instant());
     }
 
     private static String required(String value, String label, int minLength, int maxLength) {

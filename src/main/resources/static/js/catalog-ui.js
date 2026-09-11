@@ -198,6 +198,28 @@
 
         const form = document.createElement('form');
         form.className = 'promise-report-form';
+        const categoryLabel = document.createElement('label');
+        const categoryText = document.createElement('span');
+        categoryText.dataset.reportCategoryLabel = '';
+        const category = document.createElement('select');
+        category.dataset.reportCategory = '';
+        category.required = true;
+        [
+            ['', 'promise.reportCategoryPlaceholder'],
+            ['FACTUAL_OR_LEGAL_ERROR', 'promise.reportCategoryFact'],
+            ['OUTDATED_OR_MISSING_SOURCE', 'promise.reportCategorySource'],
+            ['UNCLEAR_REASONING', 'promise.reportCategoryReasoning'],
+            ['OTHER', 'promise.reportCategoryOther']
+        ].forEach(([value, key], index) => {
+            const option = document.createElement('option');
+            option.value = value;
+            option.dataset.reportCategoryOption = key;
+            option.disabled = index === 0;
+            option.selected = index === 0;
+            category.append(option);
+        });
+        categoryLabel.append(categoryText, category);
+
         const detailsLabel = document.createElement('label');
         const detailsText = document.createElement('span');
         detailsText.dataset.reportDetailsLabel = '';
@@ -237,7 +259,7 @@
         feedback.dataset.reportFeedback = '';
         feedback.setAttribute('role', 'status');
         feedback.setAttribute('aria-live', 'polite');
-        form.append(detailsLabel, sourceLabel, actions, feedback);
+        form.append(categoryLabel, detailsLabel, sourceLabel, actions, feedback);
 
         const success = document.createElement('div');
         success.className = 'promise-report-success';
@@ -279,6 +301,10 @@
         dialog.querySelector('[data-report-close]').setAttribute('aria-label', t('common.cancel'));
         dialog.querySelector('[data-report-title]').textContent = t('promise.reportTitle');
         dialog.querySelector('[data-report-intro]').textContent = t('promise.reportIntro');
+        dialog.querySelector('[data-report-category-label]').textContent = t('promise.reportCategory');
+        dialog.querySelectorAll('[data-report-category-option]').forEach(option => {
+            option.textContent = t(option.dataset.reportCategoryOption);
+        });
         dialog.querySelector('[data-report-details-label]').textContent = t('promise.reportDetails');
         dialog.querySelector('[data-report-details]').placeholder = t('promise.reportDetailsPlaceholder');
         dialog.querySelector('[data-report-source-label]').textContent = t('promise.reportSource');
@@ -303,6 +329,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    category: dialog.querySelector('[data-report-category]').value,
                     details: dialog.querySelector('[data-report-details]').value.trim(),
                     sourceUrl: dialog.querySelector('[data-report-source]').value.trim() || null
                 })

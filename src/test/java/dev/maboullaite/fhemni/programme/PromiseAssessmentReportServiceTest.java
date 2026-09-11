@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.IntStream;
 
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.PublicPromiseView;
 import dev.maboullaite.fhemni.programme.PromiseAssessmentReport.Category;
@@ -65,14 +66,41 @@ class PromiseAssessmentReportServiceTest {
                 "https://adala.justice.gov.ma/law.pdf");
         when(reports.openReports(promiseId)).thenReturn(List.of(report));
 
-        String context = service.reviewContext(
+        ProgrammeReviewContext context = service.reviewContext(
                 promiseId, "Check the consolidated act and its implementing decree.");
 
-        assertThat(context)
+        assertThat(context.prompt())
                 .contains("untrusted claim to investigate")
                 .contains(report.details())
                 .contains(report.sourceUrl())
-                .contains("Check the consolidated act");
+                .contains("Check the consolidated act")
+                .contains("[FACTUAL_OR_LEGAL_ERROR]");
+        assertThat(context.reports())
+                .containsExactly(new ProgrammeReviewContext.ReportSnapshot(
+                        report.id(), report.updatedAt()));
+    }
+
+    @Test
+    void boundsEachReassessmentToEightCompleteReaderReports() {
+        UUID promiseId = UUID.randomUUID();
+        List<PromiseAssessmentReport> open = IntStream.rangeClosed(1, 9)
+                .mapToObj(index -> report(
+                        promiseId,
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                        "report-" + index + " " + "x".repeat(1_480),
+                        "https://example.org/" + index + "/" + "s".repeat(2_000)))
+                .toList();
+        when(reports.openReports(promiseId)).thenReturn(open);
+
+        ProgrammeReviewContext context = service.reviewContext(
+                promiseId, "n".repeat(1_500));
+
+        assertThat(context.reports()).hasSize(8);
+        assertThat(context.prompt())
+                .contains("report-8")
+                .doesNotContain("report-9")
+                .hasSizeLessThan(32_000);
     }
 
     @Test

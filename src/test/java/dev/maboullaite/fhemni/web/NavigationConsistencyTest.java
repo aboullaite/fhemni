@@ -131,8 +131,8 @@ class NavigationConsistencyTest {
         for (String page : ADMIN_PAGES) {
             assertThat(html(page))
                     .as("mobile assets in %s", page)
-                    .contains("/css/dist.css?v=20260911-18")
-                    .contains("/js/i18n.js?v=20260911-18");
+                    .contains("/css/dist.css?v=20260912-1")
+                    .contains("/js/i18n.js?v=20260912-1");
         }
     }
 
@@ -156,6 +156,12 @@ class NavigationConsistencyTest {
                 .contains("dismissAssessmentReportConfirm")
                 .contains("assessmentReportDismissed")
                 .contains("/assessment-reports/${reportId}/dismiss");
+        assertThat(html("js/catalog-ui.js"))
+                .contains("category.dataset.reportCategory = ''")
+                .contains("FACTUAL_OR_LEGAL_ERROR")
+                .contains("OUTDATED_OR_MISSING_SOURCE")
+                .contains("UNCLEAR_REASONING")
+                .contains("category: dialog.querySelector('[data-report-category]').value");
     }
 
     @Test
@@ -177,10 +183,10 @@ class NavigationConsistencyTest {
                 .contains("id=\"programmeMedia\" class=\"programme-media\"")
                 .contains("class=\"video-js vjs-big-play-centered\"")
                 .contains("/webjars/video.js/8.23.8/dist/video-js.min.css")
-                .contains("/css/dist.css?v=20260911-18")
+                .contains("/css/dist.css?v=20260912-1")
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.23.8/dist/video.min.js")
-                .contains("/js/i18n.js?v=20260911-18")
+                .contains("/js/i18n.js?v=20260912-1")
                 .contains("/js/party.js?v=20260911-9")
                 .containsOnlyOnce("data-i18n=\"programme.kicker\"")
                 .doesNotContain("data-i18n=\"programme.mediaPowered\"")
