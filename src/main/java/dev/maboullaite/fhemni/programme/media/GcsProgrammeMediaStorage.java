@@ -102,7 +102,7 @@ public class GcsProgrammeMediaStorage implements ProgrammeMediaStorage {
             Instant now = Instant.now();
             String timestamp = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'")
                     .withZone(ZoneOffset.UTC).format(now);
-            String date = DateTimeFormatter.BASIC_ISO_DATE.withZone(ZoneOffset.UTC).format(now);
+            String date = DateTimeFormatter.ofPattern("yyyyMMdd").withZone(ZoneOffset.UTC).format(now);
             String scope = date + "/auto/storage/goog4_request";
             String canonicalPath = "/" + encodePath(bucket) + "/" + encodePath(requiredObjectKey(objectKey));
             String query = "X-Goog-Algorithm=GOOG4-RSA-SHA256"
