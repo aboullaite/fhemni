@@ -13,16 +13,18 @@ class GeminiSchemasTest {
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
-    void locksProgrammeMediaReferencesToTheCurrentDossier() {
+    void keepsProgrammeMediaSchemaWithinProviderComplexityLimits() {
         var schema = GeminiSchemas.programmeMediaScript(
                 mapper, List.of("PROMISE:one", "ASSESSMENT:one"));
 
         var segments = schema.path("properties").path("segments");
         var sourceRefs = segments.path("items").path("properties").path("sourceRefs");
+        assertThat(segments.path("minItems").asInt()).isEqualTo(14);
         assertThat(segments.path("maxItems").asInt()).isEqualTo(16);
         assertThat(sourceRefs.path("maxItems").asInt()).isEqualTo(8);
-        assertThat(sourceRefs.path("items").path("enum").toString())
-                .isEqualTo("[\"PROMISE:one\",\"ASSESSMENT:one\"]");
+        // Dynamic enums make the schema too complex for larger programmes. The policy performs
+        // the authoritative allowed-reference check after generation.
+        assertThat(sourceRefs.path("items").has("enum")).isFalse();
     }
 
     @Test

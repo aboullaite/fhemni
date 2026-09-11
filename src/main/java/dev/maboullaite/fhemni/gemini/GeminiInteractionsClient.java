@@ -9,6 +9,7 @@ import java.util.Map;
 
 import com.google.genai.Client;
 import com.google.genai.errors.ApiException;
+import com.google.genai.gaos.models.errors.CreateInteractionClientError;
 import com.google.genai.gaos.models.interactions.CreateModelInteraction;
 import com.google.genai.gaos.models.interactions.Interaction;
 import com.google.genai.gaos.models.interactions.InteractionStatus;
@@ -110,7 +111,7 @@ class GeminiInteractionsClient {
                     extractUsage(interaction));
         } catch (ApiException exception) {
             throw new GeminiApiException(
-                    "Gemini request failed (HTTP " + exception.code() + ")",
+                    interactionFailureMessage(exception),
                     exception,
                     exception.code());
         } catch (GeminiApiException exception) {
@@ -118,6 +119,22 @@ class GeminiInteractionsClient {
         } catch (RuntimeException exception) {
             throw new GeminiApiException("Could not reach the Gemini API", exception);
         }
+    }
+
+    private String interactionFailureMessage(ApiException exception) {
+        String prefix = "Gemini request failed (HTTP " + exception.code() + ")";
+        if (exception instanceof CreateInteractionClientError interactionError) {
+            String detail = interactionError.data()
+                    .flatMap(CreateInteractionClientError.Data::error)
+                    .flatMap(error -> error.message())
+                    .map(String::strip)
+                    .filter(message -> !message.isBlank())
+                    .orElse("");
+            if (!detail.isBlank()) {
+                return prefix + ": " + detail;
+            }
+        }
+        return prefix;
     }
 
     UploadedFile uploadPdf(InputStream input, long size, String displayName) {
