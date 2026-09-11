@@ -32,6 +32,11 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SPRING_CONFIG_IMPORT: configtree:/run/secrets/
+      FHEMNI_PROGRAMME_MEDIA_WORKER_ENABLED: "false"
+      FHEMNI_PROGRAMME_MEDIA_STORAGE: gcs
+      FHEMNI_PROGRAMME_MEDIA_GCS_PROJECT: ${FHEMNI_PROGRAMME_MEDIA_GCS_PROJECT:?FHEMNI_PROGRAMME_MEDIA_GCS_PROJECT is required}
+      FHEMNI_PROGRAMME_MEDIA_GCS_BUCKET: ${FHEMNI_PROGRAMME_MEDIA_GCS_BUCKET:?FHEMNI_PROGRAMME_MEDIA_GCS_BUCKET is required}
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/google_cloud_media_credentials
     secrets:
       - source: postgres_password
         target: JDBC_DATABASE_PASSWORD
@@ -45,6 +50,8 @@ services:
         target: GOOGLE_CLIENT_SECRET
       - source: admin_identities
         target: FHEMNI_ADMIN_IDENTITIES
+      - source: google_cloud_media_credentials
+        target: google_cloud_media_credentials
     depends_on:
       database:
         condition: service_healthy
@@ -77,6 +84,47 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  media-worker:
+    profiles: ["media-generation"]
+    build:
+      context: .
+      dockerfile: Dockerfile.media
+    restart: "no"
+    env_file: ${FHEMNI_ENV_FILE:-.env.container}
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_CONFIG_IMPORT: configtree:/run/secrets/
+      PORT: 8081
+      FHEMNI_PROGRAMME_JOB_WORKER_ENABLED: "false"
+      FHEMNI_PROGRAMME_MEDIA_WORKER_ENABLED: "true"
+      FHEMNI_PROGRAMME_MEDIA_STORAGE: gcs
+      FHEMNI_PROGRAMME_MEDIA_GCS_PROJECT: ${FHEMNI_PROGRAMME_MEDIA_GCS_PROJECT:?FHEMNI_PROGRAMME_MEDIA_GCS_PROJECT is required}
+      FHEMNI_PROGRAMME_MEDIA_GCS_BUCKET: ${FHEMNI_PROGRAMME_MEDIA_GCS_BUCKET:?FHEMNI_PROGRAMME_MEDIA_GCS_BUCKET is required}
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/google_cloud_media_writer_credentials
+    secrets:
+      - source: postgres_password
+        target: JDBC_DATABASE_PASSWORD
+      - source: gemini_api_key
+        target: GEMINI_API_KEY
+      - source: google_cloud_media_writer_credentials
+        target: google_cloud_media_writer_credentials
+    depends_on:
+      database:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,size=768m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 1536m
+    stop_grace_period: 90s
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 volumes:
   postgres-data:
 
@@ -93,3 +141,7 @@ secrets:
     file: ${FHEMNI_SECRETS_DIR:-.secrets}/google_client_secret
   admin_identities:
     file: ${FHEMNI_SECRETS_DIR:-.secrets}/admin_identities
+  google_cloud_media_credentials:
+    file: ${FHEMNI_SECRETS_DIR:-.secrets}/google_cloud_media_credentials
+  google_cloud_media_writer_credentials:
+    file: ${FHEMNI_SECRETS_DIR:-.secrets}/google_cloud_media_writer_credentials

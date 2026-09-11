@@ -17,6 +17,7 @@ episode by episode.
 - source-grounded claim checking
 - community suggestions and voting
 - review-before-publication workflow
+- optional five-minute Darija programme briefings with reviewed audio, 4:5 video, and captions
 - optional authenticated, source-locked video and party-programme Q&A with weekly usage limits
 
 ## Run locally

@@ -41,6 +41,17 @@ Party-programme chat is a separate Gemini interaction with no search tool. Its
 context is assembled only from one party's verified, published 2026 programme,
 published promises, and published feasibility assessments and evidence.
 
+Programme briefings stay in the same modular monolith, while expensive generation
+runs out of band in an explicitly enabled, single-concurrency media worker. The
+normal production deployment never starts this worker. A durable fenced lease
+moves each job through two editorial gates: source-locked Darija script review,
+then final audio/video review. Gemini produces the narration and optional
+restrained topic illustrations; FFmpeg assembles a 4:5 video with Darija captions.
+The generator uploads immutable MP4, MP3, and WebVTT outputs to private object
+storage. The production web process only reads those objects, exposing video via
+short-lived links or authenticated streaming. Regeneration never replaces the
+published edition until the new render is explicitly approved.
+
 ## Persistence
 
 Flyway owns the schema. Local development uses file-backed H2 in PostgreSQL
@@ -118,4 +129,8 @@ against server-owned source identifiers before an answer is exposed.
 - Provider keys remain server-side and are never returned to browser code.
 - Party chat never mixes parties, performs live web research, or gives voting
   recommendations. Feasibility answers require published evidence citations.
+- Programme briefing scripts can cite only the current published programme and
+  its published assessments. Every generated script and final render requires
+  separate administrator approval; generated voice and illustrations are
+  disclosed to readers.
 - Automated tests use local stubs and must never consume external AI quota.

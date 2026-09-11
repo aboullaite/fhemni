@@ -1,5 +1,7 @@
 package dev.maboullaite.fhemni.gemini;
 
+import java.util.List;
+
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -189,6 +191,46 @@ final class GeminiSchemas {
                   "required": ["answer", "basis", "citationIds"]
                 }
                 """);
+    }
+
+    static JsonNode programmeMediaScript(ObjectMapper mapper, List<String> allowedSourceRefs) {
+        if (allowedSourceRefs == null || allowedSourceRefs.isEmpty()) {
+            throw new IllegalArgumentException("Programme media source references must not be empty.");
+        }
+        try {
+            return read(mapper, """
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "headline": {"type": "string"},
+                    "segments": {
+                      "type": "array",
+                      "minItems": 14,
+                      "maxItems": 16,
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "message": {"type": "string"},
+                          "narration": {"type": "string"},
+                          "sourceRefs": {
+                            "type": "array",
+                            "minItems": 1,
+                            "maxItems": 8,
+                            "items": {"type": "string", "enum": %s}
+                          }
+                        },
+                        "required": ["message", "narration", "sourceRefs"]
+                      }
+                    }
+                  },
+                  "required": ["headline", "segments"]
+                }
+                """.formatted(mapper.writeValueAsString(allowedSourceRefs)));
+        } catch (JacksonException exception) {
+            throw new IllegalStateException("Could not build the programme media response schema", exception);
+        }
     }
 
     private static JsonNode read(ObjectMapper mapper, String json) {

@@ -132,6 +132,8 @@ class ProgrammeIntegrationTest {
                 .andExpect(jsonPath("$.electionYear").value(2026))
                 .andExpect(jsonPath("$.termStartYear").value(2026))
                 .andExpect(jsonPath("$.termEndYear").value(2031))
+                .andExpect(jsonPath("$.promises[0].id").value(promise.promise().id().toString()))
+                .andExpect(jsonPath("$.promises[0].assessmentId").value(assessment.id().toString()))
                 .andExpect(jsonPath("$.promises[0].slug").value("million-net-jobs"))
                 .andExpect(jsonPath("$.promises[0].verdict").value("HARD"))
                 .andExpect(jsonPath("$.promises[0].policyTopics[0].code")

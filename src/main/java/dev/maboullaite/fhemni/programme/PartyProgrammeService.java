@@ -372,6 +372,13 @@ public class PartyProgrammeService {
                 programme.publishedAt(), promises);
     }
 
+    public String publishedSourceSha256(String partyCode) {
+        return repository.findPublishedSourceSha256(
+                        required(partyCode, "Party code", 10).toUpperCase(Locale.ROOT), ELECTION_YEAR)
+                .orElseThrow(() -> new NoSuchElementException(
+                        "No published 2026 programme was found for this party."));
+    }
+
     public ProgrammeChatDossier publishedChatDossier(String partyCode) {
         PartyProgramme programme = repository.findPublishedChatSourceByParty(
                         required(partyCode, "Party code", 10).toUpperCase(Locale.ROOT), ELECTION_YEAR)
@@ -445,7 +452,7 @@ public class PartyProgrammeService {
             List<PromisePolicyTopic> topics) {
         PromiseAssessment assessment = latestPublishedAssessment(promise.id(), assessments);
         return new PublicPromiseSummary(
-                promise.slug(), promise.topic(), promise.title(), promise.promiseText(),
+                promise.id(), assessment.id(), promise.slug(), promise.topic(), promise.title(), promise.promiseText(),
                 assessment.verdict(), assessment.summary(), assessment.dataCutoff(), topics);
     }
 
@@ -716,6 +723,8 @@ public class PartyProgrammeService {
     }
 
     public record PublicPromiseSummary(
+            UUID id,
+            UUID assessmentId,
             String slug,
             String topic,
             LocalizedText title,

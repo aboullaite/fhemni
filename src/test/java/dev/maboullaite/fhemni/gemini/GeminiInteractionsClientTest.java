@@ -22,6 +22,7 @@ class GeminiInteractionsClientTest {
                 {
                   "id":"test",
                   "status":"incomplete",
+                  "errors":[{"code":"max_tokens","message":"Output token limit reached"}],
                   "steps":[{"type":"model_output","content":[{"type":"text","text":"partial answer"}]}],
                   "usage":{"total_output_tokens":1024,"total_thought_tokens":220}
                 }
@@ -51,6 +52,8 @@ class GeminiInteractionsClientTest {
             assertThatThrownBy(() -> client.createQuestion(request))
                     .isInstanceOf(GeminiApiException.class)
                     .hasMessageContaining("status: incomplete")
+                    .hasMessageContaining("max_tokens")
+                    .hasMessageContaining("output_tokens=1024")
                     .satisfies(exception -> assertThat(((GeminiApiException) exception).usage().outputTokens())
                             .isEqualTo(1024));
             client.close();

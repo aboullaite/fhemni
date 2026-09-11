@@ -1,5 +1,7 @@
 (function () {
     const MAX_QUEUED_EVENTS = 20;
+    const MAX_PAGE_LOCATION_LENGTH = 1_000;
+    const CAMPAIGN_PARAMETER = /^(?:utm_[a-z0-9_]{1,50}|dclid|fbclid|gclid|gbraid|wbraid|msclkid|ttclid|li_fat_id|mc_cid|mc_eid)$/i;
     const queuedEvents = [];
     let configured = false;
 
@@ -32,7 +34,7 @@
         const page = classifyPage(window.location.pathname);
         window.gtag('event', 'page_view', compact({
             page_title: page.title,
-            page_location: `${window.location.origin}${window.location.pathname}`,
+            page_location: campaignLocation(),
             content_group: page.group,
             fhemni_page_type: page.type,
             fhemni_content_id: page.contentId
@@ -104,17 +106,31 @@
         };
     }
 
+    function campaignLocation() {
+        const url = new URL(window.location.href);
+        const campaignParameters = new URLSearchParams();
+        url.searchParams.forEach((value, key) => {
+            if (CAMPAIGN_PARAMETER.test(key)) campaignParameters.append(key, value);
+        });
+        url.search = campaignParameters.toString();
+        url.hash = '';
+        return url.toString();
+    }
+
     function compact(parameters) {
         return Object.fromEntries(Object.entries(parameters)
             .filter(([key, value]) => /^[a-z][a-z0-9_]{0,39}$/.test(key)
                 && value !== null && value !== undefined && value !== '')
             .slice(0, 20)
-            .map(([key, value]) => [key, safeValue(value)]));
+            .map(([key, value]) => [key, safeValue(
+                value,
+                key === 'page_location' ? MAX_PAGE_LOCATION_LENGTH : 100
+            )]));
     }
 
-    function safeValue(value) {
+    function safeValue(value, maxLength = 100) {
         if (typeof value === 'boolean') return value;
         if (typeof value === 'number') return Number.isFinite(value) ? value : 0;
-        return String(value).slice(0, 100);
+        return String(value).slice(0, maxLength);
     }
 })();

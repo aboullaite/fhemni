@@ -1,17 +1,18 @@
 package dev.maboullaite.fhemni;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.Executors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
@@ -68,5 +69,19 @@ public class FhemniApplication {
         return Executors.newFixedThreadPool(
                 concurrency,
                 Thread.ofVirtual().name("fhemni-programme-job-", 0).factory());
+    }
+
+    @Bean(name = "programmeMediaExecutor", destroyMethod = "close")
+    @ConditionalOnProperty(name = "fhemni.programme-media.worker-enabled", havingValue = "true")
+    ExecutorService programmeMediaExecutor() {
+        return Executors.newSingleThreadExecutor(
+                Thread.ofVirtual().name("fhemni-programme-media-", 0).factory());
+    }
+
+    @Bean(name = "programmeMediaProviderExecutor", destroyMethod = "close")
+    @ConditionalOnProperty(name = "fhemni.programme-media.worker-enabled", havingValue = "true")
+    ExecutorService programmeMediaProviderExecutor() {
+        return Executors.newThreadPerTaskExecutor(
+                Thread.ofVirtual().name("fhemni-programme-media-provider-", 0).factory());
     }
 }

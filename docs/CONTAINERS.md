@@ -26,6 +26,8 @@ openssl rand -base64 32 > .secrets/postgres_password
 : > .secrets/google_client_id
 : > .secrets/google_client_secret
 : > .secrets/admin_identities
+: > .secrets/google_cloud_media_credentials
+: > .secrets/google_cloud_media_writer_credentials
 chmod 444 .secrets/*
 ```
 
@@ -41,6 +43,35 @@ Party-programme fact checking defaults to Gemini. To run the OpenAI-only or
 consensus mode, put the key in `.secrets/openai_api_key` and set
 `FHEMNI_PROGRAMME_FACT_CHECK_MODE=openai` or `consensus` in `.env.container`.
 Switching back to `gemini` does not relabel or recompute cached assessments.
+
+The standard production stack does not run programme-media generation. It requires
+non-empty `FHEMNI_PROGRAMME_MEDIA_GCS_PROJECT` and
+`FHEMNI_PROGRAMME_MEDIA_GCS_BUCKET` values in `.env.container`; Compose stops with
+a clear configuration error when either is missing. It also needs a read-only signing identity in
+`.secrets/google_cloud_media_credentials`. Give that identity object-viewer access
+only to the configured private bucket. The web application uses it to issue
+short-lived media links; no bucket or object needs public access.
+
+Generate and review media before deployment with the opt-in `media-generation`
+Compose profile and a separate writer identity in
+`.secrets/google_cloud_media_writer_credentials`. That worker uploads immutable
+assets to the same private bucket and is never started by the normal deployment:
+
+```bash
+docker compose --env-file .env.container --profile media-generation up --build media-worker
+```
+
+Stop the worker when the queued batch reaches media review. Narration alternates
+by section between
+`FHEMNI_PROGRAMME_MEDIA_TTS_VOICE` and
+`FHEMNI_PROGRAMME_MEDIA_TTS_SECONDARY_VOICE`; the defaults are Charon and Kore.
+Independent narration and illustration sections run with bounded parallelism;
+`FHEMNI_PROGRAMME_MEDIA_PROVIDER_CONCURRENCY` defaults to `4` and can be lowered
+when provider quotas are tight. Publishing a revised feasibility assessment does
+not automatically replace an existing briefing, so regenerate and review the
+party media whenever its published assessments materially change.
+For local development outside Compose, keep the default local media storage when
+GCS-backed programme media is not needed.
 
 Start the stack:
 
