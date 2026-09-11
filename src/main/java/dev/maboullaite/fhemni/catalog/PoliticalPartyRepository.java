@@ -1,6 +1,7 @@
 package dev.maboullaite.fhemni.catalog;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
@@ -37,5 +38,9 @@ public class PoliticalPartyRepository {
                         resultSet.getString("catalogue_code"),
                         resultSet.getBoolean("visible")))
                 .list();
+    }
+
+    public Optional<PoliticalParty> findByCode(String code) {
+        return findAll().stream().filter(party -> party.code().equalsIgnoreCase(code)).findFirst();
     }
 }

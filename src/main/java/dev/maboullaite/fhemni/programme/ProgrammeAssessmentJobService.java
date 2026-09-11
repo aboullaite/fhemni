@@ -41,6 +41,7 @@ public class ProgrammeAssessmentJobService {
     private final int concurrency;
     private final int maxAttempts;
     private final Duration retryDelay;
+    private final boolean workerEnabled;
     private final Clock clock;
     private final String owner = UUID.randomUUID().toString();
     private final Set<UUID> submitted = ConcurrentHashMap.newKeySet();
@@ -55,9 +56,10 @@ public class ProgrammeAssessmentJobService {
             @Qualifier("programmeAssessmentExecutor") ExecutorService executor,
             @Value("${fhemni.programme-jobs.concurrency:1}") int concurrency,
             @Value("${fhemni.programme-jobs.max-attempts:3}") int maxAttempts,
-            @Value("${fhemni.programme-jobs.retry-delay:PT30S}") Duration retryDelay) {
+            @Value("${fhemni.programme-jobs.retry-delay:PT30S}") Duration retryDelay,
+            @Value("${fhemni.programme-jobs.worker-enabled:true}") boolean workerEnabled) {
         this(jobs, programmes, committer, factChecks, executor,
-                concurrency, maxAttempts, retryDelay, Clock.systemUTC());
+                concurrency, maxAttempts, retryDelay, workerEnabled, Clock.systemUTC());
     }
 
     ProgrammeAssessmentJobService(
@@ -69,6 +71,21 @@ public class ProgrammeAssessmentJobService {
             int concurrency,
             int maxAttempts,
             Duration retryDelay,
+            Clock clock) {
+        this(jobs, programmes, committer, factChecks, executor,
+                concurrency, maxAttempts, retryDelay, true, clock);
+    }
+
+    ProgrammeAssessmentJobService(
+            ProgrammeAssessmentJobRepository jobs,
+            PartyProgrammeService programmes,
+            ProgrammeAssessmentCommitter committer,
+            ProgrammeFactCheckService factChecks,
+            ExecutorService executor,
+            int concurrency,
+            int maxAttempts,
+            Duration retryDelay,
+            boolean workerEnabled,
             Clock clock) {
         if (concurrency < 1 || concurrency > 4) {
             throw new IllegalArgumentException("Programme job concurrency must be between 1 and 4.");
@@ -87,6 +104,7 @@ public class ProgrammeAssessmentJobService {
         this.concurrency = concurrency;
         this.maxAttempts = maxAttempts;
         this.retryDelay = retryDelay;
+        this.workerEnabled = workerEnabled;
         this.clock = clock;
     }
 
@@ -134,6 +152,9 @@ public class ProgrammeAssessmentJobService {
 
     @Scheduled(fixedDelayString = "${fhemni.programme-jobs.dispatch-interval-ms:3000}")
     public void dispatch() {
+        if (!workerEnabled) {
+            return;
+        }
         Instant now = clock.instant();
         jobs.recoverExpiredLeases(now);
         for (UUID jobId : jobs.dispatchable(now, Math.max(concurrency * 2, 2))) {
@@ -145,6 +166,9 @@ public class ProgrammeAssessmentJobService {
 
     @Scheduled(fixedDelayString = "${fhemni.programme-jobs.lease-renew-interval-ms:30000}")
     public void renewLeases() {
+        if (!workerEnabled) {
+            return;
+        }
         Instant now = clock.instant();
         activeLeases.entrySet().removeIf(entry ->
                 !jobs.renewLease(entry.getValue(), now, now.plus(LEASE_DURATION)));

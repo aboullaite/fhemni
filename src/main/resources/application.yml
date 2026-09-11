@@ -70,11 +70,39 @@ fhemni:
     mode: ${FHEMNI_PROGRAMME_FACT_CHECK_MODE:gemini}
   programme-jobs:
     # Keep production at one expensive party job at a time. Local runs can opt into two.
+    worker-enabled: ${FHEMNI_PROGRAMME_JOB_WORKER_ENABLED:true}
     concurrency: ${FHEMNI_PROGRAMME_JOB_CONCURRENCY:1}
     max-attempts: ${FHEMNI_PROGRAMME_JOB_MAX_ATTEMPTS:3}
     retry-delay: ${FHEMNI_PROGRAMME_JOB_RETRY_DELAY:PT30S}
     dispatch-interval-ms: ${FHEMNI_PROGRAMME_JOB_DISPATCH_INTERVAL_MS:3000}
     lease-renew-interval-ms: ${FHEMNI_PROGRAMME_JOB_LEASE_RENEW_INTERVAL_MS:30000}
+  programme-media:
+    # The web process creates/reviews records; a dedicated FFmpeg image runs the durable worker.
+    worker-enabled: ${FHEMNI_PROGRAMME_MEDIA_WORKER_ENABLED:false}
+    storage: ${FHEMNI_PROGRAMME_MEDIA_STORAGE:local}
+    local-directory: ${FHEMNI_PROGRAMME_MEDIA_LOCAL_DIRECTORY:./data/programme-media}
+    temp-directory: ${FHEMNI_PROGRAMME_MEDIA_TEMP_DIRECTORY:/tmp}
+    script-model: ${FHEMNI_PROGRAMME_MEDIA_SCRIPT_MODEL:gemini-3.8-flash}
+    # Gemini reasoning tokens share this response budget with the structured script.
+    # Five-minute briefings need enough headroom after the model has reasoned over a full programme.
+    script-max-output-tokens: ${FHEMNI_PROGRAMME_MEDIA_SCRIPT_MAX_OUTPUT_TOKENS:32768}
+    # Alternate two stable narrator identities by section; both remain deployment-time choices.
+    tts-model: ${FHEMNI_PROGRAMME_MEDIA_TTS_MODEL:gemini-2.5-pro-preview-tts}
+    tts-voice: ${FHEMNI_PROGRAMME_MEDIA_TTS_VOICE:Charon}
+    tts-secondary-voice: ${FHEMNI_PROGRAMME_MEDIA_TTS_SECONDARY_VOICE:Kore}
+    tts-timeout: ${FHEMNI_PROGRAMME_MEDIA_TTS_TIMEOUT:PT3M}
+    illustrations-enabled: ${FHEMNI_PROGRAMME_MEDIA_ILLUSTRATIONS_ENABLED:true}
+    image-model: ${FHEMNI_PROGRAMME_MEDIA_IMAGE_MODEL:gemini-3.1-flash-image}
+    image-timeout: ${FHEMNI_PROGRAMME_MEDIA_IMAGE_TIMEOUT:PT3M}
+    render-timeout: ${FHEMNI_PROGRAMME_MEDIA_RENDER_TIMEOUT:PT20M}
+    max-attempts: ${FHEMNI_PROGRAMME_MEDIA_MAX_ATTEMPTS:3}
+    retry-delay: ${FHEMNI_PROGRAMME_MEDIA_RETRY_DELAY:PT1M}
+    dispatch-interval-ms: ${FHEMNI_PROGRAMME_MEDIA_DISPATCH_INTERVAL_MS:5000}
+    lease-renew-interval-ms: ${FHEMNI_PROGRAMME_MEDIA_LEASE_RENEW_INTERVAL_MS:30000}
+    gcs:
+      project-id: ${FHEMNI_PROGRAMME_MEDIA_GCS_PROJECT:}
+      bucket: ${FHEMNI_PROGRAMME_MEDIA_GCS_BUCKET:}
+      request-timeout: ${FHEMNI_PROGRAMME_MEDIA_GCS_REQUEST_TIMEOUT:PT10M}
   openai:
     api-key: ${OPENAI_API_KEY:}
     model: ${OPENAI_PROGRAMME_FACT_CHECK_MODEL:gpt-5.6-terra}

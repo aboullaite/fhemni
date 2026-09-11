@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
@@ -68,5 +69,12 @@ public class FhemniApplication {
         return Executors.newFixedThreadPool(
                 concurrency,
                 Thread.ofVirtual().name("fhemni-programme-job-", 0).factory());
+    }
+
+    @Bean(name = "programmeMediaExecutor", destroyMethod = "close")
+    @ConditionalOnProperty(name = "fhemni.programme-media.worker-enabled", havingValue = "true")
+    ExecutorService programmeMediaExecutor() {
+        return Executors.newSingleThreadExecutor(
+                Thread.ofVirtual().name("fhemni-programme-media-", 0).factory());
     }
 }

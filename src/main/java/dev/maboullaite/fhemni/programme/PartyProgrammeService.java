@@ -445,7 +445,7 @@ public class PartyProgrammeService {
             List<PromisePolicyTopic> topics) {
         PromiseAssessment assessment = latestPublishedAssessment(promise.id(), assessments);
         return new PublicPromiseSummary(
-                promise.slug(), promise.topic(), promise.title(), promise.promiseText(),
+                promise.id(), assessment.id(), promise.slug(), promise.topic(), promise.title(), promise.promiseText(),
                 assessment.verdict(), assessment.summary(), assessment.dataCutoff(), topics);
     }
 
@@ -716,6 +716,8 @@ public class PartyProgrammeService {
     }
 
     public record PublicPromiseSummary(
+            UUID id,
+            UUID assessmentId,
             String slug,
             String topic,
             LocalizedText title,

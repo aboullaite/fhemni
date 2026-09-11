@@ -191,6 +191,38 @@ final class GeminiSchemas {
                 """);
     }
 
+    static JsonNode programmeMediaScript(ObjectMapper mapper) {
+        return read(mapper, """
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "headline": {"type": "string"},
+                    "segments": {
+                      "type": "array",
+                      "minItems": 14,
+                      "maxItems": 18,
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "message": {"type": "string"},
+                          "narration": {"type": "string"},
+                          "sourceRefs": {
+                            "type": "array",
+                            "minItems": 1,
+                            "items": {"type": "string"}
+                          }
+                        },
+                        "required": ["message", "narration", "sourceRefs"]
+                      }
+                    }
+                  },
+                  "required": ["headline", "segments"]
+                }
+                """);
+    }
+
     private static JsonNode read(ObjectMapper mapper, String json) {
         try {
             return mapper.readTree(json);

@@ -12,6 +12,7 @@
     const refresh = document.querySelector('#refreshProgrammes');
     let programmes = [];
     let jobsByProgramme = {};
+    let mediaByProgramme = {};
     let pollTimer = null;
     const expandedProgrammes = new Map();
 
@@ -30,9 +31,10 @@
     async function load() {
         refresh.disabled = true;
         try {
-            [programmes, jobsByProgramme] = await Promise.all([
+            [programmes, jobsByProgramme, mediaByProgramme] = await Promise.all([
                 window.FhemniCatalog.requestJson('/api/admin/programmes'),
-                window.FhemniCatalog.requestJson('/api/admin/programmes/assessment-jobs')
+                window.FhemniCatalog.requestJson('/api/admin/programmes/assessment-jobs'),
+                window.FhemniCatalog.requestJson('/api/admin/programmes/media')
             ]);
             render();
             syncReplacementOption();
@@ -211,6 +213,10 @@
         sourceDetails.append(source, meta);
         body.append(sourceDetails);
 
+        if (programme.status === 'PUBLISHED') {
+            body.append(programmeMediaPanel(programme, mediaByProgramme[programme.id]));
+        }
+
         if (programme.status === 'DRAFT' && !programme.sourceVerified) {
             const verification = document.createElement('div');
             verification.className = 'programme-verification';
@@ -263,6 +269,226 @@
         }
         article.append(body);
         return article;
+    }
+
+    function programmeMediaPanel(programme, media) {
+        const panel = document.createElement('section');
+        panel.className = 'programme-media-admin';
+        const heading = document.createElement('div');
+        heading.className = 'programme-review-top';
+        const copy = document.createElement('div');
+        const title = document.createElement('strong');
+        title.textContent = t('admin.programmeMediaTitle');
+        const intro = document.createElement('p');
+        intro.textContent = t('admin.programmeMediaIntro');
+        copy.append(title, intro);
+        if (media) {
+            const state = document.createElement('span');
+            state.className = `programme-media-state ${media.status.toLowerCase()}`;
+            state.textContent = t(`admin.programmeMediaStatus.${media.status}`);
+            heading.append(copy, state);
+        } else {
+            heading.append(copy);
+        }
+        panel.append(heading);
+
+        if (!media || media.status === 'STALE') {
+            const start = actionButton(t('admin.programmeMediaStart'), true,
+                () => startProgrammeMedia(programme.id, Boolean(media), start));
+            start.className = 'primary-button programme-action';
+            panel.append(start);
+            return panel;
+        }
+        if (['QUEUED_SCRIPT', 'GENERATING_SCRIPT', 'QUEUED_MEDIA', 'RENDERING_MEDIA'].includes(media.status)) {
+            const progress = document.createElement('p');
+            progress.className = 'programme-media-progress';
+            progress.textContent = t(`admin.programmeMediaProgress.${media.status}`);
+            panel.append(progress);
+            return panel;
+        }
+        if (media.status === 'SCRIPT_REVIEW') {
+            panel.append(mediaScriptEditor(media));
+            return panel;
+        }
+        if (media.status === 'FAILED') {
+            const error = document.createElement('p');
+            error.className = 'programme-media-error';
+            error.textContent = media.lastErrorMessage || t('admin.programmeMediaFailed');
+            const retry = actionButton(t('admin.programmeMediaRetry'), true,
+                () => postAction(`/api/admin/programmes/media/${media.id}/retry`, retry,
+                    t('admin.programmeMediaRetryQueued')));
+            panel.append(error, retry);
+            return panel;
+        }
+        if (['MEDIA_REVIEW', 'PUBLISHED'].includes(media.status)) {
+            const preview = document.createElement('div');
+            preview.className = 'programme-media-preview';
+            const video = document.createElement('video');
+            video.controls = true;
+            video.preload = 'metadata';
+            video.playsInline = true;
+            video.src = `/api/admin/programmes/media/${media.id}/asset/video`;
+            const track = document.createElement('track');
+            track.kind = 'captions';
+            track.srclang = 'ary';
+            track.label = t('admin.programmeMediaDarijaCaptions');
+            track.src = `/api/admin/programmes/media/${media.id}/asset/captions`;
+            video.append(track);
+            const details = document.createElement('div');
+            const headline = document.createElement('strong');
+            headline.dir = 'rtl';
+            headline.textContent = media.script?.headline || '';
+            const duration = document.createElement('p');
+            duration.textContent = t('admin.programmeMediaDuration', {
+                minutes: Math.max(1, Math.round((media.durationMs || 0) / 60_000)),
+                illustrations: media.illustrationCount || 0
+            });
+            const audio = document.createElement('audio');
+            audio.controls = true;
+            audio.preload = 'metadata';
+            audio.src = `/api/admin/programmes/media/${media.id}/asset/audio`;
+            details.append(headline, duration, audio);
+            preview.append(video, details);
+            panel.append(preview);
+            const actions = document.createElement('div');
+            actions.className = 'admin-video-actions';
+            if (media.status === 'MEDIA_REVIEW') {
+                const publish = actionButton(t('admin.programmeMediaPublish'), true,
+                    () => publishProgrammeMedia(media.id, publish));
+                publish.className = 'primary-button programme-action';
+                actions.append(publish);
+            }
+            const regenerate = actionButton(t('admin.programmeMediaRegenerate'), true,
+                () => startProgrammeMedia(programme.id, true, regenerate));
+            actions.append(regenerate);
+            panel.append(actions);
+        }
+        return panel;
+    }
+
+    function mediaScriptEditor(media) {
+        const form = document.createElement('form');
+        form.className = 'programme-media-script';
+        const headlineLabel = document.createElement('label');
+        headlineLabel.textContent = t('admin.programmeMediaHeadline');
+        const headline = document.createElement('input');
+        headline.required = true;
+        headline.maxLength = 120;
+        headline.dir = 'rtl';
+        headline.value = media.script.headline;
+        headline.dataset.mediaHeadline = '';
+        headlineLabel.append(headline);
+        form.append(headlineLabel);
+        media.script.segments.forEach((segment, index) => {
+            const fieldset = document.createElement('fieldset');
+            fieldset.dataset.mediaSegment = '';
+            const legend = document.createElement('legend');
+            legend.textContent = t('admin.programmeMediaSegment', { number: index + 1 });
+            const messageLabel = document.createElement('label');
+            messageLabel.textContent = t('admin.programmeMediaMessage');
+            const message = document.createElement('input');
+            message.required = true;
+            message.maxLength = 100;
+            message.dir = 'rtl';
+            message.value = segment.message;
+            message.dataset.mediaMessage = '';
+            messageLabel.append(message);
+            const narrationLabel = document.createElement('label');
+            narrationLabel.textContent = t('admin.programmeMediaNarration');
+            const narration = document.createElement('textarea');
+            narration.required = true;
+            narration.maxLength = 700;
+            narration.rows = 4;
+            narration.dir = 'rtl';
+            narration.value = segment.narration;
+            narration.dataset.mediaNarration = '';
+            narrationLabel.append(narration);
+            const refs = document.createElement('small');
+            refs.dataset.mediaRefs = JSON.stringify(segment.sourceRefs);
+            refs.textContent = `${t('admin.programmeMediaSources')}: ${segment.sourceRefs.join(' · ')}`;
+            fieldset.append(legend, messageLabel, narrationLabel, refs);
+            form.append(fieldset);
+        });
+        const stats = document.createElement('output');
+        stats.className = 'programme-media-script-stats';
+        stats.dataset.mediaScriptStats = '';
+        stats.setAttribute('aria-live', 'polite');
+        const updateStats = () => {
+            const words = [...form.querySelectorAll('[data-media-narration]')]
+                .map(field => field.value.trim())
+                .filter(Boolean)
+                .join(' ')
+                .split(/\s+/u)
+                .filter(Boolean)
+                .length;
+            stats.textContent = t('admin.programmeMediaScriptLength', {
+                words,
+                minutes: Math.max(1, Math.round(words / 130))
+            });
+        };
+        form.addEventListener('input', updateStats);
+        updateStats();
+        form.append(stats);
+        const actions = document.createElement('div');
+        actions.className = 'admin-video-actions';
+        const save = actionButton(t('admin.programmeMediaSaveScript'), true,
+            () => saveProgrammeMediaScript(media.id, form, save, false));
+        const approve = actionButton(t('admin.programmeMediaApproveScript'), true,
+            () => saveProgrammeMediaScript(media.id, form, approve, true));
+        approve.className = 'primary-button programme-action';
+        actions.append(save, approve);
+        form.append(actions);
+        form.addEventListener('submit', event => event.preventDefault());
+        return form;
+    }
+
+    function scriptPayload(form) {
+        return {
+            headline: form.querySelector('[data-media-headline]').value.trim(),
+            segments: [...form.querySelectorAll('[data-media-segment]')].map(segment => ({
+                message: segment.querySelector('[data-media-message]').value.trim(),
+                narration: segment.querySelector('[data-media-narration]').value.trim(),
+                sourceRefs: JSON.parse(segment.querySelector('[data-media-refs]').dataset.mediaRefs)
+            }))
+        };
+    }
+
+    async function startProgrammeMedia(programmeId, regenerate, button) {
+        if (regenerate && !window.confirm(t('admin.programmeMediaRegenerateConfirm'))) return;
+        await postAction(
+            `/api/admin/programmes/${programmeId}/media?regenerate=${regenerate}`,
+            button,
+            t('admin.programmeMediaQueued'));
+    }
+
+    async function saveProgrammeMediaScript(mediaId, form, button, approve) {
+        if (!form.reportValidity()) return;
+        if (approve && !window.confirm(t('admin.programmeMediaApproveConfirm'))) return;
+        button.disabled = true;
+        try {
+            const options = await window.FhemniAuth.withCsrf({
+                method: approve ? 'POST' : 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(scriptPayload(form))
+            });
+            await window.FhemniCatalog.requestJson(
+                `/api/admin/programmes/media/${mediaId}/${approve ? 'approve-script' : 'script'}`,
+                options,
+                30_000);
+            showFeedback(t(approve ? 'admin.programmeMediaRenderQueued' : 'admin.programmeMediaScriptSaved'), false);
+            await load();
+        } catch (error) {
+            showFeedback(error.message, true);
+            button.disabled = false;
+        }
+    }
+
+    async function publishProgrammeMedia(mediaId, button) {
+        if (!window.confirm(t('admin.programmeMediaPublishConfirm'))) return;
+        await postAction(
+            `/api/admin/programmes/media/${mediaId}/publish`,
+            button,
+            t('admin.programmeMediaPublished'));
     }
 
     function assessmentJobPanel(programme, job) {
@@ -561,7 +787,9 @@
     function schedulePolling() {
         window.clearTimeout(pollTimer);
         const running = Object.values(jobsByProgramme)
-            .some(job => ['QUEUED', 'RUNNING', 'RETRY_WAIT'].includes(job.status));
+            .some(job => ['QUEUED', 'RUNNING', 'RETRY_WAIT'].includes(job.status))
+            || Object.values(mediaByProgramme)
+                .some(media => ['QUEUED_SCRIPT', 'GENERATING_SCRIPT', 'QUEUED_MEDIA', 'RENDERING_MEDIA'].includes(media.status));
         if (running) pollTimer = window.setTimeout(load, 3000);
     }
 

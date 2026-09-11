@@ -35,7 +35,9 @@
         <java.version>26</java.version>
         <spring-ai.version>2.0.1</spring-ai.version>
         <google-genai.version>1.70.0</google-genai.version>
+        <google-auth-library.version>1.33.0</google-auth-library.version>
         <openai-java.version>4.58.0</openai-java.version>
+        <video-js.version>8.23.8</video-js.version>
     </properties>
 
     <dependencyManagement>
@@ -85,9 +87,25 @@
             <version>${google-genai.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.google.auth</groupId>
+            <artifactId>google-auth-library-oauth2-http</artifactId>
+            <version>${google-auth-library.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.openai</groupId>
             <artifactId>openai-java</artifactId>
             <version>${openai-java.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>video.js</artifactId>
+            <version>${video-js.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>

@@ -16,6 +16,9 @@ import dev.maboullaite.fhemni.programme.PartyProgrammeService.DraftAssessment;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.DraftProgramme;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.DraftPromise;
 import dev.maboullaite.fhemni.programme.PromiseAssessment;
+import dev.maboullaite.fhemni.programme.media.ProgrammeMedia;
+import dev.maboullaite.fhemni.programme.media.ProgrammeMediaScript;
+import dev.maboullaite.fhemni.programme.media.ProgrammeMediaService;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -37,14 +40,17 @@ public class AdminProgrammeController {
     private final PartyProgrammeService programmes;
     private final ProgrammeIngestionService ingestion;
     private final ProgrammeAssessmentJobService assessmentJobs;
+    private final ProgrammeMediaService media;
 
     public AdminProgrammeController(
             PartyProgrammeService programmes,
             ProgrammeIngestionService ingestion,
-            ProgrammeAssessmentJobService assessmentJobs) {
+            ProgrammeAssessmentJobService assessmentJobs,
+            ProgrammeMediaService media) {
         this.programmes = programmes;
         this.ingestion = ingestion;
         this.assessmentJobs = assessmentJobs;
+        this.media = media;
     }
 
     @PostMapping("/ingest")
@@ -74,6 +80,53 @@ public class AdminProgrammeController {
     @GetMapping("/assessment-jobs")
     public ResponseEntity<Map<UUID, ProgrammeAssessmentJob>> assessmentJobs() {
         return noStore(assessmentJobs.latest());
+    }
+
+    @GetMapping("/media")
+    public ResponseEntity<Map<UUID, ProgrammeMedia>> media() {
+        return noStore(media.latest());
+    }
+
+    @GetMapping("/{programmeId}/media")
+    public ResponseEntity<List<ProgrammeMedia>> mediaHistory(@PathVariable UUID programmeId) {
+        return noStore(media.history(programmeId));
+    }
+
+    @PostMapping("/{programmeId}/media")
+    public ResponseEntity<ProgrammeMedia> startMedia(
+            @PathVariable UUID programmeId,
+            @RequestParam(defaultValue = "false") boolean regenerate) {
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
+                .cacheControl(CacheControl.noStore())
+                .body(media.start(programmeId, regenerate));
+    }
+
+    @PostMapping("/media/{mediaId}/retry")
+    public ResponseEntity<ProgrammeMedia> retryMedia(@PathVariable UUID mediaId) {
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
+                .cacheControl(CacheControl.noStore())
+                .body(media.retry(mediaId));
+    }
+
+    @org.springframework.web.bind.annotation.PutMapping("/media/{mediaId}/script")
+    public ResponseEntity<ProgrammeMedia> saveMediaScript(
+            @PathVariable UUID mediaId,
+            @RequestBody ProgrammeMediaScript script) {
+        return noStore(media.saveScript(mediaId, script));
+    }
+
+    @PostMapping("/media/{mediaId}/approve-script")
+    public ResponseEntity<ProgrammeMedia> approveMediaScript(
+            @PathVariable UUID mediaId,
+            @RequestBody ProgrammeMediaScript script) {
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
+                .cacheControl(CacheControl.noStore())
+                .body(media.approveScript(mediaId, script));
+    }
+
+    @PostMapping("/media/{mediaId}/publish")
+    public ResponseEntity<ProgrammeMedia> publishMedia(@PathVariable UUID mediaId) {
+        return noStore(media.publish(mediaId));
     }
 
     @GetMapping("/{programmeId}/assessment-jobs/latest")

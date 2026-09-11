@@ -94,7 +94,7 @@ class GeminiInteractionsClient {
             if (!InteractionStatus.COMPLETED.equals(status)) {
                 String value = status == null ? "unknown" : status.value();
                 throw new GeminiApiException(
-                        "Gemini interaction did not complete (status: " + value + ")",
+                        "Gemini interaction did not complete (status: " + value + incompleteDetails(interaction) + ")",
                         extractUsage(interaction));
             }
             String output = interaction.outputText()
@@ -195,6 +195,22 @@ class GeminiInteractionsClient {
                 usage.totalThoughtTokens().orElse(null),
                 usage.totalToolUseTokens().orElse(null),
                 groundingQueries == 0 ? null : groundingQueries);
+    }
+
+    private String incompleteDetails(Interaction interaction) {
+        List<String> details = new ArrayList<>();
+        interaction.errors().orElse(List.of()).forEach(error -> {
+            String code = error.code().orElse("").strip();
+            String message = error.message().orElse("").strip();
+            if (!code.isBlank() || !message.isBlank()) {
+                details.add((code + (code.isBlank() || message.isBlank() ? "" : ": ") + message).strip());
+            }
+        });
+        interaction.usage().ifPresent(usage -> {
+            usage.totalOutputTokens().ifPresent(value -> details.add("output_tokens=" + value));
+            usage.totalThoughtTokens().ifPresent(value -> details.add("thought_tokens=" + value));
+        });
+        return details.isEmpty() ? "" : "; " + String.join("; ", details);
     }
 
     private String extractOutputText(Interaction interaction) {

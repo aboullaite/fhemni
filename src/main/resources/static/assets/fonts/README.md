@@ -14,3 +14,10 @@ Fhemni self-hosts Tajawal Regular, Medium and Bold for Arabic body text and
 interface controls. Tajawal was designed by Boutros International and is
 distributed under the SIL Open Font License 1.1. See `TAJAWAL-OFL.txt` in this
 directory for the complete license.
+
+## Noto Sans Arabic
+
+Programme summary videos use the static Medium and Bold cuts of Noto Sans
+Arabic 2.013. They come from the official Noto Arabic release and are
+distributed under the SIL Open Font License 1.1. See `NOTO-OFL.txt` in this
+directory for the complete license.
