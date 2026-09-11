@@ -159,7 +159,7 @@ class NavigationConsistencyTest {
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.23.8/dist/video.min.js")
                 .contains("/js/i18n.js?v=20260911-6")
-                .contains("/js/party.js?v=20260911-7")
+                .contains("/js/party.js?v=20260911-8")
                 .doesNotContain("data-i18n=\"programme.mediaPowered\"")
                 .doesNotContain("id=\"partyBriefingTab\"")
                 .doesNotContain("id=\"programmeMediaAudio\"")

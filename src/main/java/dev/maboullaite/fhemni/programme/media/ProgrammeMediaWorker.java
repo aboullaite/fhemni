@@ -8,12 +8,15 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import dev.maboullaite.fhemni.catalog.PoliticalParty;
 import dev.maboullaite.fhemni.catalog.PoliticalPartyRepository;
@@ -53,6 +56,7 @@ public class ProgrammeMediaWorker {
     private final ProgrammeMediaRenderer renderer;
     private final ProgrammeMediaStorage storage;
     private final ExecutorService executor;
+    private final ExecutorService providerExecutor;
     private final Duration retryDelay;
     private final Path tempRoot;
     private final Clock clock;
@@ -72,10 +76,11 @@ public class ProgrammeMediaWorker {
             ProgrammeMediaRenderer renderer,
             ProgrammeMediaStorage storage,
             @Qualifier("programmeMediaExecutor") ExecutorService executor,
+            @Qualifier("programmeMediaProviderExecutor") ExecutorService providerExecutor,
             @Value("${fhemni.programme-media.retry-delay:PT1M}") Duration retryDelay,
             @Value("${fhemni.programme-media.temp-directory:/tmp}") String tempDirectory) {
         this(repository, programmes, parties, scripts, policy, tts, illustrations, renderer, storage,
-                executor, retryDelay, Path.of(tempDirectory), Clock.systemUTC());
+                executor, providerExecutor, retryDelay, Path.of(tempDirectory), Clock.systemUTC());
     }
 
     ProgrammeMediaWorker(
@@ -89,6 +94,7 @@ public class ProgrammeMediaWorker {
             ProgrammeMediaRenderer renderer,
             ProgrammeMediaStorage storage,
             ExecutorService executor,
+            ExecutorService providerExecutor,
             Duration retryDelay,
             Path tempRoot,
             Clock clock) {
@@ -105,6 +111,7 @@ public class ProgrammeMediaWorker {
         this.renderer = renderer;
         this.storage = storage;
         this.executor = executor;
+        this.providerExecutor = providerExecutor;
         this.retryDelay = retryDelay;
         this.tempRoot = tempRoot.toAbsolutePath().normalize();
         this.clock = clock;
@@ -189,10 +196,8 @@ public class ProgrammeMediaWorker {
         Path work = Files.createTempDirectory(tempRoot, "fhemni-programme-media-");
         try {
             String prefix = objectPrefix(media);
-            List<PcmAudio> audioSegments = new ArrayList<>(script.segments().size());
-            for (int index = 0; index < script.segments().size(); index++) {
-                audioSegments.add(narrationSegment(work, prefix, media, index, script.segments().get(index)));
-            }
+            List<PcmAudio> audioSegments = parallelGenerate(script.segments().size(), index ->
+                    narrationSegment(work, prefix, media, index, script.segments().get(index)));
             CombinedAudio combined = WavePcm.combine(audioSegments, 260);
             List<Illustration> generatedIllustrations = generateIllustrations(work, prefix, script, combined);
             PoliticalParty party = parties.findByCode(media.partyCode())
@@ -222,7 +227,8 @@ public class ProgrammeMediaWorker {
             ProgrammeMedia media,
             int index,
             ProgrammeMediaScript.Segment segment) throws IOException, InterruptedException {
-        String key = prefix + "/work/tts-" + media.pronunciationVersion()
+        String key = prefix + "/work/tts-" + cacheIdentity(tts.model())
+                + "-" + media.pronunciationVersion()
                 + "-" + tts.voiceCacheKeyForSection(index)
                 + "/segment-" + String.format(java.util.Locale.ROOT, "%02d", index) + ".pcm";
         Path cached = work.resolve("narration-segment-" + index + ".pcm");
@@ -254,15 +260,13 @@ public class ProgrammeMediaWorker {
         if (!illustrations.enabled()) {
             return List.of();
         }
-        List<Illustration> result = new ArrayList<>();
-        for (int index = 0; index < script.segments().size(); index++) {
-            int sectionIndex = index;
-            String key = prefix + "/work/illustrations/section-"
-                    + String.format(java.util.Locale.ROOT, "%02d", index) + ".image";
+        return parallelGenerate(script.segments().size(), index -> {
+            String key = prefix + "/work/illustrations-" + cacheIdentity(illustrations.model())
+                    + "/section-" + String.format(java.util.Locale.ROOT, "%02d", index) + ".image";
             Path file = work.resolve("illustration-" + index + ".image");
             if (!restore(key, file)) {
                 GeneratedImage image = retryProvider("illustration section " + (index + 1),
-                        () -> illustrations.generate(script.segments().get(sectionIndex).message()));
+                        () -> illustrations.generate(script.segments().get(index).message()));
                 Files.write(file, image.data());
                 storage.put(key, file, image.contentType());
                 log.info("Generated illustration section {}/{}", index + 1, script.segments().size());
@@ -271,9 +275,43 @@ public class ProgrammeMediaWorker {
             }
             long startMs = audio.timings().get(index).startMs();
             long endMs = audio.timings().get(index).endMs();
-            result.add(new Illustration(file, startMs, endMs));
+            return new Illustration(file, startMs, endMs);
+        });
+    }
+
+    private <T> List<T> parallelGenerate(int count, IndexedProviderCall<T> call)
+            throws IOException, InterruptedException {
+        List<Future<T>> futures = new ArrayList<>(count);
+        try {
+            for (int index = 0; index < count; index++) {
+                int sectionIndex = index;
+                futures.add(providerExecutor.submit(() -> call.call(sectionIndex)));
+            }
+            List<T> results = new ArrayList<>(count);
+            for (Future<T> future : futures) {
+                results.add(await(future));
+            }
+            return List.copyOf(results);
+        } catch (IOException | InterruptedException | RuntimeException failure) {
+            futures.forEach(future -> future.cancel(true));
+            throw failure;
+        } catch (Error failure) {
+            futures.forEach(future -> future.cancel(true));
+            throw failure;
         }
-        return List.copyOf(result);
+    }
+
+    private <T> T await(Future<T> future) throws IOException, InterruptedException {
+        try {
+            return future.get();
+        } catch (ExecutionException failure) {
+            Throwable cause = failure.getCause();
+            if (cause instanceof IOException exception) throw exception;
+            if (cause instanceof InterruptedException exception) throw exception;
+            if (cause instanceof RuntimeException exception) throw exception;
+            if (cause instanceof Error error) throw error;
+            throw new IllegalStateException("Programme media provider failed.", cause);
+        }
     }
 
     private boolean restore(String key, Path target) {
@@ -312,6 +350,14 @@ public class ProgrammeMediaWorker {
                 + "/script-" + media.scriptRevision();
     }
 
+    static String cacheIdentity(String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("Programme media model name must not be blank.");
+        }
+        return Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(value.strip().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
+
     static String attemptOutputPrefix(String objectPrefix, Lease lease) {
         if (objectPrefix == null || objectPrefix.isBlank()) {
             throw new IllegalArgumentException("Programme media object prefix must not be blank.");
@@ -339,5 +385,10 @@ public class ProgrammeMediaWorker {
     @FunctionalInterface
     private interface ProviderCall<T> {
         T call();
+    }
+
+    @FunctionalInterface
+    private interface IndexedProviderCall<T> {
+        T call(int index) throws IOException, InterruptedException;
     }
 }

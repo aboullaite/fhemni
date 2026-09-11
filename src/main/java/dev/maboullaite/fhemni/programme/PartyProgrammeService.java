@@ -372,6 +372,13 @@ public class PartyProgrammeService {
                 programme.publishedAt(), promises);
     }
 
+    public String publishedSourceSha256(String partyCode) {
+        return repository.findPublishedSourceSha256(
+                        required(partyCode, "Party code", 10).toUpperCase(Locale.ROOT), ELECTION_YEAR)
+                .orElseThrow(() -> new NoSuchElementException(
+                        "No published 2026 programme was found for this party."));
+    }
+
     public ProgrammeChatDossier publishedChatDossier(String partyCode) {
         PartyProgramme programme = repository.findPublishedChatSourceByParty(
                         required(partyCode, "Party code", 10).toUpperCase(Locale.ROOT), ELECTION_YEAR)

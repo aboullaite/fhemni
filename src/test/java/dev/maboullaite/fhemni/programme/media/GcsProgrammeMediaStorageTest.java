@@ -1,7 +1,11 @@
 package dev.maboullaite.fhemni.programme.media;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.SocketTimeoutException;
 import java.net.http.HttpClient;
 import java.security.KeyPairGenerator;
 import java.time.Duration;
@@ -50,5 +54,25 @@ class GcsProgrammeMediaStorageTest {
                 .doesNotContain("PRIVATE KEY", "test-key");
         String signature = url.substring(url.indexOf("X-Goog-Signature=") + "X-Goog-Signature=".length());
         assertThat(signature).matches("[0-9a-f]{512}");
+    }
+
+    @Test
+    void timesOutAStalledResponseBody() throws Exception {
+        InputStream slow = new InputStream() {
+            @Override
+            public int read() throws IOException {
+                try {
+                    Thread.sleep(100);
+                    return 1;
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                    throw new IOException(interrupted);
+                }
+            }
+        };
+
+        try (InputStream body = GcsProgrammeMediaStorage.withBodyTimeout(slow, Duration.ofMillis(10))) {
+            assertThatThrownBy(body::read).isInstanceOf(SocketTimeoutException.class);
+        }
     }
 }

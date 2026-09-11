@@ -77,4 +77,16 @@ public class FhemniApplication {
         return Executors.newSingleThreadExecutor(
                 Thread.ofVirtual().name("fhemni-programme-media-", 0).factory());
     }
+
+    @Bean(name = "programmeMediaProviderExecutor", destroyMethod = "close")
+    @ConditionalOnProperty(name = "fhemni.programme-media.worker-enabled", havingValue = "true")
+    ExecutorService programmeMediaProviderExecutor(
+            @Value("${fhemni.programme-media.provider-concurrency:4}") int concurrency) {
+        if (concurrency < 1 || concurrency > 8) {
+            throw new IllegalArgumentException("Programme media provider concurrency must be between 1 and 8");
+        }
+        return Executors.newFixedThreadPool(
+                concurrency,
+                Thread.ofVirtual().name("fhemni-programme-media-provider-", 0).factory());
+    }
 }

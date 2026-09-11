@@ -95,6 +95,8 @@ fhemni:
     image-model: ${FHEMNI_PROGRAMME_MEDIA_IMAGE_MODEL:gemini-3.1-flash-image}
     image-timeout: ${FHEMNI_PROGRAMME_MEDIA_IMAGE_TIMEOUT:PT3M}
     render-timeout: ${FHEMNI_PROGRAMME_MEDIA_RENDER_TIMEOUT:PT20M}
+    # TTS and illustration sections are independent; keep provider fan-out bounded.
+    provider-concurrency: ${FHEMNI_PROGRAMME_MEDIA_PROVIDER_CONCURRENCY:4}
     max-attempts: ${FHEMNI_PROGRAMME_MEDIA_MAX_ATTEMPTS:3}
     retry-delay: ${FHEMNI_PROGRAMME_MEDIA_RETRY_DELAY:PT1M}
     dispatch-interval-ms: ${FHEMNI_PROGRAMME_MEDIA_DISPATCH_INTERVAL_MS:5000}

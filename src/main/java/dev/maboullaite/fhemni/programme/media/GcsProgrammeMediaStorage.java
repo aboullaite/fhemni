@@ -1,7 +1,9 @@
 package dev.maboullaite.fhemni.programme.media;
 
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -18,6 +20,10 @@ import java.util.HexFormat;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
@@ -31,6 +37,8 @@ import org.springframework.stereotype.Component;
 public class GcsProgrammeMediaStorage implements ProgrammeMediaStorage {
 
     private static final String STORAGE_SCOPE = "https://www.googleapis.com/auth/devstorage.read_write";
+    private static final ScheduledExecutorService BODY_TIMEOUTS = Executors.newSingleThreadScheduledExecutor(
+            Thread.ofPlatform().daemon().name("fhemni-gcs-body-timeout").factory());
 
     private final HttpClient http;
     private final GoogleCredentials credentials;
@@ -76,7 +84,7 @@ public class GcsProgrammeMediaStorage implements ProgrammeMediaStorage {
                 .POST(HttpRequest.BodyPublishers.ofFile(source))
                 .build();
         HttpResponse<InputStream> response = send(request);
-        try (InputStream body = response.body()) {
+        try (InputStream body = withBodyTimeout(response.body(), timeout)) {
             requireSuccess(response.statusCode(), body, "upload");
         }
     }
@@ -127,13 +135,20 @@ public class GcsProgrammeMediaStorage implements ProgrammeMediaStorage {
                 .build();
         HttpResponse<InputStream> response = send(request);
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
-            try (InputStream body = response.body()) {
+            try (InputStream body = withBodyTimeout(response.body(), timeout)) {
                 requireSuccess(response.statusCode(), body, "download");
             }
         }
         long size = response.headers().firstValueAsLong("Content-Length").orElse(-1L);
         String contentType = response.headers().firstValue("Content-Type").orElse("application/octet-stream");
-        return new StoredObject(response.body(), size, contentType);
+        return new StoredObject(withBodyTimeout(response.body(), timeout), size, contentType);
+    }
+
+    static InputStream withBodyTimeout(InputStream body, Duration timeout) {
+        if (timeout == null || timeout.isNegative() || timeout.isZero()) {
+            throw new IllegalArgumentException("GCS programme media body timeout must be positive.");
+        }
+        return new DeadlineInputStream(body, timeout);
     }
 
     private HttpResponse<InputStream> send(HttpRequest request) throws IOException {
@@ -187,6 +202,67 @@ public class GcsProgrammeMediaStorage implements ProgrammeMediaStorage {
                     MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));
         } catch (java.security.NoSuchAlgorithmException impossible) {
             throw new IllegalStateException("SHA-256 is unavailable.", impossible);
+        }
+    }
+
+    private static final class DeadlineInputStream extends FilterInputStream {
+
+        private final ScheduledFuture<?> deadline;
+        private volatile boolean timedOut;
+
+        private DeadlineInputStream(InputStream input, Duration timeout) {
+            super(Objects.requireNonNull(input, "GCS response body must not be null."));
+            deadline = BODY_TIMEOUTS.schedule(this::expire, timeout.toMillis(), TimeUnit.MILLISECONDS);
+        }
+
+        @Override
+        public int read() throws IOException {
+            try {
+                int value = super.read();
+                throwIfTimedOut();
+                return value;
+            } catch (IOException failure) {
+                throw translated(failure);
+            }
+        }
+
+        @Override
+        public int read(byte[] buffer, int offset, int length) throws IOException {
+            try {
+                int read = super.read(buffer, offset, length);
+                throwIfTimedOut();
+                return read;
+            } catch (IOException failure) {
+                throw translated(failure);
+            }
+        }
+
+        @Override
+        public void close() throws IOException {
+            deadline.cancel(false);
+            super.close();
+        }
+
+        private void expire() {
+            timedOut = true;
+            try {
+                in.close();
+            } catch (IOException ignored) {
+                // A read in progress reports the timeout below.
+            }
+        }
+
+        private void throwIfTimedOut() throws SocketTimeoutException {
+            if (timedOut) {
+                throw new SocketTimeoutException("GCS programme media response body timed out.");
+            }
+        }
+
+        private IOException translated(IOException failure) {
+            if (!timedOut) return failure;
+            var timeout = new SocketTimeoutException("GCS programme media response body timed out.");
+            timeout.initCause(failure);
+            return timeout;
         }
     }
 }

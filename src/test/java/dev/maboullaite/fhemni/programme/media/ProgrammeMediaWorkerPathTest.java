@@ -28,4 +28,11 @@ class ProgrammeMediaWorkerPathTest {
                 " ", new Lease(UUID.randomUUID(), "worker", 1)))
                 .isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void separatesProviderCachesByModel() {
+        assertThat(ProgrammeMediaWorker.cacheIdentity("gemini-2.5-pro-tts"))
+                .isNotEqualTo(ProgrammeMediaWorker.cacheIdentity("gemini-2.5-flash-tts"))
+                .matches("[A-Za-z0-9_-]+");
+    }
 }

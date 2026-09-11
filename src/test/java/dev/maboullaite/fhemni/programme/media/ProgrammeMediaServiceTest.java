@@ -10,7 +10,6 @@ import java.util.Optional;
 
 import dev.maboullaite.fhemni.gemini.ProgrammeMediaScriptGateway;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService;
-import dev.maboullaite.fhemni.programme.PartyProgrammeService.PublicProgrammeView;
 import org.junit.jupiter.api.Test;
 
 class ProgrammeMediaServiceTest {
@@ -20,11 +19,9 @@ class ProgrammeMediaServiceTest {
         ProgrammeMediaRepository repository = mock(ProgrammeMediaRepository.class);
         PartyProgrammeService programmes = mock(PartyProgrammeService.class);
         ProgrammeMedia record = mock(ProgrammeMedia.class);
-        PublicProgrammeView programme = mock(PublicProgrammeView.class);
         when(repository.publishedByParty("RNI")).thenReturn(Optional.of(record));
-        when(programmes.publishedProgramme("rni")).thenReturn(programme);
+        when(programmes.publishedSourceSha256("rni")).thenReturn("current-source");
         when(record.sourceSha256()).thenReturn("current-source");
-        when(programme.sourceSha256()).thenReturn("current-source");
         ProgrammeMediaService service = new ProgrammeMediaService(
                 repository,
                 programmes,
@@ -37,6 +34,6 @@ class ProgrammeMediaServiceTest {
 
         assertThat(result).isSameAs(record);
         verify(repository, times(1)).publishedByParty("RNI");
-        verify(programmes).publishedProgramme("rni");
+        verify(programmes).publishedSourceSha256("rni");
     }
 }

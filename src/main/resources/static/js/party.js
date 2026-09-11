@@ -30,11 +30,9 @@
             const profileRequest = window.FhemniCatalog.requestJson(
                 `/api/catalog/parties/${encodeURIComponent(requestedPartyCode)}`);
             const programmeRequest = requestProgramme(requestedPartyCode);
-            const mediaRequest = requestProgrammeMedia(requestedPartyCode);
-            [profile, programme, programmeMedia, authSession] = await Promise.all([
+            [profile, programme, authSession] = await Promise.all([
                 profileRequest,
                 programmeRequest,
-                mediaRequest,
                 sessionRequest
             ]);
             const programmePartyCode = profile.programmePartyCode || profile.code;
@@ -45,15 +43,16 @@
             }
             partyCode = profile.code;
             if (programmePartyCode.toUpperCase() !== requestedPartyCode.toUpperCase()) {
-                [programme, programmeMedia] = await Promise.all([
-                    requestProgramme(programmePartyCode),
-                    requestProgrammeMedia(programmePartyCode)
-                ]);
+                programme = await requestProgramme(programmePartyCode);
             }
             render();
             bindChat();
             document.querySelector('#partyLoading').hidden = true;
             document.querySelector('#partyDetail').hidden = false;
+            void requestProgrammeMedia(programmePartyCode).then(result => {
+                programmeMedia = result;
+                renderProgrammeMedia();
+            });
             void chatStateRequest.then(([session, metadata]) => {
                 authSession = session;
                 meta = metadata;

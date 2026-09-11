@@ -132,6 +132,19 @@ public class PartyProgrammeRepository {
                 .optional();
     }
 
+    public Optional<String> findPublishedSourceSha256(String partyCode, int electionYear) {
+        return jdbc.sql("""
+                        SELECT source_sha256 FROM party_programmes
+                         WHERE party_code = :partyCode
+                           AND election_year = :electionYear
+                           AND editorial_status = 'PUBLISHED'
+                        """)
+                .param("partyCode", partyCode)
+                .param("electionYear", electionYear)
+                .query(String.class)
+                .optional();
+    }
+
     public Optional<PartyProgramme> findPublishedChatSourceByParty(String partyCode, int electionYear) {
         return jdbc.sql("""
                         SELECT %s FROM party_programmes

@@ -134,6 +134,7 @@ public class ProgrammeMediaRepository {
                         SELECT id FROM programme_media
                          WHERE working_marker = TRUE
                            AND status IN ('QUEUED_SCRIPT', 'QUEUED_MEDIA')
+                           AND attempt_count < max_attempts
                            AND available_at <= :now
                            AND (lease_until IS NULL OR lease_until <= :now)
                          ORDER BY created_at
@@ -147,15 +148,20 @@ public class ProgrammeMediaRepository {
 
     @Transactional
     public void recoverExpired(Instant now) {
-        int updated = jdbc.sql("""
+        jdbc.sql("""
                         UPDATE programme_media
-                           SET status = CASE status
-                               WHEN 'GENERATING_SCRIPT' THEN 'QUEUED_SCRIPT'
-                               WHEN 'RENDERING_MEDIA' THEN 'QUEUED_MEDIA'
+                           SET status = CASE
+                               WHEN attempt_count >= max_attempts THEN 'FAILED'
+                               WHEN status = 'GENERATING_SCRIPT' THEN 'QUEUED_SCRIPT'
+                               WHEN status = 'RENDERING_MEDIA' THEN 'QUEUED_MEDIA'
                                ELSE status END,
-                               lock_owner = NULL, lease_until = NULL, available_at = :now,
+                               lock_owner = NULL, lease_until = NULL,
+                               available_at = CASE WHEN attempt_count >= max_attempts THEN NULL ELSE :now END,
                                last_error_code = 'WORKER_INTERRUPTED',
-                               last_error_message = 'The media worker stopped; generation will resume.',
+                               last_error_message = CASE
+                                   WHEN attempt_count >= max_attempts
+                                       THEN 'The media worker stopped and exhausted its retry limit.'
+                                   ELSE 'The media worker stopped; generation will resume.' END,
                                updated_at = :now
                          WHERE working_marker = TRUE
                            AND status IN ('GENERATING_SCRIPT', 'RENDERING_MEDIA')
@@ -178,6 +184,7 @@ public class ProgrammeMediaRepository {
                                last_error_code = NULL, last_error_message = NULL, updated_at = :now
                          WHERE id = :id AND working_marker = TRUE
                            AND status IN ('QUEUED_SCRIPT', 'QUEUED_MEDIA')
+                           AND attempt_count < max_attempts
                            AND available_at <= :now
                            AND (lease_until IS NULL OR lease_until <= :now)
                         """)

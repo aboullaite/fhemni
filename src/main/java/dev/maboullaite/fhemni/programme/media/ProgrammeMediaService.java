@@ -97,11 +97,12 @@ public class ProgrammeMediaService {
 
     public PublicProgrammeMedia published(String partyCode) {
         ProgrammeMedia media = currentPublishedMedia(partyCode);
+        String assetVersion = "?v=" + media.id();
         return new PublicProgrammeMedia(
                 media.id(), media.partyCode(), media.durationMs(), media.script().headline(), media.script().segments(),
-                "/api/catalog/parties/" + media.partyCode() + "/programme/media/audio",
-                "/api/catalog/parties/" + media.partyCode() + "/programme/media/video",
-                "/api/catalog/parties/" + media.partyCode() + "/programme/media/captions",
+                "/api/catalog/parties/" + media.partyCode() + "/programme/media/audio" + assetVersion,
+                "/api/catalog/parties/" + media.partyCode() + "/programme/media/video" + assetVersion,
+                "/api/catalog/parties/" + media.partyCode() + "/programme/media/captions" + assetVersion,
                 media.publishedAt());
     }
 
@@ -120,8 +121,7 @@ public class ProgrammeMediaService {
     private ProgrammeMedia currentPublishedMedia(String partyCode) {
         ProgrammeMedia media = repository.publishedByParty(partyCode.toUpperCase(java.util.Locale.ROOT))
                 .orElseThrow(() -> new NoSuchElementException("No published programme briefing was found."));
-        var programme = programmes.publishedProgramme(partyCode);
-        if (!media.sourceSha256().equals(programme.sourceSha256())) {
+        if (!media.sourceSha256().equals(programmes.publishedSourceSha256(partyCode))) {
             throw new NoSuchElementException("The published briefing is stale for the current programme.");
         }
         return media;

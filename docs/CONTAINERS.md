@@ -58,13 +58,18 @@ Compose profile and a separate writer identity in
 assets to the same private bucket and is never started by the normal deployment:
 
 ```bash
-docker compose --profile media-generation up --build media-worker
+docker compose --env-file .env.container --profile media-generation up --build media-worker
 ```
 
 Stop the worker when the queued batch reaches media review. Narration alternates
 by section between
 `FHEMNI_PROGRAMME_MEDIA_TTS_VOICE` and
 `FHEMNI_PROGRAMME_MEDIA_TTS_SECONDARY_VOICE`; the defaults are Charon and Kore.
+Independent narration and illustration sections run with bounded parallelism;
+`FHEMNI_PROGRAMME_MEDIA_PROVIDER_CONCURRENCY` defaults to `4` and can be lowered
+when provider quotas are tight. Publishing a revised feasibility assessment does
+not automatically replace an existing briefing, so regenerate and review the
+party media whenever its published assessments materially change.
 For local development outside Compose, keep the default local media storage when
 GCS-backed programme media is not needed.
 

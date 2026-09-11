@@ -85,9 +85,32 @@ class ProgrammeMediaRepositoryIntegrationTest {
         assertThat(media.published(programme.id())).contains(published);
         assertThat(service.published("PJD")).satisfies(value -> {
             assertThat(value.durationMs()).isEqualTo(300_000);
-            assertThat(value.videoUrl()).endsWith("/programme/media/video");
+            assertThat(value.videoUrl()).endsWith("/programme/media/video?v=" + published.id());
+            assertThat(value.captionsUrl()).endsWith("/programme/media/captions?v=" + published.id());
             assertThat(value.transcript()).hasSize(10);
         });
+    }
+
+    @Test
+    void failsAnExpiredWorkerThatExhaustedItsAttempts() {
+        var programme = publishedProgramme();
+        Instant start = Instant.parse("2026-09-11T12:00:00Z");
+        ProgrammeMedia created = media.create(
+                programme.id(), programme.partyCode(), programme.sourceSha256(), "darija-v1", 1, start);
+        media.claim(created.id(), "worker", start, start.plusSeconds(1)).orElseThrow();
+
+        Instant recoveredAt = start.plusSeconds(2);
+        media.recoverExpired(recoveredAt);
+
+        ProgrammeMedia failed = media.find(created.id()).orElseThrow();
+        assertThat(failed.status()).isEqualTo(ProgrammeMediaStatus.FAILED);
+        assertThat(failed.attemptCount()).isEqualTo(1);
+        assertThat(failed.lastErrorCode()).isEqualTo("WORKER_INTERRUPTED");
+        assertThat(media.dispatchable(recoveredAt, 2)).isEmpty();
+
+        ProgrammeMedia retried = media.retryFailed(created.id(), recoveredAt.plusSeconds(1));
+        assertThat(retried.status()).isEqualTo(ProgrammeMediaStatus.QUEUED_SCRIPT);
+        assertThat(retried.attemptCount()).isZero();
     }
 
     private PartyProgrammeService.AdminProgrammeView publishedProgramme() {
