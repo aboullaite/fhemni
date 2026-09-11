@@ -52,6 +52,9 @@ class GcsProgrammeMediaStorageTest {
                 .contains("X-Goog-Expires=3600")
                 .contains("X-Goog-SignedHeaders=host")
                 .doesNotContain("PRIVATE KEY", "test-key");
+        assertThat(url).containsPattern("X-Goog-Credential=[^&]+%2F\\d{8}%2Fauto%2Fstorage%2Fgoog4_request");
+        assertThat(url).containsPattern("X-Goog-Date=\\d{8}T\\d{6}Z");
+        assertThat(url).doesNotContainPattern("X-Goog-Credential=[^&]+%2F\\d{8}Z%2F");
         String signature = url.substring(url.indexOf("X-Goog-Signature=") + "X-Goog-Signature=".length());
         assertThat(signature).matches("[0-9a-f]{512}");
     }
