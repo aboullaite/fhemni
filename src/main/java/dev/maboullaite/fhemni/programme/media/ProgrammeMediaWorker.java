@@ -199,9 +199,10 @@ public class ProgrammeMediaWorker {
                     .orElseThrow(() -> new IllegalStateException("The programme party is missing from the directory."));
             var rendered = renderer.render(
                     work, party.symbolAsset(), script, combined, generatedIllustrations);
-            String audioKey = prefix + "/summary-darija.mp3";
-            String videoKey = prefix + "/summary-darija-4x5.mp4";
-            String captionsKey = prefix + "/summary-darija.vtt";
+            String outputPrefix = attemptOutputPrefix(prefix, lease);
+            String audioKey = outputPrefix + "/summary-darija.mp3";
+            String videoKey = outputPrefix + "/summary-darija-4x5.mp4";
+            String captionsKey = outputPrefix + "/summary-darija.vtt";
             storage.put(audioKey, rendered.audio(), "audio/mpeg");
             storage.put(videoKey, rendered.video(), "video/mp4");
             storage.put(captionsKey, rendered.captions(), "text/vtt; charset=utf-8");
@@ -309,6 +310,13 @@ public class ProgrammeMediaWorker {
                 + "/" + media.sourceSha256()
                 + "/" + media.id()
                 + "/script-" + media.scriptRevision();
+    }
+
+    static String attemptOutputPrefix(String objectPrefix, Lease lease) {
+        if (objectPrefix == null || objectPrefix.isBlank()) {
+            throw new IllegalArgumentException("Programme media object prefix must not be blank.");
+        }
+        return objectPrefix + "/attempt-" + lease.token();
     }
 
     private void deleteTemporaryTree(Path work) {

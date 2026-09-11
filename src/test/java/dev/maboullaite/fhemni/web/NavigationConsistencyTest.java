@@ -155,9 +155,10 @@ class NavigationConsistencyTest {
                 .contains("id=\"programmeMedia\" class=\"programme-media\"")
                 .contains("class=\"video-js vjs-big-play-centered\"")
                 .contains("/webjars/video.js/8.23.8/dist/video-js.min.css")
-                .contains("/css/dist.css?v=20260911-8")
+                .contains("/css/dist.css?v=20260911-9")
+                .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.23.8/dist/video.min.js")
-                .contains("/js/party.js?v=20260911-6")
+                .contains("/js/party.js?v=20260911-7")
                 .doesNotContain("id=\"partyBriefingTab\"")
                 .doesNotContain("id=\"programmeMediaAudio\"")
                 .doesNotContain("id=\"programmeMediaTranscript\"")
@@ -168,6 +169,10 @@ class NavigationConsistencyTest {
         assertThat(partyPage.indexOf("id=\"programmeMedia\"")).isBetween(
                 partyPage.indexOf("id=\"partyProgramme\""),
                 partyPage.indexOf("id=\"partyPromises\""));
+        assertThat(partyPage.indexOf("/js/videojs-config.js"))
+                .isLessThan(partyPage.indexOf("/webjars/video.js/8.23.8/dist/video.min.js"));
+        assertThat(html("js/videojs-config.js"))
+                .contains("window.VIDEOJS_NO_DYNAMIC_STYLE = true");
         assertThat(html("js/party.js"))
                 .doesNotContain("['briefing'")
                 .doesNotContain("#programmeMediaAudio")

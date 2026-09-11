@@ -44,9 +44,10 @@ consensus mode, put the key in `.secrets/openai_api_key` and set
 `FHEMNI_PROGRAMME_FACT_CHECK_MODE=openai` or `consensus` in `.env.container`.
 Switching back to `gemini` does not relabel or recompute cached assessments.
 
-The standard production stack does not run programme-media generation. It needs
-`FHEMNI_PROGRAMME_MEDIA_GCS_PROJECT` and `FHEMNI_PROGRAMME_MEDIA_GCS_BUCKET` in
-`.env.container`, plus a read-only signing identity in
+The standard production stack does not run programme-media generation. It requires
+non-empty `FHEMNI_PROGRAMME_MEDIA_GCS_PROJECT` and
+`FHEMNI_PROGRAMME_MEDIA_GCS_BUCKET` values in `.env.container`; Compose stops with
+a clear configuration error when either is missing. It also needs a read-only signing identity in
 `.secrets/google_cloud_media_credentials`. Give that identity object-viewer access
 only to the configured private bucket. The web application uses it to issue
 short-lived media links; no bucket or object needs public access.
@@ -64,7 +65,8 @@ Stop the worker when the queued batch reaches media review. Narration alternates
 by section between
 `FHEMNI_PROGRAMME_MEDIA_TTS_VOICE` and
 `FHEMNI_PROGRAMME_MEDIA_TTS_SECONDARY_VOICE`; the defaults are Charon and Kore.
-Leave the GCS settings empty when programme media is not used.
+For local development outside Compose, keep the default local media storage when
+GCS-backed programme media is not needed.
 
 Start the stack:
 

@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import dev.maboullaite.fhemni.identity.ExternalIdentityProfile;
@@ -70,6 +71,11 @@ class SecurityIntegrationTest {
                 .andExpect(jsonPath("$.status").value("UP"))
                 .andExpect(header().string("Cache-Control", containsString("no-store")))
                 .andExpect(header().string("Content-Security-Policy", containsString("default-src 'self'")))
+                .andExpect(header().string("Content-Security-Policy", containsString("font-src 'self' data:")))
+                .andExpect(header().string("Content-Security-Policy",
+                        containsString("style-src 'self'; style-src-attr 'unsafe-inline'")))
+                .andExpect(header().string("Content-Security-Policy",
+                        not(containsString("script-src 'self' 'unsafe-inline'"))))
                 .andExpect(header().string("Content-Security-Policy",
                         containsString("media-src 'self' https://storage.googleapis.com")))
                 .andExpect(header().string("Referrer-Policy", "strict-origin-when-cross-origin"))
