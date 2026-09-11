@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.Semaphore;
 
 import dev.maboullaite.fhemni.catalog.PoliticalParty;
 import dev.maboullaite.fhemni.catalog.PoliticalPartyRepository;
@@ -57,6 +58,7 @@ public class ProgrammeMediaWorker {
     private final ProgrammeMediaStorage storage;
     private final ExecutorService executor;
     private final ExecutorService providerExecutor;
+    private final Semaphore providerPermits;
     private final Duration retryDelay;
     private final Path tempRoot;
     private final Clock clock;
@@ -77,10 +79,11 @@ public class ProgrammeMediaWorker {
             ProgrammeMediaStorage storage,
             @Qualifier("programmeMediaExecutor") ExecutorService executor,
             @Qualifier("programmeMediaProviderExecutor") ExecutorService providerExecutor,
+            @Value("${fhemni.programme-media.provider-concurrency:4}") int providerConcurrency,
             @Value("${fhemni.programme-media.retry-delay:PT1M}") Duration retryDelay,
             @Value("${fhemni.programme-media.temp-directory:/tmp}") String tempDirectory) {
         this(repository, programmes, parties, scripts, policy, tts, illustrations, renderer, storage,
-                executor, providerExecutor, retryDelay, Path.of(tempDirectory), Clock.systemUTC());
+                executor, providerExecutor, providerConcurrency, retryDelay, Path.of(tempDirectory), Clock.systemUTC());
     }
 
     ProgrammeMediaWorker(
@@ -95,11 +98,15 @@ public class ProgrammeMediaWorker {
             ProgrammeMediaStorage storage,
             ExecutorService executor,
             ExecutorService providerExecutor,
+            int providerConcurrency,
             Duration retryDelay,
             Path tempRoot,
             Clock clock) {
         if (retryDelay == null || retryDelay.isNegative() || retryDelay.isZero()) {
             throw new IllegalArgumentException("Programme media retry delay must be positive.");
+        }
+        if (providerConcurrency < 1 || providerConcurrency > 8) {
+            throw new IllegalArgumentException("Programme media provider concurrency must be between 1 and 8.");
         }
         this.repository = repository;
         this.programmes = programmes;
@@ -112,6 +119,7 @@ public class ProgrammeMediaWorker {
         this.storage = storage;
         this.executor = executor;
         this.providerExecutor = providerExecutor;
+        this.providerPermits = new Semaphore(providerConcurrency);
         this.retryDelay = retryDelay;
         this.tempRoot = tempRoot.toAbsolutePath().normalize();
         this.clock = clock;
@@ -285,7 +293,14 @@ public class ProgrammeMediaWorker {
         try {
             for (int index = 0; index < count; index++) {
                 int sectionIndex = index;
-                futures.add(providerExecutor.submit(() -> call.call(sectionIndex)));
+                futures.add(providerExecutor.submit(() -> {
+                    providerPermits.acquire();
+                    try {
+                        return call.call(sectionIndex);
+                    } finally {
+                        providerPermits.release();
+                    }
+                }));
             }
             List<T> results = new ArrayList<>(count);
             for (Future<T> future : futures) {

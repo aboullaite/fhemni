@@ -1,12 +1,12 @@
 package dev.maboullaite.fhemni;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.Executors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -80,13 +80,8 @@ public class FhemniApplication {
 
     @Bean(name = "programmeMediaProviderExecutor", destroyMethod = "close")
     @ConditionalOnProperty(name = "fhemni.programme-media.worker-enabled", havingValue = "true")
-    ExecutorService programmeMediaProviderExecutor(
-            @Value("${fhemni.programme-media.provider-concurrency:4}") int concurrency) {
-        if (concurrency < 1 || concurrency > 8) {
-            throw new IllegalArgumentException("Programme media provider concurrency must be between 1 and 8");
-        }
-        return Executors.newFixedThreadPool(
-                concurrency,
+    ExecutorService programmeMediaProviderExecutor() {
+        return Executors.newThreadPerTaskExecutor(
                 Thread.ofVirtual().name("fhemni-programme-media-provider-", 0).factory());
     }
 }

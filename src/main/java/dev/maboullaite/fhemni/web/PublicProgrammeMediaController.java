@@ -63,42 +63,51 @@ public class PublicProgrammeMediaController {
                     .build();
         }
         ProgrammeMediaStorage.StoredObject stored = storage.open(objectKey);
-        ByteRange range = ByteRange.parse(rangeHeader, stored.size());
-        StreamingResponseBody body = output -> {
-            try (stored) {
-                if (range == null) {
-                    stored.content().transferTo(output);
-                } else {
-                    stored.content().skipNBytes(range.start());
-                    byte[] buffer = new byte[16 * 1024];
-                    long remaining = range.length();
-                    while (remaining > 0) {
-                        int read = stored.content().read(buffer, 0, (int) Math.min(buffer.length, remaining));
-                        if (read < 0) break;
-                        output.write(buffer, 0, read);
-                        remaining -= read;
+        try {
+            ByteRange range = ByteRange.parse(rangeHeader, stored.size());
+            StreamingResponseBody body = output -> {
+                try (stored) {
+                    if (range == null) {
+                        stored.content().transferTo(output);
+                    } else {
+                        stored.content().skipNBytes(range.start());
+                        byte[] buffer = new byte[16 * 1024];
+                        long remaining = range.length();
+                        while (remaining > 0) {
+                            int read = stored.content().read(buffer, 0, (int) Math.min(buffer.length, remaining));
+                            if (read < 0) break;
+                            output.write(buffer, 0, read);
+                            remaining -= read;
+                        }
                     }
                 }
+            };
+            MediaType type = stored.contentType() == null
+                    ? MediaType.APPLICATION_OCTET_STREAM
+                    : MediaType.parseMediaType(stored.contentType());
+            ResponseEntity.BodyBuilder response = range == null
+                    ? ResponseEntity.ok()
+                    : ResponseEntity.status(HttpStatus.PARTIAL_CONTENT);
+            response
+                    .contentType(type)
+                    .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+                    .cacheControl(CacheControl.maxAge(Duration.ofHours(1)).cachePublic().immutable());
+            if (range != null) {
+                response.header(HttpHeaders.CONTENT_RANGE,
+                        "bytes " + range.start() + "-" + range.end() + "/" + stored.size());
             }
-        };
-        MediaType type = stored.contentType() == null
-                ? MediaType.APPLICATION_OCTET_STREAM
-                : MediaType.parseMediaType(stored.contentType());
-        ResponseEntity.BodyBuilder response = range == null
-                ? ResponseEntity.ok()
-                : ResponseEntity.status(HttpStatus.PARTIAL_CONTENT);
-        response
-                .contentType(type)
-                .header(HttpHeaders.ACCEPT_RANGES, "bytes")
-                .cacheControl(CacheControl.maxAge(Duration.ofHours(1)).cachePublic().immutable());
-        if (range != null) {
-            response.header(HttpHeaders.CONTENT_RANGE,
-                    "bytes " + range.start() + "-" + range.end() + "/" + stored.size());
+            if (stored.size() >= 0) {
+                response.contentLength(range == null ? stored.size() : range.length());
+            }
+            return response.body(body);
+        } catch (RuntimeException | Error failure) {
+            try {
+                stored.close();
+            } catch (IOException closeFailure) {
+                failure.addSuppressed(closeFailure);
+            }
+            throw failure;
         }
-        if (stored.size() >= 0) {
-            response.contentLength(range == null ? stored.size() : range.length());
-        }
-        return response.body(body);
     }
 
     private record ByteRange(long start, long end) {

@@ -1,5 +1,7 @@
 package dev.maboullaite.fhemni.web;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -13,9 +15,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import dev.maboullaite.fhemni.programme.media.ProgrammeMedia;
 import dev.maboullaite.fhemni.programme.media.ProgrammeMediaService;
@@ -94,5 +98,29 @@ class PublicProgrammeMediaControllerTest {
                 .andExpect(header().string("Accept-Ranges", "bytes"))
                 .andExpect(header().string("Content-Range", "bytes 3-6/10"))
                 .andExpect(content().bytes("3456".getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+    }
+
+    @Test
+    void closesAnOpenedAssetWhenResponseConstructionFails() throws Exception {
+        ProgrammeMediaService media = mock(ProgrammeMediaService.class);
+        ProgrammeMediaStorage storage = mock(ProgrammeMediaStorage.class);
+        ProgrammeMedia record = mock(ProgrammeMedia.class);
+        AtomicBoolean closed = new AtomicBoolean();
+        var content = new ByteArrayInputStream(new byte[] { 1 }) {
+            @Override
+            public void close() throws IOException {
+                closed.set(true);
+                super.close();
+            }
+        };
+        when(media.publishedRecord("PJD")).thenReturn(record);
+        when(record.captionsObjectKey()).thenReturn("programme/captions.vtt");
+        when(storage.open("programme/captions.vtt")).thenReturn(
+                new ProgrammeMediaStorage.StoredObject(content, 1, "not a valid media type"));
+        var controller = new PublicProgrammeMediaController(media, storage);
+
+        assertThatThrownBy(() -> controller.asset("PJD", "captions", null))
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThat(closed).isTrue();
     }
 }
