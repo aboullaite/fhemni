@@ -1,5 +1,6 @@
 package dev.maboullaite.fhemni.programme.media;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -44,7 +45,8 @@ public class ProgrammeMediaScriptPolicy {
         });
         Set<String> citedPromises = new HashSet<>();
         int words = 0;
-        List<ProgrammeMediaScript.Segment> segments = supplied.stream().map(segment -> {
+        List<ProgrammeMediaScript.Segment> segments = new ArrayList<>(supplied.size());
+        for (ProgrammeMediaScript.Segment segment : supplied) {
             String message = visibleText(segment.message(), "segment message", 3, 100);
             String narration = visibleText(segment.narration(), "segment narration", 80, 700);
             int segmentWords = wordCount(narration);
@@ -73,10 +75,8 @@ public class ProgrammeMediaScriptPolicy {
                 throw new IllegalArgumentException("An assessment source must be paired with its programme promise.");
             }
             citedPromises.addAll(segmentPromiseRefs);
-            return new ProgrammeMediaScript.Segment(message, narration, refs);
-        }).toList();
-        for (ProgrammeMediaScript.Segment segment : segments) {
-            words += wordCount(segment.narration());
+            words += segmentWords;
+            segments.add(new ProgrammeMediaScript.Segment(message, narration, refs));
         }
         if (words < 460 || words > 500) {
             throw new IllegalArgumentException("A five-minute briefing must contain between 460 and 500 spoken words.");

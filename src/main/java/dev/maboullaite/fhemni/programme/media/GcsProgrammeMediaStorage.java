@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -36,6 +37,7 @@ public class GcsProgrammeMediaStorage implements ProgrammeMediaStorage {
     private final String bucket;
     private final Duration timeout;
 
+    @Autowired
     public GcsProgrammeMediaStorage(
             @Value("${fhemni.programme-media.gcs.project-id}") String projectId,
             @Value("${fhemni.programme-media.gcs.bucket}") String bucket,

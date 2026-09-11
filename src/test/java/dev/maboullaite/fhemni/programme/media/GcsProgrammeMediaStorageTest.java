@@ -5,12 +5,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.net.http.HttpClient;
 import java.security.KeyPairGenerator;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 class GcsProgrammeMediaStorageTest {
+
+    @Test
+    void identifiesTheRuntimeConstructorForSpringInjection() {
+        long injectableConstructors = Arrays.stream(GcsProgrammeMediaStorage.class.getDeclaredConstructors())
+                .filter(constructor -> constructor.isAnnotationPresent(Autowired.class))
+                .count();
+
+        assertThat(injectableConstructors).isEqualTo(1);
+    }
 
     @Test
     void signsPrivateObjectLinksWithoutExposingAReusableCredential() throws Exception {

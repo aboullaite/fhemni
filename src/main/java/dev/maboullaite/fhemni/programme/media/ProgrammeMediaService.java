@@ -96,12 +96,7 @@ public class ProgrammeMediaService {
     }
 
     public PublicProgrammeMedia published(String partyCode) {
-        ProgrammeMedia media = repository.publishedByParty(partyCode.toUpperCase(java.util.Locale.ROOT))
-                .orElseThrow(() -> new NoSuchElementException("No published programme briefing was found."));
-        var programme = programmes.publishedProgramme(partyCode);
-        if (!media.sourceSha256().equals(programme.sourceSha256())) {
-            throw new NoSuchElementException("The published briefing is stale for the current programme.");
-        }
+        ProgrammeMedia media = currentPublishedMedia(partyCode);
         return new PublicProgrammeMedia(
                 media.id(), media.partyCode(), media.durationMs(), media.script().headline(), media.script().segments(),
                 "/api/catalog/parties/" + media.partyCode() + "/programme/media/audio",
@@ -111,8 +106,7 @@ public class ProgrammeMediaService {
     }
 
     public ProgrammeMedia publishedRecord(String partyCode) {
-        PublicProgrammeMedia ignored = published(partyCode);
-        return repository.publishedByParty(partyCode.toUpperCase(java.util.Locale.ROOT)).orElseThrow();
+        return currentPublishedMedia(partyCode);
     }
 
     public ProgrammeMedia adminRecord(UUID mediaId) {
@@ -121,6 +115,16 @@ public class ProgrammeMediaService {
 
     private ProgrammeMedia media(UUID id) {
         return repository.find(id).orElseThrow(() -> new NoSuchElementException("Programme media was not found."));
+    }
+
+    private ProgrammeMedia currentPublishedMedia(String partyCode) {
+        ProgrammeMedia media = repository.publishedByParty(partyCode.toUpperCase(java.util.Locale.ROOT))
+                .orElseThrow(() -> new NoSuchElementException("No published programme briefing was found."));
+        var programme = programmes.publishedProgramme(partyCode);
+        if (!media.sourceSha256().equals(programme.sourceSha256())) {
+            throw new NoSuchElementException("The published briefing is stale for the current programme.");
+        }
+        return media;
     }
 
     private AdminProgrammeView requireCurrentSource(ProgrammeMedia media) {

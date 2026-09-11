@@ -48,9 +48,11 @@ public class ProgrammeMediaScriptGateway {
             naturally. Write the brand as فهّمني. Do not use markdown, URLs, citation brackets, or internal labels such as POSSIBLE, HARD,
             NOT_ACHIEVABLE, INSUFFICIENT_DATA, PROMISE, or ASSESSMENT in visible text.
 
-            Every segment must contain only exact sourceRefs from the dossier. Cite the promise when describing what
-            the party says, and cite its assessment too whenever discussing feasibility. Do not cite a source that
-            does not directly support the segment.
+            Every segment's sourceRefs must contain at least one exact PROMISE:<uuid> reference from the dossier.
+            An ASSESSMENT:<uuid> reference never replaces its promise reference: whenever an assessment is cited,
+            also cite the exact PROMISE:<uuid> that owns it. Use only exact sourceRefs from the dossier, cite an
+            assessment whenever discussing feasibility, and never cite a source that does not directly support the
+            segment.
             """;
 
     private final GeminiInteractionsClient client;
@@ -84,6 +86,7 @@ public class ProgrammeMediaScriptGateway {
     }
 
     public ProgrammeMediaScript generate(AdminProgrammeView programme) {
+        List<String> allowedSourceRefs = sourceRefs(programme);
         InteractionResponse response = client.create(CreateModelInteraction.builder()
                 .model(model)
                 .systemInstruction(SYSTEM_INSTRUCTION)
@@ -92,7 +95,7 @@ public class ProgrammeMediaScriptGateway {
                         .maxOutputTokens(maxOutputTokens)
                         .thinkingLevel(ThinkingLevel.MEDIUM)
                         .build())
-                .responseFormat(responseFormat(GeminiSchemas.programmeMediaScript(mapper)))
+                .responseFormat(responseFormat(GeminiSchemas.programmeMediaScript(mapper, allowedSourceRefs)))
                 .store(false)
                 .build());
         try {
@@ -100,6 +103,18 @@ public class ProgrammeMediaScriptGateway {
         } catch (JacksonException exception) {
             throw new GeminiApiException("Gemini returned an invalid programme media script", exception, response.usage());
         }
+    }
+
+    private List<String> sourceRefs(AdminProgrammeView programme) {
+        return programme.promises().stream().flatMap(item -> {
+            var refs = new java.util.ArrayList<String>();
+            refs.add("PROMISE:" + item.promise().id());
+            item.assessments().stream()
+                    .filter(value -> value.status().name().equals("PUBLISHED"))
+                    .map(value -> "ASSESSMENT:" + value.id())
+                    .forEach(refs::add);
+            return refs.stream();
+        }).distinct().toList();
     }
 
     private String prompt(AdminProgrammeView programme) {
