@@ -158,6 +158,7 @@ class NavigationConsistencyTest {
                 .contains("/css/dist.css?v=20260911-10")
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.23.8/dist/video.min.js")
+                .contains("/js/i18n.js?v=20260911-6")
                 .contains("/js/party.js?v=20260911-7")
                 .doesNotContain("data-i18n=\"programme.mediaPowered\"")
                 .doesNotContain("id=\"partyBriefingTab\"")
@@ -174,6 +175,8 @@ class NavigationConsistencyTest {
                 .isLessThan(partyPage.indexOf("/webjars/video.js/8.23.8/dist/video.min.js"));
         assertThat(html("js/videojs-config.js"))
                 .contains("window.VIDEOJS_NO_DYNAMIC_STYLE = true");
+        assertThat(html("js/i18n.js"))
+                .contains("'programme.mediaDisclosure': 'خلاصة بالذكاء الاصطناعي، الخطأ وارد.'");
         assertThat(html("js/party.js"))
                 .doesNotContain("['briefing'")
                 .doesNotContain("#programmeMediaAudio")

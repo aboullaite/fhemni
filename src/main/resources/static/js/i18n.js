@@ -2327,7 +2327,7 @@
         'programme.mediaIntro': 'خلاصة محايدة بالدارجة، مبنية غير على البرنامج المنشور وتقييمات إمكانية التحقيق اللي عرضات فهّمني.',
         'programme.openFullProgramme': 'شوف البرنامج كامل',
         'programme.openChat': 'سول البرنامج',
-        'programme.mediaDisclosure': 'خلاصة بالذكاء الاصطناعي، تراجعات قبل النشر.',
+        'programme.mediaDisclosure': 'خلاصة بالذكاء الاصطناعي، الخطأ وارد.',
         'programme.playerControls': 'أدوات الفيديو',
         'programme.playerBack10': 'رجع 10 ثواني',
         'programme.playerForward10': 'زيد 10 ثواني',
