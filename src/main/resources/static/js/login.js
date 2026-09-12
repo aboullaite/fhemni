@@ -32,7 +32,16 @@ async function renderLogin() {
             return;
         }
         if (confirmingMagicLink) {
+            const confirmation = await magicLinkConfirmation();
+            if (!confirmation) {
+                providers.innerHTML = `<p class="magic-link-status">${escapeHtml(t('login.confirmError'))}</p>`;
+                return;
+            }
             providers.innerHTML = `
+                <p class="magic-link-status">
+                    ${escapeHtml(t('login.confirmAccount'))}
+                    <bdi class="font-bold">${escapeHtml(confirmation.maskedEmail)}</bdi>
+                </p>
                 <button id="confirmMagicLink" class="auth-provider auth-provider--email" type="button">
                     <svg class="auth-provider__icon" viewBox="0 0 24 24" aria-hidden="true">
                         <path d="M5 12.5 9.5 17 19 7.5"/>
@@ -78,6 +87,18 @@ async function renderLogin() {
         });
     } catch (_) {
         providers.innerHTML = `<div class="login-not-configured">${escapeHtml(t('login.unavailable'))}</div>`;
+    }
+}
+
+async function magicLinkConfirmation() {
+    try {
+        const response = await fetch('/auth/magic-link/preview', {
+            headers: { 'Accept': 'application/json' }
+        });
+        if (!response.ok) return null;
+        return await response.json();
+    } catch (_) {
+        return null;
     }
 }
 

@@ -118,9 +118,27 @@ public class MagicLinkController {
         return new MagicLinkConfirmation(link.returnTarget());
     }
 
+    @GetMapping("/auth/magic-link/preview")
+    public MagicLinkAccount preview(
+            HttpServletRequest request,
+            HttpServletResponse response) {
+        response.setHeader("Cache-Control", "no-store");
+        response.setHeader("Referrer-Policy", "no-referrer");
+        var token = tokenCookie.read(request);
+        if (token.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+        return magicLinks.preview(token.get())
+                .map(link -> new MagicLinkAccount(link.maskedEmail()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+    }
+
     public record MagicLinkRequest(String email, String returnTo) {
     }
 
     public record MagicLinkConfirmation(String returnTo) {
+    }
+
+    public record MagicLinkAccount(String maskedEmail) {
     }
 }

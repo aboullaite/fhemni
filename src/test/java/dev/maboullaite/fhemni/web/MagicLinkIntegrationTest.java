@@ -106,6 +106,12 @@ class MagicLinkIntegrationTest {
         org.assertj.core.api.Assertions.assertThat(tokenCookie.isHttpOnly()).isTrue();
         org.assertj.core.api.Assertions.assertThat(tokenCookie.getSecure()).isTrue();
 
+        mvc.perform(get("/auth/magic-link/preview").cookie(tokenCookie))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", "no-store"))
+                .andExpect(header().string("Referrer-Policy", "no-referrer"))
+                .andExpect(jsonPath("$.maskedEmail").value("r***r@example.com"));
+
         mvc.perform(get("/auth/magic-link").param("token", token))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login?confirm=magic-link"));
@@ -132,6 +138,15 @@ class MagicLinkIntegrationTest {
         mvc.perform(post("/auth/magic-link/confirm")
                         .with(csrf())
                         .cookie(tokenCookie))
+                .andExpect(status().isUnauthorized());
+
+        mvc.perform(get("/auth/magic-link/preview").cookie(tokenCookie))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void confirmationPreviewRequiresThePreparedHttpOnlyCookie() throws Exception {
+        mvc.perform(get("/auth/magic-link/preview"))
                 .andExpect(status().isUnauthorized());
     }
 

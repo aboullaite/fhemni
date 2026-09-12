@@ -68,19 +68,23 @@ public class MagicLinkRepository {
     }
 
     public boolean valid(String token) {
+        return findValid(token).isPresent();
+    }
+
+    public Optional<VerifiedLink> findValid(String token) {
         if (token == null || token.length() > 256) {
-            return false;
+            return Optional.empty();
         }
         return jdbc.sql("""
-                        SELECT COUNT(*) FROM magic_link_tokens
+                        SELECT email, return_target FROM magic_link_tokens
                          WHERE token_hash = :tokenHash
                            AND used_at IS NULL
                            AND expires_at > :now
                         """)
                 .param("tokenHash", hash(token))
                 .param("now", atUtc(Instant.now()))
-                .query(Integer.class)
-                .single() == 1;
+                .query(VerifiedLink.class)
+                .optional();
     }
 
     @Transactional

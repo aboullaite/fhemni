@@ -58,6 +58,11 @@ public class MagicLinkService {
         return links.valid(token);
     }
 
+    public Optional<MagicLinkPreview> preview(String token) {
+        return links.findValid(token)
+                .map(link -> new MagicLinkPreview(maskEmail(link.email())));
+    }
+
     @Transactional
     public Optional<AuthenticatedLink> authenticate(String token) {
         Optional<VerifiedLink> verified = links.consume(token);
@@ -149,6 +154,19 @@ public class MagicLinkService {
             return "Fhemni user";
         }
         return localPart.length() <= 200 ? localPart : localPart.substring(0, 200);
+    }
+
+    private static String maskEmail(String email) {
+        int separator = email.lastIndexOf('@');
+        String localPart = email.substring(0, separator);
+        String domain = email.substring(separator);
+        if (localPart.length() == 1) {
+            return localPart + "***" + domain;
+        }
+        return localPart.charAt(0) + "***" + localPart.substring(localPart.length() - 1) + domain;
+    }
+
+    public record MagicLinkPreview(String maskedEmail) {
     }
 
     public record AuthenticatedLink(String subject, String email, String returnTarget, AppUser user) {
