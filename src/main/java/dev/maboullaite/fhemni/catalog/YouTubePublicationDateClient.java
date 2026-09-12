@@ -101,13 +101,13 @@ public class YouTubePublicationDateClient implements VideoPublicationDateGateway
         if (json.find()) {
             return parseDate(json.group(1));
         }
-        var simpleText = SIMPLE_TEXT_DATE.matcher(html);
-        if (simpleText.find()) {
-            return parseDisplayDate(simpleText.group(1));
-        }
         var liveStart = LIVE_START_DATE.matcher(html);
         if (liveStart.find()) {
             return parseDate(liveStart.group(1));
+        }
+        var simpleText = SIMPLE_TEXT_DATE.matcher(html);
+        if (simpleText.find()) {
+            return parseDisplayDate(simpleText.group(1));
         }
         throw new IllegalStateException("YouTube did not expose a publication date.");
     }

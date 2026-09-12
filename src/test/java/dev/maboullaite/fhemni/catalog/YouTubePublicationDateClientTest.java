@@ -141,6 +141,28 @@ class YouTubePublicationDateClientTest {
         }
     }
 
+    @Test
+    void prefersTheExactLiveTimestampOverARelativeDisplayDate() throws IOException {
+        byte[] response = """
+                <script>
+                {"publishDate":{"simpleText":"Streamed live 20 hours ago"},
+                "liveBroadcastDetails":{"startTimestamp":"2026-09-10T23:30:02-07:00"}}
+                </script>
+                """.getBytes(StandardCharsets.UTF_8);
+        HttpServer server = server(response, 200);
+        server.start();
+        try {
+            var client = new YouTubePublicationDateClient(
+                    Duration.ofSeconds(2),
+                    "http://127.0.0.1:" + server.getAddress().getPort() + "/watch?v=",
+                    Clock.fixed(Instant.parse("2026-09-12T12:00:00Z"), ZoneOffset.UTC));
+
+            assertThat(client.fetch("P6ZsBNWCXYY")).isEqualTo(LocalDate.of(2026, 9, 10));
+        } finally {
+            server.stop(0);
+        }
+    }
+
     private HttpServer server(byte[] response, int status) throws IOException {
         HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/watch", exchange -> {

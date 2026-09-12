@@ -1,19 +1,27 @@
 package dev.maboullaite.fhemni.programme.media;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
@@ -64,9 +72,14 @@ public class ProgrammeMediaRerenderBatch implements ApplicationRunner {
             @Value("${fhemni.programme-media.rerender-batch.input}") String input,
             @Value("${fhemni.programme-media.rerender-batch.output}") String output,
             @Value("${fhemni.programme-media.image-model:gemini-3.1-flash-image}") String illustrationModel,
-            @Value("${fhemni.programme-media.provider-concurrency:4}") int concurrency) {
+            @Value("${fhemni.programme-media.provider-concurrency:4}") int concurrency,
+            @Value("${fhemni.programme-jobs.worker-enabled:true}") boolean assessmentWorkerEnabled) {
         if (concurrency < 1 || concurrency > 8) {
             throw new IllegalArgumentException("Programme media batch concurrency must be between 1 and 8.");
+        }
+        if (assessmentWorkerEnabled) {
+            throw new IllegalStateException(
+                    "Disable programme assessment workers before starting a programme media rerender batch.");
         }
         this.tts = tts;
         this.policy = policy;
@@ -143,7 +156,7 @@ public class ProgrammeMediaRerenderBatch implements ApplicationRunner {
             Result result = new Result(
                     source.id(), replacementId, source.programmeId(), source.partyCode(), source.sourceSha256(),
                     source.scriptRevision(), source.scriptJson(), source.pronunciationVersion(), tts.model(), tts.voice(),
-                    illustrationModel, illustrations.size(), audioKey, videoKey, captionsKey,
+                    source.imageModel(), illustrations.size(), audioKey, videoKey, captionsKey,
                     rendered.durationMs(), Instant.now());
             Files.writeString(manifest, mapper.writeValueAsString(result) + System.lineSeparator(),
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND);
@@ -154,57 +167,33 @@ public class ProgrammeMediaRerenderBatch implements ApplicationRunner {
     }
 
     private List<PcmAudio> narration(SourceMedia source, ProgrammeMediaScript script, Path partyOutput) throws Exception {
-        Semaphore permits = new Semaphore(concurrency);
         Path cache = partyOutput.resolve("audio-cache").resolve(ProgrammeMediaWorker.cacheIdentity(tts.model()));
         Files.createDirectories(cache);
-        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            List<Future<PcmAudio>> futures = new ArrayList<>(script.segments().size());
-            for (int index = 0; index < script.segments().size(); index++) {
-                int section = index;
-                futures.add(executor.submit(() -> {
-                    permits.acquire();
-                    try {
-                        String voice = tts.voiceForSection(section);
-                        Path cached = cache.resolve(ProgrammeMediaWorker.cacheIdentity(voice)
-                                + "-segment-" + String.format(Locale.ROOT, "%02d", section) + ".pcm");
-                        if (Files.exists(cached)) {
-                            try {
-                                return tts.restore(Files.readAllBytes(cached));
-                            } catch (IllegalArgumentException corrupt) {
-                                Files.deleteIfExists(cached);
-                            }
-                        }
-                        PcmAudio generated = synthesize(script.segments().get(section).narration(), voice);
-                        Files.write(cached, generated.data());
-                        log.info("Generated {} narration section {}/{}", source.partyCode(), section + 1,
-                                script.segments().size());
-                        return generated;
-                    } finally {
-                        permits.release();
-                    }
-                }));
-            }
-            List<PcmAudio> generated = new ArrayList<>(futures.size());
-            try {
-                for (Future<PcmAudio> future : futures) {
-                    generated.add(future.get());
+        return parallel(script.segments().size(), section -> {
+            String voice = tts.voiceForSection(section);
+            String narration = policy.ttsText(script.segments().get(section).narration());
+            Path cached = cache.resolve(narrationCacheFileName(
+                    tts.model(), voice, source.pronunciationVersion(), section, narration));
+            if (Files.exists(cached)) {
+                try {
+                    return tts.restore(Files.readAllBytes(cached));
+                } catch (IllegalArgumentException corrupt) {
+                    Files.deleteIfExists(cached);
                 }
-                return List.copyOf(generated);
-            } catch (ExecutionException failure) {
-                futures.forEach(future -> future.cancel(true));
-                Throwable cause = failure.getCause();
-                if (cause instanceof Exception exception) throw exception;
-                if (cause instanceof Error error) throw error;
-                throw new IllegalStateException("Narration generation failed.", cause);
             }
-        }
+            PcmAudio generated = synthesize(narration, voice);
+            writeAtomically(cached, generated.data());
+            log.info("Generated {} narration section {}/{}", source.partyCode(), section + 1,
+                    script.segments().size());
+            return generated;
+        });
     }
 
     private PcmAudio synthesize(String narration, String voice) throws InterruptedException {
         RuntimeException last = null;
         for (int attempt = 1; attempt <= PROVIDER_ATTEMPTS; attempt++) {
             try {
-                return tts.synthesize(policy.ttsText(narration), voice);
+                return tts.synthesize(narration, voice);
             } catch (RuntimeException failure) {
                 last = failure;
                 if (attempt < PROVIDER_ATTEMPTS) {
@@ -218,11 +207,10 @@ public class ProgrammeMediaRerenderBatch implements ApplicationRunner {
     }
 
     private List<Illustration> illustrations(
-            SourceMedia source, int count, CombinedAudio audio, Path work) throws IOException {
+            SourceMedia source, int count, CombinedAudio audio, Path work) throws IOException, InterruptedException {
         String root = sourceRoot(source.audioObjectKey());
-        String identity = ProgrammeMediaWorker.cacheIdentity(illustrationModel);
-        List<Illustration> restored = new ArrayList<>(count);
-        for (int index = 0; index < count; index++) {
+        String identity = ProgrammeMediaWorker.cacheIdentity(source.imageModel());
+        return parallel(count, index -> {
             String filename = "section-" + String.format(Locale.ROOT, "%02d", index) + ".image";
             List<String> candidates = List.of(
                     root + "/work/illustrations-" + identity + "/" + filename,
@@ -243,14 +231,102 @@ public class ProgrammeMediaRerenderBatch implements ApplicationRunner {
                 throw new IOException("Missing retained illustration " + (index + 1) + " for " + source.partyCode(),
                         failure);
             }
-            restored.add(new Illustration(target, audio.timings().get(index).startMs(), audio.timings().get(index).endMs()));
+            return new Illustration(
+                    target, audio.timings().get(index).startMs(), audio.timings().get(index).endMs());
+        });
+    }
+
+    private <T> List<T> parallel(int count, IndexedCall<T> call) throws IOException, InterruptedException {
+        Semaphore permits = new Semaphore(concurrency);
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            CompletionService<IndexedResult<T>> completed = new ExecutorCompletionService<>(executor);
+            List<Future<IndexedResult<T>>> futures = new ArrayList<>(count);
+            for (int index = 0; index < count; index++) {
+                int section = index;
+                futures.add(completed.submit(() -> {
+                    permits.acquire();
+                    try {
+                        return new IndexedResult<>(section, call.call(section));
+                    } finally {
+                        permits.release();
+                    }
+                }));
+            }
+            List<T> ordered = new ArrayList<>(Collections.nCopies(count, null));
+            try {
+                for (int index = 0; index < count; index++) {
+                    IndexedResult<T> result = await(completed.take());
+                    ordered.set(result.index(), result.value());
+                }
+                return List.copyOf(ordered);
+            } catch (IOException | InterruptedException | RuntimeException failure) {
+                futures.forEach(future -> future.cancel(true));
+                throw failure;
+            } catch (Error failure) {
+                futures.forEach(future -> future.cancel(true));
+                throw failure;
+            }
         }
-        return List.copyOf(restored);
+    }
+
+    private <T> T await(Future<T> future) throws IOException, InterruptedException {
+        try {
+            return future.get();
+        } catch (ExecutionException failure) {
+            Throwable cause = failure.getCause();
+            if (cause instanceof IOException exception) throw exception;
+            if (cause instanceof InterruptedException exception) throw exception;
+            if (cause instanceof RuntimeException exception) throw exception;
+            if (cause instanceof Error error) throw error;
+            throw new IllegalStateException("Programme media rerender operation failed.", cause);
+        }
+    }
+
+    static String narrationCacheFileName(
+            String model, String voice, String pronunciationVersion, int section, String narration) {
+        if (section < 0) {
+            throw new IllegalArgumentException("Narration section index must not be negative.");
+        }
+        String identity = String.join("\u0000",
+                requiredCacheValue(model, "model"),
+                requiredCacheValue(voice, "voice"),
+                requiredCacheValue(pronunciationVersion, "pronunciation version"),
+                requiredCacheValue(narration, "narration"));
+        try {
+            String digest = HexFormat.of().formatHex(
+                    MessageDigest.getInstance("SHA-256").digest(identity.getBytes(StandardCharsets.UTF_8)));
+            return ProgrammeMediaWorker.cacheIdentity(voice)
+                    + "-segment-" + String.format(Locale.ROOT, "%02d", section)
+                    + "-" + digest.substring(0, 24) + ".pcm";
+        } catch (NoSuchAlgorithmException impossible) {
+            throw new IllegalStateException("SHA-256 is unavailable.", impossible);
+        }
+    }
+
+    private static String requiredCacheValue(String value, String label) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("Narration cache " + label + " must not be blank.");
+        }
+        return value.strip();
+    }
+
+    private void writeAtomically(Path target, byte[] content) throws IOException {
+        Path temporary = Files.createTempFile(target.getParent(), target.getFileName().toString() + ".", ".tmp");
+        try {
+            Files.write(temporary, content);
+            try {
+                Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException unsupported) {
+                Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } finally {
+            Files.deleteIfExists(temporary);
+        }
     }
 
     private Set<String> completedParties(Path manifest) throws IOException {
         if (!Files.exists(manifest)) return Set.of();
-        java.util.HashSet<String> completed = new java.util.HashSet<>();
+        HashSet<String> completed = new HashSet<>();
         for (String line : Files.readAllLines(manifest)) {
             if (!line.isBlank()) completed.add(mapper.readTree(line).get("partyCode").asText());
         }
@@ -259,11 +335,16 @@ public class ProgrammeMediaRerenderBatch implements ApplicationRunner {
 
     private SourceMedia source(String line) throws IOException {
         JsonNode json = mapper.readTree(line);
+        JsonNode recordedImageModel = json.get("image_model");
+        String sourceImageModel = recordedImageModel == null || recordedImageModel.asText().isBlank()
+                ? illustrationModel
+                : recordedImageModel.asText().strip();
         return new SourceMedia(
                 UUID.fromString(json.get("id").asText()), UUID.fromString(json.get("programme_id").asText()),
                 json.get("party_code").asText(), json.get("source_sha256").asText(),
                 json.get("script_revision").asInt(), json.get("script_json").asText(),
-                json.get("pronunciation_version").asText(), json.get("audio_object_key").asText());
+                json.get("pronunciation_version").asText(), sourceImageModel,
+                json.get("audio_object_key").asText());
     }
 
     private String sourceRoot(String audioObjectKey) {
@@ -283,7 +364,7 @@ public class ProgrammeMediaRerenderBatch implements ApplicationRunner {
     private void deleteTemporaryTree(Path work, Path allowedRoot) {
         if (work == null || !work.normalize().startsWith(allowedRoot) || work.equals(allowedRoot)) return;
         try (var paths = Files.walk(work)) {
-            paths.sorted(java.util.Comparator.reverseOrder()).forEach(path -> {
+            paths.sorted(Comparator.reverseOrder()).forEach(path -> {
                 try {
                     Files.deleteIfExists(path);
                 } catch (IOException exception) {
@@ -303,7 +384,16 @@ public class ProgrammeMediaRerenderBatch implements ApplicationRunner {
             int scriptRevision,
             String scriptJson,
             String pronunciationVersion,
+            String imageModel,
             String audioObjectKey) {
+    }
+
+    @FunctionalInterface
+    private interface IndexedCall<T> {
+        T call(int index) throws Exception;
+    }
+
+    private record IndexedResult<T>(int index, T value) {
     }
 
     private record Result(

@@ -5,14 +5,17 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import dev.maboullaite.fhemni.programme.media.WavePcm.CombinedAudio;
 import dev.maboullaite.fhemni.programme.media.WavePcm.Timing;
@@ -27,6 +30,7 @@ public class ProgrammeMediaRenderer {
     public static final int WIDTH = 1_080;
     public static final int HEIGHT = 1_350;
     private static final Pattern WESTERN_PERCENTAGE = Pattern.compile("(?<![0-9])([0-9]+(?:[.,][0-9]+)?)%");
+    private static final Set<String> FFMPEG_PRESETS = Set.of("slow", "medium", "fast", "faster", "veryfast");
     private final String ffmpeg;
     private final Duration timeout;
     private final String preset;
@@ -103,7 +107,7 @@ public class ProgrammeMediaRenderer {
 
     private String requiredPreset(String value) {
         String candidate = value == null ? "" : value.strip();
-        if (!Set.of("slow", "medium", "fast", "faster", "veryfast").contains(candidate)) {
+        if (!FFMPEG_PRESETS.contains(candidate)) {
             throw new IllegalArgumentException("Unsupported FFmpeg render preset.");
         }
         return candidate;
@@ -231,7 +235,7 @@ public class ProgrammeMediaRenderer {
         }
         Path target = directory.resolve(filename);
         try (var input = resource.getInputStream()) {
-            Files.copy(input, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(input, target, StandardCopyOption.REPLACE_EXISTING);
         }
         return target;
     }
@@ -288,7 +292,7 @@ public class ProgrammeMediaRenderer {
         if (!line.isEmpty()) {
             lines.add(line.toString());
         }
-        return lines.stream().map(this::assText).collect(java.util.stream.Collectors.joining("\\N"));
+        return lines.stream().map(this::assText).collect(Collectors.joining("\\N"));
     }
 
     String headlineText(String value) {
@@ -302,8 +306,8 @@ public class ProgrammeMediaRenderer {
         int bestLongestLine = Integer.MAX_VALUE;
         int bestDifference = Integer.MAX_VALUE;
         for (int split = 1; split < words.length; split++) {
-            String candidateFirst = String.join(" ", java.util.Arrays.copyOfRange(words, 0, split));
-            String candidateSecond = String.join(" ", java.util.Arrays.copyOfRange(words, split, words.length));
+            String candidateFirst = String.join(" ", Arrays.copyOfRange(words, 0, split));
+            String candidateSecond = String.join(" ", Arrays.copyOfRange(words, split, words.length));
             int longestLine = Math.max(candidateFirst.length(), candidateSecond.length());
             int difference = Math.abs(candidateFirst.length() - candidateSecond.length());
             if (longestLine < bestLongestLine || (longestLine == bestLongestLine && difference < bestDifference)) {
