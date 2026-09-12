@@ -87,6 +87,27 @@ the Docker build context and application JAR; the renderer copies them from the
 classpath and fails the render if either resource is missing. This keeps local
 and production typography identical and avoids depending on host-installed fonts.
 
+Browser fonts are durable, immutable public assets in the dedicated
+`fhemni-public-assets-mohamed-playground` GCS bucket. The stylesheet references
+checksum-versioned GCS objects for Arabswell, Tajawal, and the Video.js icon font;
+never replace an object in place. Arabswell is the Moroccan display face used for
+large Arabic headings and party names, while Tajawal remains the body and compact
+card face. Run the font guard before a deployment and again after switching live
+traffic:
+
+```bash
+./scripts/build-css.sh
+./scripts/verify-web-fonts.sh
+FHEMNI_SITE_URL=https://fhemni.ma ./scripts/verify-web-fonts.sh
+```
+
+The guard downloads every referenced font and checks its pinned SHA-256. With a
+site URL it also verifies that the live page serves the expected cache-busted CSS
+and that the live CSS still points to the approved Arabswell object. A deployment
+must be rolled back if either check fails. The renderer's bundled Noto files are
+also mirrored under the bucket's `fonts/rendering/` prefix as canonical backups,
+but rendering deliberately remains local and does not depend on GCS availability.
+
 For local development outside Compose, keep the default local media storage when
 GCS-backed programme media is not needed.
 

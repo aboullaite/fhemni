@@ -71,7 +71,8 @@ class SecurityIntegrationTest {
                 .andExpect(jsonPath("$.status").value("UP"))
                 .andExpect(header().string("Cache-Control", containsString("no-store")))
                 .andExpect(header().string("Content-Security-Policy", containsString("default-src 'self'")))
-                .andExpect(header().string("Content-Security-Policy", containsString("font-src 'self' data:")))
+                .andExpect(header().string("Content-Security-Policy",
+                        containsString("font-src 'self' data: https://storage.googleapis.com")))
                 .andExpect(header().string("Content-Security-Policy",
                         containsString("style-src 'self'; style-src-attr 'unsafe-inline'")))
                 .andExpect(header().string("Content-Security-Policy",
@@ -99,15 +100,18 @@ class SecurityIntegrationTest {
 
         mvc.perform(get("/css/dist.css"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("TIDO Arabic")))
+                .andExpect(content().string(containsString("Arabswell")))
+                .andExpect(content().string(containsString(
+                        "arabswell-1.8e0450bede61.ttf")))
+                .andExpect(content().string(not(containsString(
+                        "/assets/fonts/tajawal"))))
+                .andExpect(content().string(not(containsString(
+                        "/assets/vendor/videojs/VideoJS.woff"))))
                 .andExpect(content().string(containsString(".card")))
                 .andExpect(content().string(containsString(".chat-start")))
                 .andExpect(content().string(containsString(".public-header")));
 
         mvc.perform(get("/webjars/video.js/8.23.8/dist/video.min.js"))
-                .andExpect(status().isOk());
-
-        mvc.perform(get("/assets/vendor/videojs/VideoJS.woff"))
                 .andExpect(status().isOk());
 
     }
