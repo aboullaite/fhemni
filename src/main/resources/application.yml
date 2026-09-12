@@ -46,9 +46,14 @@ fhemni:
     google:
       client-id: ${GOOGLE_CLIENT_ID:}
       client-secret: ${GOOGLE_CLIENT_SECRET:}
-    github:
-      client-id: ${GITHUB_CLIENT_ID:}
-      client-secret: ${GITHUB_CLIENT_SECRET:}
+    discord:
+      client-id: ${DISCORD_CLIENT_ID:}
+      client-secret: ${DISCORD_CLIENT_SECRET:}
+    magic-link:
+      enabled: ${FHEMNI_MAGIC_LINK_ENABLED:false}
+      base-url: ${FHEMNI_PUBLIC_BASE_URL:}
+      from: ${FHEMNI_MAIL_FROM:}
+      lifetime: ${FHEMNI_MAGIC_LINK_LIFETIME:PT15M}
   gemini:
     api-key: ${GEMINI_API_KEY:}
     # Non-secret generation label. Change it whenever the API key or its Google project changes.

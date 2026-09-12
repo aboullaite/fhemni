@@ -30,8 +30,8 @@ import org.springframework.test.web.servlet.MockMvc;
         "fhemni.gemini.api-key=",
         "fhemni.auth.google.client-id=",
         "fhemni.auth.google.client-secret=",
-        "fhemni.auth.github.client-id=",
-        "fhemni.auth.github.client-secret=",
+        "fhemni.auth.discord.client-id=",
+        "fhemni.auth.discord.client-secret=",
         "fhemni.auth.bootstrap-admin-email=owner@example.com",
         "spring.datasource.url=jdbc:h2:mem:security-test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"
 })

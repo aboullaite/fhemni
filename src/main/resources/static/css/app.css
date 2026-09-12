@@ -388,6 +388,17 @@ footer { display: flex; align-items: center; justify-content: space-between; fle
 }
 .auth-provider:hover { border-color: var(--teal); background: var(--mint); }
 .login-not-configured { padding: 16px; border-radius: 14px; background: rgba(232,111,60,.09); color: #855033; font-size: 13px; }
+.auth-divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 11px; font-weight: 800; }
+.auth-divider::before, .auth-divider::after { content: ""; height: 1px; flex: 1; background: var(--line); }
+.magic-link-form { display: grid; gap: 8px; }
+.magic-link-form label { color: var(--ink); font-size: 12px; font-weight: 800; }
+.magic-link-fields { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 9px; }
+.magic-link-fields input { min-width: 0; border: 1px solid var(--line); border-radius: 13px; background: var(--white); color: var(--ink); padding: 12px 14px; font: inherit; }
+.magic-link-fields input:focus { outline: 3px solid rgba(23,107,99,.15); border-color: var(--teal); }
+.magic-link-fields .auth-provider { min-height: 46px; cursor: pointer; }
+.magic-link-fields .auth-provider:disabled { cursor: wait; opacity: .65; }
+.magic-link-status { margin: 0; border-radius: 12px; background: var(--mint); color: var(--teal-dark); padding: 13px; font-size: 12px; line-height: 1.6; }
+@media (max-width: 560px) { .magic-link-fields { grid-template-columns: 1fr; } }
 
 @media (max-width: 900px) {
     .hero { min-height: auto; padding-top: 70px; }

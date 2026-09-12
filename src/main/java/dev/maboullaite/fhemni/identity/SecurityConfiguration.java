@@ -85,7 +85,8 @@ public class SecurityConfiguration {
                                 "/suggestions", "/suggestions/",
                                 "/video.html", "/videos.html", "/login", "/login.html",
                                 "/error", "/favicon.ico", "/css/**", "/js/**", "/assets/**", "/webjars/**",
-                                "/oauth2/**", "/login/oauth2/**", "/api/auth/session", "/healthz")
+                                "/oauth2/**", "/login/oauth2/**", "/auth/magic-link",
+                                "/api/auth/session", "/api/auth/magic-link", "/healthz")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/catalog/videos/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/catalog/parties/*/programme/questions").authenticated()
@@ -122,7 +123,7 @@ public class SecurityConfiguration {
                                 form-action 'self'; font-src 'self' data:; style-src 'self'; style-src-attr 'unsafe-inline'; \
                                 script-src 'self' https://www.googletagmanager.com https://www.youtube.com https://s.ytimg.com; \
                                 connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com; \
-                                img-src 'self' data: https://i.ytimg.com https://*.ytimg.com https://*.googleusercontent.com https://avatars.githubusercontent.com https://www.google-analytics.com https://www.googletagmanager.com; \
+                                img-src 'self' data: https://i.ytimg.com https://*.ytimg.com https://*.googleusercontent.com https://cdn.discordapp.com https://www.google-analytics.com https://www.googletagmanager.com; \
                                 media-src 'self' https://storage.googleapis.com; \
                                 frame-src https://www.youtube.com https://www.youtube-nocookie.com
                                 """.replace("\n", " ")))
