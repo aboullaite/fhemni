@@ -103,6 +103,25 @@ class NavigationConsistencyTest {
     }
 
     @Test
+    void loginAndLegalPagesExposeStableDiscordPolicyUrls() throws IOException {
+        assertThat(html("login.html"))
+                .contains("href=\"/terms\"")
+                .contains("href=\"/privacy\"");
+        assertThat(html("terms.html"))
+                .contains("Terms of Service")
+                .contains("href=\"/privacy\"");
+        assertThat(html("privacy.html"))
+                .contains("Privacy Policy")
+                .contains("privacy@fhemni.ma")
+                .contains("Discord user ID")
+                .contains("request access, correction, export, objection, restriction, or deletion");
+        assertThat(html("js/i18n.js"))
+                .contains("ensureLegalFooterLinks(root)")
+                .contains("href=\"/terms\" data-i18n=\"common.terms\"")
+                .contains("href=\"/privacy\" data-i18n=\"common.privacyPolicy\"");
+    }
+
+    @Test
     void everyPageUsesCampaignAwarePrivacySafeAnalytics() throws IOException {
         for (String page : ALL_PAGES) {
             assertThat(html(page))
@@ -131,8 +150,8 @@ class NavigationConsistencyTest {
         for (String page : ADMIN_PAGES) {
             assertThat(html(page))
                     .as("mobile assets in %s", page)
-                    .contains("/css/dist.css?v=20260912-2")
-                    .contains("/js/i18n.js?v=20260912-2");
+                    .contains("/css/dist.css?v=20260912-3")
+                    .contains("/js/i18n.js?v=20260912-3");
         }
     }
 
@@ -188,10 +207,10 @@ class NavigationConsistencyTest {
                 .contains("id=\"programmeMedia\" class=\"programme-media\"")
                 .contains("class=\"video-js vjs-big-play-centered\"")
                 .contains("/webjars/video.js/8.23.8/dist/video-js.min.css")
-                .contains("/css/dist.css?v=20260912-2")
+                .contains("/css/dist.css?v=20260912-3")
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.23.8/dist/video.min.js")
-                .contains("/js/i18n.js?v=20260912-2")
+                .contains("/js/i18n.js?v=20260912-3")
                 .contains("/js/party.js?v=20260912-1")
                 .containsOnlyOnce("data-i18n=\"programme.kicker\"")
                 .doesNotContain("data-i18n=\"programme.mediaPowered\"")

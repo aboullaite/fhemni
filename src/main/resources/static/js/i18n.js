@@ -26,6 +26,8 @@
             'common.signOutFailed': 'Sign out failed. Please refresh and try again.',
             'common.footer': '© 2026 Mohammed Aboullaite',
             'common.suggestFeature': 'Suggest a feature',
+            'common.terms': 'Terms of Service',
+            'common.privacyPolicy': 'Privacy Policy',
             'common.requestFailed': 'Request failed ({status})',
             'common.requestTimedOut': 'The request timed out after {seconds} seconds. Please try again.',
             'common.requestCancelled': 'The request was cancelled.',
@@ -179,6 +181,8 @@
             'common.signOutFailed': 'La déconnexion a échoué. Actualisez la page et réessayez.',
             'common.footer': '© 2026 Mohammed Aboullaite',
             'common.suggestFeature': 'Proposer une fonctionnalité',
+            'common.terms': 'Conditions d’utilisation',
+            'common.privacyPolicy': 'Politique de confidentialité',
             'common.requestFailed': 'La requête a échoué ({status})',
             'common.requestTimedOut': 'La requête a expiré après {seconds} secondes. Réessayez.',
             'common.requestCancelled': 'La requête a été annulée.',
@@ -332,6 +336,8 @@
             'common.signOutFailed': 'ما قدرناش نخرّجوك من الحساب. عاود حمّل الصفحة وجرّب مرة خرى.',
             'common.footer': '© 2026 Mohammed Aboullaite',
             'common.suggestFeature': 'قترح خاصية جديدة',
+            'common.terms': 'شروط الاستعمال',
+            'common.privacyPolicy': 'سياسة الخصوصية',
             'common.requestFailed': 'الطلب ما خدمش ({status})',
             'common.requestTimedOut': 'الطلب طول كثر من {seconds} ثانية. عاود جرّب.',
             'common.requestCancelled': 'تلغى الطلب.',
@@ -586,6 +592,8 @@
         'login.emailAction': 'Email me a sign-in link',
         'login.emailSent': 'Check your inbox. The one-time sign-in link expires shortly.',
         'login.emailError': 'We could not send the link. Check the address and try again.',
+        'login.legalPrefix': 'By continuing, you agree to the',
+        'login.legalMiddle': 'and acknowledge the',
         'analysis.publicationKicker': 'Editorial publication',
         'analysis.publicationLoading': 'Checking publication status…',
         'analysis.publicationUnavailable': 'Publication controls are unavailable.',
@@ -1276,6 +1284,8 @@
         'login.emailAction': 'Recevoir un lien de connexion',
         'login.emailSent': 'Consultez votre boîte mail. Le lien à usage unique expire bientôt.',
         'login.emailError': 'Le lien n’a pas pu être envoyé. Vérifiez l’adresse et réessayez.',
+        'login.legalPrefix': 'En continuant, vous acceptez les',
+        'login.legalMiddle': 'et reconnaissez la',
         'analysis.publicationKicker': 'Publication éditoriale',
         'analysis.publicationLoading': 'Vérification de la publication…',
         'analysis.publicationUnavailable': 'Les contrôles de publication sont indisponibles.',
@@ -1966,6 +1976,8 @@
         'login.emailAction': 'صيفط ليا رابط الدخول',
         'login.emailSent': 'شوف الإيميل ديالك. رابط الدخول كيتستعمل مرة وحدة وكيصالي قريب.',
         'login.emailError': 'ما قدرناش نصيفطو الرابط. تأكد من الإيميل وعاود جرّب.',
+        'login.legalPrefix': 'ملي كتكمل، كاتوافق على',
+        'login.legalMiddle': 'وكتقرى',
         'analysis.publicationKicker': 'النشر من بعد المراجعة',
         'analysis.publicationLoading': 'كنشوفو حالة النشر…',
         'analysis.publicationUnavailable': 'أدوات النشر ما خداماش دابا.',
@@ -2559,6 +2571,7 @@
     }
 
     function apply(root = document) {
+        ensureLegalFooterLinks(root);
         document.documentElement.lang = currentLocale;
         document.documentElement.dir = currentLocale === 'ar' ? 'rtl' : 'ltr';
 
@@ -2584,6 +2597,18 @@
 
         const pageTitle = document.body?.dataset.i18nPageTitle;
         if (pageTitle) document.title = translate(pageTitle);
+    }
+
+    function ensureLegalFooterLinks(root = document) {
+        root.querySelectorAll('footer').forEach(footer => {
+            if (footer.querySelector('[data-legal-links]')) return;
+            const links = document.createElement('span');
+            links.className = 'footer-legal-links';
+            links.dataset.legalLinks = '';
+            links.innerHTML = '<a href="/terms" data-i18n="common.terms">Terms of Service</a>'
+                + '<a href="/privacy" data-i18n="common.privacyPolicy">Privacy Policy</a>';
+            footer.append(links);
+        });
     }
 
     function setLocale(locale) {

@@ -82,6 +82,8 @@ public class SecurityConfiguration {
                                 "/catalog", "/catalog/**",
                                 "/community", "/community/", "/community.html",
                                 "/methodology", "/methodology/", "/methodology.html",
+                                "/terms", "/terms/", "/terms.html",
+                                "/privacy", "/privacy/", "/privacy.html",
                                 "/suggestions", "/suggestions/",
                                 "/video.html", "/videos.html", "/login", "/login.html",
                                 "/error", "/favicon.ico", "/css/**", "/js/**", "/assets/**", "/webjars/**",

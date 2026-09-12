@@ -54,6 +54,17 @@ https://fhemni.ma/login/oauth2/code/discord
 No bot token, guild installation, or server permission is required. Discord
 sign-in requests only the `identify` and `email` scopes.
 
+After deploying, add the public legal URLs to the Discord application's General
+Information page:
+
+```text
+Terms of Service: https://fhemni.ma/terms
+Privacy Policy:   https://fhemni.ma/privacy
+```
+
+Make sure `privacy@fhemni.ma` is an active mailbox or forwarding alias because
+the Privacy Policy uses it for account and Discord-data deletion requests.
+
 To enable email magic-link sign-in, configure the SMTP host, port, username,
 sender, and TLS settings in `.env.container`; put only the SMTP password in
 `.secrets/smtp_password`. Then set `FHEMNI_MAGIC_LINK_ENABLED=true`. The
