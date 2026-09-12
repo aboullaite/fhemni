@@ -174,6 +174,20 @@ class NavigationConsistencyTest {
     }
 
     @Test
+    void nonFactualClaimExplanationIsLocalizedAtRenderTime() throws IOException {
+        assertThat(html("js/i18n.js"))
+                .contains("'analysis.nonFactualExplanation': 'Opinions, proposals, and predictions")
+                .contains("'analysis.nonFactualExplanation': 'Les opinions, propositions et prévisions")
+                .contains("'analysis.nonFactualExplanation': 'الآراء والاقتراحات والتوقعات كيبانو بوحدهم");
+        assertThat(html("js/analysis.js"))
+                .contains("claim.kind === 'FACT'")
+                .contains("t('analysis.nonFactualExplanation')");
+        assertThat(html("analysis.html"))
+                .contains("/js/analysis.js?v=20260912-2")
+                .contains("/js/i18n.js?v=20260912-8");
+    }
+
+    @Test
     void homePageUsesOneConciseFactCheckHeading() throws IOException {
         assertThat(html("index.html"))
                 .contains("id=\"factCheckTitle\" data-i18n=\"landing.factCheckTitle\"")
@@ -187,7 +201,7 @@ class NavigationConsistencyTest {
             assertThat(html(page))
                     .as("mobile assets in %s", page)
                     .contains("/css/dist.css?v=20260912-7")
-                    .contains("/js/i18n.js?v=20260912-7");
+                    .contains("/js/i18n.js?v=20260912-8");
         }
     }
 
@@ -246,7 +260,7 @@ class NavigationConsistencyTest {
                 .contains("/css/dist.css?v=20260912-7")
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.23.8/dist/video.min.js")
-                .contains("/js/i18n.js?v=20260912-7")
+                .contains("/js/i18n.js?v=20260912-8")
                 .contains("/js/party.js?v=20260912-1")
                 .containsOnlyOnce("data-i18n=\"programme.kicker\"")
                 .doesNotContain("data-i18n=\"programme.mediaPowered\"")
