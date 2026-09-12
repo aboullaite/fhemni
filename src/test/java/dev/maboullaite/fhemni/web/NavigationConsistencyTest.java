@@ -158,7 +158,7 @@ class NavigationConsistencyTest {
         assertThat(html("login.html"))
                 .contains("ستافد أكثر من فهّمني")
                 .contains("دخل لحسابك باش تسول فهّمني فالشات، تقترح وتصوّت.")
-                .contains("/js/login.js?v=20260912-5");
+                .contains("/js/login.js?v=20260912-6");
         assertThat(html("js/i18n.js"))
                 .contains("'login.emailAction': 'بغيت الرابط'");
         assertThat(html("js/login.js"))

@@ -44,6 +44,9 @@ class LoginSuccessHandlerTest {
         assertThat(LoginSuccessHandler.safeLocalPath("https://example.com")).isFalse();
         assertThat(LoginSuccessHandler.safeLocalPath("//example.com")).isFalse();
         assertThat(LoginSuccessHandler.safeLocalPath("/\\example.com")).isFalse();
+        assertThat(LoginSuccessHandler.safeLocalPath("/\tevil.example")).isFalse();
+        assertThat(LoginSuccessHandler.safeLocalPath("/safe" + (char) 0 + "evil")).isFalse();
+        assertThat(LoginSuccessHandler.safeLocalPath("/safe" + (char) 0x7f + "evil")).isFalse();
         assertThat(LoginSuccessHandler.safeLocalPath("/safe\r\nLocation: https://example.com")).isFalse();
         assertThat(LoginSuccessHandler.safeLocalPath("/" + "a".repeat(1024))).isFalse();
         assertThat(LoginSuccessHandler.safeLocalPath(null)).isFalse();

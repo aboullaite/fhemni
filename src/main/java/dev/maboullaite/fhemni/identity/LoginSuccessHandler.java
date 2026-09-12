@@ -34,7 +34,6 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
                 && value.startsWith("/")
                 && !value.startsWith("//")
                 && !value.contains("\\")
-                && !value.contains("\r")
-                && !value.contains("\n");
+                && value.chars().noneMatch(character -> character <= 0x1f || character == 0x7f);
     }
 }

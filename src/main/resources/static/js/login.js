@@ -173,11 +173,11 @@ async function requestMagicLink(event, destination) {
 
 function safeLocalPath(value) {
     return typeof value === 'string'
+        && value.length <= 1024
         && value.startsWith('/')
         && !value.startsWith('//')
         && !value.includes('\\')
-        && !value.includes('\r')
-        && !value.includes('\n');
+        && !/[\u0000-\u001f\u007f]/.test(value);
 }
 
 function escapeHtml(value) {
