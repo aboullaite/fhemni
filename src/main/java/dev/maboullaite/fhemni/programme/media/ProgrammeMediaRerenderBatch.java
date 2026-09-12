@@ -219,12 +219,17 @@ public class ProgrammeMediaRerenderBatch implements ApplicationRunner {
             IOException failure = null;
             boolean found = false;
             for (String candidate : candidates) {
-                try (ProgrammeMediaStorage.StoredObject object = storage.open(candidate)) {
+                ProgrammeMediaStorage.StoredObject object;
+                try {
+                    object = storage.open(candidate);
+                } catch (IOException missing) {
+                    failure = missing;
+                    continue;
+                }
+                try (object) {
                     Files.copy(object.content(), target, StandardCopyOption.REPLACE_EXISTING);
                     found = Files.size(target) > 0;
                     if (found) break;
-                } catch (IOException missing) {
-                    failure = missing;
                 }
             }
             if (!found) {
