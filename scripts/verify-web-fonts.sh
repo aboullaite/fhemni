@@ -6,7 +6,7 @@ asset_root="https://storage.googleapis.com/fhemni-public-assets-mohamed-playgrou
 check_dir=$(mktemp -d "${TMPDIR:-/tmp}/fhemni-font-check.XXXXXX")
 
 cleanup() {
-    rm -f "$check_dir/font.bin" "$check_dir/live.css" "$check_dir/live.html"
+    rm -f "$check_dir/font.bin" "$check_dir/live.css" "$check_dir/live.headers" "$check_dir/live.html"
     rmdir "$check_dir"
 }
 trap cleanup EXIT HUP INT TERM
@@ -22,7 +22,7 @@ sha256() {
 verify_font() {
     object=$1
     expected=$2
-    curl --fail --silent --show-error --location --retry 3 \
+    curl --fail --silent --show-error --location --retry 3 --connect-timeout 5 --max-time 20 \
         "$asset_root/$object" --output "$check_dir/font.bin"
     actual=$(sha256 "$check_dir/font.bin")
     if [ "$actual" != "$expected" ]; then
@@ -45,13 +45,20 @@ if [ -n "${FHEMNI_SITE_URL:-}" ]; then
     site_url=${FHEMNI_SITE_URL%/}
     css_ref=$(sed -n 's/.*href="\([^"]*\/css\/dist\.css?v=[^"]*\)".*/\1/p' \
         "$project_root/src/main/resources/static/index.html" | head -n 1)
-    curl --fail --silent --show-error --location --retry 3 \
+    curl --fail --silent --show-error --location --retry 3 --connect-timeout 5 --max-time 20 \
         "$site_url/" --output "$check_dir/live.html"
+    curl --fail --silent --show-error --head --retry 3 --connect-timeout 5 --max-time 20 \
+        "$site_url/" --output "$check_dir/live.headers"
+    if ! grep -Eiq '^content-security-policy:.*font-src[^;]*https://storage\.googleapis\.com' \
+        "$check_dir/live.headers"; then
+        echo "Live Content-Security-Policy does not allow GCS fonts" >&2
+        exit 1
+    fi
     if ! grep -Fq "$css_ref" "$check_dir/live.html"; then
         echo "Live page does not reference expected stylesheet $css_ref" >&2
         exit 1
     fi
-    curl --fail --silent --show-error --location --retry 3 \
+    curl --fail --silent --show-error --location --retry 3 --connect-timeout 5 --max-time 20 \
         "$site_url$css_ref" --output "$check_dir/live.css"
     if ! grep -Fq "$asset_root/arabswell-1.8e0450bede61.ttf" "$check_dir/live.css"; then
         echo "Live stylesheet does not reference the pinned Arabswell asset" >&2
