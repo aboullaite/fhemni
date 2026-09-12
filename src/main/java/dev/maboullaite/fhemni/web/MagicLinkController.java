@@ -78,11 +78,11 @@ public class MagicLinkController {
         response.setHeader("Referrer-Policy", "no-referrer");
         if (!magicLinks.valid(token)) {
             tokenCookie.clear(response);
-            response.sendRedirect("/login?error=magic-link");
+            response.sendRedirect(loginLocation("error", lang));
             return;
         }
         tokenCookie.save(response, token);
-        response.sendRedirect(confirmationLocation(lang));
+        response.sendRedirect(loginLocation("confirm", lang));
     }
 
     @PostMapping("/auth/magic-link/confirm")
@@ -144,10 +144,11 @@ public class MagicLinkController {
     public record MagicLinkAccount(String maskedEmail) {
     }
 
-    private static String confirmationLocation(String lang) {
+    private static String loginLocation(String state, String lang) {
+        String location = "/login?" + state + "=magic-link";
         return switch (lang == null ? "" : lang) {
-            case "ar", "en", "fr" -> "/login?confirm=magic-link&lang=" + lang;
-            default -> "/login?confirm=magic-link";
+            case "ar", "en", "fr" -> location + "&lang=" + lang;
+            default -> location;
         };
     }
 }
