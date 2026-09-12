@@ -76,8 +76,21 @@
         title.append(titleLink);
 
         const meta = document.createElement('p');
-        meta.className = 'catalog-card-meta';
-        meta.textContent = [video.authorName, formatDate(video.publishedOn)].filter(Boolean).join(' · ');
+        meta.className = 'catalog-card-meta catalog-card-meta-parts';
+        if (video.authorName) {
+            const author = document.createElement('bdi');
+            author.dir = 'auto';
+            author.textContent = video.authorName;
+            const separator = document.createElement('span');
+            separator.setAttribute('aria-hidden', 'true');
+            separator.textContent = '·';
+            meta.append(author, separator);
+        }
+        const date = document.createElement(video.publishedOn ? 'time' : 'bdi');
+        date.dir = 'auto';
+        date.textContent = formatDate(video.publishedOn);
+        if (video.publishedOn) date.dateTime = video.publishedOn;
+        meta.append(date);
         body.append(top, title, meta);
         article.append(imageLink, body);
         return article;

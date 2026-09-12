@@ -25,8 +25,8 @@ import org.springframework.test.web.servlet.MockMvc;
         "fhemni.gemini.api-key=",
         "fhemni.auth.google.client-id=",
         "fhemni.auth.google.client-secret=",
-        "fhemni.auth.github.client-id=",
-        "fhemni.auth.github.client-secret=",
+        "fhemni.auth.discord.client-id=",
+        "fhemni.auth.discord.client-secret=",
         "spring.datasource.url=jdbc:h2:mem:admin-metrics-test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"
 })
 @AutoConfigureMockMvc

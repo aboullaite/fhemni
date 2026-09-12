@@ -31,6 +31,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:programme-job-test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
+        "fhemni.programme-jobs.worker-enabled=true",
         "fhemni.programme-jobs.retry-delay=PT0.05S",
         "fhemni.programme-jobs.dispatch-interval-ms=3600000",
         "fhemni.programme-jobs.lease-renew-interval-ms=3600000"

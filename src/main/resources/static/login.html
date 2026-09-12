@@ -4,10 +4,10 @@
     <script src="/js/analytics.js?v=20260911-1"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Sign in to Fhemni to vote on suggested videos and manage your account." data-i18n-content="login.description">
+    <meta name="description" content="ستافد أكثر من فهّمني: دخل لحسابك باش تسول فالشات، تقترح وتصوّت." data-i18n-content="login.description">
     <title>Sign in — Fhemni</title>
     <link rel="icon" href="/favicon.ico?v=20260911" sizes="32x32">
-    <link rel="stylesheet" href="/css/dist.css?v=20260912-3">
+    <link rel="stylesheet" href="/css/dist.css?v=20260912-7">
 </head>
 <body class="auth-page" data-i18n-page-title="login.pageTitle">
 <div class="ambient ambient-one"></div>
@@ -33,18 +33,24 @@
 <main class="auth-main">
     <section class="auth-card">
         <div class="eyebrow"><span></span><span class="eyebrow-text" data-i18n="login.eyebrow">Your conversations</span></div>
-        <h1 id="loginTitle" data-i18n="login.title">Sign in when you want to participate.</h1>
-        <p id="loginIntro" data-i18n="login.intro">Reading is public. An account is only used for private questions, suggestions, and fair voting.</p>
+        <h1 id="loginTitle" data-i18n="login.title">ستافد أكثر من فهّمني</h1>
+        <p id="loginIntro" data-i18n="login.intro">دخل لحسابك باش تسول فهّمني فالشات، تقترح وتصوّت.</p>
         <div id="loginProviders" class="login-providers" aria-live="polite">
             <span class="auth-unavailable" data-i18n="login.loading">Loading sign-in options…</span>
         </div>
         <p id="loginError" class="landing-error" hidden data-i18n="login.error">Sign-in could not be completed. Please try again.</p>
-        <p class="privacy-note" data-i18n="login.privacy">Fhemni never receives or stores your Google or GitHub password.</p>
+        <p class="privacy-note" data-i18n="login.privacy">Fhemni never receives or stores your Google or Discord password.</p>
+        <p class="login-legal">
+            <span data-i18n="login.legalPrefix">By continuing, you agree to the</span>
+            <a href="/terms" data-i18n="common.terms">Terms of Service</a>
+            <span data-i18n="login.legalMiddle">and acknowledge the</span>
+            <a href="/privacy" data-i18n="common.privacyPolicy">Privacy Policy</a>.
+        </p>
     </section>
 </main>
 
-<script src="/js/i18n.js?v=20260912-2" defer></script>
+<script src="/js/i18n.js?v=20260912-7" defer></script>
 <script src="/js/auth.js?v=20260911-2" defer></script>
-<script src="/js/login.js?v=20260910-1" defer></script>
+<script src="/js/login.js?v=20260912-6" defer></script>
 </body>
 </html>

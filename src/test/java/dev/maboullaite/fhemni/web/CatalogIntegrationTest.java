@@ -119,6 +119,19 @@ class CatalogIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("data-i18n=\"methodology.promisesTitle\"")))
                 .andExpect(content().string(containsString("data-i18n=\"analysis.reportError\"")));
+        mvc.perform(get("/terms"))
+                .andExpect(status().isOk())
+                .andExpect(forwardedUrl("/terms.html"));
+        mvc.perform(get("/terms.html"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Terms of Service")));
+        mvc.perform(get("/privacy"))
+                .andExpect(status().isOk())
+                .andExpect(forwardedUrl("/privacy.html"));
+        mvc.perform(get("/privacy.html"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("third-party identity provider")))
+                .andExpect(content().string(containsString("privacy@fhemni.ma")));
         mvc.perform(get("/analysis.html"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("data-i18n=\"analysis.chatDisclaimer\"")))
@@ -126,7 +139,7 @@ class CatalogIntegrationTest {
         mvc.perform(get("/promise.html"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("id=\"promiseReportAction\"")))
-                .andExpect(content().string(containsString("/js/catalog-ui.js?v=20260912-2")))
+                .andExpect(content().string(containsString("/js/catalog-ui.js?v=20260912-3")))
                 .andExpect(content().string(containsString("data-i18n=\"promise.disclaimer\"")));
         mvc.perform(get("/js/catalog-ui.js"))
                 .andExpect(status().isOk())

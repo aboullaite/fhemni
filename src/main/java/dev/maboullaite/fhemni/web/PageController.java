@@ -72,6 +72,16 @@ public class PageController {
         return "forward:/methodology.html";
     }
 
+    @GetMapping({"/terms", "/terms/"})
+    public String termsPage() {
+        return "forward:/terms.html";
+    }
+
+    @GetMapping({"/privacy", "/privacy/"})
+    public String privacyPage() {
+        return "forward:/privacy.html";
+    }
+
     @GetMapping({"/suggestions", "/suggestions/"})
     public String suggestionsAlias() {
         return "redirect:/community";
