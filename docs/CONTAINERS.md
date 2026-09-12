@@ -71,9 +71,9 @@ base URL, and sender in `.env.container`; put only the private API key in
 `https://api.eu.mailgun.net` for an EU-region domain or
 `https://api.mailgun.net` for a US-region domain. The production base URL is
 already `https://fhemni.ma`, and links expire after 15 minutes by default. The
-configured sender domain must be the same domain verified by Mailgun. The
-current production sender is `Fhemni.ma <noreply@fhemni.aboullaite.me>`; keep
-its SPF, DKIM, and DMARC configuration valid before deployment.
+Mailgun API domain remains `fhemni.aboullaite.me`, while the visible production
+sender is `Fhemni.ma <noreply@fhemni.ma>`. Keep the sender domain's SPF, DKIM,
+and DMARC configuration valid before deployment.
 
 Party-programme fact checking defaults to Gemini. To run the OpenAI-only or
 consensus mode, put the key in `.secrets/openai_api_key` and set
