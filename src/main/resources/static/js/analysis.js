@@ -526,6 +526,9 @@ function renderClaim(claim) {
         UNVERIFIABLE: 'badge-neutral bg-unverifiable text-fhemni-dark'
     }[claim.verdict] || 'badge-neutral bg-unverifiable text-fhemni-dark';
     const sources = (claim.sources || []).map(sourceLink).join('');
+    const explanation = claim.kind === 'FACT'
+        ? claim.explanation
+        : t('analysis.nonFactualExplanation');
     return `
         <article class="claim-card card border border-base-300 bg-base-100/90 p-5 shadow-md" data-kind="${escapeHtml(claim.kind)}">
             <div class="claim-meta flex items-center justify-between gap-3">
@@ -537,7 +540,7 @@ function renderClaim(claim) {
             </div>
             <p class="claim-statement text-base-content">${escapeHtml(claim.statement)}</p>
             <span class="claim-speaker text-base-content/60">${escapeHtml(claim.speaker || t('analysis.speakerUnknown'))}</span>
-            ${claim.explanation ? `<p class="claim-explanation border-t border-base-300 text-base-content/70">${escapeHtml(claim.explanation)}</p>` : ''}
+            ${explanation ? `<p class="claim-explanation border-t border-base-300 text-base-content/70">${escapeHtml(explanation)}</p>` : ''}
             ${sources ? `<div class="sources flex flex-wrap gap-2">${sources}</div>` : ''}
         </article>`;
 }
