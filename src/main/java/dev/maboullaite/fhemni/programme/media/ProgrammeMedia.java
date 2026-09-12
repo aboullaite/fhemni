@@ -22,6 +22,7 @@ public record ProgrammeMedia(
         String videoObjectKey,
         String captionsObjectKey,
         Long durationMs,
+        boolean refreshRequired,
         int attemptCount,
         int maxAttempts,
         Instant availableAt,

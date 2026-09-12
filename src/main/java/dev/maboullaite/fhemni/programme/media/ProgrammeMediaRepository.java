@@ -26,7 +26,7 @@ public class ProgrammeMediaRepository {
             script_json, script_text, script_model, tts_model, tts_voice, image_model,
             illustration_count, pronunciation_version,
             audio_object_key, video_object_key, captions_object_key, duration_ms,
-            attempt_count, max_attempts, available_at, last_error_code, last_error_message,
+            refresh_required, attempt_count, max_attempts, available_at, last_error_code, last_error_message,
             created_at, updated_at, script_reviewed_at, media_reviewed_at, published_at
             """;
 
@@ -109,10 +109,10 @@ public class ProgrammeMediaRepository {
     }
 
     @Transactional
-    public void invalidateForPromise(UUID promiseId, Instant now) {
+    public void markRefreshRequiredForPromise(UUID promiseId, Instant now) {
         jdbc.sql("""
                         UPDATE programme_media
-                           SET status = 'STALE', working_marker = NULL, published_marker = NULL,
+                           SET status = 'STALE', working_marker = NULL,
                                lock_owner = NULL, lease_until = NULL, lease_token = lease_token + 1,
                                available_at = NULL, last_error_code = 'ASSESSMENT_CHANGED',
                                last_error_message = 'A published assessment changed; generate a fresh briefing.',
@@ -120,7 +120,21 @@ public class ProgrammeMediaRepository {
                          WHERE programme_id = (
                                    SELECT programme_id FROM party_promises WHERE id = :promiseId
                                )
-                           AND (working_marker = TRUE OR published_marker = TRUE)
+                           AND working_marker = TRUE
+                        """)
+                .param("promiseId", promiseId)
+                .param("now", utc(now))
+                .update();
+        jdbc.sql("""
+                        UPDATE programme_media
+                           SET refresh_required = TRUE,
+                               last_error_code = 'ASSESSMENT_CHANGED',
+                               last_error_message = 'A published assessment changed; generate and review a replacement.',
+                               updated_at = :now
+                         WHERE programme_id = (
+                                   SELECT programme_id FROM party_promises WHERE id = :promiseId
+                               )
+                           AND published_marker = TRUE
                         """)
                 .param("promiseId", promiseId)
                 .param("now", utc(now))
@@ -139,8 +153,16 @@ public class ProgrammeMediaRepository {
     }
 
     public Map<UUID, ProgrammeMedia> latestByProgramme() {
-        List<ProgrammeMedia> media = jdbc.sql(
-                        "SELECT " + COLUMNS + " FROM programme_media ORDER BY created_at DESC")
+        List<ProgrammeMedia> media = jdbc.sql("""
+                        SELECT %s FROM programme_media
+                         ORDER BY programme_id,
+                                  CASE
+                                      WHEN working_marker = TRUE THEN 0
+                                      WHEN published_marker = TRUE THEN 1
+                                      ELSE 2
+                                  END,
+                                  created_at DESC
+                        """.formatted(COLUMNS))
                 .query(this::map)
                 .list();
         Map<UUID, ProgrammeMedia> latest = new LinkedHashMap<>();
@@ -363,7 +385,8 @@ public class ProgrammeMediaRepository {
         }
         jdbc.sql("""
                         UPDATE programme_media
-                           SET status = 'STALE', published_marker = NULL, updated_at = :now
+                           SET status = 'STALE', published_marker = NULL, refresh_required = FALSE,
+                               updated_at = :now
                          WHERE programme_id = :programmeId AND published_marker = TRUE
                         """)
                 .param("programmeId", media.programmeId())
@@ -372,6 +395,8 @@ public class ProgrammeMediaRepository {
         int updated = jdbc.sql("""
                         UPDATE programme_media
                            SET status = 'PUBLISHED', working_marker = NULL, published_marker = TRUE,
+                               refresh_required = FALSE,
+                               last_error_code = NULL, last_error_message = NULL,
                                media_reviewed_at = :now, published_at = :now, updated_at = :now
                          WHERE id = :id AND working_marker = TRUE AND status = 'MEDIA_REVIEW'
                         """)
@@ -503,7 +528,8 @@ public class ProgrammeMediaRepository {
                 rs.getString("image_model"), rs.getInt("illustration_count"),
                 rs.getString("pronunciation_version"), rs.getString("audio_object_key"),
                 rs.getString("video_object_key"), rs.getString("captions_object_key"),
-                nullableLong(rs, "duration_ms"), rs.getInt("attempt_count"), rs.getInt("max_attempts"),
+                nullableLong(rs, "duration_ms"), rs.getBoolean("refresh_required"),
+                rs.getInt("attempt_count"), rs.getInt("max_attempts"),
                 nullableInstant(rs, "available_at"), rs.getString("last_error_code"),
                 rs.getString("last_error_message"), instant(rs, "created_at"), instant(rs, "updated_at"),
                 nullableInstant(rs, "script_reviewed_at"), nullableInstant(rs, "media_reviewed_at"),

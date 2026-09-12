@@ -58,6 +58,40 @@ class PromiseAssessmentReportServiceTest {
     }
 
     @Test
+    void attachesAReaderReportToTheAssessmentRevisionShownOnThePage() {
+        UUID promiseId = UUID.randomUUID();
+        UUID displayedAssessmentId = UUID.randomUUID();
+        UUID currentAssessmentId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        PublicPromiseView promise = mock(PublicPromiseView.class);
+        PromiseAssessment current = mock(PromiseAssessment.class);
+        PromiseAssessment displayed = mock(PromiseAssessment.class);
+        when(promise.id()).thenReturn(promiseId);
+        when(promise.assessment()).thenReturn(current);
+        when(current.id()).thenReturn(currentAssessmentId);
+        when(displayed.id()).thenReturn(displayedAssessmentId);
+        when(programmes.publishedPromise("fuel-margin-cap")).thenReturn(promise);
+        when(programmes.reportableAssessment(promiseId, displayedAssessmentId)).thenReturn(displayed);
+        PromiseAssessmentReport saved = report(
+                promiseId, displayedAssessmentId, userId,
+                "The assessment shown on this page may rely on an outdated legal source.",
+                "https://adala.justice.gov.ma/archive.pdf");
+        when(reports.save(
+                promiseId, displayedAssessmentId, userId, Category.OUTDATED_OR_MISSING_SOURCE,
+                saved.details(), saved.sourceUrl(), NOW)).thenReturn(saved);
+
+        PromiseAssessmentReport actual = service.submit(
+                "fuel-margin-cap", displayedAssessmentId, userId,
+                Category.OUTDATED_OR_MISSING_SOURCE, saved.details(), saved.sourceUrl());
+
+        assertThat(actual).isSameAs(saved);
+        verify(programmes).reportableAssessment(promiseId, displayedAssessmentId);
+        verify(reports).save(
+                promiseId, displayedAssessmentId, userId, Category.OUTDATED_OR_MISSING_SOURCE,
+                saved.details(), saved.sourceUrl(), NOW);
+    }
+
+    @Test
     void labelsReaderClaimsAsUntrustedContextForFocusedReanalysis() {
         UUID promiseId = UUID.randomUUID();
         PromiseAssessmentReport report = report(

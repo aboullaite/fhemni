@@ -126,7 +126,7 @@ class CatalogIntegrationTest {
         mvc.perform(get("/promise.html"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("id=\"promiseReportAction\"")))
-                .andExpect(content().string(containsString("/js/catalog-ui.js?v=20260912-1")))
+                .andExpect(content().string(containsString("/js/catalog-ui.js?v=20260912-2")))
                 .andExpect(content().string(containsString("data-i18n=\"promise.disclaimer\"")));
         mvc.perform(get("/js/catalog-ui.js"))
                 .andExpect(status().isOk())

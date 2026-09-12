@@ -32,7 +32,8 @@
         verdict.textContent = t(`promise.verdict.${promise.verdict}`);
         const actions = document.createElement('span');
         actions.className = 'promise-card-actions';
-        actions.append(verdict, window.FhemniCatalog.createPromiseReportButton(promise.slug));
+        actions.append(verdict, window.FhemniCatalog.createPromiseReportButton(
+            promise.slug, promise.assessmentId));
         top.append(party, actions);
 
         const title = document.createElement('h3');

@@ -444,7 +444,8 @@
         title.dir = 'auto';
         title.textContent = localized(promise.title);
         link.append(meta, title);
-        row.append(link, window.FhemniCatalog.createPromiseReportButton(promise.slug));
+        row.append(link, window.FhemniCatalog.createPromiseReportButton(
+            promise.slug, promise.assessmentId));
         return row;
     }
 

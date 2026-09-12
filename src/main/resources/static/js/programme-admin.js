@@ -332,6 +332,13 @@
         }
         panel.append(heading);
 
+        if (media?.refreshRequired) {
+            const warning = document.createElement('p');
+            warning.className = 'programme-media-warning';
+            warning.textContent = t('admin.programmeMediaRefreshRequired');
+            panel.append(warning);
+        }
+
         if (!media || media.status === 'STALE') {
             const start = actionButton(t('admin.programmeMediaStart'), true,
                 () => startProgrammeMedia(programme.id, Boolean(media), start));

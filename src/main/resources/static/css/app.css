@@ -1266,6 +1266,7 @@ html[dir="rtl"] .programme-heading h2 { margin-bottom: 18px; line-height: 1.32; 
 .programme-media-state.failed { background: #fee2e2; color: #991b1b; }
 .programme-media-progress, .programme-media-error { padding: 11px 13px; border-radius: 11px; background: rgba(255,255,255,.65); font-size: 11px !important; line-height: 1.55; }
 .programme-media-error { color: #991b1b !important; }
+.programme-media-warning { margin: 0; padding: 11px 13px; border: 1px solid rgba(180, 83, 9, .25); border-radius: 9px; background: #fff7e8; color: #7b431e !important; font-size: 11px !important; font-weight: 700; line-height: 1.55; }
 .programme-media-script { display: grid; gap: 12px; }
 .programme-media-script > label, .programme-media-script fieldset { display: grid; gap: 7px; }
 .programme-media-script label { color: var(--ink); font-size: 10px; font-weight: 800; }

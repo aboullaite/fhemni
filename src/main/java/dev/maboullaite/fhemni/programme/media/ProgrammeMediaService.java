@@ -114,8 +114,8 @@ public class ProgrammeMediaService {
         return media(mediaId);
     }
 
-    public void invalidateForAssessment(UUID promiseId) {
-        repository.invalidateForPromise(promiseId, Instant.now());
+    public void markRefreshRequiredForAssessment(UUID promiseId) {
+        repository.markRefreshRequiredForPromise(promiseId, Instant.now());
     }
 
     private ProgrammeMedia media(UUID id) {

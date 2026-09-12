@@ -3,6 +3,7 @@ package dev.maboullaite.fhemni.web;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.UUID;
@@ -18,7 +19,7 @@ import org.junit.jupiter.api.Test;
 class AdminProgrammeControllerTest {
 
     @Test
-    void publishingAReassessmentClosesItsCapturedReportsAndInvalidatesOldMedia() {
+    void publishingAChangedReassessmentClosesItsCapturedReportsAndMarksMediaForRefresh() {
         PartyProgrammeService programmes = mock(PartyProgrammeService.class);
         PromiseAssessmentReportService reports = mock(PromiseAssessmentReportService.class);
         ProgrammeMediaService media = mock(ProgrammeMediaService.class);
@@ -33,12 +34,36 @@ class AdminProgrammeControllerTest {
         PromiseAssessment published = mock(PromiseAssessment.class);
         when(published.id()).thenReturn(assessmentId);
         when(published.promiseId()).thenReturn(promiseId);
-        when(programmes.publishAssessment(assessmentId)).thenReturn(published);
+        when(programmes.publishAssessmentRevision(assessmentId))
+                .thenReturn(new PartyProgrammeService.AssessmentPublication(published, true));
 
         var response = controller.publishAssessment(assessmentId);
 
         assertThat(response.getBody()).isSameAs(published);
         verify(reports).resolveForAssessment(assessmentId);
-        verify(media).invalidateForAssessment(promiseId);
+        verify(media).markRefreshRequiredForAssessment(promiseId);
+    }
+
+    @Test
+    void publishingAnAssessmentWithoutNarrationChangesKeepsMediaUntouched() {
+        PartyProgrammeService programmes = mock(PartyProgrammeService.class);
+        PromiseAssessmentReportService reports = mock(PromiseAssessmentReportService.class);
+        ProgrammeMediaService media = mock(ProgrammeMediaService.class);
+        AdminProgrammeController controller = new AdminProgrammeController(
+                programmes,
+                mock(ProgrammeIngestionService.class),
+                mock(ProgrammeAssessmentJobService.class),
+                reports,
+                media);
+        UUID assessmentId = UUID.randomUUID();
+        PromiseAssessment published = mock(PromiseAssessment.class);
+        when(published.id()).thenReturn(assessmentId);
+        when(programmes.publishAssessmentRevision(assessmentId))
+                .thenReturn(new PartyProgrammeService.AssessmentPublication(published, false));
+
+        controller.publishAssessment(assessmentId);
+
+        verify(reports).resolveForAssessment(assessmentId);
+        verifyNoInteractions(media);
     }
 }

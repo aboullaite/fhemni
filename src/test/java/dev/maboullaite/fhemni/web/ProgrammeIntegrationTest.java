@@ -111,7 +111,7 @@ class ProgrammeIntegrationTest {
 
         assertThatThrownBy(() -> programmes.publishProgramme(programme.id()))
                 .isInstanceOf(IllegalStateException.class);
-        programmes.publishAssessment(assessment.id());
+        assertThat(programmes.publishAssessmentRevision(assessment.id()).mediaContentChanged()).isFalse();
         programmes.publishPromise(promise.promise().id());
         programmes.publishProgramme(programme.id());
 
@@ -156,7 +156,9 @@ class ProgrammeIntegrationTest {
         var revisedAssessment = programmes.createAssessment(
                 promise.promise().id(),
                 assessment(FeasibilityVerdict.POSSIBLE, "https://www.hcp.ma/revised"));
-        programmes.publishAssessment(revisedAssessment.id());
+        assertThat(programmes.publishAssessmentRevision(revisedAssessment.id()).mediaContentChanged()).isTrue();
+        assertThat(programmes.reportableAssessment(promise.promise().id(), assessment.id()).id())
+                .isEqualTo(assessment.id());
 
         var revisedPromise = programmes.adminProgrammes().stream()
                 .filter(item -> item.id().equals(programme.id()))

@@ -1,5 +1,7 @@
 package dev.maboullaite.fhemni.web;
 
+import java.util.UUID;
+
 import dev.maboullaite.fhemni.identity.AppUser;
 import dev.maboullaite.fhemni.identity.CurrentUserService;
 import dev.maboullaite.fhemni.programme.PromiseAssessmentReport;
@@ -39,6 +41,7 @@ public class PromiseAssessmentReportController {
                 new AuthenticationCredentialsNotFoundException("Sign in to report an assessment issue."));
         PromiseAssessmentReport saved = reports.submit(
                 slug,
+                request == null ? null : request.assessmentId(),
                 user.id(),
                 request == null ? null : request.category(),
                 request == null ? null : request.details(),
@@ -48,6 +51,6 @@ public class PromiseAssessmentReportController {
                 .body(saved);
     }
 
-    public record ReportRequest(Category category, String details, String sourceUrl) {
+    public record ReportRequest(UUID assessmentId, Category category, String details, String sourceUrl) {
     }
 }

@@ -197,9 +197,12 @@ public class AdminProgrammeController {
     @PostMapping("/assessments/{assessmentId}/publish")
     @Transactional
     public ResponseEntity<PromiseAssessment> publishAssessment(@PathVariable UUID assessmentId) {
-        PromiseAssessment published = programmes.publishAssessment(assessmentId);
+        var publication = programmes.publishAssessmentRevision(assessmentId);
+        PromiseAssessment published = publication.assessment();
         assessmentReports.resolveForAssessment(published.id());
-        media.invalidateForAssessment(published.promiseId());
+        if (publication.mediaContentChanged()) {
+            media.markRefreshRequiredForAssessment(published.promiseId());
+        }
         return noStore(published);
     }
 

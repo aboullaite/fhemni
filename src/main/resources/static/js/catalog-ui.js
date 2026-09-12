@@ -113,7 +113,7 @@
         return `https://i.ytimg.com/vi/${encodeURIComponent(youtubeVideoId)}/hqdefault.jpg`;
     }
 
-    function createPromiseReportButton(promiseSlug) {
+    function createPromiseReportButton(promiseSlug, assessmentId) {
         const button = document.createElement('button');
         button.className = 'promise-report-icon';
         button.type = 'button';
@@ -136,23 +136,24 @@
         button.addEventListener('click', event => {
             event.preventDefault();
             event.stopPropagation();
-            openPromiseReport(promiseSlug).catch(() => {
+            openPromiseReport(promiseSlug, assessmentId).catch(() => {
                 window.location.assign(window.FhemniAuth.loginPage(
-                    `/promises/${encodeURIComponent(promiseSlug)}#report`, 'report'));
+                    reportReturnPath(promiseSlug, assessmentId), 'report'));
             });
         });
         return button;
     }
 
-    async function openPromiseReport(promiseSlug) {
+    async function openPromiseReport(promiseSlug, assessmentId) {
         const current = await window.FhemniAuth.session();
         if (!current.authenticated) {
             window.location.assign(window.FhemniAuth.loginPage(
-                `/promises/${encodeURIComponent(promiseSlug)}#report`, 'report'));
+                reportReturnPath(promiseSlug, assessmentId), 'report'));
             return;
         }
         const dialog = promiseReportDialog();
         dialog.dataset.promiseSlug = promiseSlug;
+        dialog.dataset.assessmentId = assessmentId || '';
         const form = dialog.querySelector('form');
         const submit = dialog.querySelector('[data-report-submit]');
         const feedback = dialog.querySelector('[data-report-feedback]');
@@ -170,6 +171,13 @@
             : null;
         if (!dialog.open) dialog.showModal();
         dialog.querySelector('[data-report-details]').focus();
+    }
+
+    function reportReturnPath(promiseSlug, assessmentId) {
+        const path = `/promises/${encodeURIComponent(promiseSlug)}`;
+        return assessmentId
+            ? `${path}?reportAssessment=${encodeURIComponent(assessmentId)}#report`
+            : `${path}#report`;
     }
 
     function promiseReportDialog() {
@@ -329,6 +337,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    assessmentId: dialog.dataset.assessmentId || null,
                     category: dialog.querySelector('[data-report-category]').value,
                     details: dialog.querySelector('[data-report-details]').value.trim(),
                     sourceUrl: dialog.querySelector('[data-report-source]').value.trim() || null

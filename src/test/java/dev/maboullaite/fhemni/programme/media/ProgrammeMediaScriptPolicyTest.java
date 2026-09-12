@@ -73,6 +73,31 @@ class ProgrammeMediaScriptPolicyTest {
     }
 
     @Test
+    void rejectsDraftPromisesAsMediaSources() {
+        Dossier dossier = dossier();
+        UUID draftId = UUID.randomUUID();
+        PartyPromise draft = mock(PartyPromise.class);
+        when(draft.id()).thenReturn(draftId);
+        when(draft.status()).thenReturn(EditorialStatus.DRAFT);
+        AdminPromiseView draftItem = mock(AdminPromiseView.class);
+        when(draftItem.promise()).thenReturn(draft);
+        when(draftItem.assessments()).thenReturn(List.of());
+        List<AdminPromiseView> withDraft = new ArrayList<>(dossier.programme().promises());
+        withDraft.add(draftItem);
+        when(dossier.programme().promises()).thenReturn(withDraft);
+
+        ProgrammeMediaScript valid = script(dossier.promiseIds());
+        List<ProgrammeMediaScript.Segment> segments = new ArrayList<>(valid.segments());
+        segments.set(0, new ProgrammeMediaScript.Segment(
+                "عنوان واضح", narration(), List.of("PROMISE:" + draftId)));
+
+        assertThatThrownBy(() -> policy.validate(
+                new ProgrammeMediaScript(valid.headline(), segments), dossier.programme()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("valid programme source references");
+    }
+
+    @Test
     void rejectsAScriptThatWouldRunPastTheFiveMinuteTarget() {
         Dossier dossier = dossier();
         List<ProgrammeMediaScript.Segment> longSegments = java.util.stream.IntStream.range(0, 14)
@@ -109,6 +134,7 @@ class ProgrammeMediaScriptPolicyTest {
         List<AdminPromiseView> promises = ids.stream().map(id -> {
             PartyPromise promise = mock(PartyPromise.class);
             when(promise.id()).thenReturn(id);
+            when(promise.status()).thenReturn(EditorialStatus.PUBLISHED);
             AdminPromiseView item = mock(AdminPromiseView.class);
             when(item.promise()).thenReturn(promise);
             when(item.assessments()).thenReturn(List.of());
@@ -128,6 +154,7 @@ class ProgrammeMediaScriptPolicyTest {
                 .mapToObj(index -> {
                     PartyPromise promise = mock(PartyPromise.class);
                     when(promise.id()).thenReturn(ids.get(index));
+                    when(promise.status()).thenReturn(EditorialStatus.PUBLISHED);
                     AdminPromiseView item = mock(AdminPromiseView.class);
                     when(item.promise()).thenReturn(promise);
                     if (index == 0) {

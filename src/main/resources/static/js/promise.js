@@ -22,7 +22,9 @@
             document.querySelector('#promiseLoading').hidden = true;
             document.querySelector('#promiseDetail').hidden = false;
             if (window.location.hash === '#report') {
-                await window.FhemniCatalog.openPromiseReport(promise.slug);
+                const assessmentId = new URLSearchParams(window.location.search)
+                    .get('reportAssessment') || promise.assessment.id;
+                await window.FhemniCatalog.openPromiseReport(promise.slug, assessmentId);
             }
         } catch (error) {
             document.querySelector('#promiseLoading').hidden = true;
@@ -36,7 +38,8 @@
         const assessment = promise.assessment;
         document.querySelector('#promiseTitle').textContent = localized(promise.title);
         const reportAction = document.querySelector('#promiseReportAction');
-        reportAction.replaceChildren(window.FhemniCatalog.createPromiseReportButton(promise.slug));
+        reportAction.replaceChildren(window.FhemniCatalog.createPromiseReportButton(
+            promise.slug, assessment.id));
         document.querySelector('#promiseText').textContent = promise.promiseText;
         document.querySelector('#promiseParty').textContent = promise.partyCode;
         document.querySelector('#promiseTerm').textContent = `${promise.termStartYear}–${promise.termEndYear}`;

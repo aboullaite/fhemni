@@ -42,12 +42,25 @@ public class PromiseAssessmentReportService {
             Category category,
             String details,
             String sourceUrl) {
+        return submit(promiseSlug, null, reporterUserId, category, details, sourceUrl);
+    }
+
+    public PromiseAssessmentReport submit(
+            String promiseSlug,
+            UUID assessmentId,
+            UUID reporterUserId,
+            Category category,
+            String details,
+            String sourceUrl) {
         Category safeCategory = category == null ? Category.OTHER : category;
         String safeDetails = required(details, "Report details", 20, 1500);
         String safeSourceUrl = optionalHttpsUrl(sourceUrl);
         PublicPromiseView promise = programmes.publishedPromise(promiseSlug);
+        PromiseAssessment assessment = assessmentId == null
+                ? promise.assessment()
+                : programmes.reportableAssessment(promise.id(), assessmentId);
         return reports.save(
-                promise.id(), promise.assessment().id(), reporterUserId,
+                promise.id(), assessment.id(), reporterUserId,
                 safeCategory, safeDetails, safeSourceUrl, clock.instant());
     }
 

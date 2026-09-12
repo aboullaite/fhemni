@@ -90,12 +90,21 @@ class ProgrammeMediaRepositoryIntegrationTest {
             assertThat(value.transcript()).hasSize(10);
         });
 
-        service.invalidateForAssessment(programme.promises().getFirst().promise().id());
+        ProgrammeMedia replacement = media.create(
+                programme.id(), programme.partyCode(), programme.sourceSha256(), "darija-v1", 3,
+                reclaimedAt.plusSeconds(6));
+        service.markRefreshRequiredForAssessment(programme.promises().getFirst().promise().id());
 
-        assertThat(media.published(programme.id())).isEmpty();
-        assertThat(media.find(published.id()).orElseThrow().status()).isEqualTo(ProgrammeMediaStatus.STALE);
-        assertThatThrownBy(() -> service.published("PJD"))
-                .isInstanceOf(java.util.NoSuchElementException.class);
+        assertThat(media.working(programme.id())).isEmpty();
+        assertThat(media.find(replacement.id()).orElseThrow().status()).isEqualTo(ProgrammeMediaStatus.STALE);
+        assertThat(media.published(programme.id())).satisfies(value -> {
+            assertThat(value).isPresent();
+            assertThat(value.orElseThrow().id()).isEqualTo(published.id());
+            assertThat(value.orElseThrow().status()).isEqualTo(ProgrammeMediaStatus.PUBLISHED);
+            assertThat(value.orElseThrow().refreshRequired()).isTrue();
+        });
+        assertThat(media.latestByProgramme().get(programme.id()).id()).isEqualTo(published.id());
+        assertThat(service.published("PJD").id()).isEqualTo(published.id());
     }
 
     @Test

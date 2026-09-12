@@ -11,6 +11,7 @@ import com.google.genai.gaos.models.interactions.ResponseFormat;
 import com.google.genai.gaos.models.interactions.TextResponseFormat;
 import com.google.genai.gaos.models.interactions.TextResponseFormatMimeType;
 import com.google.genai.gaos.models.interactions.ThinkingLevel;
+import dev.maboullaite.fhemni.programme.EditorialStatus;
 import dev.maboullaite.fhemni.programme.FeasibilityVerdict;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.AdminProgrammeView;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.AdminPromiseView;
@@ -109,7 +110,7 @@ public class ProgrammeMediaScriptGateway {
     }
 
     private List<String> sourceRefs(AdminProgrammeView programme) {
-        return programme.promises().stream().flatMap(item -> {
+        return publishedPromises(programme).stream().flatMap(item -> {
             var refs = new java.util.ArrayList<String>();
             refs.add("PROMISE:" + item.promise().id());
             item.assessments().stream()
@@ -125,7 +126,7 @@ public class ProgrammeMediaScriptGateway {
         dossier.append("PARTY CODE: ").append(programme.partyCode()).append('\n')
                 .append("PROGRAMME TITLE: ").append(programme.title().ar()).append('\n')
                 .append("PROGRAMME SUMMARY: ").append(programme.summary().ar()).append("\n\n");
-        for (AdminPromiseView item : programme.promises()) {
+        for (AdminPromiseView item : publishedPromises(programme)) {
             dossier.append("SOURCE REF: PROMISE:").append(item.promise().id()).append('\n')
                     .append("TOPIC: ").append(item.promise().topic()).append('\n')
                     .append("TITLE: ").append(item.promise().title().ar()).append('\n')
@@ -149,6 +150,12 @@ public class ProgrammeMediaScriptGateway {
                 %s
                 END DOSSIER
                 """.formatted(dossier);
+    }
+
+    private List<AdminPromiseView> publishedPromises(AdminProgrammeView programme) {
+        return programme.promises().stream()
+                .filter(item -> item.promise().status() == EditorialStatus.PUBLISHED)
+                .toList();
     }
 
     private String verdict(FeasibilityVerdict verdict) {

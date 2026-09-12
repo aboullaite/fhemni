@@ -9,6 +9,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.AdminProgrammeView;
+import dev.maboullaite.fhemni.programme.PartyProgrammeService.AdminPromiseView;
+import dev.maboullaite.fhemni.programme.EditorialStatus;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -37,7 +39,11 @@ public class ProgrammeMediaScriptPolicy {
         }
         Set<String> allowedRefs = new HashSet<>();
         Map<String, String> assessmentPromiseRefs = new HashMap<>();
-        programme.promises().forEach(item -> {
+        List<AdminPromiseView> publishedPromises =
+                programme.promises().stream()
+                        .filter(item -> item.promise().status() == EditorialStatus.PUBLISHED)
+                        .toList();
+        publishedPromises.forEach(item -> {
             String promiseRef = "PROMISE:" + item.promise().id();
             allowedRefs.add(promiseRef);
             item.assessments().stream()
@@ -86,7 +92,7 @@ public class ProgrammeMediaScriptPolicy {
         if (words < 460 || words > 500) {
             throw new IllegalArgumentException("A five-minute briefing must contain between 460 and 500 spoken words.");
         }
-        int requiredPromiseCoverage = Math.min(5, programme.promises().size());
+        int requiredPromiseCoverage = Math.min(5, publishedPromises.size());
         if (citedPromises.size() < requiredPromiseCoverage) {
             throw new IllegalArgumentException("The briefing does not cover enough distinct programme promises.");
         }
