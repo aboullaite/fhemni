@@ -65,11 +65,28 @@ Stop the worker when the queued batch reaches media review. Narration alternates
 by section between
 `FHEMNI_PROGRAMME_MEDIA_TTS_VOICE` and
 `FHEMNI_PROGRAMME_MEDIA_TTS_SECONDARY_VOICE`; the defaults are Charon and Kore.
+The default narration model is `gemini-3.1-flash-tts-preview`.
 Independent narration and illustration sections run with bounded parallelism;
 `FHEMNI_PROGRAMME_MEDIA_PROVIDER_CONCURRENCY` defaults to `4` and can be lowered
 when provider quotas are tight. Publishing a revised feasibility assessment does
 not automatically replace an existing briefing, so regenerate and review the
 party media whenever its published assessments materially change.
+
+The opt-in `ProgrammeMediaRerenderBatch` reuses reviewed scripts and retained
+illustrations without changing application rows. Run it only with
+`FHEMNI_PROGRAMME_JOB_WORKER_ENABLED=false`; the batch refuses to start while the
+assessment worker is enabled. Include the source media's `image_model` in every
+JSONL input row so retained assets are resolved with their recorded provenance.
+Narration cache entries are content-addressed by model, voice, pronunciation
+version, and prepared text, and are written atomically, so a corrected script or
+interrupted run cannot silently reuse partial audio.
+
+Programme videos render Arabic with the bundled Noto Sans Arabic Medium and Bold
+files under `src/main/resources/static/assets/fonts/`. Keep both `.ttf` files in
+the Docker build context and application JAR; the renderer copies them from the
+classpath and fails the render if either resource is missing. This keeps local
+and production typography identical and avoids depending on host-installed fonts.
+
 For local development outside Compose, keep the default local media storage when
 GCS-backed programme media is not needed.
 

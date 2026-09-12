@@ -78,6 +78,16 @@ class ProgrammeMediaRendererTest {
                 .contains("pad=160:160", "pad=300:160", "overlay=W-w-64:56", "overlay=64:56");
     }
 
+    @Test
+    void balancesLongHeadlinesAcrossNoMoreThanTwoLines() {
+        ProgrammeMediaRenderer renderer = new ProgrammeMediaRenderer("ffmpeg", Duration.ofMinutes(2));
+
+        String headline = renderer.headlineText(
+                "قراءة فهّمني فبرنامج الحركة الديمقراطية الاجتماعية لانتخابات 2026");
+
+        assertThat(headline.split("\\\\N", -1)).hasSize(2);
+    }
+
     private static boolean ffmpegAvailable() {
         try {
             return new ProcessBuilder("ffmpeg", "-version").start().waitFor() == 0;
