@@ -9,12 +9,14 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import dev.maboullaite.fhemni.programme.media.WavePcm.CombinedAudio;
 import dev.maboullaite.fhemni.programme.media.WavePcm.Timing;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
@@ -27,10 +29,13 @@ public class ProgrammeMediaRenderer {
     private static final Pattern WESTERN_PERCENTAGE = Pattern.compile("(?<![0-9])([0-9]+(?:[.,][0-9]+)?)%");
     private final String ffmpeg;
     private final Duration timeout;
+    private final String preset;
 
+    @Autowired
     public ProgrammeMediaRenderer(
             @Value("${fhemni.programme-media.ffmpeg:ffmpeg}") String ffmpeg,
-            @Value("${fhemni.programme-media.render-timeout:PT20M}") Duration timeout) {
+            @Value("${fhemni.programme-media.render-timeout:PT20M}") Duration timeout,
+            @Value("${fhemni.programme-media.render-preset:medium}") String preset) {
         if (ffmpeg == null || ffmpeg.isBlank()) {
             throw new IllegalArgumentException("FFmpeg executable must not be blank.");
         }
@@ -39,6 +44,11 @@ public class ProgrammeMediaRenderer {
         }
         this.ffmpeg = ffmpeg.strip();
         this.timeout = timeout;
+        this.preset = requiredPreset(preset);
+    }
+
+    ProgrammeMediaRenderer(String ffmpeg, Duration timeout) {
+        this(ffmpeg, timeout, "medium");
     }
 
     public RenderedMedia render(
@@ -82,13 +92,21 @@ public class ProgrammeMediaRenderer {
         command.addAll(List.of(
                 "-filter_complex", filter(subtitles, fontDirectory, illustrations),
                 "-map", "[vout]", "-map", "1:a:0",
-                "-c:v", "libx264", "-preset", "medium", "-crf", "20",
+                "-c:v", "libx264", "-preset", preset, "-crf", "20",
                 "-pix_fmt", "yuv420p", "-r", "30",
                 "-c:a", "aac", "-b:a", "192k",
                 "-t", seconds(audio.durationMs()), "-movflags", "+faststart",
                 video.toString()));
         run(work, command);
         return new RenderedMedia(audioMp3, video, captions, audio.durationMs());
+    }
+
+    private String requiredPreset(String value) {
+        String candidate = value == null ? "" : value.strip();
+        if (!Set.of("slow", "medium", "fast", "faster", "veryfast").contains(candidate)) {
+            throw new IllegalArgumentException("Unsupported FFmpeg render preset.");
+        }
+        return candidate;
     }
 
     String filter(Path subtitles, Path fonts, List<Illustration> illustrations) {
@@ -148,7 +166,7 @@ public class ProgrammeMediaRenderer {
                 """);
         long fullEnd = timings.getLast().endMs();
         out.append("Dialogue: 0,0:00:00.00,").append(assTime(fullEnd))
-                .append(",Headline,,0,0,0,,").append(wrappedText(script.headline(), 34)).append('\n');
+                .append(",Headline,,0,0,0,,").append(headlineText(script.headline())).append('\n');
         for (int index = 0; index < script.segments().size(); index++) {
             Timing timing = timings.get(index);
             ProgrammeMediaScript.Segment segment = script.segments().get(index);
@@ -271,6 +289,31 @@ public class ProgrammeMediaRenderer {
             lines.add(line.toString());
         }
         return lines.stream().map(this::assText).collect(java.util.stream.Collectors.joining("\\N"));
+    }
+
+    String headlineText(String value) {
+        String clean = cleanDisplayText(value).strip().replaceAll("\\s+", " ");
+        if (clean.length() <= 34 || !clean.contains(" ")) {
+            return assText(clean);
+        }
+        String[] words = clean.split(" ");
+        String first = clean;
+        String second = "";
+        int bestLongestLine = Integer.MAX_VALUE;
+        int bestDifference = Integer.MAX_VALUE;
+        for (int split = 1; split < words.length; split++) {
+            String candidateFirst = String.join(" ", java.util.Arrays.copyOfRange(words, 0, split));
+            String candidateSecond = String.join(" ", java.util.Arrays.copyOfRange(words, split, words.length));
+            int longestLine = Math.max(candidateFirst.length(), candidateSecond.length());
+            int difference = Math.abs(candidateFirst.length() - candidateSecond.length());
+            if (longestLine < bestLongestLine || (longestLine == bestLongestLine && difference < bestDifference)) {
+                first = candidateFirst;
+                second = candidateSecond;
+                bestLongestLine = longestLine;
+                bestDifference = difference;
+            }
+        }
+        return assText(first) + "\\N" + assText(second);
     }
 
     List<CaptionCue> captionCues(String narration, Timing timing) {

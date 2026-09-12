@@ -38,7 +38,7 @@ public class GeminiProgrammeTtsGateway {
             @Value("${fhemni.gemini.base-url:https://generativelanguage.googleapis.com}") String baseUrl,
             @Value("${fhemni.gemini.api-version:v1beta}") String apiVersion,
             @Value("${fhemni.programme-media.tts-timeout:PT3M}") Duration timeout,
-            @Value("${fhemni.programme-media.tts-model:gemini-2.5-pro-preview-tts}") String model,
+            @Value("${fhemni.programme-media.tts-model:gemini-3.1-flash-tts-preview}") String model,
             @Value("${fhemni.programme-media.tts-voice:Charon}") String primaryVoice,
             @Value("${fhemni.programme-media.tts-secondary-voice:Kore}") String secondaryVoice) {
         this.model = required(model, "TTS model");
