@@ -119,7 +119,7 @@ public class SecurityConfiguration {
                 .headers(headers -> headers
                         .contentSecurityPolicy(csp -> csp.policyDirectives("""
                                 default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; \
-                                form-action 'self'; font-src 'self' data:; style-src 'self'; style-src-attr 'unsafe-inline'; \
+                                form-action 'self'; font-src 'self' data: https://storage.googleapis.com; style-src 'self'; style-src-attr 'unsafe-inline'; \
                                 script-src 'self' https://www.googletagmanager.com https://www.youtube.com https://s.ytimg.com; \
                                 connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com; \
                                 img-src 'self' data: https://i.ytimg.com https://*.ytimg.com https://*.googleusercontent.com https://avatars.githubusercontent.com https://www.google-analytics.com https://www.googletagmanager.com; \

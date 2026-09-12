@@ -24,7 +24,8 @@ module.exports = {
                     "sans-serif"
                 ],
                 arabic: [
-                    "TIDO Arabic",
+                    "Arabswell",
+                    "Tajawal",
                     "Tahoma",
                     "Arial",
                     "Segoe UI",

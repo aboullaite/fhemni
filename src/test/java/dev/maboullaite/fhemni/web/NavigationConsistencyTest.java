@@ -103,6 +103,15 @@ class NavigationConsistencyTest {
     }
 
     @Test
+    void everyPageUsesThePinnedWebFontStylesheet() throws IOException {
+        for (String page : ALL_PAGES) {
+            assertThat(html(page))
+                    .as("stylesheet in %s", page)
+                    .containsOnlyOnce("/css/dist.css?v=20260912-3");
+        }
+    }
+
+    @Test
     void everyPageUsesCampaignAwarePrivacySafeAnalytics() throws IOException {
         for (String page : ALL_PAGES) {
             assertThat(html(page))
@@ -131,7 +140,7 @@ class NavigationConsistencyTest {
         for (String page : ADMIN_PAGES) {
             assertThat(html(page))
                     .as("mobile assets in %s", page)
-                    .contains("/css/dist.css?v=20260912-2")
+                    .contains("/css/dist.css?v=20260912-3")
                     .contains("/js/i18n.js?v=20260912-2");
         }
     }
@@ -188,7 +197,7 @@ class NavigationConsistencyTest {
                 .contains("id=\"programmeMedia\" class=\"programme-media\"")
                 .contains("class=\"video-js vjs-big-play-centered\"")
                 .contains("/webjars/video.js/8.23.8/dist/video-js.min.css")
-                .contains("/css/dist.css?v=20260912-2")
+                .contains("/css/dist.css?v=20260912-3")
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.23.8/dist/video.min.js")
                 .contains("/js/i18n.js?v=20260912-2")
@@ -215,7 +224,8 @@ class NavigationConsistencyTest {
                 .doesNotContain("['briefing'")
                 .doesNotContain("#programmeMediaAudio")
                 .doesNotContain("#programmeMediaTranscript");
-        assertThat(new ClassPathResource("static/assets/vendor/videojs/VideoJS.woff").exists()).isTrue();
+        assertThat(html("css/dist.css"))
+                .contains("https://storage.googleapis.com/fhemni-public-assets-mohamed-playground/fonts/videojs.46d5222f8568.woff");
     }
 
     private String html(String page) throws IOException {

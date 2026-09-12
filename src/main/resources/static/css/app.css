@@ -46,7 +46,7 @@
 
 @font-face {
     font-family: "Tajawal";
-    src: url("/assets/fonts/tajawal-regular.ttf") format("truetype");
+    src: url("https://storage.googleapis.com/fhemni-public-assets-mohamed-playground/fonts/tajawal-regular.6882892da3e0.ttf") format("truetype");
     font-display: swap;
     font-style: normal;
     font-weight: 400;
@@ -55,7 +55,7 @@
 
 @font-face {
     font-family: "Tajawal";
-    src: url("/assets/fonts/tajawal-medium.ttf") format("truetype");
+    src: url("https://storage.googleapis.com/fhemni-public-assets-mohamed-playground/fonts/tajawal-medium.1ff8bd943a26.ttf") format("truetype");
     font-display: swap;
     font-style: normal;
     font-weight: 500;
@@ -64,7 +64,7 @@
 
 @font-face {
     font-family: "Tajawal";
-    src: url("/assets/fonts/tajawal-bold.ttf") format("truetype");
+    src: url("https://storage.googleapis.com/fhemni-public-assets-mohamed-playground/fonts/tajawal-bold.0342ab6b74b6.ttf") format("truetype");
     font-display: swap;
     font-style: normal;
     font-weight: 700 900;
@@ -73,12 +73,22 @@
 
 @font-face {
     font-family: "Tajawal Heading Numerals";
-    src: url("/assets/fonts/tajawal-medium.ttf") format("truetype");
+    src: url("https://storage.googleapis.com/fhemni-public-assets-mohamed-playground/fonts/tajawal-medium.1ff8bd943a26.ttf") format("truetype");
     font-display: swap;
     font-style: normal;
     font-weight: 400 900;
     size-adjust: 88%;
     unicode-range: U+0025, U+002B-003A, U+0660-066C, U+06F0-06F9, U+2212;
+}
+
+@font-face {
+    font-family: "Arabswell";
+    src: url("https://storage.googleapis.com/fhemni-public-assets-mohamed-playground/fonts/arabswell-1.8e0450bede61.ttf") format("truetype");
+    font-display: swap;
+    font-style: normal;
+    font-weight: 400 900;
+    size-adjust: 88%;
+    unicode-range: U+0600-06FF, U+0750-077F, U+0870-089F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF, U+1EE00-1EEFF;
 }
 
 :root {
@@ -344,7 +354,7 @@ html[dir="rtl"] body {
     line-height: 1.65;
 }
 html[dir="rtl"] h1 {
-    font-family: "Tajawal Heading Numerals", "Tajawal", Tahoma, Arial, "Segoe UI", sans-serif;
+    font-family: "Tajawal Heading Numerals", "Arabswell", "Tajawal", Tahoma, Arial, "Segoe UI", sans-serif;
     letter-spacing: normal;
     line-height: 1.32;
 }
@@ -697,13 +707,13 @@ html[dir="rtl"] .video-detail-heading h1,
 html[dir="rtl"] .analysis-state-card h2,
 html[dir="rtl"] .admin-panel h2,
 html[dir="rtl"] .programme-heading h2 {
-    font-family: "Tajawal Heading Numerals", "Tajawal", Tahoma, Arial, "Segoe UI", sans-serif;
+    font-family: "Tajawal Heading Numerals", "Arabswell", "Tajawal", Tahoma, Arial, "Segoe UI", sans-serif;
     letter-spacing: normal;
     line-height: 1.32;
 }
 
 h1:dir(rtl) {
-    font-family: "Tajawal Heading Numerals", "Tajawal", Tahoma, Arial, "Segoe UI", sans-serif;
+    font-family: "Tajawal Heading Numerals", "Arabswell", "Tajawal", Tahoma, Arial, "Segoe UI", sans-serif;
     letter-spacing: normal;
     line-height: 1.32;
 }
@@ -723,7 +733,7 @@ html[dir="rtl"] .catalog-card h3 {
 
 html[dir="rtl"] #partiesGrid .party-directory-card .person-card-title,
 html[dir="rtl"] .priority-comparison-party h3 {
-    font-family: "Tajawal Heading Numerals", "Tajawal", Tahoma, Arial, "Segoe UI", sans-serif;
+    font-family: "Tajawal Heading Numerals", "Arabswell", "Tajawal", Tahoma, Arial, "Segoe UI", sans-serif;
     font-weight: 500;
     line-height: 1.35;
 }
@@ -959,7 +969,7 @@ html[dir="rtl"] .programme-heading h2 { margin-bottom: 18px; line-height: 1.32; 
 .programme-promises-heading h2 { margin: 5px 0 0; font-size: clamp(1.7rem, 3vw, 2.5rem); line-height: 1.3; }
 @font-face {
     font-family: "VideoJS";
-    src: url("/assets/vendor/videojs/VideoJS.woff?v=8.23.8") format("woff");
+    src: url("https://storage.googleapis.com/fhemni-public-assets-mohamed-playground/fonts/videojs.46d5222f8568.woff") format("woff");
     font-style: normal;
     font-weight: 400;
     font-display: block;
