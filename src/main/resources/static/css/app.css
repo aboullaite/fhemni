@@ -534,6 +534,9 @@ footer { display: flex; align-items: center; justify-content: space-between; fle
 .catalog-card h3 { min-width: 0; margin: 12px 0 18px; font: 600 18px/1.42 Georgia, serif; overflow-wrap: anywhere; }
 .catalog-card h3 a { color: var(--ink); text-decoration: none; }
 .catalog-card-meta { margin: 0; color: var(--muted); font-size: 10px; }
+.catalog-card-meta-parts { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 4px; }
+.catalog-card-meta-parts > bdi,
+.catalog-card-meta-parts > time { unicode-bidi: isolate; }
 .catalog-status { display: inline-flex; align-items: center; width: max-content; padding: 5px 8px; border-radius: 999px; background: #fff0df; color: #965126; font-size: 9px; font-weight: 900; letter-spacing: .03em; white-space: nowrap; }
 .catalog-status.published { background: #d9efe2; color: #216b4c; }
 .catalog-loading, .catalog-empty, .catalog-error { grid-column: 1 / -1; padding: 38px; border: 1px dashed var(--line); border-radius: 18px; color: var(--muted); text-align: center; }
