@@ -168,6 +168,7 @@
     function programmeCard(programme) {
         const article = document.createElement('article');
         article.className = 'programme-review-card';
+        article.dataset.programmeId = programme.id;
 
         const body = document.createElement('div');
         body.className = 'programme-card-body';
@@ -312,6 +313,7 @@
     function programmeMediaPanel(programme, media) {
         const panel = document.createElement('section');
         panel.className = 'programme-media-admin';
+        panel.dataset.programmeMedia = programme.id;
         const heading = document.createElement('div');
         heading.className = 'programme-review-top';
         const copy = document.createElement('div');
@@ -942,7 +944,88 @@
             .some(job => ['QUEUED', 'RUNNING', 'RETRY_WAIT'].includes(job.status))
             || Object.values(mediaByProgramme)
                 .some(media => ['QUEUED_SCRIPT', 'GENERATING_SCRIPT', 'QUEUED_MEDIA', 'RENDERING_MEDIA'].includes(media.status));
-        if (running) pollTimer = window.setTimeout(load, 3000);
+        if (running) pollTimer = window.setTimeout(pollActiveWork, 3000);
+    }
+
+    async function pollActiveWork() {
+        try {
+            const [nextJobs, nextMedia] = await Promise.all([
+                window.FhemniCatalog.requestJson('/api/admin/programmes/assessment-jobs'),
+                window.FhemniCatalog.requestJson('/api/admin/programmes/media')
+            ]);
+            const changedJobs = changedMapKeys(jobsByProgramme, nextJobs, jobFingerprint);
+            const changedMedia = changedMapKeys(mediaByProgramme, nextMedia, mediaFingerprint);
+            let nextProgrammes = programmes;
+            if (changedJobs.size) {
+                nextProgrammes = await window.FhemniCatalog.requestJson('/api/admin/programmes');
+            }
+
+            jobsByProgramme = nextJobs;
+            mediaByProgramme = nextMedia;
+            const changedProgrammes = changedProgrammeKeys(programmes, nextProgrammes);
+            programmes = nextProgrammes;
+            const replaceCards = new Set([...changedJobs, ...changedProgrammes]);
+            replaceCards.forEach(updateProgrammeCard);
+            changedMedia.forEach(programmeId => {
+                if (!replaceCards.has(programmeId)) updateProgrammeMediaPanel(programmeId);
+            });
+            syncReplacementOption();
+        } catch (error) {
+            // Keep the current DOM—including playing media—intact on a transient polling failure.
+            console.warn('Programme status refresh failed', error);
+        } finally {
+            schedulePolling();
+        }
+    }
+
+    function changedMapKeys(previous, next, fingerprint) {
+        const keys = new Set([...Object.keys(previous || {}), ...Object.keys(next || {})]);
+        return new Set([...keys].filter(key => fingerprint(previous?.[key]) !== fingerprint(next?.[key])));
+    }
+
+    function changedProgrammeKeys(previous, next) {
+        const previousById = Object.fromEntries(previous.map(programme => [programme.id, programme]));
+        const nextById = Object.fromEntries(next.map(programme => [programme.id, programme]));
+        return changedMapKeys(previousById, nextById, value => JSON.stringify(value || null));
+    }
+
+    function jobFingerprint(job) {
+        if (!job) return '';
+        return JSON.stringify([
+            job.id, job.status, job.reassessment, job.totalItems, job.completedItems,
+            job.failedItems, job.currentPromiseSlug, job.lastErrorCode, job.lastErrorMessage
+        ]);
+    }
+
+    function mediaFingerprint(media) {
+        if (!media) return '';
+        return JSON.stringify([
+            media.id, media.status, media.scriptRevision, media.script, media.durationMs,
+            media.illustrationCount, media.lastErrorCode, media.lastErrorMessage, media.publishedAt
+        ]);
+    }
+
+    function updateProgrammeCard(programmeId) {
+        const current = list.querySelector(`[data-programme-id="${programmeId}"]`);
+        const programme = programmes.find(candidate => candidate.id === programmeId);
+        if (!programme) {
+            current?.remove();
+            return;
+        }
+        const replacement = programmeCard(programme);
+        if (current) current.replaceWith(replacement);
+        else list.append(replacement);
+    }
+
+    function updateProgrammeMediaPanel(programmeId) {
+        const current = list.querySelector(
+            `[data-programme-id="${programmeId}"] [data-programme-media="${programmeId}"]`);
+        const programme = programmes.find(candidate => candidate.id === programmeId);
+        if (!current || !programme || programme.status !== 'PUBLISHED') {
+            updateProgrammeCard(programmeId);
+            return;
+        }
+        current.replaceWith(programmeMediaPanel(programme, mediaByProgramme[programmeId]));
     }
 
     ingestForm.addEventListener('submit', ingest);

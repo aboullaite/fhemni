@@ -155,7 +155,11 @@ class NavigationConsistencyTest {
                 .contains("admin.focusedReviewActive")
                 .contains("dismissAssessmentReportConfirm")
                 .contains("assessmentReportDismissed")
-                .contains("/assessment-reports/${reportId}/dismiss");
+                .contains("/assessment-reports/${reportId}/dismiss")
+                .contains("window.setTimeout(pollActiveWork, 3000)")
+                .contains("updateProgrammeMediaPanel(programmeId)")
+                .contains("data-programme-id")
+                .doesNotContain("window.setTimeout(load, 3000)");
         assertThat(html("js/catalog-ui.js"))
                 .contains("category.dataset.reportCategory = ''")
                 .contains("FACTUAL_OR_LEGAL_ERROR")
