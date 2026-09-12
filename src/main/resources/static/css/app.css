@@ -358,6 +358,19 @@ html[dir="rtl"] h1 {
     letter-spacing: normal;
     line-height: 1.32;
 }
+html[dir="rtl"] .analysis-page,
+html[dir="rtl"] .analysis-page h1,
+html[dir="rtl"] .analysis-page h2,
+html[dir="rtl"] .analysis-page h3,
+html[dir="rtl"] .analysis-page h4,
+html[dir="rtl"] .analysis-page .section-kicker {
+    font-family: "Tajawal", Tahoma, Arial, "Segoe UI", sans-serif;
+    letter-spacing: normal;
+}
+html[dir="rtl"] .analysis-page h1,
+html[dir="rtl"] .analysis-page h2,
+html[dir="rtl"] .analysis-page h3,
+html[dir="rtl"] .analysis-page h4 { line-height: 1.45; }
 html[dir="rtl"] .site-language select { padding: 7px 11px 7px 27px; }
 
 footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; padding: 28px 0 42px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
@@ -594,6 +607,25 @@ footer { display: flex; align-items: center; justify-content: space-between; fle
 .catalog-result-heading span { color: var(--muted); font-size: 11px; }
 .catalog-pagination { display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 30px; color: var(--muted); font-size: 11px; }
 .catalog-pagination button:disabled { cursor: default; opacity: .4; }
+
+.claims-list { align-items: stretch; gap: 18px; }
+.claim-card {
+    height: 100%;
+    padding: 24px;
+    border-radius: var(--radius-panel);
+    box-shadow: 0 8px 24px rgba(31,57,53,.06);
+}
+.claim-card .claim-meta { margin-bottom: 17px; }
+.claim-card .claim-statement {
+    margin: 0;
+    font-family: "Tajawal", Tahoma, Arial, "Segoe UI", sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.62;
+}
+.claim-card .claim-speaker { display: block; margin-top: 7px; font-size: 11px; line-height: 1.5; }
+.claim-card .claim-explanation { margin: 18px 0 0; padding-top: 18px; font-size: 13px; line-height: 1.75; }
+.claim-card .sources { margin-top: auto; padding-top: 17px; }
 
 .detail-loading { margin-block: 90px; }
 .video-detail { padding: 42px 0 100px; }

@@ -133,7 +133,7 @@ class NavigationConsistencyTest {
         for (String page : ALL_PAGES) {
             assertThat(html(page))
                     .as("stylesheet in %s", page)
-                    .containsOnlyOnce("/css/dist.css?v=20260912-5");
+                    .containsOnlyOnce("/css/dist.css?v=20260912-6");
         }
     }
 
@@ -186,7 +186,7 @@ class NavigationConsistencyTest {
         for (String page : ADMIN_PAGES) {
             assertThat(html(page))
                     .as("mobile assets in %s", page)
-                    .contains("/css/dist.css?v=20260912-5")
+                    .contains("/css/dist.css?v=20260912-6")
                     .contains("/js/i18n.js?v=20260912-6");
         }
     }
@@ -243,7 +243,7 @@ class NavigationConsistencyTest {
                 .contains("id=\"programmeMedia\" class=\"programme-media\"")
                 .contains("class=\"video-js vjs-big-play-centered\"")
                 .contains("/webjars/video.js/8.23.8/dist/video-js.min.css")
-                .contains("/css/dist.css?v=20260912-5")
+                .contains("/css/dist.css?v=20260912-6")
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.23.8/dist/video.min.js")
                 .contains("/js/i18n.js?v=20260912-6")

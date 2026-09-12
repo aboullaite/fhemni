@@ -535,10 +535,10 @@ function renderClaim(claim) {
                 </div>
                 <button class="timestamp-button btn btn-primary btn-soft btn-xs h-auto min-h-7 shrink-0 font-mono font-extrabold" type="button" data-seconds="${safeSeconds(claim.startSeconds)}">${formatTime(claim.startSeconds)}</button>
             </div>
-            <p class="claim-statement mb-2 mt-4 font-serif text-lg font-medium leading-snug rtl:font-arabic">${escapeHtml(claim.statement)}</p>
-            <span class="claim-speaker text-xs text-base-content/60">${escapeHtml(claim.speaker || t('analysis.speakerUnknown'))}</span>
-            ${claim.explanation ? `<p class="claim-explanation mb-0 mt-4 border-t border-base-300 pt-4 text-sm text-base-content/70">${escapeHtml(claim.explanation)}</p>` : ''}
-            ${sources ? `<div class="sources mt-3 flex flex-wrap gap-2">${sources}</div>` : ''}
+            <p class="claim-statement text-base-content">${escapeHtml(claim.statement)}</p>
+            <span class="claim-speaker text-base-content/60">${escapeHtml(claim.speaker || t('analysis.speakerUnknown'))}</span>
+            ${claim.explanation ? `<p class="claim-explanation border-t border-base-300 text-base-content/70">${escapeHtml(claim.explanation)}</p>` : ''}
+            ${sources ? `<div class="sources flex flex-wrap gap-2">${sources}</div>` : ''}
         </article>`;
 }
 
