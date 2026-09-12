@@ -102,9 +102,10 @@ FHEMNI_SITE_URL=https://fhemni.ma ./scripts/verify-web-fonts.sh
 ```
 
 The guard downloads every referenced font and checks its pinned SHA-256. With a
-site URL it also verifies that the live page serves the expected cache-busted CSS
-and that the live CSS still points to the approved Arabswell object. A deployment
-must be rolled back if either check fails. The renderer's bundled Noto files are
+site URL it also verifies that the live page serves the expected cache-busted CSS,
+that the live CSS still points to the approved Arabswell object, and that the
+proxy's Content Security Policy permits GCS fonts. A deployment must be rolled
+back if any check fails. The renderer's bundled Noto files are
 also mirrored under the bucket's `fonts/rendering/` prefix as canonical backups,
 but rendering deliberately remains local and does not depend on GCS availability.
 
