@@ -156,7 +156,11 @@ async function requestMagicLink(event, destination) {
         const options = await window.FhemniAuth.withCsrf({
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: form.email.value, returnTo: destination })
+            body: JSON.stringify({
+                email: form.email.value,
+                returnTo: destination,
+                locale: window.FhemniI18n?.locale?.() || document.documentElement.lang
+            })
         });
         const response = await fetch('/api/auth/magic-link', options);
         if (!response.ok) throw new Error('request failed');

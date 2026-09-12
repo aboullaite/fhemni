@@ -592,7 +592,7 @@
         'login.or': 'or use email',
         'login.emailLabel': 'Email address',
         'login.emailPlaceholder': 'you@example.com',
-        'login.emailAction': 'Email me a sign-in link',
+        'login.emailAction': 'Get link',
         'login.emailSent': 'Check your inbox. The one-time sign-in link expires shortly.',
         'login.emailError': 'We could not send the link. Check the address and try again.',
         'login.confirmTitle': 'Confirm sign-in',
@@ -1289,7 +1289,7 @@
         'login.or': 'ou utilisez votre e-mail',
         'login.emailLabel': 'Adresse e-mail',
         'login.emailPlaceholder': 'vous@exemple.com',
-        'login.emailAction': 'Recevoir un lien de connexion',
+        'login.emailAction': 'Recevoir le lien',
         'login.emailSent': 'Consultez votre boîte mail. Le lien à usage unique expire bientôt.',
         'login.emailError': 'Le lien n’a pas pu être envoyé. Vérifiez l’adresse et réessayez.',
         'login.confirmTitle': 'Confirmez la connexion',
@@ -2572,6 +2572,9 @@
     let currentLocale = resolveInitialLocale();
 
     function resolveInitialLocale() {
+        const requested = new URLSearchParams(window.location.search).get('lang');
+        if (SUPPORTED.includes(requested)) return requested;
+
         let stored;
         try {
             stored = window.localStorage.getItem(STORAGE_KEY);

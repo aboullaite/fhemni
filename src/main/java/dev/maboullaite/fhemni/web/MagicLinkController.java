@@ -62,7 +62,8 @@ public class MagicLinkController {
         try {
             magicLinks.send(
                     request == null ? null : request.email(),
-                    request == null ? null : request.returnTo());
+                    request == null ? null : request.returnTo(),
+                    request == null ? null : request.locale());
         } catch (IllegalArgumentException invalidEmail) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A valid email is required");
         }
@@ -71,6 +72,7 @@ public class MagicLinkController {
     @GetMapping("/auth/magic-link")
     public void prepare(
             @RequestParam String token,
+            @RequestParam(required = false) String lang,
             HttpServletResponse response) throws IOException {
         response.setHeader("Cache-Control", "no-store");
         response.setHeader("Referrer-Policy", "no-referrer");
@@ -80,7 +82,7 @@ public class MagicLinkController {
             return;
         }
         tokenCookie.save(response, token);
-        response.sendRedirect("/login?confirm=magic-link");
+        response.sendRedirect(confirmationLocation(lang));
     }
 
     @PostMapping("/auth/magic-link/confirm")
@@ -133,12 +135,19 @@ public class MagicLinkController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
     }
 
-    public record MagicLinkRequest(String email, String returnTo) {
+    public record MagicLinkRequest(String email, String returnTo, String locale) {
     }
 
     public record MagicLinkConfirmation(String returnTo) {
     }
 
     public record MagicLinkAccount(String maskedEmail) {
+    }
+
+    private static String confirmationLocation(String lang) {
+        return switch (lang == null ? "" : lang) {
+            case "ar", "en", "fr" -> "/login?confirm=magic-link&lang=" + lang;
+            default -> "/login?confirm=magic-link";
+        };
     }
 }
