@@ -1,0 +1,163 @@
+package dev.maboullaite.fhemni.programme;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.IntStream;
+
+import dev.maboullaite.fhemni.programme.PartyProgrammeService.PublicPromiseView;
+import dev.maboullaite.fhemni.programme.PromiseAssessmentReport.Category;
+import dev.maboullaite.fhemni.programme.PromiseAssessmentReport.Status;
+import org.junit.jupiter.api.Test;
+
+class PromiseAssessmentReportServiceTest {
+
+    private static final Instant NOW = Instant.parse("2026-09-11T18:00:00Z");
+
+    private final PromiseAssessmentReportRepository reports = mock(PromiseAssessmentReportRepository.class);
+    private final PartyProgrammeService programmes = mock(PartyProgrammeService.class);
+    private final PromiseAssessmentReportService service = new PromiseAssessmentReportService(
+            reports, programmes, Clock.fixed(NOW, ZoneOffset.UTC));
+
+    @Test
+    void attachesAReaderReportToTheCurrentlyPublishedAssessment() {
+        UUID promiseId = UUID.randomUUID();
+        UUID assessmentId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        PublicPromiseView promise = mock(PublicPromiseView.class);
+        PromiseAssessment assessment = mock(PromiseAssessment.class);
+        when(promise.id()).thenReturn(promiseId);
+        when(promise.assessment()).thenReturn(assessment);
+        when(assessment.id()).thenReturn(assessmentId);
+        when(programmes.publishedPromise("fuel-margin-cap")).thenReturn(promise);
+        PromiseAssessmentReport saved = report(
+                promiseId, assessmentId, userId,
+                "Articles 2, 3 and 63 appear to permit a permanent margin cap.",
+                "https://adala.justice.gov.ma/law.pdf");
+        when(reports.save(
+                promiseId, assessmentId, userId, Category.FACTUAL_OR_LEGAL_ERROR,
+                saved.details(), saved.sourceUrl(), NOW)).thenReturn(saved);
+
+        PromiseAssessmentReport actual = service.submit(
+                "fuel-margin-cap", userId, Category.FACTUAL_OR_LEGAL_ERROR,
+                "  " + saved.details() + "  ", saved.sourceUrl());
+
+        assertThat(actual).isSameAs(saved);
+        verify(reports).save(
+                promiseId, assessmentId, userId, Category.FACTUAL_OR_LEGAL_ERROR,
+                saved.details(), saved.sourceUrl(), NOW);
+    }
+
+    @Test
+    void attachesAReaderReportToTheAssessmentRevisionShownOnThePage() {
+        UUID promiseId = UUID.randomUUID();
+        UUID displayedAssessmentId = UUID.randomUUID();
+        UUID currentAssessmentId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
+        PublicPromiseView promise = mock(PublicPromiseView.class);
+        PromiseAssessment current = mock(PromiseAssessment.class);
+        PromiseAssessment displayed = mock(PromiseAssessment.class);
+        when(promise.id()).thenReturn(promiseId);
+        when(promise.assessment()).thenReturn(current);
+        when(current.id()).thenReturn(currentAssessmentId);
+        when(displayed.id()).thenReturn(displayedAssessmentId);
+        when(programmes.publishedPromise("fuel-margin-cap")).thenReturn(promise);
+        when(programmes.reportableAssessment(promiseId, displayedAssessmentId)).thenReturn(displayed);
+        PromiseAssessmentReport saved = report(
+                promiseId, displayedAssessmentId, userId,
+                "The assessment shown on this page may rely on an outdated legal source.",
+                "https://adala.justice.gov.ma/archive.pdf");
+        when(reports.save(
+                promiseId, displayedAssessmentId, userId, Category.OUTDATED_OR_MISSING_SOURCE,
+                saved.details(), saved.sourceUrl(), NOW)).thenReturn(saved);
+
+        PromiseAssessmentReport actual = service.submit(
+                "fuel-margin-cap", displayedAssessmentId, userId,
+                Category.OUTDATED_OR_MISSING_SOURCE, saved.details(), saved.sourceUrl());
+
+        assertThat(actual).isSameAs(saved);
+        verify(programmes).reportableAssessment(promiseId, displayedAssessmentId);
+        verify(reports).save(
+                promiseId, displayedAssessmentId, userId, Category.OUTDATED_OR_MISSING_SOURCE,
+                saved.details(), saved.sourceUrl(), NOW);
+    }
+
+    @Test
+    void labelsReaderClaimsAsUntrustedContextForFocusedReanalysis() {
+        UUID promiseId = UUID.randomUUID();
+        PromiseAssessmentReport report = report(
+                promiseId, UUID.randomUUID(), UUID.randomUUID(),
+                "The legal mechanism in the published assessment may be incomplete.",
+                "https://adala.justice.gov.ma/law.pdf");
+        when(reports.openReports(promiseId)).thenReturn(List.of(report));
+
+        ProgrammeReviewContext context = service.reviewContext(
+                promiseId, "Check the consolidated act and its implementing decree.");
+
+        assertThat(context.prompt())
+                .contains("untrusted claim to investigate")
+                .contains(report.details())
+                .contains(report.sourceUrl())
+                .contains("Check the consolidated act")
+                .contains("[FACTUAL_OR_LEGAL_ERROR]");
+        assertThat(context.reports())
+                .containsExactly(new ProgrammeReviewContext.ReportSnapshot(
+                        report.id(), report.updatedAt()));
+    }
+
+    @Test
+    void boundsEachReassessmentToEightCompleteReaderReports() {
+        UUID promiseId = UUID.randomUUID();
+        List<PromiseAssessmentReport> open = IntStream.rangeClosed(1, 9)
+                .mapToObj(index -> report(
+                        promiseId,
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                        "report-" + index + " " + "x".repeat(1_480),
+                        "https://example.org/" + index + "/" + "s".repeat(2_000)))
+                .toList();
+        when(reports.openReports(promiseId)).thenReturn(open);
+
+        ProgrammeReviewContext context = service.reviewContext(
+                promiseId, "n".repeat(1_500));
+
+        assertThat(context.reports()).hasSize(8);
+        assertThat(context.prompt())
+                .contains("report-8")
+                .doesNotContain("report-9")
+                .hasSizeLessThan(32_000);
+    }
+
+    @Test
+    void rejectsNonHttpsSourcesBeforeSavingAReport() {
+        assertThatThrownBy(() -> service.submit(
+                "fuel-margin-cap", UUID.randomUUID(), Category.OTHER,
+                "This report contains enough detail to be reviewed.",
+                "http://example.org/source"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("HTTPS");
+
+        verifyNoInteractions(reports);
+    }
+
+    private static PromiseAssessmentReport report(
+            UUID promiseId,
+            UUID assessmentId,
+            UUID userId,
+            String details,
+            String sourceUrl) {
+        return new PromiseAssessmentReport(
+                UUID.randomUUID(), promiseId, assessmentId, userId,
+                Category.FACTUAL_OR_LEGAL_ERROR, details, sourceUrl,
+                Status.OPEN, NOW, NOW, null);
+    }
+}

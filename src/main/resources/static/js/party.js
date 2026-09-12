@@ -585,7 +585,11 @@
         const verdictDescription = t(`promise.verdictDescription.${promise.verdict}`);
         verdict.title = verdictDescription;
         verdict.setAttribute('aria-label', verdictDescription);
-        top.append(topic, verdict);
+        const actions = document.createElement('span');
+        actions.className = 'promise-card-actions';
+        actions.append(verdict, window.FhemniCatalog.createPromiseReportButton(
+            promise.slug, promise.assessmentId));
+        top.append(topic, actions);
         const title = document.createElement('h3');
         const link = document.createElement('a');
         link.href = `/promises/${encodeURIComponent(promise.slug)}`;

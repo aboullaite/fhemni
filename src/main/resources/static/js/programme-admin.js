@@ -12,9 +12,14 @@
     const refresh = document.querySelector('#refreshProgrammes');
     let programmes = [];
     let jobsByProgramme = {};
+    let assessmentReports = [];
     let mediaByProgramme = {};
     let pollTimer = null;
     const expandedProgrammes = new Map();
+    const expandedPromises = new Map();
+    const expandedAssessmentDetails = new Map();
+    const focusReaderReports = new URLSearchParams(window.location.search).get('focus') === 'reports';
+    let reportFocusApplied = false;
 
     function t(key, parameters = {}) {
         return window.FhemniI18n?.t(key, parameters) ?? key;
@@ -31,9 +36,10 @@
     async function load() {
         refresh.disabled = true;
         try {
-            [programmes, jobsByProgramme, mediaByProgramme] = await Promise.all([
+            [programmes, jobsByProgramme, assessmentReports, mediaByProgramme] = await Promise.all([
                 window.FhemniCatalog.requestJson('/api/admin/programmes'),
                 window.FhemniCatalog.requestJson('/api/admin/programmes/assessment-jobs'),
+                window.FhemniCatalog.requestJson('/api/admin/programmes/assessment-reports'),
                 window.FhemniCatalog.requestJson('/api/admin/programmes/media')
             ]);
             render();
@@ -142,12 +148,27 @@
             list.append(empty);
             return;
         }
-        programmes.forEach(programme => list.append(programmeCard(programme)));
+        [...programmes]
+            .sort((left, right) => reportCountForProgramme(right) - reportCountForProgramme(left))
+            .forEach(programme => list.append(programmeCard(programme)));
+        if (focusReaderReports && !reportFocusApplied) {
+            reportFocusApplied = true;
+            window.requestAnimationFrame(() => {
+                document.querySelector('.programme-promise-row.has-reader-reports')
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+        }
+    }
+
+    function reportCountForProgramme(programme) {
+        const promiseIds = new Set(programme.promises.map(item => item.promise.id));
+        return assessmentReports.filter(report => promiseIds.has(report.promiseId)).length;
     }
 
     function programmeCard(programme) {
         const article = document.createElement('article');
         article.className = 'programme-review-card';
+        article.dataset.programmeId = programme.id;
 
         const body = document.createElement('div');
         body.className = 'programme-card-body';
@@ -155,11 +176,12 @@
         const job = jobsByProgramme[programme.id];
         const jobIsActive = ['QUEUED', 'RUNNING', 'RETRY_WAIT'].includes(job?.status);
         const { complete, total } = assessmentCounts(programme);
+        const reportCount = reportCountForProgramme(programme);
+        article.classList.toggle('has-reader-reports', reportCount > 0);
 
         const heading = document.createElement('button');
         heading.type = 'button';
         heading.className = 'programme-card-summary';
-        heading.setAttribute('aria-expanded', String(expandedProgrammes.get(programme.id) ?? jobIsActive));
         const copy = document.createElement('div');
         copy.className = 'programme-card-heading';
         const title = document.createElement('h3');
@@ -176,11 +198,25 @@
 
         const indicators = document.createElement('span');
         indicators.className = 'programme-card-indicators';
+        if (reportCount > 0) {
+            const reportFlag = document.createElement('span');
+            reportFlag.className = 'programme-report-flag';
+            reportFlag.title = t('admin.readerReportsFlagHint');
+            reportFlag.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4m0 0c5-3 8 3 14 0v10c-6 3-9-3-14 0"/></svg>';
+            const reportTotal = document.createElement('span');
+            reportTotal.textContent = t('admin.assessmentReportsShort', { count: reportCount });
+            reportFlag.append(reportTotal);
+            indicators.append(reportFlag);
+        }
         indicators.append(statusBadge(programme.status));
         if (jobIsActive) {
             const running = document.createElement('span');
             running.className = 'programme-card-running';
-            running.textContent = t(`admin.programmeJob.${job.status}.title`);
+            const state = t(`admin.programmeJob.${job.status}.title`);
+            running.textContent = job.reassessment
+                ? t('admin.focusedReviewActive', { state })
+                : state;
+            if (job.reassessment) running.title = t('admin.focusedReviewQueueHint');
             indicators.append(running);
         }
         const chevron = document.createElement('span');
@@ -189,7 +225,10 @@
         indicators.append(chevron);
         heading.append(copy, indicators);
 
-        const expanded = expandedProgrammes.get(programme.id) ?? jobIsActive;
+        const savedExpanded = expandedProgrammes.get(programme.id);
+        const expanded = savedExpanded ?? (jobIsActive || (focusReaderReports && reportCount > 0));
+        if (savedExpanded === undefined && expanded) expandedProgrammes.set(programme.id, true);
+        heading.setAttribute('aria-expanded', String(expanded));
         body.hidden = !expanded;
         article.classList.toggle('expanded', expanded);
         heading.addEventListener('click', () => {
@@ -274,6 +313,7 @@
     function programmeMediaPanel(programme, media) {
         const panel = document.createElement('section');
         panel.className = 'programme-media-admin';
+        panel.dataset.programmeMedia = programme.id;
         const heading = document.createElement('div');
         heading.className = 'programme-review-top';
         const copy = document.createElement('div');
@@ -291,6 +331,13 @@
             heading.append(copy);
         }
         panel.append(heading);
+
+        if (media?.refreshRequired) {
+            const warning = document.createElement('p');
+            warning.className = 'programme-media-warning';
+            warning.textContent = t('admin.programmeMediaRefreshRequired');
+            panel.append(warning);
+        }
 
         if (!media || media.status === 'STALE') {
             const start = actionButton(t('admin.programmeMediaStart'), true,
@@ -373,7 +420,7 @@
         headlineLabel.textContent = t('admin.programmeMediaHeadline');
         const headline = document.createElement('input');
         headline.required = true;
-        headline.maxLength = 120;
+        headline.maxLength = 64;
         headline.dir = 'rtl';
         headline.value = media.script.headline;
         headline.dataset.mediaHeadline = '';
@@ -568,6 +615,11 @@
     function promiseRow(item) {
         const row = document.createElement('details');
         row.className = 'programme-promise-row';
+        const reports = assessmentReports.filter(report => report.promiseId === item.promise.id);
+        row.classList.toggle('has-reader-reports', reports.length > 0);
+        row.open = expandedPromises.get(item.promise.id)
+            ?? (focusReaderReports && reports.length > 0);
+        row.addEventListener('toggle', () => expandedPromises.set(item.promise.id, row.open));
         const top = document.createElement('summary');
         top.className = 'programme-review-top';
         const title = document.createElement('strong');
@@ -599,6 +651,7 @@
             actions.append(publish, discard);
             row.append(actions);
         } else {
+            row.append(targetedReviewPanel(item));
             const view = document.createElement('a');
             view.className = 'text-link';
             view.href = `/promises/${encodeURIComponent(item.promise.slug)}`;
@@ -606,6 +659,111 @@
             row.append(view);
         }
         return row;
+    }
+
+    function targetedReviewPanel(item) {
+        const reports = assessmentReports.filter(report => report.promiseId === item.promise.id);
+        const panel = document.createElement('section');
+        panel.className = 'programme-targeted-review';
+        panel.classList.toggle('has-reader-reports', reports.length > 0);
+        const heading = document.createElement('div');
+        heading.className = 'programme-review-top';
+        const title = document.createElement('strong');
+        title.textContent = t('admin.reanalysePromise');
+        const count = document.createElement('span');
+        count.className = 'programme-report-count';
+        count.textContent = t('admin.assessmentReports', { count: reports.length });
+        heading.append(title);
+        if (reports.length) heading.append(count);
+        const intro = document.createElement('p');
+        intro.textContent = t('admin.reanalysePromiseIntro');
+        panel.append(heading, intro);
+
+        if (reports.length) {
+            const list = document.createElement('div');
+            list.className = 'programme-report-list';
+            reports.forEach(report => {
+                const article = document.createElement('article');
+                const label = document.createElement('strong');
+                label.textContent = t(`admin.assessmentReportCategory.${report.category}`);
+                const details = document.createElement('p');
+                details.dir = 'auto';
+                details.textContent = report.details;
+                article.append(label, details);
+                if (report.sourceUrl) {
+                    const source = document.createElement('a');
+                    source.href = report.sourceUrl;
+                    source.target = '_blank';
+                    source.rel = 'noopener noreferrer';
+                    source.textContent = report.sourceUrl;
+                    article.append(source);
+                }
+                const dismiss = actionButton(t('admin.dismissAssessmentReport'), true,
+                    () => dismissAssessmentReport(report.id, dismiss));
+                dismiss.className = 'secondary-button programme-action programme-action-danger programme-report-dismiss';
+                const actions = document.createElement('div');
+                actions.className = 'programme-report-actions';
+                actions.append(dismiss);
+                article.append(actions);
+                list.append(article);
+            });
+            panel.append(list);
+        }
+
+        const note = document.createElement('textarea');
+        note.rows = 3;
+        note.maxLength = 1500;
+        note.dir = 'auto';
+        note.placeholder = t('admin.reanalysePromiseNote');
+        const job = jobsByProgramme[item.promise.programmeId];
+        const jobActive = ['QUEUED', 'RUNNING', 'RETRY_WAIT'].includes(job?.status);
+        const hasDraft = item.assessments.some(assessment => assessment.status === 'DRAFT');
+        const run = actionButton(t('admin.reanalysePromise'), !jobActive && !hasDraft,
+            () => startPromiseReassessment(item.promise.id, note.value, reports.length, run));
+        run.className = 'primary-button programme-action';
+        const controls = document.createElement('div');
+        controls.className = 'programme-targeted-review-controls';
+        controls.append(note, run);
+        panel.append(controls);
+        return panel;
+    }
+
+    async function startPromiseReassessment(promiseId, note, reportCount, button) {
+        if (!String(note || '').trim() && reportCount === 0) {
+            showFeedback(t('admin.reanalysePromiseNeedsContext'), true);
+            return;
+        }
+        button.disabled = true;
+        try {
+            const options = await window.FhemniAuth.withCsrf({
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ note: String(note || '').trim() || null })
+            });
+            await window.FhemniCatalog.requestJson(
+                `/api/admin/programmes/promises/${promiseId}/assessment-jobs`, options, 30_000);
+            showFeedback(t('admin.reanalysePromiseQueued'), false);
+            await load();
+        } catch (error) {
+            showFeedback(programmeError(error), true);
+            button.disabled = false;
+        }
+    }
+
+    async function dismissAssessmentReport(reportId, button) {
+        if (!window.confirm(t('admin.dismissAssessmentReportConfirm'))) return;
+        button.disabled = true;
+        try {
+            const options = await window.FhemniAuth.withCsrf({ method: 'POST' });
+            const response = await fetch(
+                `/api/admin/programmes/assessment-reports/${reportId}/dismiss`, options);
+            if (!response.ok) throw new Error(t('common.requestFailed', { status: response.status }));
+            showFeedback(t('admin.assessmentReportDismissed'), false);
+            await load();
+        } catch (error) {
+            showFeedback(error.message, true);
+            button.disabled = false;
+        }
     }
 
     function assessmentCard(assessment) {
@@ -634,6 +792,9 @@
 
         const details = document.createElement('details');
         details.className = 'programme-assessment-details';
+        details.open = expandedAssessmentDetails.get(assessment.id) ?? false;
+        details.addEventListener('toggle', () =>
+            expandedAssessmentDetails.set(assessment.id, details.open));
         const detailsLabel = document.createElement('summary');
         detailsLabel.textContent = t('admin.showAssessmentDetails');
         const detailsBody = document.createElement('div');
@@ -790,7 +951,88 @@
             .some(job => ['QUEUED', 'RUNNING', 'RETRY_WAIT'].includes(job.status))
             || Object.values(mediaByProgramme)
                 .some(media => ['QUEUED_SCRIPT', 'GENERATING_SCRIPT', 'QUEUED_MEDIA', 'RENDERING_MEDIA'].includes(media.status));
-        if (running) pollTimer = window.setTimeout(load, 3000);
+        if (running) pollTimer = window.setTimeout(pollActiveWork, 3000);
+    }
+
+    async function pollActiveWork() {
+        try {
+            const [nextJobs, nextMedia] = await Promise.all([
+                window.FhemniCatalog.requestJson('/api/admin/programmes/assessment-jobs'),
+                window.FhemniCatalog.requestJson('/api/admin/programmes/media')
+            ]);
+            const changedJobs = changedMapKeys(jobsByProgramme, nextJobs, jobFingerprint);
+            const changedMedia = changedMapKeys(mediaByProgramme, nextMedia, mediaFingerprint);
+            let nextProgrammes = programmes;
+            if (changedJobs.size) {
+                nextProgrammes = await window.FhemniCatalog.requestJson('/api/admin/programmes');
+            }
+
+            jobsByProgramme = nextJobs;
+            mediaByProgramme = nextMedia;
+            const changedProgrammes = changedProgrammeKeys(programmes, nextProgrammes);
+            programmes = nextProgrammes;
+            const replaceCards = new Set([...changedJobs, ...changedProgrammes]);
+            replaceCards.forEach(updateProgrammeCard);
+            changedMedia.forEach(programmeId => {
+                if (!replaceCards.has(programmeId)) updateProgrammeMediaPanel(programmeId);
+            });
+            syncReplacementOption();
+        } catch (error) {
+            // Keep the current DOM—including playing media—intact on a transient polling failure.
+            console.warn('Programme status refresh failed', error);
+        } finally {
+            schedulePolling();
+        }
+    }
+
+    function changedMapKeys(previous, next, fingerprint) {
+        const keys = new Set([...Object.keys(previous || {}), ...Object.keys(next || {})]);
+        return new Set([...keys].filter(key => fingerprint(previous?.[key]) !== fingerprint(next?.[key])));
+    }
+
+    function changedProgrammeKeys(previous, next) {
+        const previousById = Object.fromEntries(previous.map(programme => [programme.id, programme]));
+        const nextById = Object.fromEntries(next.map(programme => [programme.id, programme]));
+        return changedMapKeys(previousById, nextById, value => JSON.stringify(value || null));
+    }
+
+    function jobFingerprint(job) {
+        if (!job) return '';
+        return JSON.stringify([
+            job.id, job.status, job.reassessment, job.totalItems, job.completedItems,
+            job.failedItems, job.currentPromiseSlug, job.lastErrorCode, job.lastErrorMessage
+        ]);
+    }
+
+    function mediaFingerprint(media) {
+        if (!media) return '';
+        return JSON.stringify([
+            media.id, media.status, media.scriptRevision, media.script, media.durationMs,
+            media.illustrationCount, media.lastErrorCode, media.lastErrorMessage, media.publishedAt
+        ]);
+    }
+
+    function updateProgrammeCard(programmeId) {
+        const current = list.querySelector(`[data-programme-id="${programmeId}"]`);
+        const programme = programmes.find(candidate => candidate.id === programmeId);
+        if (!programme) {
+            current?.remove();
+            return;
+        }
+        const replacement = programmeCard(programme);
+        if (current) current.replaceWith(replacement);
+        else list.append(replacement);
+    }
+
+    function updateProgrammeMediaPanel(programmeId) {
+        const current = list.querySelector(
+            `[data-programme-id="${programmeId}"] [data-programme-media="${programmeId}"]`);
+        const programme = programmes.find(candidate => candidate.id === programmeId);
+        if (!current || !programme || programme.status !== 'PUBLISHED') {
+            updateProgrammeCard(programmeId);
+            return;
+        }
+        current.replaceWith(programmeMediaPanel(programme, mediaByProgramme[programmeId]));
     }
 
     ingestForm.addEventListener('submit', ingest);

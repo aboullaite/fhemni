@@ -22,7 +22,6 @@ class ProgrammeAssessmentCommitter {
         this.programmes = programmes;
     }
 
-    @Transactional
     void saveAndComplete(
             ProgrammeAssessmentJobRepository.Lease lease,
             UUID programmeId,
@@ -30,8 +29,21 @@ class ProgrammeAssessmentCommitter {
             FactCheckResult result,
             List<UUID> promiseIds,
             Instant now) {
+        saveAndComplete(lease, programmeId, requested, result, promiseIds, false, now);
+    }
+
+    @Transactional
+    void saveAndComplete(
+            ProgrammeAssessmentJobRepository.Lease lease,
+            UUID programmeId,
+            List<ExtractedPromise> requested,
+            FactCheckResult result,
+            List<UUID> promiseIds,
+            boolean reassessment,
+            Instant now) {
         jobs.requireOwnedLease(lease, now);
-        programmes.saveGeneratedAssessments(programmeId, requested, result);
+        programmes.saveGeneratedAssessments(programmeId, requested, result, reassessment);
+        jobs.linkGeneratedAssessments(lease, promiseIds, now);
         jobs.completeItems(lease, promiseIds, now);
     }
 }

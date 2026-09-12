@@ -397,6 +397,18 @@ public class PartyProgrammeRepository {
                 .map(this::withEvidence);
     }
 
+    public Optional<PromiseAssessment> findPublishedAssessment(UUID promiseId) {
+        return jdbc.sql("""
+                        SELECT %s FROM promise_assessments
+                         WHERE promise_id = :promiseId AND editorial_status = 'PUBLISHED'
+                         ORDER BY revision_number DESC LIMIT 1
+                        """.formatted(ASSESSMENT_COLUMNS))
+                .param("promiseId", promiseId)
+                .query(this::mapAssessment)
+                .optional()
+                .map(this::withEvidence);
+    }
+
     public List<PromiseAssessment> findAssessments(UUID promiseId, boolean publishedOnly) {
         return findAssessments(List.of(promiseId), publishedOnly).getOrDefault(promiseId, List.of());
     }

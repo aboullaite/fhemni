@@ -8,6 +8,8 @@ public record ProgrammeAssessmentJob(
         UUID programmeId,
         Status status,
         String providerMode,
+        boolean reassessment,
+        String reviewContext,
         int totalItems,
         int completedItems,
         int failedItems,

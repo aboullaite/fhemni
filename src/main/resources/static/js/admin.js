@@ -29,6 +29,9 @@
     const chatTokensDetail = document.querySelector('#chatTokensDetail');
     const allAiTokensMetric = document.querySelector('#allAiTokensMetric');
     const allAiTokensDetail = document.querySelector('#allAiTokensDetail');
+    const assessmentReportsAlert = document.querySelector('#adminAssessmentReportsAlert');
+    const assessmentReportsCount = document.querySelector('#adminAssessmentReportsCount');
+    const assessmentReportsDetail = document.querySelector('#adminAssessmentReportsDetail');
     let videos = [];
     let suggestions = [];
     let analysisAvailable = false;
@@ -41,6 +44,7 @@
     let contextMigrationRunning = false;
     let contextMigrationPollTimer = null;
     let metrics = null;
+    let openAssessmentReportCount = 0;
 
     function t(key, parameters = {}) {
         return window.FhemniI18n?.t(key, parameters) ?? key;
@@ -95,6 +99,26 @@
         return new Intl.NumberFormat(window.FhemniI18n?.locale() || 'en', compact
             ? { notation: 'compact', maximumFractionDigits: 1 }
             : undefined).format(Number(value) || 0);
+    }
+
+    async function loadAssessmentReports() {
+        if (!assessmentReportsAlert) return;
+        try {
+            const reports = await window.FhemniCatalog.requestJson('/api/admin/programmes/assessment-reports');
+            openAssessmentReportCount = reports.length;
+            renderAssessmentReportsAlert();
+        } catch (_) {
+            assessmentReportsAlert.hidden = true;
+        }
+    }
+
+    function renderAssessmentReportsAlert() {
+        if (!assessmentReportsAlert) return;
+        assessmentReportsAlert.hidden = openAssessmentReportCount === 0;
+        assessmentReportsCount.textContent = formatMetric(openAssessmentReportCount);
+        assessmentReportsDetail.textContent = t('admin.readerReportsAlertCopy', {
+            count: formatMetric(openAssessmentReportCount)
+        });
     }
 
     async function loadVideos() {
@@ -650,7 +674,10 @@
     form?.addEventListener('submit', importVideos);
     batchButton?.addEventListener('click', runBatchAnalysis);
     contextMigrationButton?.addEventListener('click', runContextMigration);
-    refreshMetricsButton?.addEventListener('click', loadMetrics);
+    refreshMetricsButton?.addEventListener('click', () => Promise.all([
+        loadMetrics(),
+        loadAssessmentReports()
+    ]));
     refreshSuggestionMetadata?.addEventListener('click', refreshMissingSuggestionMetadata);
     refreshCatalogDates?.addEventListener('click', refreshMissingCatalogDates);
     document.addEventListener('DOMContentLoaded', () => {
@@ -661,6 +688,7 @@
         return Promise.all([
             loadCapabilities(),
             loadMetrics(),
+            loadAssessmentReports(),
             loadVideos(),
             loadSuggestions(),
             loadBatchStatus(),
@@ -671,6 +699,7 @@
         if (list) renderVideos();
         if (suggestionList) renderSuggestions();
         if (refreshMetricsButton) renderMetrics();
+        renderAssessmentReportsAlert();
         if (batchButton) renderBatchStatus();
         if (contextMigrationPanel) renderContextMigrationStatus();
     });

@@ -11,6 +11,7 @@ import com.google.genai.gaos.models.interactions.ResponseFormat;
 import com.google.genai.gaos.models.interactions.TextResponseFormat;
 import com.google.genai.gaos.models.interactions.TextResponseFormatMimeType;
 import com.google.genai.gaos.models.interactions.ThinkingLevel;
+import dev.maboullaite.fhemni.programme.EditorialStatus;
 import dev.maboullaite.fhemni.programme.FeasibilityVerdict;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.AdminProgrammeView;
 import dev.maboullaite.fhemni.programme.PartyProgrammeService.AdminPromiseView;
@@ -38,6 +39,9 @@ public class ProgrammeMediaScriptGateway {
             assessment, preserve uncertainty, and finish with the most important open questions. Cover the programme
             broadly and proportionally. Treat five minutes as a firm editorial target: write 460-500 spoken words
             across 14-16 segments. Do not exceed 500 spoken words.
+
+            The headline is a concise title for the whole video: 4-8 words, no more than 64 characters, and short
+            enough to fit comfortably on two lines. Do not repeat the full official programme title or date range.
 
             The message is a short visual chapter heading (3-9 words). The narration is exactly what the voice will
             read for that segment (26-40 words). Use 14-16 segments so each burnt-in caption stays comfortably
@@ -106,7 +110,7 @@ public class ProgrammeMediaScriptGateway {
     }
 
     private List<String> sourceRefs(AdminProgrammeView programme) {
-        return programme.promises().stream().flatMap(item -> {
+        return publishedPromises(programme).stream().flatMap(item -> {
             var refs = new java.util.ArrayList<String>();
             refs.add("PROMISE:" + item.promise().id());
             item.assessments().stream()
@@ -122,7 +126,7 @@ public class ProgrammeMediaScriptGateway {
         dossier.append("PARTY CODE: ").append(programme.partyCode()).append('\n')
                 .append("PROGRAMME TITLE: ").append(programme.title().ar()).append('\n')
                 .append("PROGRAMME SUMMARY: ").append(programme.summary().ar()).append("\n\n");
-        for (AdminPromiseView item : programme.promises()) {
+        for (AdminPromiseView item : publishedPromises(programme)) {
             dossier.append("SOURCE REF: PROMISE:").append(item.promise().id()).append('\n')
                     .append("TOPIC: ").append(item.promise().topic()).append('\n')
                     .append("TITLE: ").append(item.promise().title().ar()).append('\n')
@@ -146,6 +150,12 @@ public class ProgrammeMediaScriptGateway {
                 %s
                 END DOSSIER
                 """.formatted(dossier);
+    }
+
+    private List<AdminPromiseView> publishedPromises(AdminProgrammeView programme) {
+        return programme.promises().stream()
+                .filter(item -> item.promise().status() == EditorialStatus.PUBLISHED)
+                .toList();
     }
 
     private String verdict(FeasibilityVerdict verdict) {

@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -114,6 +115,15 @@ public class PartyProgrammeService {
             UUID programmeId,
             List<ExtractedPromise> requestedPromises,
             FactCheckResult generatedResult) {
+        return saveGeneratedAssessments(programmeId, requestedPromises, generatedResult, false);
+    }
+
+    @Transactional
+    public AdminProgrammeView saveGeneratedAssessments(
+            UUID programmeId,
+            List<ExtractedPromise> requestedPromises,
+            FactCheckResult generatedResult,
+            boolean reassessment) {
         AdminProgrammeView programme = adminView(programme(programmeId));
         Map<String, AdminPromiseView> pending = new LinkedHashMap<>();
         for (ExtractedPromise requested : requestedPromises) {
@@ -122,9 +132,16 @@ public class PartyProgrammeService {
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException(
                             "The fact-check batch contains an unknown promise."));
-            if (!promise.assessments().isEmpty() || pending.put(requested.slug(), promise) != null) {
+            boolean invalidInitialAssessment = !reassessment && !promise.assessments().isEmpty();
+            boolean invalidReassessment = reassessment && (
+                    promise.assessments().stream().noneMatch(assessment ->
+                            assessment.status() == EditorialStatus.PUBLISHED)
+                    || promise.assessments().stream().anyMatch(assessment ->
+                            assessment.status() == EditorialStatus.DRAFT));
+            if (invalidInitialAssessment || invalidReassessment
+                    || pending.put(requested.slug(), promise) != null) {
                 throw new IllegalArgumentException(
-                        "The fact-check batch contains an assessed or duplicate promise.");
+                        "The fact-check batch contains a promise that cannot receive this assessment revision.");
             }
         }
         List<GeneratedAssessment> assessments = generatedResult == null || generatedResult.assessments() == null
@@ -244,12 +261,24 @@ public class PartyProgrammeService {
 
     @Transactional
     public PromiseAssessment publishAssessment(UUID assessmentId) {
+        return publishAssessmentRevision(assessmentId).assessment();
+    }
+
+    @Transactional
+    public AssessmentPublication publishAssessmentRevision(UUID assessmentId) {
         PromiseAssessment assessment = repository.findAssessment(assessmentId)
+                .orElseThrow(() -> new NoSuchElementException("Assessment not found."));
+        repository.lockPromise(assessment.promiseId());
+        assessment = repository.findAssessment(assessmentId)
                 .orElseThrow(() -> new NoSuchElementException("Assessment not found."));
         requireDraft(assessment.status(), "assessment");
         requirePublishableAssessment(assessment);
+        PromiseAssessment previous = repository.findPublishedAssessment(assessment.promiseId()).orElse(null);
         repository.publishAssessment(assessment.id(), assessment.promiseId(), Instant.now());
-        return repository.findAssessment(assessmentId).orElseThrow();
+        PromiseAssessment published = repository.findAssessment(assessmentId).orElseThrow();
+        return new AssessmentPublication(
+                published,
+                previous != null && mediaAssessmentContentChanged(previous, published));
     }
 
     @Transactional
@@ -408,6 +437,14 @@ public class PartyProgrammeService {
                 policyTopics.findPromiseTopics(List.of(promise.id())).getOrDefault(promise.id(), List.of()));
     }
 
+    public PromiseAssessment reportableAssessment(UUID promiseId, UUID assessmentId) {
+        return repository.findAssessment(assessmentId)
+                .filter(candidate -> candidate.promiseId().equals(promiseId))
+                .filter(candidate -> candidate.status() != EditorialStatus.DRAFT)
+                .orElseThrow(() -> new NoSuchElementException(
+                        "The reported assessment revision is not available."));
+    }
+
     public List<PublicPromiseHighlight> featuredPublishedPromises(int requestedLimit) {
         int limit = Math.min(Math.max(requestedLimit, 1), 6);
         List<PartyProgrammeRepository.PublishedPromise> candidates = repository.findFeaturedPublishedPromises(limit);
@@ -419,7 +456,7 @@ public class PartyProgrammeService {
                     PromiseAssessment assessment = latestPublishedAssessment(
                             promise.id(), assessments.getOrDefault(promise.id(), List.of()));
                     return new PublicPromiseHighlight(
-                            candidate.partyCode(), promise.slug(), promise.topic(), promise.title(),
+                            candidate.partyCode(), promise.slug(), assessment.id(), promise.topic(), promise.title(),
                             assessment.verdict(), assessment.summary(), assessment.dataCutoff());
                 })
                 .toList();
@@ -446,6 +483,10 @@ public class PartyProgrammeService {
         return new AdminPromiseView(promise, repository.findAssessments(promise.id(), false));
     }
 
+    public AdminPromiseView adminPromise(UUID promiseId) {
+        return adminPromiseView(promise(promiseId));
+    }
+
     private PublicPromiseSummary publicPromiseSummary(
             PartyPromise promise,
             List<PromiseAssessment> assessments,
@@ -465,6 +506,12 @@ public class PartyProgrammeService {
             List<PromiseAssessment> assessments) {
         return assessments.stream().findFirst()
                 .orElseThrow(() -> new IllegalStateException("A published promise is missing its assessment."));
+    }
+
+    private boolean mediaAssessmentContentChanged(PromiseAssessment previous, PromiseAssessment replacement) {
+        return previous.verdict() != replacement.verdict()
+                || !Objects.equals(previous.summary().ar(), replacement.summary().ar())
+                || !Objects.equals(previous.assumptions().ar(), replacement.assumptions().ar());
     }
 
     private PartyProgramme programme(UUID id) {
@@ -706,6 +753,9 @@ public class PartyProgrammeService {
     public record AdminPromiseView(PartyPromise promise, List<PromiseAssessment> assessments) {
     }
 
+    public record AssessmentPublication(PromiseAssessment assessment, boolean mediaContentChanged) {
+    }
+
     public record PublicProgrammeView(
             String partyCode,
             int electionYear,
@@ -757,6 +807,7 @@ public class PartyProgrammeService {
     public record PublicPromiseHighlight(
             String partyCode,
             String slug,
+            UUID assessmentId,
             String topic,
             LocalizedText title,
             FeasibilityVerdict verdict,

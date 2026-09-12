@@ -30,7 +30,11 @@
         const verdict = document.createElement('span');
         verdict.className = `feasibility-badge ${verdictClass(promise.verdict)}`;
         verdict.textContent = t(`promise.verdict.${promise.verdict}`);
-        top.append(party, verdict);
+        const actions = document.createElement('span');
+        actions.className = 'promise-card-actions';
+        actions.append(verdict, window.FhemniCatalog.createPromiseReportButton(
+            promise.slug, promise.assessmentId));
+        top.append(party, actions);
 
         const title = document.createElement('h3');
         const link = document.createElement('a');

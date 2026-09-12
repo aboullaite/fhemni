@@ -197,8 +197,7 @@ final class GeminiSchemas {
         if (allowedSourceRefs == null || allowedSourceRefs.isEmpty()) {
             throw new IllegalArgumentException("Programme media source references must not be empty.");
         }
-        try {
-            return read(mapper, """
+        return read(mapper, """
                 {
                   "type": "object",
                   "additionalProperties": false,
@@ -218,7 +217,7 @@ final class GeminiSchemas {
                             "type": "array",
                             "minItems": 1,
                             "maxItems": 8,
-                            "items": {"type": "string", "enum": %s}
+                            "items": {"type": "string"}
                           }
                         },
                         "required": ["message", "narration", "sourceRefs"]
@@ -227,10 +226,7 @@ final class GeminiSchemas {
                   },
                   "required": ["headline", "segments"]
                 }
-                """.formatted(mapper.writeValueAsString(allowedSourceRefs)));
-        } catch (JacksonException exception) {
-            throw new IllegalStateException("Could not build the programme media response schema", exception);
-        }
+                """);
     }
 
     private static JsonNode read(ObjectMapper mapper, String json) {

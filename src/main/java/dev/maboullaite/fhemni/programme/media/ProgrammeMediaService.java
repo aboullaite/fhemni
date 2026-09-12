@@ -114,6 +114,10 @@ public class ProgrammeMediaService {
         return media(mediaId);
     }
 
+    public void markRefreshRequiredForAssessment(UUID promiseId) {
+        repository.markRefreshRequiredForPromise(promiseId, Instant.now());
+    }
+
     private ProgrammeMedia media(UUID id) {
         return repository.find(id).orElseThrow(() -> new NoSuchElementException("Programme media was not found."));
     }

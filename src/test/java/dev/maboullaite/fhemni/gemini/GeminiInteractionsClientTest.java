@@ -17,6 +17,43 @@ import org.junit.jupiter.api.Test;
 class GeminiInteractionsClientTest {
 
     @Test
+    void retainsTheProviderReasonForRejectedInteractions() throws IOException {
+        byte[] response = """
+                {"error":{"code":"INVALID_ARGUMENT","message":"The response schema is too large."}}
+                """.getBytes(StandardCharsets.UTF_8);
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/", exchange -> {
+            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.sendResponseHeaders(400, response.length);
+            exchange.getResponseBody().write(response);
+            exchange.close();
+        });
+        server.start();
+
+        try {
+            GeminiInteractionsClient client = new GeminiInteractionsClient(
+                    "test-key",
+                    "test-model",
+                    "http://127.0.0.1:" + server.getAddress().getPort(),
+                    "v1beta",
+                    Duration.ofSeconds(2),
+                    Duration.ofSeconds(2));
+            var request = CreateModelInteraction.builder()
+                    .model("test-model")
+                    .input(InteractionsInput.of("test"))
+                    .build();
+
+            assertThatThrownBy(() -> client.create(request))
+                    .isInstanceOf(GeminiApiException.class)
+                    .hasMessageContaining("HTTP 400")
+                    .hasMessageContaining("response schema is too large");
+            client.close();
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
     void rejectsIncompleteInteractionsInsteadOfReturningTruncatedText() throws IOException {
         byte[] response = """
                 {

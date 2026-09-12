@@ -58,36 +58,49 @@ public class ProgrammeFactCheckService {
     }
 
     public FactCheckResult assess(String sourceUrl, List<ExtractedPromise> promises) {
+        return assess(sourceUrl, promises, null);
+    }
+
+    public FactCheckResult assess(
+            String sourceUrl,
+            List<ExtractedPromise> promises,
+            String reviewContext) {
         return switch (mode) {
-            case GEMINI -> result(callGemini(sourceUrl, promises), mode, gemini.model());
-            case OPENAI -> result(callOpenAi(sourceUrl, promises), mode, openAi.model());
-            case CONSENSUS -> consensus(sourceUrl, promises);
+            case GEMINI -> result(callGemini(sourceUrl, promises, reviewContext), mode, gemini.model());
+            case OPENAI -> result(callOpenAi(sourceUrl, promises, reviewContext), mode, openAi.model());
+            case CONSENSUS -> consensus(sourceUrl, promises, reviewContext);
         };
     }
 
-    private FactCheckResult consensus(String sourceUrl, List<ExtractedPromise> promises) {
-        IndependentResults independent = runIndependentPasses(sourceUrl, promises);
+    private FactCheckResult consensus(
+            String sourceUrl,
+            List<ExtractedPromise> promises,
+            String reviewContext) {
+        IndependentResults independent = runIndependentPasses(sourceUrl, promises, reviewContext);
         CandidatePair candidates = orderedCandidates(
                 sourceUrl, independent.gemini().assessments(), independent.openAi().assessments());
         // An ungrounded Gemini candidate is useful only as an untrusted second opinion. OpenAI must
         // independently search, cite and reconcile it before the result can become an editorial draft.
         if (independent.gemini().grounded() && geminiReconciles(sourceUrl)) {
             AssessmentResult finalResult = callGeminiConsensus(
-                    sourceUrl, promises, candidates.first(), candidates.second());
+                    sourceUrl, promises, candidates.first(), candidates.second(), reviewContext);
             return consensusResult(finalResult.assessments(), gemini.model(), "gemini");
         }
         OpenAiProgrammeFactCheckGateway.AssessmentResult finalResult = callOpenAiConsensus(
-                sourceUrl, promises, candidates.first(), candidates.second());
+                sourceUrl, promises, candidates.first(), candidates.second(), reviewContext);
         return consensusResult(finalResult.assessments(), openAi.model(), "openai");
     }
 
-    private IndependentResults runIndependentPasses(String sourceUrl, List<ExtractedPromise> promises) {
+    private IndependentResults runIndependentPasses(
+            String sourceUrl,
+            List<ExtractedPromise> promises,
+            String reviewContext) {
         ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
         CompletionService<IndependentPass> completed = new ExecutorCompletionService<>(executor);
         Future<IndependentPass> geminiTask = completed.submit(
-                () -> new GeminiPass(callGeminiCandidate(sourceUrl, promises)));
+                () -> new GeminiPass(callGeminiCandidate(sourceUrl, promises, reviewContext)));
         Future<IndependentPass> openAiTask = completed.submit(
-                () -> new OpenAiPass(callOpenAi(sourceUrl, promises)));
+                () -> new OpenAiPass(callOpenAi(sourceUrl, promises, reviewContext)));
         try {
             IndependentPass first = take(completed);
             IndependentPass second = take(completed);
@@ -118,11 +131,16 @@ public class ProgrammeFactCheckService {
                 METHODOLOGY_VERSION + "-consensus-" + reconciler);
     }
 
-    private AssessmentResult callGemini(String sourceUrl, List<ExtractedPromise> promises) {
+    private AssessmentResult callGemini(
+            String sourceUrl,
+            List<ExtractedPromise> promises,
+            String reviewContext) {
         Reservation reservation = usageGuard.reserveEditorial(AiOperation.PROMISE_FEASIBILITY, gemini.model());
         AiUsage consumed = AiUsage.empty();
         try {
-            AssessmentResult result = gemini.assess(sourceUrl, promises);
+            AssessmentResult result = hasReviewContext(reviewContext)
+                    ? gemini.assess(sourceUrl, promises, reviewContext)
+                    : gemini.assess(sourceUrl, promises);
             consumed = result.usage();
             validateCoverage(promises, result.assessments());
             usageGuard.succeeded(reservation, consumed);
@@ -136,11 +154,16 @@ public class ProgrammeFactCheckService {
         }
     }
 
-    private AssessmentResult callGeminiCandidate(String sourceUrl, List<ExtractedPromise> promises) {
+    private AssessmentResult callGeminiCandidate(
+            String sourceUrl,
+            List<ExtractedPromise> promises,
+            String reviewContext) {
         Reservation reservation = usageGuard.reserveEditorial(AiOperation.PROMISE_FEASIBILITY, gemini.model());
         AiUsage consumed = AiUsage.empty();
         try {
-            AssessmentResult result = gemini.assessCandidate(sourceUrl, promises);
+            AssessmentResult result = hasReviewContext(reviewContext)
+                    ? gemini.assessCandidate(sourceUrl, promises, reviewContext)
+                    : gemini.assessCandidate(sourceUrl, promises);
             consumed = result.usage();
             validateCoverage(promises, result.assessments());
             usageGuard.succeeded(reservation, consumed);
@@ -156,11 +179,14 @@ public class ProgrammeFactCheckService {
 
     private OpenAiProgrammeFactCheckGateway.AssessmentResult callOpenAi(
             String sourceUrl,
-            List<ExtractedPromise> promises) {
+            List<ExtractedPromise> promises,
+            String reviewContext) {
         Reservation reservation = usageGuard.reserveEditorial(AiOperation.PROMISE_FEASIBILITY, openAi.model());
         AiUsage consumed = AiUsage.empty();
         try {
-            var result = openAi.assess(sourceUrl, promises);
+            var result = hasReviewContext(reviewContext)
+                    ? openAi.assess(sourceUrl, promises, reviewContext)
+                    : openAi.assess(sourceUrl, promises);
             consumed = result.usage();
             validateCoverage(promises, result.assessments());
             usageGuard.succeeded(reservation, consumed);
@@ -178,11 +204,15 @@ public class ProgrammeFactCheckService {
             String sourceUrl,
             List<ExtractedPromise> promises,
             List<GeneratedAssessment> geminiAssessments,
-            List<GeneratedAssessment> openAiAssessments) {
+            List<GeneratedAssessment> openAiAssessments,
+            String reviewContext) {
         Reservation reservation = usageGuard.reserveEditorial(AiOperation.PROMISE_FEASIBILITY, openAi.model());
         AiUsage consumed = AiUsage.empty();
         try {
-            var result = openAi.reconcile(sourceUrl, promises, geminiAssessments, openAiAssessments);
+            var result = hasReviewContext(reviewContext)
+                    ? openAi.reconcile(
+                            sourceUrl, promises, geminiAssessments, openAiAssessments, reviewContext)
+                    : openAi.reconcile(sourceUrl, promises, geminiAssessments, openAiAssessments);
             consumed = result.usage();
             validateCoverage(promises, result.assessments());
             usageGuard.succeeded(reservation, consumed);
@@ -200,11 +230,14 @@ public class ProgrammeFactCheckService {
             String sourceUrl,
             List<ExtractedPromise> promises,
             List<GeneratedAssessment> candidateA,
-            List<GeneratedAssessment> candidateB) {
+            List<GeneratedAssessment> candidateB,
+            String reviewContext) {
         Reservation reservation = usageGuard.reserveEditorial(AiOperation.PROMISE_FEASIBILITY, gemini.model());
         AiUsage consumed = AiUsage.empty();
         try {
-            AssessmentResult result = gemini.reconcile(sourceUrl, promises, candidateA, candidateB);
+            AssessmentResult result = hasReviewContext(reviewContext)
+                    ? gemini.reconcile(sourceUrl, promises, candidateA, candidateB, reviewContext)
+                    : gemini.reconcile(sourceUrl, promises, candidateA, candidateB);
             consumed = result.usage();
             validateCoverage(promises, result.assessments());
             usageGuard.succeeded(reservation, consumed);
@@ -230,6 +263,10 @@ public class ProgrammeFactCheckService {
             }
             throw new ProgrammeFactCheckException("The programme fact check failed.", exception.getCause());
         }
+    }
+
+    private static boolean hasReviewContext(String reviewContext) {
+        return reviewContext != null && !reviewContext.isBlank();
     }
 
     private static IndependentPass take(CompletionService<IndependentPass> completed) {

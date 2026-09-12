@@ -21,6 +21,11 @@
             render();
             document.querySelector('#promiseLoading').hidden = true;
             document.querySelector('#promiseDetail').hidden = false;
+            if (window.location.hash === '#report') {
+                const assessmentId = new URLSearchParams(window.location.search)
+                    .get('reportAssessment') || promise.assessment.id;
+                await window.FhemniCatalog.openPromiseReport(promise.slug, assessmentId);
+            }
         } catch (error) {
             document.querySelector('#promiseLoading').hidden = true;
             const panel = document.querySelector('#promiseError');
@@ -32,6 +37,9 @@
     function render() {
         const assessment = promise.assessment;
         document.querySelector('#promiseTitle').textContent = localized(promise.title);
+        const reportAction = document.querySelector('#promiseReportAction');
+        reportAction.replaceChildren(window.FhemniCatalog.createPromiseReportButton(
+            promise.slug, assessment.id));
         document.querySelector('#promiseText').textContent = promise.promiseText;
         document.querySelector('#promiseParty').textContent = promise.partyCode;
         document.querySelector('#promiseTerm').textContent = `${promise.termStartYear}–${promise.termEndYear}`;
@@ -56,12 +64,6 @@
         document.querySelector('#promiseDataCutoff').textContent = t('promise.dataCutoff', {
             date: formatDate(assessment.dataCutoff)
         });
-        const correctionParameters = new URLSearchParams({
-            title: `[Correction] ${localized(promise.title)}`,
-            body: `Assessment: ${window.location.href.split('#')[0]}\n\nWhat appears incorrect?\n`
-        });
-        document.querySelector('#promiseReportErrorLink').href =
-            `https://github.com/aboullaite/fhemni/issues/new?${correctionParameters}`;
         const evidence = document.querySelector('#promiseEvidence');
         evidence.replaceChildren();
         assessment.evidence.forEach(item => evidence.append(evidenceItem(item)));
@@ -103,7 +105,9 @@
             .trim();
     }
 
-    document.addEventListener('DOMContentLoaded', load);
+    document.addEventListener('DOMContentLoaded', () => {
+        load();
+    });
     document.addEventListener('fhemni:localechange', () => {
         if (promise) render();
     });

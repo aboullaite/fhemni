@@ -89,6 +89,7 @@ public class SecurityConfiguration {
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/catalog/videos/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/catalog/parties/*/programme/questions").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/catalog/promises/*/reports").authenticated()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/catalog/people/**", "/api/catalog/parties/**", "/api/catalog/promises/**",
                                 "/api/catalog/policy-topics")
