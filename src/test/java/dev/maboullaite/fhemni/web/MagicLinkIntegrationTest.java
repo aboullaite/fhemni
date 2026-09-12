@@ -135,6 +135,11 @@ class MagicLinkIntegrationTest {
         mvc.perform(get("/auth/magic-link").param("token", token))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login?error=magic-link"));
+        mvc.perform(get("/auth/magic-link")
+                        .param("token", token)
+                        .param("lang", "fr"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login?error=magic-link&lang=fr"));
 
         mvc.perform(post("/auth/magic-link/confirm")
                         .with(csrf())

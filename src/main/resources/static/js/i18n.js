@@ -2573,7 +2573,10 @@
 
     function resolveInitialLocale() {
         const requested = new URLSearchParams(window.location.search).get('lang');
-        if (SUPPORTED.includes(requested)) return requested;
+        if (SUPPORTED.includes(requested)) {
+            storeLocale(requested);
+            return requested;
+        }
 
         let stored;
         try {
@@ -2635,11 +2638,15 @@
     function setLocale(locale) {
         if (!SUPPORTED.includes(locale) || locale === currentLocale) return;
         currentLocale = locale;
+        storeLocale(locale);
+        apply();
+        document.dispatchEvent(new CustomEvent('fhemni:localechange', { detail: { locale } }));
+    }
+
+    function storeLocale(locale) {
         try {
             window.localStorage.setItem(STORAGE_KEY, locale);
         } catch (_) { /* the selection still applies for this page */ }
-        apply();
-        document.dispatchEvent(new CustomEvent('fhemni:localechange', { detail: { locale } }));
     }
 
     function bindLanguageSwitchers() {
