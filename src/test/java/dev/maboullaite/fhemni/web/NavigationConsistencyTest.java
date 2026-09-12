@@ -133,7 +133,7 @@ class NavigationConsistencyTest {
         for (String page : ALL_PAGES) {
             assertThat(html(page))
                     .as("stylesheet in %s", page)
-                    .containsOnlyOnce("/css/dist.css?v=20260912-7");
+                    .containsOnlyOnce("/css/dist.css?v=20260913-1");
         }
     }
 
@@ -158,11 +158,17 @@ class NavigationConsistencyTest {
         assertThat(html("login.html"))
                 .contains("ستافد أكثر من فهّمني")
                 .contains("دخل لحسابك باش تسول فهّمني فالشات، تقترح وتصوّت.")
-                .contains("/js/login.js?v=20260912-6");
+                .contains("/js/login.js?v=20260913-1");
         assertThat(html("js/i18n.js"))
-                .contains("'login.emailAction': 'بغيت الرابط'");
+                .contains("'login.emailAction': 'بغيت الرابط'")
+                .contains("'login.emailAction': 'Get link'")
+                .contains("'login.emailAction': 'Recevoir le lien'")
+                .contains("new URLSearchParams(window.location.search).get('lang')")
+                .doesNotContain("'login.emailAction': 'Email me a sign-in link'")
+                .doesNotContain("'login.emailAction': 'Recevoir un lien de connexion'");
         assertThat(html("js/login.js"))
                 .contains("auth-provider--email")
+                .contains("locale: window.FhemniI18n?.locale?.() || document.documentElement.lang")
                 .contains("['google', 'discord'].includes(providerId)")
                 .contains("`auth-provider--${providerId}`")
                 .contains("providerIcon(provider.id)");
@@ -170,7 +176,10 @@ class NavigationConsistencyTest {
                 .contains(".auth-provider--google")
                 .contains("#1a73e8")
                 .contains(".auth-provider--discord")
-                .contains("#5865f2");
+                .contains("#5865f2")
+                .contains(".auth-main{min-height:0;padding:22px 0 72px;display:block}")
+                .contains(".auth-card{width:100%;padding-inline:20px}")
+                .contains(".magic-link-fields{grid-template-columns:minmax(0,1fr)}");
     }
 
     @Test
@@ -184,7 +193,7 @@ class NavigationConsistencyTest {
                 .contains("t('analysis.nonFactualExplanation')");
         assertThat(html("analysis.html"))
                 .contains("/js/analysis.js?v=20260912-2")
-                .contains("/js/i18n.js?v=20260912-8");
+                .contains("/js/i18n.js?v=20260913-1");
     }
 
     @Test
@@ -200,8 +209,8 @@ class NavigationConsistencyTest {
         for (String page : ADMIN_PAGES) {
             assertThat(html(page))
                     .as("mobile assets in %s", page)
-                    .contains("/css/dist.css?v=20260912-7")
-                    .contains("/js/i18n.js?v=20260912-8");
+                    .contains("/css/dist.css?v=20260913-1")
+                    .contains("/js/i18n.js?v=20260913-1");
         }
     }
 
@@ -257,10 +266,10 @@ class NavigationConsistencyTest {
                 .contains("id=\"programmeMedia\" class=\"programme-media\"")
                 .contains("class=\"video-js vjs-big-play-centered\"")
                 .contains("/webjars/video.js/8.23.8/dist/video-js.min.css")
-                .contains("/css/dist.css?v=20260912-7")
+                .contains("/css/dist.css?v=20260913-1")
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.23.8/dist/video.min.js")
-                .contains("/js/i18n.js?v=20260912-8")
+                .contains("/js/i18n.js?v=20260913-1")
                 .contains("/js/party.js?v=20260912-1")
                 .containsOnlyOnce("data-i18n=\"programme.kicker\"")
                 .doesNotContain("data-i18n=\"programme.mediaPowered\"")

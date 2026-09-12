@@ -2,6 +2,7 @@ package dev.maboullaite.fhemni.web;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -148,6 +149,64 @@ class MagicLinkIntegrationTest {
     void confirmationPreviewRequiresThePreparedHttpOnlyCookie() throws Exception {
         mvc.perform(get("/auth/magic-link/preview"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void localizesTheWholeEmailFromTheSelectedLoginLanguage() throws Exception {
+        mvc.perform(post("/api/auth/magic-link")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"english@example.com","returnTo":"/","locale":"en-US"}
+                                """))
+                .andExpect(status().isAccepted());
+        mvc.perform(post("/api/auth/magic-link")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"french@example.com","returnTo":"/","locale":"fr"}
+                                """))
+                .andExpect(status().isAccepted());
+
+        ArgumentCaptor<String> recipient = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> subject = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> text = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> html = ArgumentCaptor.forClass(String.class);
+        verify(emailSender, times(2)).send(
+                eq("Fhemni <login@fhemni.example>"),
+                recipient.capture(),
+                subject.capture(),
+                text.capture(),
+                html.capture());
+
+        org.assertj.core.api.Assertions.assertThat(recipient.getAllValues())
+                .containsExactly("english@example.com", "french@example.com");
+        org.assertj.core.api.Assertions.assertThat(subject.getAllValues())
+                .containsExactly("Your Fhemni.ma sign-in link", "Votre lien de connexion Fhemni.ma");
+        org.assertj.core.api.Assertions.assertThat(text.getAllValues().get(0))
+                .contains("Use this one-time link", "expires in 15 minutes", "&lang=en");
+        org.assertj.core.api.Assertions.assertThat(html.getAllValues().get(0))
+                .contains(
+                        "<html lang=\"en\" dir=\"ltr\">",
+                        "Continue to Fhemni",
+                        ">Sign in</a>",
+                        "&amp;lang=en");
+        org.assertj.core.api.Assertions.assertThat(text.getAllValues().get(1))
+                .contains("Utilisez ce lien à usage unique", "expire dans 15 minutes", "&lang=fr");
+        org.assertj.core.api.Assertions.assertThat(html.getAllValues().get(1))
+                .contains(
+                        "<html lang=\"fr\" dir=\"ltr\">",
+                        "Continuez vers Fhemni",
+                        ">Se connecter</a>",
+                        "&amp;lang=fr");
+
+        var englishToken = TOKEN.matcher(text.getAllValues().get(0));
+        assert englishToken.find();
+        mvc.perform(get("/auth/magic-link")
+                        .param("token", englishToken.group(1))
+                        .param("lang", "en"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login?confirm=magic-link&lang=en"));
     }
 
     @Test

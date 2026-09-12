@@ -435,14 +435,12 @@ footer { display: flex; align-items: center; justify-content: space-between; fle
 .magic-link-fields .auth-provider { min-height: 46px; padding-inline: 15px; cursor: pointer; white-space: nowrap; }
 .magic-link-fields .auth-provider:disabled { cursor: wait; opacity: .65; }
 .magic-link-status { margin: 0; border-radius: 12px; background: var(--mint); color: var(--teal-dark); padding: 13px; font-size: 12px; line-height: 1.6; }
-@media (max-width: 420px) { .magic-link-fields { grid-template-columns: 1fr; } }
-
 @media (max-width: 900px) {
     .hero { min-height: auto; padding-top: 70px; }
 }
 
 @media (max-width: 640px) {
-    .site-header, main, footer { width: min(100% - 24px, 1180px); }
+    .site-header, main, footer { width: min(calc(100% - 24px), 1180px); }
     .site-header { padding-top: 15px; }
     .header-actions { align-items: flex-end; flex-direction: column-reverse; }
     .account-name, .mode-badge { display: none; }
@@ -455,7 +453,14 @@ footer { display: flex; align-items: center; justify-content: space-between; fle
     .url-row { grid-template-columns: 1fr; }
     .primary-button { justify-content: center; height: 53px; }
     .form-footer { align-items: flex-start; flex-direction: column; }
+    .auth-main { min-height: 0; display: block; padding: 22px 0 72px; }
     .auth-card, .admin-welcome { padding: 25px; }
+    .auth-card { width: 100%; padding-inline: 20px; }
+    .auth-card h1 { margin: 14px 0 10px; font-size: clamp(2.15rem, 10vw, 2.8rem); }
+    .auth-card > p { overflow-wrap: anywhere; }
+    .login-providers { margin-top: 22px; }
+    .magic-link-fields { grid-template-columns: minmax(0, 1fr); }
+    .magic-link-fields .auth-provider { width: max-content; max-width: 100%; justify-self: start; }
     footer { flex-direction: column; }
 }
 
