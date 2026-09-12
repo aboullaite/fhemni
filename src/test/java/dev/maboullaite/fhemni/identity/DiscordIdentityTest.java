@@ -27,6 +27,10 @@ class DiscordIdentityTest {
                 .containsExactly("discord");
         assertThat(catalog.findByRegistrationId("discord").getScopes())
                 .containsExactlyInAnyOrder("identify", "email");
+        assertThat(catalog.findByRegistrationId("discord").getProviderDetails().getTokenUri())
+                .isEqualTo("https://discord.com/api/v10/oauth2/token");
+        assertThat(catalog.findByRegistrationId("discord").getProviderDetails().getUserInfoEndpoint().getUri())
+                .isEqualTo("https://discord.com/api/v10/users/@me");
         assertThat(catalog.findByRegistrationId("github")).isNull();
     }
 

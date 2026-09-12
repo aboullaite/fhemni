@@ -25,19 +25,41 @@ openssl rand -base64 32 > .secrets/postgres_password
 : > .secrets/openai_api_key
 : > .secrets/google_client_id
 : > .secrets/google_client_secret
+: > .secrets/discord_client_id
+: > .secrets/discord_client_secret
+: > .secrets/smtp_password
 : > .secrets/admin_identities
 : > .secrets/google_cloud_media_credentials
 : > .secrets/google_cloud_media_writer_credentials
 chmod 444 .secrets/*
 ```
 
-Add Gemini, OpenAI, or OAuth values only to the corresponding ignored file. Never
+Add Gemini, OpenAI, OAuth, or SMTP password values only to the corresponding
+ignored file. Never
 put them in `.env.container`, `compose.yaml`, an image build argument, or Git.
 `GEMINI_CREDENTIAL_VERSION` is a non-secret cache-generation label: change it
 whenever the Gemini key belongs to a different Google project. Existing public
 reports remain unchanged, while chat stays unavailable for them until an admin
 temporarily enables `FHEMNI_CONTEXT_MIGRATION_ENABLED` and runs the one-off
 migration shown in the admin catalogue.
+
+To enable Discord sign-in, create an application in the Discord Developer
+Portal, add this exact OAuth2 redirect, and put the application's client ID and
+client secret in the matching secret files:
+
+```text
+https://fhemni.ma/login/oauth2/code/discord
+```
+
+No bot token, guild installation, or server permission is required. Discord
+sign-in requests only the `identify` and `email` scopes.
+
+To enable email magic-link sign-in, configure the SMTP host, port, username,
+sender, and TLS settings in `.env.container`; put only the SMTP password in
+`.secrets/smtp_password`. Then set `FHEMNI_MAGIC_LINK_ENABLED=true`. The
+production base URL is already `https://fhemni.ma`, and links expire after 15
+minutes by default. Use an authenticated sender on `fhemni.ma` and complete the
+mail provider's SPF, DKIM, and DMARC setup before launch.
 
 Party-programme fact checking defaults to Gemini. To run the OpenAI-only or
 consensus mode, put the key in `.secrets/openai_api_key` and set

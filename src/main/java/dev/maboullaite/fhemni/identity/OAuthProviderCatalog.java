@@ -36,8 +36,8 @@ public class OAuthProviderCatalog implements ClientRegistrationRepository, Itera
                     .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
                     .scope("identify", "email")
                     .authorizationUri("https://discord.com/oauth2/authorize")
-                    .tokenUri("https://discord.com/api/oauth2/token")
-                    .userInfoUri("https://discord.com/api/users/@me")
+                    .tokenUri("https://discord.com/api/v10/oauth2/token")
+                    .userInfoUri("https://discord.com/api/v10/users/@me")
                     .userNameAttributeName("id")
                     .clientName("Discord")
                     .build());
