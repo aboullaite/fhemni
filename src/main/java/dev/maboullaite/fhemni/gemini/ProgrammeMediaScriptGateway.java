@@ -39,6 +39,9 @@ public class ProgrammeMediaScriptGateway {
             broadly and proportionally. Treat five minutes as a firm editorial target: write 460-500 spoken words
             across 14-16 segments. Do not exceed 500 spoken words.
 
+            The headline is a concise title for the whole video: 4-8 words, no more than 64 characters, and short
+            enough to fit comfortably on two lines. Do not repeat the full official programme title or date range.
+
             The message is a short visual chapter heading (3-9 words). The narration is exactly what the voice will
             read for that segment (26-40 words). Use 14-16 segments so each burnt-in caption stays comfortably
             readable on a phone. Both must be natural Darija and understandable without French where

@@ -88,6 +88,19 @@ class ProgrammeMediaScriptPolicyTest {
                 .hasMessageContaining("between 460 and 500 spoken words");
     }
 
+    @Test
+    void rejectsAHeadlineThatWouldWrapOntoThreeVideoLines() {
+        Dossier dossier = dossier();
+
+        assertThatThrownBy(() -> policy.validate(
+                new ProgrammeMediaScript(
+                        "الاستراتيجيات/الوطنية الإصلاحات/الاقتصادية الانتظارات/الاجتماعية",
+                        script(dossier.promiseIds()).segments()),
+                dossier.programme()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("no more than two video lines");
+    }
+
     private static Dossier dossier() {
         AdminProgrammeView programme = mock(AdminProgrammeView.class);
         List<UUID> ids = java.util.stream.IntStream.range(0, 5)

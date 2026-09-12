@@ -411,7 +411,7 @@
         headlineLabel.textContent = t('admin.programmeMediaHeadline');
         const headline = document.createElement('input');
         headline.required = true;
-        headline.maxLength = 120;
+        headline.maxLength = 64;
         headline.dir = 'rtl';
         headline.value = media.script.headline;
         headline.dataset.mediaHeadline = '';

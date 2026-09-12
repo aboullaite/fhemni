@@ -15,6 +15,8 @@ import org.springframework.stereotype.Component;
 public class ProgrammeMediaScriptPolicy {
 
     public static final String PRONUNCIATION_VERSION = "darija-v2-strong-h";
+    private static final int HEADLINE_LINE_LENGTH = 34;
+    private static final int MAX_HEADLINE_LINES = 2;
     private static final Pattern FHEMNI_BRAND = Pattern.compile(
             "ف[\\u064B-\\u065F\\u0670]*ه[\\u064B-\\u065F\\u0670]*م[\\u064B-\\u065F\\u0670]*ن[\\u064B-\\u065F\\u0670]*ي[\\u064B-\\u065F\\u0670]*");
     private static final Pattern INTERNAL_CODE = Pattern.compile(
@@ -25,7 +27,10 @@ public class ProgrammeMediaScriptPolicy {
         if (script == null) {
             throw new IllegalArgumentException("The programme media script is missing.");
         }
-        String headline = text(script.headline(), "headline", 12, 120);
+        String headline = text(script.headline(), "headline", 12, 64);
+        if (wrappedLineCount(headline, HEADLINE_LINE_LENGTH) > MAX_HEADLINE_LINES) {
+            throw new IllegalArgumentException("The headline must fit on no more than two video lines.");
+        }
         List<ProgrammeMediaScript.Segment> supplied = script.segments() == null ? List.of() : script.segments();
         if (supplied.size() < 14 || supplied.size() > 16) {
             throw new IllegalArgumentException("A five-minute briefing needs between 14 and 16 segments.");
@@ -117,5 +122,20 @@ public class ProgrammeMediaScriptPolicy {
 
     private int wordCount(String value) {
         return value.isBlank() ? 0 : value.split("\\s+").length;
+    }
+
+    private int wrappedLineCount(String value, int lineLength) {
+        int lines = 1;
+        int currentLength = 0;
+        for (String word : value.split("\\s+")) {
+            int nextLength = currentLength == 0 ? word.length() : currentLength + 1 + word.length();
+            if (currentLength > 0 && nextLength > lineLength) {
+                lines++;
+                currentLength = word.length();
+            } else {
+                currentLength = nextLength;
+            }
+        }
+        return lines;
     }
 }
