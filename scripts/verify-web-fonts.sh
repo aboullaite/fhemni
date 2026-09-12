@@ -46,9 +46,8 @@ if [ -n "${FHEMNI_SITE_URL:-}" ]; then
     css_ref=$(sed -n 's/.*href="\([^"]*\/css\/dist\.css?v=[^"]*\)".*/\1/p' \
         "$project_root/src/main/resources/static/index.html" | head -n 1)
     curl --fail --silent --show-error --location --retry 3 --connect-timeout 5 --max-time 20 \
+        --dump-header "$check_dir/live.headers" \
         "$site_url/" --output "$check_dir/live.html"
-    curl --fail --silent --show-error --head --retry 3 --connect-timeout 5 --max-time 20 \
-        "$site_url/" --output "$check_dir/live.headers"
     if ! grep -Eiq '^content-security-policy:.*font-src[^;]*https://storage\.googleapis\.com' \
         "$check_dir/live.headers"; then
         echo "Live Content-Security-Policy does not allow GCS fonts" >&2
