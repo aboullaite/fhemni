@@ -51,14 +51,11 @@ public class MagicLinkService {
                 ? requestedReturnTarget
                 : "/";
         links.create(email, returnTarget, Instant.now().plus(properties.magicLink().lifetime()))
-                .ifPresent(token -> {
-                    try {
-                        sendEmail(email, token);
-                    } catch (RuntimeException deliveryFailure) {
-                        links.revoke(token);
-                        throw deliveryFailure;
-                    }
-                });
+                .ifPresent(token -> sendEmail(email, token));
+    }
+
+    public boolean valid(String token) {
+        return links.valid(token);
     }
 
     @Transactional

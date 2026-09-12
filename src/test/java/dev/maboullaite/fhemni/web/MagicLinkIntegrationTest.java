@@ -1,7 +1,9 @@
 package dev.maboullaite.fhemni.web;
 
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -11,8 +13,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.regex.Pattern;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
 import dev.maboullaite.fhemni.identity.MagicLinkEmailSender;
+import dev.maboullaite.fhemni.identity.MagicLinkRepository;
 import dev.maboullaite.fhemni.identity.UserAccountRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -20,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -46,6 +56,9 @@ class MagicLinkIntegrationTest {
 
     @Autowired
     private UserAccountRepository users;
+
+    @Autowired
+    private MagicLinkRepository links;
 
     @MockitoBean
     private MagicLinkEmailSender emailSender;
@@ -82,11 +95,26 @@ class MagicLinkIntegrationTest {
                 .contains(token)
                 .contains("15 دقيقة");
 
-        var login = mvc.perform(get("/auth/magic-link").param("token", token))
+        var prepared = mvc.perform(get("/auth/magic-link").param("token", token))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(header().string("Cache-Control", "no-store"))
                 .andExpect(header().string("Referrer-Policy", "no-referrer"))
-                .andExpect(redirectedUrl("/community"))
+                .andExpect(redirectedUrl("/login?confirm=magic-link"))
+                .andReturn();
+        var tokenCookie = prepared.getResponse().getCookie("FHEMNI_MAGIC_LINK");
+        org.assertj.core.api.Assertions.assertThat(tokenCookie).isNotNull();
+        org.assertj.core.api.Assertions.assertThat(tokenCookie.isHttpOnly()).isTrue();
+        org.assertj.core.api.Assertions.assertThat(tokenCookie.getSecure()).isTrue();
+
+        mvc.perform(get("/auth/magic-link").param("token", token))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login?confirm=magic-link"));
+
+        var login = mvc.perform(post("/auth/magic-link/confirm")
+                        .with(csrf())
+                        .cookie(tokenCookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.returnTo").value("/community"))
                 .andReturn();
         var sessionCookie = login.getResponse().getCookie("FHEMNI_SESSION");
 
@@ -100,6 +128,11 @@ class MagicLinkIntegrationTest {
         mvc.perform(get("/auth/magic-link").param("token", token))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login?error=magic-link"));
+
+        mvc.perform(post("/auth/magic-link/confirm")
+                        .with(csrf())
+                        .cookie(tokenCookie))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -144,8 +177,69 @@ class MagicLinkIntegrationTest {
         var matcher = TOKEN.matcher(message.getValue());
         assert matcher.find();
 
+        var prepared = mvc.perform(get("/auth/magic-link").param("token", matcher.group(1)))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login?confirm=magic-link"))
+                .andReturn();
+        mvc.perform(post("/auth/magic-link/confirm")
+                        .with(csrf())
+                        .cookie(prepared.getResponse().getCookie("FHEMNI_MAGIC_LINK")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.returnTo").value("/"));
+    }
+
+    @Test
+    void keepsTheTokenValidWhenMailgunTimesOutAfterReceivingTheRequest() throws Exception {
+        AtomicReference<String> message = new AtomicReference<>();
+        doAnswer(invocation -> {
+            message.set(invocation.getArgument(3));
+            throw new ResourceAccessException("timed out waiting for Mailgun");
+        }).when(emailSender).send(
+                eq("Fhemni <login@fhemni.example>"),
+                eq("timeout@example.com"),
+                eq("رابط الدخول لفهّمني · Fhemni.ma"),
+                org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.anyString());
+
+        assertThatThrownBy(() -> mvc.perform(post("/api/auth/magic-link")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"timeout@example.com\"}")))
+                .hasRootCauseInstanceOf(ResourceAccessException.class);
+
+        var matcher = TOKEN.matcher(message.get());
+        assert matcher.find();
         mvc.perform(get("/auth/magic-link").param("token", matcher.group(1)))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/"));
+                .andExpect(redirectedUrl("/login?confirm=magic-link"));
+    }
+
+    @Test
+    void enforcesThePerEmailLimitAcrossConcurrentRequests() throws Exception {
+        int requestCount = 12;
+        var ready = new CountDownLatch(requestCount);
+        var start = new CountDownLatch(1);
+        var futures = new ArrayList<java.util.concurrent.Future<Optional<String>>>();
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            for (int index = 0; index < requestCount; index++) {
+                futures.add(executor.submit(() -> {
+                    ready.countDown();
+                    start.await();
+                    return links.create(
+                            "concurrent@example.com",
+                            "/",
+                            Instant.now().plusSeconds(900));
+                }));
+            }
+            ready.await();
+            start.countDown();
+            long created = 0;
+            for (var future : futures) {
+                if (future.get().isPresent()) {
+                    created++;
+                }
+            }
+            org.assertj.core.api.Assertions.assertThat(created).isEqualTo(5);
+        }
     }
 }

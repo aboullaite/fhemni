@@ -158,7 +158,7 @@ class NavigationConsistencyTest {
         assertThat(html("login.html"))
                 .contains("ستافد أكثر من فهّمني")
                 .contains("دخل لحسابك باش تسول فهّمني فالشات، تقترح وتصوّت.")
-                .contains("/js/login.js?v=20260912-3");
+                .contains("/js/login.js?v=20260912-4");
         assertThat(html("js/i18n.js"))
                 .contains("'login.emailAction': 'بغيت الرابط'");
         assertThat(html("js/login.js"))
@@ -187,7 +187,7 @@ class NavigationConsistencyTest {
             assertThat(html(page))
                     .as("mobile assets in %s", page)
                     .contains("/css/dist.css?v=20260912-5")
-                    .contains("/js/i18n.js?v=20260912-5");
+                    .contains("/js/i18n.js?v=20260912-6");
         }
     }
 
@@ -246,7 +246,7 @@ class NavigationConsistencyTest {
                 .contains("/css/dist.css?v=20260912-5")
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.23.8/dist/video.min.js")
-                .contains("/js/i18n.js?v=20260912-5")
+                .contains("/js/i18n.js?v=20260912-6")
                 .contains("/js/party.js?v=20260912-1")
                 .containsOnlyOnce("data-i18n=\"programme.kicker\"")
                 .doesNotContain("data-i18n=\"programme.mediaPowered\"")

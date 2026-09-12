@@ -14,8 +14,13 @@ async function renderLogin() {
         : 'default';
     const requestedDestination = parameters.get('continue');
     const destination = safeLocalPath(requestedDestination) ? requestedDestination : '/';
-    document.querySelector('#loginTitle').textContent = t(`login.intent.${intent}.title`);
-    document.querySelector('#loginIntro').textContent = t(`login.intent.${intent}.intro`);
+    const confirmingMagicLink = parameters.get('confirm') === 'magic-link';
+    document.querySelector('#loginTitle').textContent = confirmingMagicLink
+        ? t('login.confirmTitle')
+        : t(`login.intent.${intent}.title`);
+    document.querySelector('#loginIntro').textContent = confirmingMagicLink
+        ? t('login.confirmIntro')
+        : t(`login.intent.${intent}.intro`);
     error.hidden = !parameters.has('error');
 
     try {
@@ -24,6 +29,18 @@ async function renderLogin() {
             providers.innerHTML = `
                 <p>${escapeHtml(t('login.signedInAs', { name: current.user.displayName }))}</p>
                 <a class="primary-button auth-provider" href="${escapeHtml(destination)}">${escapeHtml(t('login.continue'))}</a>`;
+            return;
+        }
+        if (confirmingMagicLink) {
+            providers.innerHTML = `
+                <button id="confirmMagicLink" class="auth-provider auth-provider--email" type="button">
+                    <svg class="auth-provider__icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M5 12.5 9.5 17 19 7.5"/>
+                    </svg>
+                    <span>${escapeHtml(t('login.confirmAction'))}</span>
+                </button>
+                <p class="magic-link-status" aria-live="polite" hidden></p>`;
+            providers.querySelector('#confirmMagicLink')?.addEventListener('click', confirmMagicLink);
             return;
         }
         if (!current.providers.length && !current.magicLinkEnabled) {
@@ -61,6 +78,24 @@ async function renderLogin() {
         });
     } catch (_) {
         providers.innerHTML = `<div class="login-not-configured">${escapeHtml(t('login.unavailable'))}</div>`;
+    }
+}
+
+async function confirmMagicLink(event) {
+    const button = event.currentTarget;
+    const status = button.parentElement.querySelector('.magic-link-status');
+    button.disabled = true;
+    status.hidden = true;
+    try {
+        const options = await window.FhemniAuth.withCsrf({ method: 'POST' });
+        const response = await fetch('/auth/magic-link/confirm', options);
+        if (!response.ok) throw new Error('confirmation failed');
+        const result = await response.json();
+        window.location.replace(safeLocalPath(result.returnTo) ? result.returnTo : '/');
+    } catch (_) {
+        status.textContent = t('login.confirmError');
+        status.hidden = false;
+        button.disabled = false;
     }
 }
 

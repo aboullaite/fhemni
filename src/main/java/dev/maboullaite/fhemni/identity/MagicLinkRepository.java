@@ -30,6 +30,12 @@ public class MagicLinkRepository {
     @Transactional
     public Optional<String> create(String email, String returnTarget, Instant expiresAt) {
         Instant now = Instant.now();
+        // Keep the count-and-insert decision atomic across application instances. The
+        // transaction holds this row only for the few database statements below; email
+        // delivery happens after this method commits.
+        jdbc.sql("SELECT id FROM magic_link_rate_limit_lock WHERE id = 1 FOR UPDATE")
+                .query(Integer.class)
+                .single();
         int recent = jdbc.sql("""
                         SELECT COUNT(*) FROM magic_link_tokens
                          WHERE email = :email AND created_at >= :since
@@ -61,6 +67,22 @@ public class MagicLinkRepository {
         return Optional.of(token);
     }
 
+    public boolean valid(String token) {
+        if (token == null || token.length() > 256) {
+            return false;
+        }
+        return jdbc.sql("""
+                        SELECT COUNT(*) FROM magic_link_tokens
+                         WHERE token_hash = :tokenHash
+                           AND used_at IS NULL
+                           AND expires_at > :now
+                        """)
+                .param("tokenHash", hash(token))
+                .param("now", atUtc(Instant.now()))
+                .query(Integer.class)
+                .single() == 1;
+    }
+
     @Transactional
     public Optional<VerifiedLink> consume(String token) {
         if (token == null || token.length() > 256) {
@@ -87,16 +109,6 @@ public class MagicLinkRepository {
                 .param("tokenHash", tokenHash)
                 .update();
         return link;
-    }
-
-    @Transactional
-    public void revoke(String token) {
-        if (token == null || token.length() > 256) {
-            return;
-        }
-        jdbc.sql("DELETE FROM magic_link_tokens WHERE token_hash = :tokenHash")
-                .param("tokenHash", hash(token))
-                .update();
     }
 
     private static String newToken() {

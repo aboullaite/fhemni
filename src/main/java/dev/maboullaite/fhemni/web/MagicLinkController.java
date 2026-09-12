@@ -8,6 +8,7 @@ import dev.maboullaite.fhemni.identity.AppUser;
 import dev.maboullaite.fhemni.identity.LoginReturnTargetCookie;
 import dev.maboullaite.fhemni.identity.MagicLinkRateLimiter;
 import dev.maboullaite.fhemni.identity.MagicLinkService;
+import dev.maboullaite.fhemni.identity.MagicLinkTokenCookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,7 @@ public class MagicLinkController {
 
     private final MagicLinkService magicLinks;
     private final MagicLinkRateLimiter rateLimiter;
+    private final MagicLinkTokenCookie tokenCookie;
     private final LoginReturnTargetCookie returnTargetCookie;
     private final HttpSessionSecurityContextRepository securityContexts =
             new HttpSessionSecurityContextRepository();
@@ -38,9 +40,11 @@ public class MagicLinkController {
     public MagicLinkController(
             MagicLinkService magicLinks,
             MagicLinkRateLimiter rateLimiter,
+            MagicLinkTokenCookie tokenCookie,
             LoginReturnTargetCookie returnTargetCookie) {
         this.magicLinks = magicLinks;
         this.rateLimiter = rateLimiter;
+        this.tokenCookie = tokenCookie;
         this.returnTargetCookie = returnTargetCookie;
     }
 
@@ -65,16 +69,34 @@ public class MagicLinkController {
     }
 
     @GetMapping("/auth/magic-link")
-    public void verify(
+    public void prepare(
             @RequestParam String token,
-            HttpServletRequest request,
             HttpServletResponse response) throws IOException {
         response.setHeader("Cache-Control", "no-store");
         response.setHeader("Referrer-Policy", "no-referrer");
-        var authenticated = magicLinks.authenticate(token);
-        if (authenticated.isEmpty()) {
+        if (!magicLinks.valid(token)) {
+            tokenCookie.clear(response);
             response.sendRedirect("/login?error=magic-link");
             return;
+        }
+        tokenCookie.save(response, token);
+        response.sendRedirect("/login?confirm=magic-link");
+    }
+
+    @PostMapping("/auth/magic-link/confirm")
+    public MagicLinkConfirmation confirm(
+            HttpServletRequest request,
+            HttpServletResponse response) {
+        response.setHeader("Cache-Control", "no-store");
+        response.setHeader("Referrer-Policy", "no-referrer");
+        var token = tokenCookie.read(request);
+        tokenCookie.clear(response);
+        if (token.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+        }
+        var authenticated = magicLinks.authenticate(token.get());
+        if (authenticated.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
 
         var link = authenticated.get();
@@ -93,9 +115,12 @@ public class MagicLinkController {
         }
         securityContexts.saveContext(context, request, response);
         returnTargetCookie.clear(response);
-        response.sendRedirect(link.returnTarget());
+        return new MagicLinkConfirmation(link.returnTarget());
     }
 
     public record MagicLinkRequest(String email, String returnTo) {
+    }
+
+    public record MagicLinkConfirmation(String returnTo) {
     }
 }

@@ -87,7 +87,7 @@ public class SecurityConfiguration {
                                 "/suggestions", "/suggestions/",
                                 "/video.html", "/videos.html", "/login", "/login.html",
                                 "/error", "/favicon.ico", "/css/**", "/js/**", "/assets/**", "/webjars/**",
-                                "/oauth2/**", "/login/oauth2/**", "/auth/magic-link",
+                                "/oauth2/**", "/login/oauth2/**", "/auth/magic-link", "/auth/magic-link/**",
                                 "/api/auth/session", "/api/auth/magic-link", "/healthz")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/catalog/videos/**").permitAll()
