@@ -7,13 +7,17 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -27,6 +31,9 @@ public class YouTubePublicationDateClient implements VideoPublicationDateGateway
             "\"(?:publishDate|uploadDate)\"\\s*:\\s*\"([^\"]+)\"");
     private static final Pattern SIMPLE_TEXT_DATE = Pattern.compile(
             "\"(?:publishDate|uploadDate)\"\\s*:\\s*\\{\\s*\"simpleText\"\\s*:\\s*\"([^\"]+)\"");
+    private static final Pattern DISPLAY_DATE_PREFIX = Pattern.compile("(?i)^(?:Streamed live|Premiered) on\\s+");
+    private static final Pattern RELATIVE_DISPLAY_DATE = Pattern.compile(
+            "(?i)^(?:(?:Streamed live|Premiered)\\s+)?(\\d+)\\s+(minute|hour|day|week)s?\\s+ago$");
     private static final Pattern LIVE_START_DATE = Pattern.compile(
             "\"startTimestamp\"\\s*:\\s*\"([^\"]+)\"");
     private static final DateTimeFormatter ENGLISH_DISPLAY_DATE =
@@ -36,12 +43,19 @@ public class YouTubePublicationDateClient implements VideoPublicationDateGateway
     private final HttpClient httpClient;
     private final Duration requestTimeout;
     private final String watchUrl;
+    private final Clock clock;
 
+    @Autowired
     public YouTubePublicationDateClient(
             @Value("${fhemni.catalog.watch-page-timeout:PT6S}") Duration requestTimeout,
             @Value("${fhemni.catalog.watch-page-url:https://www.youtube.com/watch?v=}") String watchUrl) {
+        this(requestTimeout, watchUrl, Clock.systemUTC());
+    }
+
+    YouTubePublicationDateClient(Duration requestTimeout, String watchUrl, Clock clock) {
         this.requestTimeout = requestTimeout;
         this.watchUrl = watchUrl;
+        this.clock = clock;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(3))
                 .followRedirects(HttpClient.Redirect.NORMAL)
@@ -107,10 +121,24 @@ public class YouTubePublicationDateClient implements VideoPublicationDateGateway
     }
 
     private LocalDate parseDisplayDate(String value) {
+        String normalized = DISPLAY_DATE_PREFIX.matcher(value.strip()).replaceFirst("");
         try {
-            return LocalDate.parse(value.strip(), ENGLISH_DISPLAY_DATE);
+            return LocalDate.parse(normalized, ENGLISH_DISPLAY_DATE);
         } catch (DateTimeParseException exception) {
-            throw new IllegalStateException("YouTube returned an invalid publication date.", exception);
+            var relative = RELATIVE_DISPLAY_DATE.matcher(value.strip());
+            if (!relative.matches()) {
+                throw new IllegalStateException("YouTube returned an invalid publication date.", exception);
+            }
+            long amount = Long.parseLong(relative.group(1));
+            Duration elapsed = switch (relative.group(2).toLowerCase(Locale.ROOT)) {
+                case "minute" -> Duration.ofMinutes(amount);
+                case "hour" -> Duration.ofHours(amount);
+                case "day" -> Duration.ofDays(amount);
+                case "week" -> Duration.ofDays(Math.multiplyExact(amount, 7));
+                default -> throw new IllegalStateException("YouTube returned an invalid relative publication date.");
+            };
+            Instant publishedAt = clock.instant().minus(elapsed);
+            return publishedAt.atZone(ZoneOffset.UTC).toLocalDate();
         }
     }
 
