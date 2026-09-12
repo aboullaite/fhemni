@@ -48,6 +48,12 @@ services:
         target: GOOGLE_CLIENT_ID
       - source: google_client_secret
         target: GOOGLE_CLIENT_SECRET
+      - source: discord_client_id
+        target: DISCORD_CLIENT_ID
+      - source: discord_client_secret
+        target: DISCORD_CLIENT_SECRET
+      - source: mailgun_api_key
+        target: FHEMNI_MAILGUN_API_KEY
       - source: admin_identities
         target: FHEMNI_ADMIN_IDENTITIES
       - source: google_cloud_media_credentials
@@ -139,6 +145,12 @@ secrets:
     file: ${FHEMNI_SECRETS_DIR:-.secrets}/google_client_id
   google_client_secret:
     file: ${FHEMNI_SECRETS_DIR:-.secrets}/google_client_secret
+  discord_client_id:
+    file: ${FHEMNI_SECRETS_DIR:-.secrets}/discord_client_id
+  discord_client_secret:
+    file: ${FHEMNI_SECRETS_DIR:-.secrets}/discord_client_secret
+  mailgun_api_key:
+    file: ${FHEMNI_SECRETS_DIR:-.secrets}/mailgun_api_key
   admin_identities:
     file: ${FHEMNI_SECRETS_DIR:-.secrets}/admin_identities
   google_cloud_media_credentials:

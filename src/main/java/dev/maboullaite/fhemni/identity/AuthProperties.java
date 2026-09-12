@@ -1,5 +1,6 @@
 package dev.maboullaite.fhemni.identity;
 
+import java.time.Duration;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -11,7 +12,8 @@ public record AuthProperties(
         Set<String> adminIdentities,
         String bootstrapAdminEmail,
         Provider google,
-        Provider github) {
+        Provider discord,
+        MagicLink magicLink) {
 
     public AuthProperties {
         adminIdentities = adminIdentities == null
@@ -22,7 +24,8 @@ public record AuthProperties(
                         .collect(Collectors.toUnmodifiableSet());
         bootstrapAdminEmail = normalize(bootstrapAdminEmail);
         google = google == null ? Provider.empty() : google;
-        github = github == null ? Provider.empty() : github;
+        discord = discord == null ? Provider.empty() : discord;
+        magicLink = magicLink == null ? MagicLink.empty() : magicLink;
     }
 
     public boolean shouldBeAdmin(ExternalIdentityProfile profile) {
@@ -63,6 +66,60 @@ public record AuthProperties(
 
         public boolean configured() {
             return clientId != null && clientSecret != null;
+        }
+
+        private static String clean(String value) {
+            return value == null || value.isBlank() ? null : value.strip();
+        }
+    }
+
+    public record MagicLink(
+            boolean enabled,
+            String baseUrl,
+            String from,
+            Duration lifetime,
+            Mailgun mailgun) {
+
+        public MagicLink {
+            baseUrl = clean(baseUrl);
+            from = clean(from);
+            lifetime = lifetime == null || lifetime.isNegative() || lifetime.isZero()
+                    ? Duration.ofMinutes(15)
+                    : lifetime;
+            mailgun = mailgun == null ? Mailgun.empty() : mailgun;
+        }
+
+        public static MagicLink empty() {
+            return new MagicLink(false, null, null, Duration.ofMinutes(15), Mailgun.empty());
+        }
+
+        public boolean configured() {
+            return enabled && baseUrl != null && from != null && mailgun.configured();
+        }
+
+        private static String clean(String value) {
+            return value == null || value.isBlank() ? null : value.strip();
+        }
+    }
+
+    public record Mailgun(String apiKey, String domain, String baseUrl, Duration timeout) {
+
+        public Mailgun {
+            apiKey = clean(apiKey);
+            domain = clean(domain);
+            baseUrl = clean(baseUrl);
+            baseUrl = baseUrl == null ? "https://api.eu.mailgun.net" : baseUrl;
+            timeout = timeout == null || timeout.isNegative() || timeout.isZero()
+                    ? Duration.ofSeconds(10)
+                    : timeout;
+        }
+
+        public static Mailgun empty() {
+            return new Mailgun(null, null, "https://api.eu.mailgun.net", Duration.ofSeconds(10));
+        }
+
+        public boolean configured() {
+            return apiKey != null && domain != null && baseUrl != null;
         }
 
         private static String clean(String value) {

@@ -22,6 +22,16 @@ public class ExternalIdentityMapper {
 
     public ExternalIdentityProfile fromOAuth2(String provider, OAuth2User user) {
         Map<String, Object> attributes = user.getAttributes();
+        if ("discord".equals(provider)) {
+            String subject = string(attributes, "id");
+            String username = string(attributes, "username");
+            return new ExternalIdentityProfile(
+                    provider, subject, username,
+                    first(string(attributes, "global_name"), username),
+                    string(attributes, "email"),
+                    booleanValue(attributes, "verified"),
+                    discordAvatar(subject, string(attributes, "avatar")));
+        }
         return new ExternalIdentityProfile(
                 provider,
                 subject(provider, user),
@@ -33,8 +43,13 @@ public class ExternalIdentityMapper {
     }
 
     private String subject(String provider, OAuth2User user) {
-        Object value = "github".equals(provider) ? user.getAttribute("id") : null;
-        return value == null ? user.getName() : String.valueOf(value);
+        return user.getName();
+    }
+
+    private static String discordAvatar(String subject, String avatar) {
+        return subject == null || avatar == null
+                ? null
+                : "https://cdn.discordapp.com/avatars/" + subject + "/" + avatar + ".png?size=128";
     }
 
     private static String string(Map<String, Object> attributes, String name) {

@@ -9,6 +9,8 @@ import java.util.Map;
 import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -25,11 +27,19 @@ public class OAuthProviderCatalog implements ClientRegistrationRepository, Itera
                     .clientSecret(properties.google().clientSecret())
                     .build());
         }
-        if (properties.github().configured()) {
-            configured.put("github", CommonOAuth2Provider.GITHUB.getBuilder("github")
-                    .clientId(properties.github().clientId())
-                    .clientSecret(properties.github().clientSecret())
-                    .scope("read:user", "user:email")
+        if (properties.discord().configured()) {
+            configured.put("discord", ClientRegistration.withRegistrationId("discord")
+                    .clientId(properties.discord().clientId())
+                    .clientSecret(properties.discord().clientSecret())
+                    .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+                    .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                    .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+                    .scope("identify", "email")
+                    .authorizationUri("https://discord.com/oauth2/authorize")
+                    .tokenUri("https://discord.com/api/v10/oauth2/token")
+                    .userInfoUri("https://discord.com/api/v10/users/@me")
+                    .userNameAttributeName("id")
+                    .clientName("Discord")
                     .build());
         }
         registrations = Map.copyOf(configured);
@@ -37,8 +47,8 @@ public class OAuthProviderCatalog implements ClientRegistrationRepository, Itera
         if (registrations.containsKey("google")) {
             providerOptions.add(new ProviderOption("google", "Google", "/oauth2/authorization/google"));
         }
-        if (registrations.containsKey("github")) {
-            providerOptions.add(new ProviderOption("github", "GitHub", "/oauth2/authorization/github"));
+        if (registrations.containsKey("discord")) {
+            providerOptions.add(new ProviderOption("discord", "Discord", "/oauth2/authorization/discord"));
         }
         options = List.copyOf(providerOptions);
     }

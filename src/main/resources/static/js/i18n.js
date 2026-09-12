@@ -26,6 +26,8 @@
             'common.signOutFailed': 'Sign out failed. Please refresh and try again.',
             'common.footer': '© 2026 Mohammed Aboullaite',
             'common.suggestFeature': 'Suggest a feature',
+            'common.terms': 'Terms of Service',
+            'common.privacyPolicy': 'Privacy Policy',
             'common.requestFailed': 'Request failed ({status})',
             'common.requestTimedOut': 'The request timed out after {seconds} seconds. Please try again.',
             'common.requestCancelled': 'The request was cancelled.',
@@ -149,7 +151,7 @@
             'login.intro': 'Sign in to vote on suggestions and privately ask published videos. Reading stays public.',
             'login.loading': 'Loading sign-in options…',
             'login.error': 'Sign-in could not be completed. Please try again.',
-            'login.privacy': 'Fhemni never receives or stores your Google or GitHub password.',
+            'login.privacy': 'Fhemni never receives or stores your Google or Discord password.',
             'login.signedInAs': 'Signed in as {name}.',
             'login.continue': 'Continue to Fhemni',
             'login.notConfigured': 'Sign-in providers are not configured on this deployment yet.',
@@ -179,6 +181,8 @@
             'common.signOutFailed': 'La déconnexion a échoué. Actualisez la page et réessayez.',
             'common.footer': '© 2026 Mohammed Aboullaite',
             'common.suggestFeature': 'Proposer une fonctionnalité',
+            'common.terms': 'Conditions d’utilisation',
+            'common.privacyPolicy': 'Politique de confidentialité',
             'common.requestFailed': 'La requête a échoué ({status})',
             'common.requestTimedOut': 'La requête a expiré après {seconds} secondes. Réessayez.',
             'common.requestCancelled': 'La requête a été annulée.',
@@ -302,7 +306,7 @@
             'login.intro': 'Connectez-vous pour voter sur les propositions et interroger les vidéos publiées en privé. La lecture reste publique.',
             'login.loading': 'Chargement des options de connexion…',
             'login.error': 'La connexion n’a pas pu être effectuée. Réessayez.',
-            'login.privacy': 'Fhemni ne reçoit ni ne stocke jamais votre mot de passe Google ou GitHub.',
+            'login.privacy': 'Fhemni ne reçoit ni ne stocke jamais votre mot de passe Google ou Discord.',
             'login.signedInAs': 'Connecté en tant que {name}.',
             'login.continue': 'Continuer vers Fhemni',
             'login.notConfigured': 'Aucun fournisseur de connexion n’est encore configuré sur ce déploiement.',
@@ -332,6 +336,8 @@
             'common.signOutFailed': 'ما قدرناش نخرّجوك من الحساب. عاود حمّل الصفحة وجرّب مرة خرى.',
             'common.footer': '© 2026 Mohammed Aboullaite',
             'common.suggestFeature': 'قترح خاصية جديدة',
+            'common.terms': 'شروط الاستعمال',
+            'common.privacyPolicy': 'سياسة الخصوصية',
             'common.requestFailed': 'الطلب ما خدمش ({status})',
             'common.requestTimedOut': 'الطلب طول كثر من {seconds} ثانية. عاود جرّب.',
             'common.requestCancelled': 'تلغى الطلب.',
@@ -449,13 +455,13 @@
             'label.NOT_APPLICABLE': 'ما كينطبقش',
 
             'login.pageTitle': 'دخل لحسابك — فهّمني',
-            'login.description': 'دخل لفهّمني باش تصوّت على الفيديوهات المقترحة وتدبّر حسابك.',
+            'login.description': 'ستافد أكثر من فهّمني: دخل لحسابك باش تسول فالشات، تقترح وتصوّت.',
             'login.eyebrow': 'حسابك',
-            'login.title': 'دخل لفهّمني.',
-            'login.intro': 'دخل باش تصوّت على الاقتراحات وتسول الحلقات اللي واجدين بخصوصية. القراية كتبقى مفتوحة للناس كاملين.',
+            'login.title': 'ستافد أكثر من فهّمني',
+            'login.intro': 'دخل لحسابك باش تسول فهّمني فالشات، تقترح وتصوّت.',
             'login.loading': 'كنحمّلو طرق الدخول…',
             'login.error': 'ما قدرناش ندخلوك. عاود جرّب.',
-            'login.privacy': 'فهّمني عمرها كتشوف ولا كتخزّن كلمة السر ديالك فـ Google ولا GitHub.',
+            'login.privacy': 'فهّمني عمرها كتشوف ولا كتخزّن كلمة السر ديالك فـ Google ولا Discord.',
             'login.signedInAs': 'داخل باسم {name}.',
             'login.continue': 'كمّل لفهّمني',
             'login.notConfigured': 'مازال ما تهيّأت حتى طريقة للدخول فهاد النسخة.',
@@ -580,6 +586,14 @@
         'login.intent.suggest.intro': 'The account ties the suggestion to you and protects the queue from spam. You will return directly to your suggestion.',
         'login.intent.vote.title': 'Sign in and cast your vote.',
         'login.intent.vote.intro': 'Each account gets one vote per suggestion, so the ranking reflects real community interest.',
+        'login.or': 'or use email',
+        'login.emailLabel': 'Email address',
+        'login.emailPlaceholder': 'you@example.com',
+        'login.emailAction': 'Email me a sign-in link',
+        'login.emailSent': 'Check your inbox. The one-time sign-in link expires shortly.',
+        'login.emailError': 'We could not send the link. Check the address and try again.',
+        'login.legalPrefix': 'By continuing, you agree to the',
+        'login.legalMiddle': 'and acknowledge the',
         'analysis.publicationKicker': 'Editorial publication',
         'analysis.publicationLoading': 'Checking publication status…',
         'analysis.publicationUnavailable': 'Publication controls are unavailable.',
@@ -1264,6 +1278,14 @@
         'login.intent.suggest.intro': 'Le compte associe la proposition à votre profil et protège la file du spam. Vous reviendrez directement à votre proposition.',
         'login.intent.vote.title': 'Connectez-vous et votez.',
         'login.intent.vote.intro': 'Chaque compte dispose d’un vote par proposition afin que le classement reflète l’intérêt réel de la communauté.',
+        'login.or': 'ou utilisez votre e-mail',
+        'login.emailLabel': 'Adresse e-mail',
+        'login.emailPlaceholder': 'vous@exemple.com',
+        'login.emailAction': 'Recevoir un lien de connexion',
+        'login.emailSent': 'Consultez votre boîte mail. Le lien à usage unique expire bientôt.',
+        'login.emailError': 'Le lien n’a pas pu être envoyé. Vérifiez l’adresse et réessayez.',
+        'login.legalPrefix': 'En continuant, vous acceptez les',
+        'login.legalMiddle': 'et reconnaissez la',
         'analysis.publicationKicker': 'Publication éditoriale',
         'analysis.publicationLoading': 'Vérification de la publication…',
         'analysis.publicationUnavailable': 'Les contrôles de publication sont indisponibles.',
@@ -1936,10 +1958,10 @@
         'suggestion.voteFailed': 'ما قدرناش نسجلو التصويت ديالك: {message}',
         'analysis.chatPrivacy': 'كنطلبو الحساب غير باش الأسئلة ديالك يبقاو خاصين ونقسمو الاستعمال الأسبوعي بالعدل. الخلاصة كتبقى مفتوحة.',
         'analysis.signInToAskAction': 'دخل وسول الفيديو',
-        'login.title': 'دخل غير ملي بغيتي تشارك.',
-        'login.intro': 'القراية مفتوحة بلا حساب. كنطلبوه غير باش أسئلتك يبقاو خاصين، والاقتراحات والتصويت يبقاو منظمين.',
-        'login.intent.default.title': 'دخل غير ملي بغيتي تشارك.',
-        'login.intent.default.intro': 'القراية مفتوحة بلا حساب. كنطلبو الحساب غير للأسئلة الخاصة، الاقتراحات، والتصويت.',
+        'login.title': 'ستافد أكثر من فهّمني',
+        'login.intro': 'دخل لحسابك باش تسول فهّمني فالشات، تقترح وتصوّت.',
+        'login.intent.default.title': 'ستافد أكثر من فهّمني',
+        'login.intent.default.intro': 'دخل لحسابك باش تسول فهّمني فالشات، تقترح وتصوّت.',
         'login.intent.chat.title': 'دخل وسول هاد الفيديو.',
         'login.intent.chat.intro': 'الحساب كيخلي الأسئلة ديالك خاصين وكيعاوننا نقسمو الاستعمال الأسبوعي بالعدل. من بعد الدخول غادي ترجع مباشرة للفيديو.',
         'login.intent.programme.title': 'دخل وسول هاد البرنامج.',
@@ -1948,6 +1970,14 @@
         'login.intent.suggest.intro': 'الحساب كيربط الاقتراح بيك وكيحمينا من السبام. من بعد الدخول غادي ترجع مباشرة للاقتراح.',
         'login.intent.vote.title': 'دخل وصوّت.',
         'login.intent.vote.intro': 'كل حساب عندو صوت واحد فكل اقتراح باش الترتيب يعكس شنو باغين الناس بصح.',
+        'login.or': 'ولا دخل بالإيميل',
+        'login.emailLabel': 'الإيميل',
+        'login.emailPlaceholder': 'you@example.com',
+        'login.emailAction': 'بغيت الرابط',
+        'login.emailSent': 'شوف الإيميل ديالك. رابط الدخول كيتستعمل مرة وحدة وكيصالي قريب.',
+        'login.emailError': 'ما قدرناش نصيفطو الرابط. تأكد من الإيميل وعاود جرّب.',
+        'login.legalPrefix': 'ملي كتكمل، كاتوافق على',
+        'login.legalMiddle': 'وكتقرى',
         'analysis.publicationKicker': 'النشر من بعد المراجعة',
         'analysis.publicationLoading': 'كنشوفو حالة النشر…',
         'analysis.publicationUnavailable': 'أدوات النشر ما خداماش دابا.',
@@ -2541,6 +2571,7 @@
     }
 
     function apply(root = document) {
+        ensureLegalFooterLinks(root);
         document.documentElement.lang = currentLocale;
         document.documentElement.dir = currentLocale === 'ar' ? 'rtl' : 'ltr';
 
@@ -2566,6 +2597,18 @@
 
         const pageTitle = document.body?.dataset.i18nPageTitle;
         if (pageTitle) document.title = translate(pageTitle);
+    }
+
+    function ensureLegalFooterLinks(root = document) {
+        root.querySelectorAll('footer').forEach(footer => {
+            if (footer.querySelector('[data-legal-links]')) return;
+            const links = document.createElement('span');
+            links.className = 'footer-legal-links';
+            links.dataset.legalLinks = '';
+            links.innerHTML = '<a href="/terms" data-i18n="common.terms">Terms of Service</a>'
+                + '<a href="/privacy" data-i18n="common.privacyPolicy">Privacy Policy</a>';
+            footer.append(links);
+        });
     }
 
     function setLocale(locale) {

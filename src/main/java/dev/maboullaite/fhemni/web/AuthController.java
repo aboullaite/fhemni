@@ -6,6 +6,7 @@ import dev.maboullaite.fhemni.cost.AiUsageGuard;
 import dev.maboullaite.fhemni.cost.AiUsageGuard.ChatQuota;
 import dev.maboullaite.fhemni.identity.AppUser;
 import dev.maboullaite.fhemni.identity.CurrentUserService;
+import dev.maboullaite.fhemni.identity.MagicLinkService;
 import dev.maboullaite.fhemni.identity.OAuthProviderCatalog;
 import dev.maboullaite.fhemni.identity.OAuthProviderCatalog.ProviderOption;
 import org.springframework.security.core.Authentication;
@@ -21,14 +22,17 @@ public class AuthController {
     private final CurrentUserService currentUser;
     private final OAuthProviderCatalog providers;
     private final AiUsageGuard usageGuard;
+    private final MagicLinkService magicLinks;
 
     public AuthController(
             CurrentUserService currentUser,
             OAuthProviderCatalog providers,
-            AiUsageGuard usageGuard) {
+            AiUsageGuard usageGuard,
+            MagicLinkService magicLinks) {
         this.currentUser = currentUser;
         this.providers = providers;
         this.usageGuard = usageGuard;
+        this.magicLinks = magicLinks;
     }
 
     @GetMapping("/session")
@@ -45,6 +49,7 @@ public class AuthController {
                 user != null,
                 response,
                 providers.options(),
+                magicLinks.configured(),
                 csrfToken.getHeaderName(),
                 csrfToken.getToken(),
                 user == null ? null : usageGuard.chatQuota(user.id()));
@@ -54,6 +59,7 @@ public class AuthController {
             boolean authenticated,
             UserResponse user,
             List<ProviderOption> providers,
+            boolean magicLinkEnabled,
             String csrfHeader,
             String csrfToken,
             ChatQuota chatQuota) {
