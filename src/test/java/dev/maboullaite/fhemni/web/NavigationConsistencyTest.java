@@ -196,7 +196,11 @@ class NavigationConsistencyTest {
                 .contains("t('analysis.nonFactualExplanation')");
         assertThat(html("analysis.html"))
                 .contains("/js/analysis.js?v=20260912-2")
-                .contains("/js/i18n.js?v=20260913-6");
+                .contains("/js/i18n.js?v=20260913-6")
+                .doesNotContain("analysis.evidenceKicker");
+        assertThat(html("js/i18n.js"))
+                .doesNotContain("analysis.evidenceKicker")
+                .doesNotContain("الأدلة، ماشي غير نقط");
     }
 
     @Test
