@@ -1893,7 +1893,7 @@
         'landing.promiseCheck': 'حلل الأدلة',
         'landing.promiseCheckText': 'شوف الفرضيات، الحساب، والمصادر اللي بنينا عليهم الحكم.',
         'landing.promiseAsk': 'فهم السياق كامل',
-        'landing.promiseAskText': 'قرا الخلاصة ولا سول الفيديو وبقا مربوط باللحظة اللي تقالت فيها الهضرة.',
+        'landing.promiseAskText': 'قرا الخلاصة ولا سول الفيديو و دقق فاللحظة اللي تقالت فيها الهضرة.',
         'landing.factCheckTitle': 'الوعد تحت المجهر، شنو تقدر الأحزاب تحقق بصح في خمس سنين؟',
         'landing.viewAllChecks': 'شوف الأحزاب ووعودهم',
         'landing.checksLoading': 'كنحمّلو آخر الوعود المدققة…',
