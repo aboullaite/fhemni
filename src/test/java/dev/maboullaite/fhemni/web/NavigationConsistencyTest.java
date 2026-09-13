@@ -133,7 +133,7 @@ class NavigationConsistencyTest {
         for (String page : ALL_PAGES) {
             assertThat(html(page))
                     .as("stylesheet in %s", page)
-                    .containsOnlyOnce("/css/dist.css?v=20260913-2");
+                    .containsOnlyOnce("/css/dist.css?v=20260913-3");
         }
     }
 
@@ -206,6 +206,13 @@ class NavigationConsistencyTest {
     }
 
     @Test
+    void compactPartyBadgesAlignLatinCodesWithTheirPartyDot() throws IOException {
+        assertThat(html("css/dist.css"))
+                .contains("border-radius:999px;align-items:center;gap:7px")
+                .contains("font-size:10px;font-weight:850;line-height:1;text-decoration:none;display:inline-flex}");
+    }
+
+    @Test
     void homePageUsesOneConciseFactCheckHeading() throws IOException {
         assertThat(html("index.html"))
                 .contains("id=\"factCheckTitle\" data-i18n=\"landing.factCheckTitle\"")
@@ -218,7 +225,7 @@ class NavigationConsistencyTest {
         for (String page : ADMIN_PAGES) {
             assertThat(html(page))
                     .as("mobile assets in %s", page)
-                    .contains("/css/dist.css?v=20260913-2")
+                    .contains("/css/dist.css?v=20260913-3")
                     .contains("/js/i18n.js?v=20260913-2");
         }
     }
@@ -275,7 +282,7 @@ class NavigationConsistencyTest {
                 .contains("id=\"programmeMedia\" class=\"programme-media\"")
                 .contains("class=\"video-js vjs-big-play-centered\"")
                 .contains("/webjars/video.js/8.23.8/dist/video-js.min.css")
-                .contains("/css/dist.css?v=20260913-2")
+                .contains("/css/dist.css?v=20260913-3")
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.23.8/dist/video.min.js")
                 .contains("/js/i18n.js?v=20260913-2")
