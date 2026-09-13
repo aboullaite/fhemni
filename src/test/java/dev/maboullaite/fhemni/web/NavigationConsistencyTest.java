@@ -133,7 +133,7 @@ class NavigationConsistencyTest {
         for (String page : ALL_PAGES) {
             assertThat(html(page))
                     .as("stylesheet in %s", page)
-                    .containsOnlyOnce("/css/dist.css?v=20260913-2");
+                    .containsOnlyOnce("/css/dist.css?v=20260913-3");
         }
     }
 
@@ -188,13 +188,19 @@ class NavigationConsistencyTest {
         assertThat(html("js/i18n.js"))
                 .contains("'analysis.nonFactualExplanation': 'Opinions, proposals, and predictions")
                 .contains("'analysis.nonFactualExplanation': 'Les opinions, propositions et prévisions")
-                .contains("'analysis.nonFactualExplanation': 'الآراء والاقتراحات والتوقعات كيبانو بوحدهم");
+                .contains("'analysis.nonFactualExplanation': 'الآراء والاقتراحات والتوقعات كيبانو بوحدهم")
+                .contains("'analysis.whatDiscussed': 'على شنو هضروا؟'")
+                .doesNotContain("'analysis.whatDiscussed': 'على شنو تهضروا؟'");
         assertThat(html("js/analysis.js"))
                 .contains("claim.kind === 'FACT'")
                 .contains("t('analysis.nonFactualExplanation')");
         assertThat(html("analysis.html"))
                 .contains("/js/analysis.js?v=20260912-2")
-                .contains("/js/i18n.js?v=20260913-2");
+                .contains("/js/i18n.js?v=20260913-6")
+                .doesNotContain("analysis.evidenceKicker");
+        assertThat(html("js/i18n.js"))
+                .doesNotContain("analysis.evidenceKicker")
+                .doesNotContain("الأدلة، ماشي غير نقط");
     }
 
     @Test
@@ -206,11 +212,34 @@ class NavigationConsistencyTest {
     }
 
     @Test
+    void compactPartyBadgesAlignLatinCodesWithTheirPartyDot() throws IOException {
+        assertThat(html("css/dist.css"))
+                .contains("border-radius:999px;align-items:center;gap:7px")
+                .contains("font-size:10px;font-weight:850;line-height:1;text-decoration:none;display:inline-flex}");
+    }
+
+    @Test
+    void homeFactCheckPanelUsesTheSharedRadiusWithoutADoubleDivider() throws IOException {
+        assertThat(html("css/dist.css"))
+                .contains(".fact-check-feature{")
+                .contains("border-radius:var(--radius-panel)")
+                .contains(".fact-check-feature+.featured-section{border-top:0}")
+                .doesNotContain(".fact-check-feature{padding:44px clamp(20px,3vw,36px);border:1px solid #176b6333;border-radius:28px");
+    }
+
+    @Test
     void homePageUsesOneConciseFactCheckHeading() throws IOException {
         assertThat(html("index.html"))
                 .contains("id=\"factCheckTitle\" data-i18n=\"landing.factCheckTitle\"")
                 .doesNotContain("landing.factCheckKicker")
                 .doesNotContain("landing.factCheckIntro");
+        assertThat(html("js/i18n.js"))
+                .contains("'landing.promiseCheck': 'حلل الأدلة'")
+                .contains("اللحظة اللي تقالت فيها")
+                .contains("'landing.promiseAskText': 'قرا الخلاصة ولا سول الفيديو و دقق فاللحظة اللي تقالت فيها الهضرة.'")
+                .doesNotContain("'landing.promiseCheck': 'حل الأدلة'")
+                .doesNotContain("وبقا مربوط باللحظة")
+                .doesNotContain("اللحظة اللي تقالات فيها");
     }
 
     @Test
@@ -218,8 +247,8 @@ class NavigationConsistencyTest {
         for (String page : ADMIN_PAGES) {
             assertThat(html(page))
                     .as("mobile assets in %s", page)
-                    .contains("/css/dist.css?v=20260913-2")
-                    .contains("/js/i18n.js?v=20260913-2");
+                    .contains("/css/dist.css?v=20260913-3")
+                    .contains("/js/i18n.js?v=20260913-6");
         }
     }
 
@@ -275,10 +304,10 @@ class NavigationConsistencyTest {
                 .contains("id=\"programmeMedia\" class=\"programme-media\"")
                 .contains("class=\"video-js vjs-big-play-centered\"")
                 .contains("/webjars/video.js/8.23.8/dist/video-js.min.css")
-                .contains("/css/dist.css?v=20260913-2")
+                .contains("/css/dist.css?v=20260913-3")
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.23.8/dist/video.min.js")
-                .contains("/js/i18n.js?v=20260913-2")
+                .contains("/js/i18n.js?v=20260913-6")
                 .contains("/js/party.js?v=20260912-1")
                 .containsOnlyOnce("data-i18n=\"programme.kicker\"")
                 .doesNotContain("data-i18n=\"programme.mediaPowered\"")
