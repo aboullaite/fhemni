@@ -213,6 +213,15 @@ class NavigationConsistencyTest {
     }
 
     @Test
+    void homeFactCheckPanelUsesTheSharedRadiusWithoutADoubleDivider() throws IOException {
+        assertThat(html("css/dist.css"))
+                .contains(".fact-check-feature{")
+                .contains("border-radius:var(--radius-panel)")
+                .contains(".fact-check-feature+.featured-section{border-top:0}")
+                .doesNotContain(".fact-check-feature{padding:44px clamp(20px,3vw,36px);border:1px solid #176b6333;border-radius:28px");
+    }
+
+    @Test
     void homePageUsesOneConciseFactCheckHeading() throws IOException {
         assertThat(html("index.html"))
                 .contains("id=\"factCheckTitle\" data-i18n=\"landing.factCheckTitle\"")
