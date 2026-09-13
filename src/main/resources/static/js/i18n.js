@@ -1890,7 +1890,7 @@
         'landing.promiseKicker': 'شنو كيدقق فهّمني',
         'landing.promiseUnderstand': 'حط الوعد تحت المجهر',
         'landing.promiseUnderstandText': 'واش يقدر يتحقق بصح فولاية وحدة ديال 5 سنين؟',
-        'landing.promiseCheck': 'حل الأدلة',
+        'landing.promiseCheck': 'حلل الأدلة',
         'landing.promiseCheckText': 'شوف الفرضيات، الحساب، والمصادر اللي بنينا عليهم الحكم.',
         'landing.promiseAsk': 'فهم السياق كامل',
         'landing.promiseAskText': 'قرا الخلاصة ولا سول الفيديو وبقا مربوط باللحظة اللي تقالات فيها الهضرة.',
