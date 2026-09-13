@@ -133,7 +133,7 @@ class NavigationConsistencyTest {
         for (String page : ALL_PAGES) {
             assertThat(html(page))
                     .as("stylesheet in %s", page)
-                    .containsOnlyOnce("/css/dist.css?v=20260913-1");
+                    .containsOnlyOnce("/css/dist.css?v=20260913-2");
         }
     }
 
@@ -198,6 +198,14 @@ class NavigationConsistencyTest {
     }
 
     @Test
+    void analysisBadgesContainArabicLabelsOnNarrowCards() throws IOException {
+        assertThat(html("css/dist.css"))
+                .contains(".claim-card .claim-meta{align-items:flex-start")
+                .contains(".claim-card .claim-badges{min-width:0;max-width:100%}")
+                .contains(".claim-card .claim-badges .badge{text-align:center;white-space:normal;height:auto;min-height:24px;padding-block:3px;line-height:1.35}");
+    }
+
+    @Test
     void homePageUsesOneConciseFactCheckHeading() throws IOException {
         assertThat(html("index.html"))
                 .contains("id=\"factCheckTitle\" data-i18n=\"landing.factCheckTitle\"")
@@ -210,7 +218,7 @@ class NavigationConsistencyTest {
         for (String page : ADMIN_PAGES) {
             assertThat(html(page))
                     .as("mobile assets in %s", page)
-                    .contains("/css/dist.css?v=20260913-1")
+                    .contains("/css/dist.css?v=20260913-2")
                     .contains("/js/i18n.js?v=20260913-2");
         }
     }
@@ -267,7 +275,7 @@ class NavigationConsistencyTest {
                 .contains("id=\"programmeMedia\" class=\"programme-media\"")
                 .contains("class=\"video-js vjs-big-play-centered\"")
                 .contains("/webjars/video.js/8.23.8/dist/video-js.min.css")
-                .contains("/css/dist.css?v=20260913-1")
+                .contains("/css/dist.css?v=20260913-2")
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.23.8/dist/video.min.js")
                 .contains("/js/i18n.js?v=20260913-2")
