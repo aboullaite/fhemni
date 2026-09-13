@@ -390,7 +390,7 @@
             'analysis.claims': 'شنو خاصّو التحقق',
             'analysis.askFhemni': 'سول فهّمني',
             'analysis.fullPicture': 'الصورة كاملة',
-            'analysis.whatDiscussed': 'على شنو تهضروا؟',
+            'analysis.whatDiscussed': 'على شنو هضروا؟',
             'analysis.people': 'شكون كان فالفيديو',
             'analysis.timeline': 'شنو وقع وفاش',
             'analysis.chapters': 'أجزاء الفيديو',

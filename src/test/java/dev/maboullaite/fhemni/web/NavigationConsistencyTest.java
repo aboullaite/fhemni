@@ -188,13 +188,15 @@ class NavigationConsistencyTest {
         assertThat(html("js/i18n.js"))
                 .contains("'analysis.nonFactualExplanation': 'Opinions, proposals, and predictions")
                 .contains("'analysis.nonFactualExplanation': 'Les opinions, propositions et prévisions")
-                .contains("'analysis.nonFactualExplanation': 'الآراء والاقتراحات والتوقعات كيبانو بوحدهم");
+                .contains("'analysis.nonFactualExplanation': 'الآراء والاقتراحات والتوقعات كيبانو بوحدهم")
+                .contains("'analysis.whatDiscussed': 'على شنو هضروا؟'")
+                .doesNotContain("'analysis.whatDiscussed': 'على شنو تهضروا؟'");
         assertThat(html("js/analysis.js"))
                 .contains("claim.kind === 'FACT'")
                 .contains("t('analysis.nonFactualExplanation')");
         assertThat(html("analysis.html"))
                 .contains("/js/analysis.js?v=20260912-2")
-                .contains("/js/i18n.js?v=20260913-5");
+                .contains("/js/i18n.js?v=20260913-6");
     }
 
     @Test
@@ -242,7 +244,7 @@ class NavigationConsistencyTest {
             assertThat(html(page))
                     .as("mobile assets in %s", page)
                     .contains("/css/dist.css?v=20260913-3")
-                    .contains("/js/i18n.js?v=20260913-5");
+                    .contains("/js/i18n.js?v=20260913-6");
         }
     }
 
@@ -301,7 +303,7 @@ class NavigationConsistencyTest {
                 .contains("/css/dist.css?v=20260913-3")
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.23.8/dist/video.min.js")
-                .contains("/js/i18n.js?v=20260913-5")
+                .contains("/js/i18n.js?v=20260913-6")
                 .contains("/js/party.js?v=20260912-1")
                 .containsOnlyOnce("data-i18n=\"programme.kicker\"")
                 .doesNotContain("data-i18n=\"programme.mediaPowered\"")
