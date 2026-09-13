@@ -623,7 +623,16 @@ footer { display: flex; align-items: center; justify-content: space-between; fle
     border-radius: var(--radius-panel);
     box-shadow: 0 8px 24px rgba(31,57,53,.06);
 }
-.claim-card .claim-meta { margin-bottom: 17px; }
+.claim-card .claim-meta { align-items: flex-start; margin-bottom: 17px; }
+.claim-card .claim-badges { min-width: 0; max-width: 100%; }
+.claim-card .claim-badges .badge {
+    height: auto;
+    min-height: 24px;
+    padding-block: 3px;
+    line-height: 1.35;
+    text-align: center;
+    white-space: normal;
+}
 .claim-card .claim-statement {
     margin: 0;
     font-family: "Tajawal", Tahoma, Arial, "Segoe UI", sans-serif;
