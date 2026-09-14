@@ -144,6 +144,28 @@ class NavigationConsistencyTest {
     }
 
     @Test
+    void publicPromiseCardsDoNotRepeatTheLocalizedVerdictInTheirSummary() throws IOException {
+        assertThat(html("js/catalog-ui.js"))
+                .contains("function assessmentSummary(value, verdict)")
+                .contains("DIFFICILE")
+                .contains("DONN[ÉE]ES\\s+INSUFFISANTES")
+                .contains("المعطيات\\s+ما\\s+كافياش");
+        assertThat(html("js/landing.js"))
+                .contains("FhemniCatalog.assessmentSummary(");
+        assertThat(html("js/party.js"))
+                .contains("FhemniCatalog.assessmentSummary(");
+        assertThat(html("js/promise.js"))
+                .contains("FhemniCatalog.assessmentSummary(")
+                .doesNotContain("function cleanSummary(value)");
+        assertThat(html("index.html"))
+                .contains("/js/catalog-ui.js?v=20260914-1")
+                .contains("/js/landing.js?v=20260914-1");
+        assertThat(html("promise.html"))
+                .contains("/js/catalog-ui.js?v=20260914-1")
+                .contains("/js/promise.js?v=20260914-1");
+    }
+
+    @Test
     void catalogPlayButtonUsesAFontIndependentCenteredTriangle() throws IOException {
         assertThat(html("css/app.css"))
                 .contains(".catalog-thumbnail::after { content: \"\";")
@@ -323,7 +345,7 @@ class NavigationConsistencyTest {
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.23.8/dist/video.min.js")
                 .contains("/js/i18n.js?v=20260913-6")
-                .contains("/js/party.js?v=20260912-1")
+                .contains("/js/party.js?v=20260914-1")
                 .containsOnlyOnce("data-i18n=\"programme.kicker\"")
                 .doesNotContain("data-i18n=\"programme.mediaPowered\"")
                 .doesNotContain("id=\"partyBriefingTab\"")

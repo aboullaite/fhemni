@@ -43,7 +43,8 @@
         title.append(link);
 
         const summary = document.createElement('p');
-        summary.textContent = localized(promise.assessmentSummary);
+        summary.textContent = window.FhemniCatalog.assessmentSummary(
+            localized(promise.assessmentSummary), promise.verdict);
 
         const action = document.createElement('a');
         action.className = 'text-link';

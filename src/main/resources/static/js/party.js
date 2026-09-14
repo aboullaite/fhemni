@@ -597,7 +597,8 @@
         title.append(link);
         const summary = document.createElement('p');
         summary.dir = 'auto';
-        summary.textContent = localized(promise.assessmentSummary);
+        summary.textContent = window.FhemniCatalog.assessmentSummary(
+            localized(promise.assessmentSummary), promise.verdict);
         const more = document.createElement('a');
         more.className = 'text-link';
         more.href = link.href;

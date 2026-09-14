@@ -73,6 +73,9 @@ final class GeminiSchemas {
     }
 
     static JsonNode programmeExtraction(ObjectMapper mapper, List<String> partyCodes) {
+        if (partyCodes == null || partyCodes.isEmpty()) {
+            throw new IllegalArgumentException("At least one party code is required for programme extraction.");
+        }
         JsonNode schema = read(mapper, """
                 {
                   "type": "object",

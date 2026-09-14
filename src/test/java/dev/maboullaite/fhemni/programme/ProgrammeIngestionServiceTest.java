@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import dev.maboullaite.fhemni.catalog.PoliticalPartyRepository;
 import dev.maboullaite.fhemni.cost.AiUsage;
 import dev.maboullaite.fhemni.cost.AiUsageGuard;
 import dev.maboullaite.fhemni.gemini.ProgrammeIntelligenceGateway;
@@ -42,7 +44,7 @@ class ProgrammeIngestionServiceTest {
 
     @Test
     void rejectsAFileThatOnlyPretendsToBeAPdf() {
-        var service = new ProgrammeIngestionService(null, null, null);
+        var service = new ProgrammeIngestionService(null, null, null, null);
         var document = new MockMultipartFile(
                 "document", "programme.pdf", "application/pdf", "not a pdf".getBytes());
 
@@ -67,9 +69,10 @@ class ProgrammeIngestionServiceTest {
     void explicitlyReplacesACachedDraftWhenTheAdminUploadsACorrectedPdf() {
         ProgrammeIntelligenceGateway gateway = mock(ProgrammeIntelligenceGateway.class);
         PartyProgrammeService programmes = mock(PartyProgrammeService.class);
+        PoliticalPartyRepository parties = mock(PoliticalPartyRepository.class);
         AiUsageGuard usageGuard = mock(AiUsageGuard.class);
         ProgrammeIngestionService service = new ProgrammeIngestionService(
-                gateway, programmes, usageGuard);
+                gateway, programmes, parties, usageGuard);
         String sourceUrl = "https://party.ma/programme";
         AdminProgrammeView existing = programme(sourceUrl, "old");
         AdminProgrammeView replacement = programme(sourceUrl, "new");
@@ -81,7 +84,7 @@ class ProgrammeIngestionServiceTest {
                 "document", "programme.pdf", "application/pdf", "%PDF-corrected".getBytes());
 
         when(gateway.live()).thenReturn(true);
-        when(programmes.visiblePartyCodes()).thenReturn(List.of("PJD", "PUD"));
+        when(parties.visibleCatalogueCodes()).thenReturn(List.of("PJD", "PUD"));
         when(programmes.programmeBySourceUrl(sourceUrl)).thenReturn(Optional.of(existing));
         when(gateway.extractPdf(eq(sourceUrl), eq("programme.pdf"), any(), anyLong(), eq(List.of("PJD", "PUD"))))
                 .thenReturn(new ExtractionResult(extraction, AiUsage.empty()));
@@ -93,6 +96,26 @@ class ProgrammeIngestionServiceTest {
         assertThat(result.extracted()).isTrue();
         assertThat(result.cacheHit()).isFalse();
         verify(programmes).replaceGeneratedExtraction(existing.id(), sourceUrl, extraction, List.of());
+    }
+
+    @Test
+    void validatesTheVisibleCatalogueBeforeReservingAiUsage() {
+        ProgrammeIntelligenceGateway gateway = mock(ProgrammeIntelligenceGateway.class);
+        PartyProgrammeService programmes = mock(PartyProgrammeService.class);
+        PoliticalPartyRepository parties = mock(PoliticalPartyRepository.class);
+        AiUsageGuard usageGuard = mock(AiUsageGuard.class);
+        ProgrammeIngestionService service = new ProgrammeIngestionService(
+                gateway, programmes, parties, usageGuard);
+        String sourceUrl = "https://party.ma/programme";
+
+        when(gateway.live()).thenReturn(true);
+        when(programmes.programmeBySourceUrl(sourceUrl)).thenReturn(Optional.empty());
+        when(parties.visibleCatalogueCodes()).thenReturn(List.of());
+
+        assertThatThrownBy(() -> service.ingest(sourceUrl))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("visible party");
+        verifyNoInteractions(usageGuard);
     }
 
     private static AdminProgrammeView programme(String sourceUrl, String fingerprint) {

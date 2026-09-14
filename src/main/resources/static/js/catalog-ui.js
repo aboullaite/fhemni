@@ -108,6 +108,45 @@
         return status === 'PUBLISHED' ? t('catalog.ready') : t('catalog.awaitingAnalysis');
     }
 
+    const VERDICT_PREFIXES = Object.freeze({
+        POSSIBLE: [
+            /^(?:POSSIBLE|LIKELY|ACHIEVABLE)(?:\s+WITHIN(?:\s+THE)?\s+(?:2026[–-]2031\s+TERM|ONE\s+TERM|TERM))?(?=$|[\s.,:;،؛—–-])/iu,
+            /^(?:C['’]EST\s+)?R[ÉE]ALISABLE(?:\s+(?:ENTRE\s+2026\s+ET\s+2031|SUR\s+UNE\s+L[ÉE]GISLATURE|DURANT\s+LE\s+MANDAT))?(?=$|[\s.,:;،؛—–-])/iu,
+            /^(?:ممكن(?:ة)?|قابل(?:ة)?\s+للتحقيق)(?:\s+(?:بين\s+2026\s+و2031|ف(?:ـ|ي)?\s*ولاية\s+وحدة|فهاد\s+الولاية))?(?=$|[\s.,:;،؛—–-])/u
+        ],
+        HARD: [
+            /^(?:HARD|DIFFICULT)(?:\s+TO\s+ACHIEVE)?(?:\s+WITHIN(?:\s+THE)?\s+(?:FIVE[-\s]YEAR(?:\s+TERM)?|2026[–-]2031(?:\s+TERM)?))?(?=$|[\s.,:;،؛—–-])/iu,
+            /^(?:C['’]EST\s+)?DIFFICILE(?:\s+[ÀA]\s+R[ÉE]ALISER)?(?:\s+(?:EN\s+(?:CINQ|5)\s+ANS|ENTRE\s+2026\s+ET\s+2031))?(?=$|[\s.,:;،؛—–-])/iu,
+            /^صعيب(?:ة)?(?:\s+بزاف)?(?:\s+(?:التحقيق\s+)?فـ?\s*5\s+سنين|\s+بين\s+2026\s+و2031)?(?=$|[\s.,:;،؛—–-])/u
+        ],
+        NOT_ACHIEVABLE: [
+            /^(?:NOT[_\s-]ACHIEVABLE|VERY\s+UNLIKELY)(?:\s+WITHIN(?:\s+THE)?\s+(?:FIVE[-\s]YEAR(?:\s+TERM)?|2026[–-]2031(?:\s+TERM)?))?(?=$|[\s.,:;،؛—–-])/iu,
+            /^(?:TR[ÈE]S\s+IMPROBABLE|PAS\s+R[ÉE]ALISABLE)(?:\s+EN\s+(?:CINQ|5)\s+ANS)?(?=$|[\s.,:;،؛—–-])/iu,
+            /^(?:بعيد(?:ة)?\s+بزاف|ما\s+يمكنش\s+يتحقق)(?:\s+فـ?\s*5\s+سنين)?(?=$|[\s.,:;،؛—–-])/u
+        ],
+        INSUFFICIENT_DATA: [
+            /^(?:INSUFFICIENT[_\s-]DATA|NOT\s+ENOUGH\s+DATA)(?=$|[\s.,:;،؛—–-])/iu,
+            /^DONN[ÉE]ES\s+INSUFFISANTES(?=$|[\s.,:;،؛—–-])/iu,
+            /^(?:المعطيات\s+ما\s+كافياش|ما\s+كايناش\s+معطيات\s+كافية)(?=$|[\s.,:;،؛—–-])/u
+        ]
+    });
+
+    function assessmentSummary(value, verdict) {
+        const summary = String(value || '').trim();
+        const prefix = (VERDICT_PREFIXES[verdict] || [])
+            .map(pattern => summary.match(pattern))
+            .find(Boolean);
+        const withoutPrefix = prefix ? summary.slice(prefix[0].length) : summary;
+        const clean = withoutPrefix
+            .replace(/^[\s.:;,،؛—–-]+/u, '')
+            .replace(/\b(?:POSSIBLE|HARD|NOT_ACHIEVABLE|INSUFFICIENT_DATA)\b[.:;,،؛—–-]?/gu, '')
+            .replace(/[ \t]+([.,؛،])/gu, '$1')
+            .replace(/[ \t]{2,}/gu, ' ')
+            .trim();
+        if (!clean) return summary;
+        return clean.replace(/^\p{Ll}/u, letter => letter.toLocaleUpperCase());
+    }
+
     function formatDate(value) {
         if (!value) return t('catalog.dateUnavailable');
         const locale = window.FhemniI18n?.locale() || 'en';
@@ -377,6 +416,7 @@
         renderGrid,
         renderError,
         statusLabel,
+        assessmentSummary,
         formatDate,
         safeImage,
         createPromiseReportButton,

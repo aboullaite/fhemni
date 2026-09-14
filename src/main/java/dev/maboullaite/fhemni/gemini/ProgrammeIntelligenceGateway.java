@@ -270,7 +270,7 @@ public class ProgrammeIntelligenceGateway {
 
                 Determine whether it is an official, final programme for Morocco's 2026 legislative election and whether
                 it belongs to one of these visible directory parties: %s.
-                For a joint FGD-PSU campaign programme, always use the canonical partyCode FGD.
+                %s
 
                 Return only the structured result. Set official2026Programme=false if the source is unofficial, refers
                 only to an older election, is a news summary, is inaccessible, or does not clearly establish 2026.
@@ -285,7 +285,7 @@ public class ProgrammeIntelligenceGateway {
                   locators used for the extracted promises, not your feasibility analysis.
                 - Put ambiguities, missing pages, OCR problems, and version concerns in warnings.
                 - Translate titles and summaries into Moroccan Darija, French, and English without changing their meaning.
-                """.formatted(sourceUrl, String.join(", ", partyCodes));
+                """.formatted(sourceUrl, String.join(", ", partyCodes), jointFgdRule(partyCodes));
     }
 
     private String pdfInventoryPrompt() {
@@ -311,8 +311,8 @@ public class ProgrammeIntelligenceGateway {
 
                 Determine from the attached document whether it is an official, final programme for Morocco's 2026
                 legislative election and whether it belongs to one of these visible directory parties: %s.
-                For a joint FGD-PSU campaign programme, always use the canonical partyCode
-                FGD. The webpage URL is attribution metadata, not proof of the PDF's contents.
+                %s
+                The webpage URL is attribution metadata, not proof of the PDF's contents.
 
                 Return only the structured result. Set official2026Programme=false if the PDF is unofficial, refers
                 only to an older election, is merely a news summary, is unreadable, or does not clearly establish 2026.
@@ -336,21 +336,39 @@ public class ProgrammeIntelligenceGateway {
 
                 Candidate inventory from the full-document coverage pass:
                 %s
-                """.formatted(sourceUrl, String.join(", ", partyCodes), candidateInventory);
+                """.formatted(
+                        sourceUrl, String.join(", ", partyCodes), jointFgdRule(partyCodes), candidateInventory);
     }
 
-    private static List<String> normalizedPartyCodes(List<String> partyCodes) {
-        List<String> normalized = partyCodes == null ? List.of() : partyCodes.stream()
-                .filter(value -> value != null && !value.isBlank())
+    public static List<String> normalizedPartyCodes(List<String> partyCodes) {
+        if (partyCodes == null || partyCodes.isEmpty()) {
+            throw new IllegalStateException("At least one visible party is required for programme extraction.");
+        }
+        List<String> normalized = partyCodes.stream()
+                .map(value -> {
+                    if (value == null || value.isBlank()) {
+                        throw new IllegalArgumentException("Party codes must not be blank.");
+                    }
+                    return value;
+                })
                 .map(value -> value.strip().toUpperCase(Locale.ROOT))
-                .filter(value -> value.matches("[A-Z0-9]{1,10}"))
+                .map(value -> {
+                    if (!value.matches("[A-Z0-9][A-Z0-9-]{0,9}")) {
+                        throw new IllegalArgumentException(
+                                "Party codes must use uppercase letters, numbers, or hyphens.");
+                    }
+                    return value;
+                })
                 .distinct()
                 .sorted()
                 .toList();
-        if (normalized.isEmpty()) {
-            throw new IllegalStateException("At least one visible party is required for programme extraction.");
-        }
         return normalized;
+    }
+
+    static String jointFgdRule(List<String> partyCodes) {
+        return partyCodes.contains("FGD")
+                ? "For a joint FGD-PSU campaign programme, always use the canonical partyCode FGD."
+                : "";
     }
 
     private String feasibilityPrompt(String sourceUrl, String promisesJson, String reviewContext) {
