@@ -532,7 +532,8 @@ footer { display: flex; align-items: center; justify-content: space-between; fle
 .catalog-card { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--surface); box-shadow: 0 8px 24px rgba(31,57,53,.06); transition: transform .18s, box-shadow .18s; }
 .catalog-card:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(31,57,53,.1); }
 .catalog-thumbnail { position: relative; display: block; overflow: hidden; aspect-ratio: 16/9; background: #dce5df; }
-.catalog-thumbnail::after { content: "▶"; position: absolute; z-index: 1; right: 16px; bottom: 14px; display: grid; place-items: center; width: 37px; height: 37px; border-radius: 50%; background: rgba(255,253,247,.92); color: var(--orange); font-size: 13px; box-shadow: 0 7px 20px rgba(19,44,43,.2); }
+.catalog-thumbnail::after { content: ""; position: absolute; z-index: 1; right: 16px; bottom: 14px; width: 37px; height: 37px; border-radius: 50%; background: rgba(255,253,247,.92); box-shadow: 0 7px 20px rgba(19,44,43,.2); pointer-events: none; }
+.catalog-thumbnail::before { content: ""; position: absolute; z-index: 2; right: 28px; bottom: 25.5px; width: 0; height: 0; border-top: 7px solid transparent; border-bottom: 7px solid transparent; border-left: 10px solid var(--orange); pointer-events: none; }
 .catalog-thumbnail img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .3s ease; }
 .catalog-card:hover .catalog-thumbnail img { transform: scale(1.025); }
 .catalog-card-body { min-width: 0; overflow: hidden; padding: 18px; }
