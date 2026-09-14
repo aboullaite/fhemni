@@ -5,6 +5,8 @@ import java.util.List;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 final class GeminiSchemas {
 
@@ -70,13 +72,13 @@ final class GeminiSchemas {
                 """);
     }
 
-    static JsonNode programmeExtraction(ObjectMapper mapper) {
-        return read(mapper, """
+    static JsonNode programmeExtraction(ObjectMapper mapper, List<String> partyCodes) {
+        JsonNode schema = read(mapper, """
                 {
                   "type": "object",
                   "additionalProperties": false,
                   "properties": {
-                    "partyCode": {"type": "string", "enum": ["RNI", "PAM", "PI", "USFP", "MP", "PPS", "UC", "PJD", "MDS", "FFD", "FGD"]},
+                    "partyCode": {"type": "string"},
                     "electionYear": {"type": "integer", "enum": [2026]},
                     "official2026Programme": {"type": "boolean"},
                     "sourceLabel": {"type": "string"},
@@ -118,6 +120,10 @@ final class GeminiSchemas {
                   "required": ["partyCode", "electionYear", "official2026Programme", "sourceLabel", "sourceLanguage", "sourceSnapshot", "title", "summary", "warnings", "promises"]
                 }
                 """);
+        ObjectNode partyCode = (ObjectNode) schema.get("properties").get("partyCode");
+        ArrayNode allowedCodes = partyCode.putArray("enum");
+        partyCodes.forEach(allowedCodes::add);
+        return schema;
     }
 
     static JsonNode programmeFeasibility(ObjectMapper mapper) {

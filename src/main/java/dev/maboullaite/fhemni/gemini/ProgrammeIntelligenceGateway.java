@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -84,23 +85,30 @@ public class ProgrammeIntelligenceGateway {
         return client.model();
     }
 
-    public ExtractionResult extract(String sourceUrl) {
+    public ExtractionResult extract(String sourceUrl, List<String> visiblePartyCodes) {
+        List<String> partyCodes = normalizedPartyCodes(visiblePartyCodes);
         InteractionResponse response = client.create(CreateModelInteraction.builder()
                 .model(client.model())
                 .systemInstruction(SYSTEM_INSTRUCTION)
-                .input(InteractionsInput.of(extractionPrompt(sourceUrl)))
+                .input(InteractionsInput.of(extractionPrompt(sourceUrl, partyCodes)))
                 .tools(List.of(new URLContext()))
                 .generationConfig(GenerationConfig.builder()
                         .maxOutputTokens(extractionMaxOutputTokens)
                         .thinkingLevel(ThinkingLevel.MEDIUM)
                         .build())
-                .responseFormat(responseFormat(GeminiSchemas.programmeExtraction(mapper)))
+                .responseFormat(responseFormat(GeminiSchemas.programmeExtraction(mapper, partyCodes)))
                 .store(false)
                 .build());
         return new ExtractionResult(parse(response.outputText(), ProgrammeExtraction.class), response.usage());
     }
 
-    public ExtractionResult extractPdf(String sourceUrl, String displayName, InputStream input, long size) {
+    public ExtractionResult extractPdf(
+            String sourceUrl,
+            String displayName,
+            InputStream input,
+            long size,
+            List<String> visiblePartyCodes) {
+        List<String> partyCodes = normalizedPartyCodes(visiblePartyCodes);
         UploadedFile file = client.uploadPdf(input, size, displayName);
         AiUsage consumed = AiUsage.empty();
         try {
@@ -122,12 +130,12 @@ public class ProgrammeIntelligenceGateway {
                     .model(client.model())
                     .systemInstruction(SYSTEM_INSTRUCTION)
                     .input(InteractionsInput.ofContent(pdfContent(
-                            pdfExtractionPrompt(sourceUrl, inventory.outputText()), file)))
+                            pdfExtractionPrompt(sourceUrl, inventory.outputText(), partyCodes), file)))
                     .generationConfig(GenerationConfig.builder()
                             .maxOutputTokens(extractionMaxOutputTokens)
                             .thinkingLevel(ThinkingLevel.MEDIUM)
                             .build())
-                    .responseFormat(responseFormat(GeminiSchemas.programmeExtraction(mapper)))
+                    .responseFormat(responseFormat(GeminiSchemas.programmeExtraction(mapper, partyCodes)))
                     .store(false)
                     .build());
             consumed = consumed.plus(extraction.usage());
@@ -256,12 +264,12 @@ public class ProgrammeIntelligenceGateway {
         }
     }
 
-    private String extractionPrompt(String sourceUrl) {
+    private String extractionPrompt(String sourceUrl, List<String> partyCodes) {
         return """
                 Open this exact public URL with URL Context: %s
 
                 Determine whether it is an official, final programme for Morocco's 2026 legislative election and whether
-                it belongs to one of these curated parties: RNI, PAM, PI, USFP, MP, PPS, UC, PJD, MDS, FFD, FGD.
+                it belongs to one of these visible directory parties: %s.
                 For a joint FGD-PSU campaign programme, always use the canonical partyCode FGD.
 
                 Return only the structured result. Set official2026Programme=false if the source is unofficial, refers
@@ -277,7 +285,7 @@ public class ProgrammeIntelligenceGateway {
                   locators used for the extracted promises, not your feasibility analysis.
                 - Put ambiguities, missing pages, OCR problems, and version concerns in warnings.
                 - Translate titles and summaries into Moroccan Darija, French, and English without changing their meaning.
-                """.formatted(sourceUrl);
+                """.formatted(sourceUrl, String.join(", ", partyCodes));
     }
 
     private String pdfInventoryPrompt() {
@@ -294,13 +302,16 @@ public class ProgrammeIntelligenceGateway {
                 """;
     }
 
-    private String pdfExtractionPrompt(String sourceUrl, String candidateInventory) {
+    private String pdfExtractionPrompt(
+            String sourceUrl,
+            String candidateInventory,
+            List<String> partyCodes) {
         return """
                 The attached PDF was downloaded by an administrator from this official party page: %s
 
                 Determine from the attached document whether it is an official, final programme for Morocco's 2026
-                legislative election and whether it belongs to one of these curated parties: RNI, PAM, PI, USFP, MP,
-                PPS, UC, PJD, MDS, FFD, FGD. For a joint FGD-PSU campaign programme, always use the canonical partyCode
+                legislative election and whether it belongs to one of these visible directory parties: %s.
+                For a joint FGD-PSU campaign programme, always use the canonical partyCode
                 FGD. The webpage URL is attribution metadata, not proof of the PDF's contents.
 
                 Return only the structured result. Set official2026Programme=false if the PDF is unofficial, refers
@@ -325,7 +336,21 @@ public class ProgrammeIntelligenceGateway {
 
                 Candidate inventory from the full-document coverage pass:
                 %s
-                """.formatted(sourceUrl, candidateInventory);
+                """.formatted(sourceUrl, String.join(", ", partyCodes), candidateInventory);
+    }
+
+    private static List<String> normalizedPartyCodes(List<String> partyCodes) {
+        List<String> normalized = partyCodes == null ? List.of() : partyCodes.stream()
+                .filter(value -> value != null && !value.isBlank())
+                .map(value -> value.strip().toUpperCase(Locale.ROOT))
+                .filter(value -> value.matches("[A-Z0-9]{1,10}"))
+                .distinct()
+                .sorted()
+                .toList();
+        if (normalized.isEmpty()) {
+            throw new IllegalStateException("At least one visible party is required for programme extraction.");
+        }
+        return normalized;
     }
 
     private String feasibilityPrompt(String sourceUrl, String promisesJson, String reviewContext) {
