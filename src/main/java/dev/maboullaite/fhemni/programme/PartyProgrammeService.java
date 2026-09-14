@@ -53,10 +53,6 @@ public class PartyProgrammeService {
         return repository.findAllForAdminList().stream().map(this::adminView).toList();
     }
 
-    public List<String> visiblePartyCodes() {
-        return repository.visiblePartyCodes();
-    }
-
     public AdminProgrammeView adminProgramme(UUID programmeId) {
         return adminView(programme(programmeId));
     }

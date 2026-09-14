@@ -40,6 +40,18 @@ public class PoliticalPartyRepository {
                 .list();
     }
 
+    public List<String> visibleCatalogueCodes() {
+        return jdbc.sql("""
+                        SELECT code
+                          FROM political_parties
+                         WHERE visible = TRUE
+                           AND code = catalogue_code
+                         ORDER BY code
+                        """)
+                .query(String.class)
+                .list();
+    }
+
     public Optional<PoliticalParty> findByCode(String code) {
         return findAll().stream().filter(party -> party.code().equalsIgnoreCase(code)).findFirst();
     }

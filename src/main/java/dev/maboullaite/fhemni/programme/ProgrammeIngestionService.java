@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import dev.maboullaite.fhemni.catalog.PoliticalPartyRepository;
 import dev.maboullaite.fhemni.cost.AiOperation;
 import dev.maboullaite.fhemni.cost.AiUsageGuard;
 import dev.maboullaite.fhemni.cost.AiUsageGuard.Reservation;
@@ -31,6 +32,7 @@ public class ProgrammeIngestionService {
 
     private final ProgrammeIntelligenceGateway gateway;
     private final PartyProgrammeService programmes;
+    private final PoliticalPartyRepository parties;
     private final AiUsageGuard usageGuard;
     private final Object[] ingestionLocks = java.util.stream.IntStream.range(0, INGESTION_LOCK_STRIPES)
             .mapToObj(ignored -> new Object())
@@ -39,9 +41,11 @@ public class ProgrammeIngestionService {
     public ProgrammeIngestionService(
             ProgrammeIntelligenceGateway gateway,
             PartyProgrammeService programmes,
+            PoliticalPartyRepository parties,
             AiUsageGuard usageGuard) {
         this.gateway = gateway;
         this.programmes = programmes;
+        this.parties = parties;
         this.usageGuard = usageGuard;
     }
 
@@ -100,9 +104,10 @@ public class ProgrammeIngestionService {
     }
 
     private ExtractionResult extract(String sourceUrl) {
+        List<String> partyCodes = visibleCatalogueCodes();
         Reservation reservation = usageGuard.reserveEditorial(AiOperation.PROGRAMME_EXTRACTION, gateway.model());
         try {
-            ExtractionResult result = gateway.extract(sourceUrl, programmes.visiblePartyCodes());
+            ExtractionResult result = gateway.extract(sourceUrl, partyCodes);
             usageGuard.succeeded(reservation, result.usage());
             return result;
         } catch (GeminiApiException exception) {
@@ -115,10 +120,11 @@ public class ProgrammeIngestionService {
     }
 
     private ExtractionResult extractPdf(String sourceUrl, PdfUpload pdf) {
+        List<String> partyCodes = visibleCatalogueCodes();
         Reservation reservation = usageGuard.reserveEditorial(AiOperation.PROGRAMME_EXTRACTION, gateway.model());
         try (InputStream input = pdf.document().getInputStream()) {
             ExtractionResult result = gateway.extractPdf(
-                    sourceUrl, pdf.displayName(), input, pdf.document().getSize(), programmes.visiblePartyCodes());
+                    sourceUrl, pdf.displayName(), input, pdf.document().getSize(), partyCodes);
             usageGuard.succeeded(reservation, result.usage());
             return result;
         } catch (GeminiApiException exception) {
@@ -131,6 +137,10 @@ public class ProgrammeIngestionService {
             usageGuard.failed(reservation);
             throw exception;
         }
+    }
+
+    private List<String> visibleCatalogueCodes() {
+        return ProgrammeIntelligenceGateway.normalizedPartyCodes(parties.visibleCatalogueCodes());
     }
 
     static String publicHttpsUrl(String rawValue) {

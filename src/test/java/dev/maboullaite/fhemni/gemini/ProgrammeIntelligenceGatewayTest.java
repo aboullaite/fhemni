@@ -36,6 +36,27 @@ class ProgrammeIntelligenceGatewayTest {
     }
 
     @Test
+    void rejectsAnEmptyPartyEnumAtTheSchemaBoundary() {
+        assertThatThrownBy(() -> GeminiSchemas.programmeExtraction(new ObjectMapper(), List.of()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("At least one party code");
+    }
+
+    @Test
+    void rejectsMalformedPartyCodesInsteadOfSilentlyDroppingThem() {
+        assertThatThrownBy(() -> ProgrammeIntelligenceGateway.normalizedPartyCodes(List.of("PUD", "BAD_CODE")))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Party codes");
+    }
+
+    @Test
+    void onlyRequestsFgdCanonicalizationWhenFgdIsVisible() {
+        assertThat(ProgrammeIntelligenceGateway.jointFgdRule(List.of("FGD", "PUD")))
+                .contains("canonical partyCode FGD");
+        assertThat(ProgrammeIntelligenceGateway.jointFgdRule(List.of("PUD"))).isEmpty();
+    }
+
+    @Test
     void inventoriesTheWholePdfBeforeStructuredExtractionAndCombinesUsage() {
         GeminiInteractionsClient client = mock(GeminiInteractionsClient.class);
         ObjectMapper mapper = new ObjectMapper();
