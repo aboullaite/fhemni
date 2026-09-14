@@ -53,7 +53,8 @@
         const verdictDescription = t(`promise.verdictDescription.${assessment.verdict}`);
         verdict.title = verdictDescription;
         verdict.setAttribute('aria-label', verdictDescription);
-        document.querySelector('#promiseSummary').textContent = cleanSummary(localized(assessment.summary));
+        document.querySelector('#promiseSummary').textContent = window.FhemniCatalog.assessmentSummary(
+            localized(assessment.summary), assessment.verdict);
         document.querySelector('#promiseRequirements').textContent = localized(assessment.requirements);
         document.querySelector('#promiseAssumptions').textContent = localized(assessment.assumptions);
         document.querySelector('#promiseCalculation').textContent = localized(assessment.calculationNotes);
@@ -95,14 +96,6 @@
         const dateLocale = locale() === 'ar' ? 'ar-MA' : locale();
         return new Intl.DateTimeFormat(dateLocale, { year: 'numeric', month: 'short', day: 'numeric' })
             .format(new Date(`${value}T12:00:00Z`));
-    }
-
-    function cleanSummary(value) {
-        return String(value || '')
-            .replace(/\b(?:POSSIBLE|HARD|NOT_ACHIEVABLE|INSUFFICIENT_DATA)\b[.:؛،-]?/g, '')
-            .replace(/[ \t]+([.,؛،])/g, '$1')
-            .replace(/[ \t]{2,}/g, ' ')
-            .trim();
     }
 
     document.addEventListener('DOMContentLoaded', () => {
