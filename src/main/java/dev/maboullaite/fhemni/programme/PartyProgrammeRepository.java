@@ -75,6 +75,12 @@ public class PartyProgrammeRepository {
                 .single() == 1;
     }
 
+    public List<String> visiblePartyCodes() {
+        return jdbc.sql("SELECT code FROM political_parties WHERE visible = TRUE ORDER BY code")
+                .query(String.class)
+                .list();
+    }
+
     public List<PartyProgramme> findAll() {
         return jdbc.sql("SELECT " + PROGRAMME_COLUMNS + " FROM party_programmes ORDER BY party_code")
                 .query(this::mapProgramme)

@@ -26,13 +26,13 @@ import tools.jackson.databind.ObjectMapper;
 class ProgrammeIntelligenceGatewayTest {
 
     @Test
-    void allowsTheJointFgdPsuCampaignAsCanonicalFgd() {
+    void buildsTheExtractionSchemaFromTheVisiblePartyDirectory() {
         var partyCodes = new ArrayList<String>();
-        GeminiSchemas.programmeExtraction(new ObjectMapper())
+        GeminiSchemas.programmeExtraction(new ObjectMapper(), List.of("FGD", "PUD"))
                 .get("properties").get("partyCode").get("enum")
                 .forEach(node -> partyCodes.add(node.stringValue()));
 
-        assertThat(partyCodes).contains("FGD");
+        assertThat(partyCodes).containsExactly("FGD", "PUD");
     }
 
     @Test
@@ -68,7 +68,7 @@ class ProgrammeIntelligenceGatewayTest {
 
         var result = gateway.extractPdf(
                 "https://party.ma/programme", "programme.pdf",
-                new ByteArrayInputStream("%PDF-test".getBytes()), 9);
+                new ByteArrayInputStream("%PDF-test".getBytes()), 9, List.of("PJD", "PUD"));
 
         assertThat(result.programme().promises()).hasSize(1);
         assertThat(result.usage()).isEqualTo(inventoryUsage.plus(extractionUsage));

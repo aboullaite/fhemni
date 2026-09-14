@@ -81,8 +81,9 @@ class ProgrammeIngestionServiceTest {
                 "document", "programme.pdf", "application/pdf", "%PDF-corrected".getBytes());
 
         when(gateway.live()).thenReturn(true);
+        when(programmes.visiblePartyCodes()).thenReturn(List.of("PJD", "PUD"));
         when(programmes.programmeBySourceUrl(sourceUrl)).thenReturn(Optional.of(existing));
-        when(gateway.extractPdf(eq(sourceUrl), eq("programme.pdf"), any(), anyLong()))
+        when(gateway.extractPdf(eq(sourceUrl), eq("programme.pdf"), any(), anyLong(), eq(List.of("PJD", "PUD"))))
                 .thenReturn(new ExtractionResult(extraction, AiUsage.empty()));
         when(programmes.replaceGeneratedExtraction(existing.id(), sourceUrl, extraction, List.of()))
                 .thenReturn(replacement);

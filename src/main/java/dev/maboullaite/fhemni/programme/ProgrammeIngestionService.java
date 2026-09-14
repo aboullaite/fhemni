@@ -102,7 +102,7 @@ public class ProgrammeIngestionService {
     private ExtractionResult extract(String sourceUrl) {
         Reservation reservation = usageGuard.reserveEditorial(AiOperation.PROGRAMME_EXTRACTION, gateway.model());
         try {
-            ExtractionResult result = gateway.extract(sourceUrl);
+            ExtractionResult result = gateway.extract(sourceUrl, programmes.visiblePartyCodes());
             usageGuard.succeeded(reservation, result.usage());
             return result;
         } catch (GeminiApiException exception) {
@@ -117,7 +117,8 @@ public class ProgrammeIngestionService {
     private ExtractionResult extractPdf(String sourceUrl, PdfUpload pdf) {
         Reservation reservation = usageGuard.reserveEditorial(AiOperation.PROGRAMME_EXTRACTION, gateway.model());
         try (InputStream input = pdf.document().getInputStream()) {
-            ExtractionResult result = gateway.extractPdf(sourceUrl, pdf.displayName(), input, pdf.document().getSize());
+            ExtractionResult result = gateway.extractPdf(
+                    sourceUrl, pdf.displayName(), input, pdf.document().getSize(), programmes.visiblePartyCodes());
             usageGuard.succeeded(reservation, result.usage());
             return result;
         } catch (GeminiApiException exception) {
