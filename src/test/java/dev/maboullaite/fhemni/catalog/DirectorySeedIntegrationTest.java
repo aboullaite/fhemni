@@ -35,7 +35,7 @@ class DirectorySeedIntegrationTest {
         assertThat(parties).extracting(PoliticalParty::code)
                 .containsExactly("RNI", "PAM", "PI", "PJD", "USFP", "PPS", "MP", "FGD",
                         "UC", "FFD", "MDS", "PSU", "PE", "PML", "PVM", "ND", "PDN", "PGV",
-                        "PEDD", "PUD", "PRV", "IND", "UNKNOWN");
+                        "PEDD", "PUD", "PRV", "ALAMAL", "PRD", "IND", "UNKNOWN");
         assertThat(parties).allSatisfy(party ->
                 assertThat(PartyDirectory.validColor(party.color())).isTrue());
         assertThat(parties).allSatisfy(party -> {
@@ -95,6 +95,36 @@ class DirectorySeedIntegrationTest {
     }
 
     @Test
+    void seedsAffiliationsExplicitlyIdentifiedInPublishedEpisodeRoles() {
+        Map<String, ExpectedAffiliation> expected = Map.ofEntries(
+                Map.entry("خالد-البقالي", affiliation("PDN", "uE4zzVBstx4")),
+                Map.entry("بدر-العربي", affiliation("PDN", "B1COnlcQLs4")),
+                Map.entry("نبيل-العادل", affiliation("MP", "fzTGSPbbvc0")),
+                Map.entry("مصطفي-صغيري", affiliation("MP", "26AjT1bdgSw")),
+                Map.entry("هشام-ايت-منا", affiliation("RNI", "Z-ACRzTq2ZI")),
+                Map.entry("محمد-اوجار", affiliation("RNI", "w3hjGY-Fcjo")),
+                Map.entry("ليلي-ذاكري", affiliation("PPS", "4fVg02R0HAU")),
+                Map.entry("عبد-الجبار-الرشيدي", affiliation("PI", "mYMsouy08Y8")),
+                Map.entry("كمال-الهشومي", affiliation("USFP", "Wk3NOgPXwlQ")),
+                Map.entry("سمير-الباز", affiliation("PML", "w3hjGY-Fcjo")),
+                Map.entry("سليمه-غريطه", affiliation("PRD", "scW1dED_R28")),
+                Map.entry("باني-محمد-ولد-بركه", affiliation("ALAMAL", "SS8hBq5eGe0")));
+
+        Map<String, CuratedPerson> bySlug = personRepository.findAll().stream()
+                .collect(Collectors.toUnmodifiableMap(CuratedPerson::slug, Function.identity()));
+
+        assertThat(bySlug).containsKeys(expected.keySet().toArray(String[]::new));
+        expected.forEach((slug, expectedAffiliation) -> {
+            CuratedPerson person = bySlug.get(slug);
+            assertThat(person.partyCode()).as(slug).isEqualTo(expectedAffiliation.partyCode());
+            assertThat(person.affiliations()).as(slug).singleElement().satisfies(affiliation -> {
+                assertThat(affiliation.sourceUrl()).isEqualTo(expectedAffiliation.sourceUrl());
+                assertThat(affiliation.sourceLabel()).isNotBlank();
+            });
+        });
+    }
+
+    @Test
     void hidesUnaffiliatedPartiesFromPublicSheets() {
         Map<String, PoliticalParty> byCode = partyRepository.findAll().stream()
                 .collect(Collectors.toUnmodifiableMap(PoliticalParty::code, Function.identity()));
@@ -107,5 +137,12 @@ class DirectorySeedIntegrationTest {
     void seedsHonorificPrefixes() {
         assertThat(personRepository.findHonorifics())
                 .contains("الدكتور", "الأستاذ", "السيد", "السيدة", "الحاج");
+    }
+
+    private static ExpectedAffiliation affiliation(String partyCode, String youtubeVideoId) {
+        return new ExpectedAffiliation(partyCode, "https://www.youtube.com/watch?v=" + youtubeVideoId);
+    }
+
+    private record ExpectedAffiliation(String partyCode, String sourceUrl) {
     }
 }
