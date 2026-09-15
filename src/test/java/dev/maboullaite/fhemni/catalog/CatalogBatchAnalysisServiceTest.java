@@ -57,6 +57,7 @@ class CatalogBatchAnalysisServiceTest {
         assertEquals(BatchState.COMPLETED, finished.state());
         assertEquals(1, finished.total());
         assertEquals(1, finished.completed());
+        assertEquals(0, finished.failed());
         verify(analyses).create(pendingVideo.canonicalUrl(), "ary");
         verify(analyses, never()).create(eq(completedVideo.canonicalUrl()), any());
     }
@@ -90,6 +91,69 @@ class CatalogBatchAnalysisServiceTest {
         verify(analyses, never()).create(eq(failedVideo.canonicalUrl()), any());
     }
 
+    @Test
+    void continuesWithTheNextEpisodeWhenOneAnalysisFails() {
+        CatalogVideoRepository catalog = mock(CatalogVideoRepository.class);
+        AnalysisRevisionRepository revisions = mock(AnalysisRevisionRepository.class);
+        AnalysisService analyses = mock(AnalysisService.class);
+        ExecutorService executor = mock(ExecutorService.class);
+        CatalogVideo brokenVideo = video("n5B3boj2MFM", "Broken episode");
+        CatalogVideo healthyVideo = video("TMgYfNkfF14", "Healthy episode");
+        when(catalog.findAll(500)).thenReturn(List.of(brokenVideo, healthyVideo));
+        when(revisions.latestByVideo()).thenReturn(Map.of());
+        when(analyses.create(brokenVideo.canonicalUrl(), "ary"))
+                .thenReturn(failedAnalysis(brokenVideo, "The audio could not be decoded."));
+        when(analyses.create(healthyVideo.canonicalUrl(), "ary"))
+                .thenReturn(completedAnalysis(healthyVideo));
+
+        CatalogBatchAnalysisService service = new CatalogBatchAnalysisService(
+                catalog, revisions, analyses, executor, Duration.ofMinutes(30));
+        ArgumentCaptor<Runnable> work = ArgumentCaptor.forClass(Runnable.class);
+
+        service.start("ary", 20);
+        verify(executor).execute(work.capture());
+        work.getValue().run();
+
+        var finished = service.latest();
+        assertEquals(BatchState.COMPLETED, finished.state());
+        assertEquals(2, finished.total());
+        assertEquals(1, finished.completed());
+        assertEquals(1, finished.failed());
+        assertEquals("The audio could not be decoded.", finished.error());
+        verify(analyses).create(brokenVideo.canonicalUrl(), "ary");
+        verify(analyses).create(healthyVideo.canonicalUrl(), "ary");
+    }
+
+    @Test
+    void continuesWhenStartingOneEpisodeThrows() {
+        CatalogVideoRepository catalog = mock(CatalogVideoRepository.class);
+        AnalysisRevisionRepository revisions = mock(AnalysisRevisionRepository.class);
+        AnalysisService analyses = mock(AnalysisService.class);
+        ExecutorService executor = mock(ExecutorService.class);
+        CatalogVideo brokenVideo = video("n5B3boj2MFM", "Broken episode");
+        CatalogVideo healthyVideo = video("TMgYfNkfF14", "Healthy episode");
+        when(catalog.findAll(500)).thenReturn(List.of(brokenVideo, healthyVideo));
+        when(revisions.latestByVideo()).thenReturn(Map.of());
+        when(analyses.create(brokenVideo.canonicalUrl(), "ary"))
+                .thenThrow(new IllegalStateException("Decoder unavailable."));
+        when(analyses.create(healthyVideo.canonicalUrl(), "ary"))
+                .thenReturn(completedAnalysis(healthyVideo));
+
+        CatalogBatchAnalysisService service = new CatalogBatchAnalysisService(
+                catalog, revisions, analyses, executor, Duration.ofMinutes(30));
+        ArgumentCaptor<Runnable> work = ArgumentCaptor.forClass(Runnable.class);
+
+        service.start("ary", 20);
+        verify(executor).execute(work.capture());
+        work.getValue().run();
+
+        var finished = service.latest();
+        assertEquals(BatchState.COMPLETED, finished.state());
+        assertEquals(1, finished.completed());
+        assertEquals(1, finished.failed());
+        verify(analyses).create(healthyVideo.canonicalUrl(), "ary");
+    }
+
     private CatalogVideo video(String youtubeId, String title) {
         Instant now = Instant.now();
         return new CatalogVideo(
@@ -105,5 +169,12 @@ class CatalogBatchAnalysisServiceTest {
                 UUID.randomUUID(), video.canonicalUrl(), video.youtubeVideoId(), OutputLanguage.DARIJA,
                 AnalysisStatus.COMPLETED, 100, "Analysis complete", false, Instant.now(),
                 null, null, List.of(), false, null);
+    }
+
+    private AnalysisSnapshot failedAnalysis(CatalogVideo video, String error) {
+        return new AnalysisSnapshot(
+                UUID.randomUUID(), video.canonicalUrl(), video.youtubeVideoId(), OutputLanguage.DARIJA,
+                AnalysisStatus.FAILED, 40, "Analysis failed", false, Instant.now(),
+                null, error, List.of(), false, null);
     }
 }

@@ -13,6 +13,10 @@
     const suggestionCount = document.querySelector('#adminSuggestionCount');
     const suggestionFeedback = document.querySelector('#adminSuggestionFeedback');
     const refreshSuggestionMetadata = document.querySelector('#refreshSuggestionMetadata');
+    const suggestionSelection = document.querySelector('#adminSuggestionSelection');
+    const selectAllSuggestions = document.querySelector('#selectAllSuggestions');
+    const selectedSuggestionCount = document.querySelector('#selectedSuggestionCount');
+    const addSelectedSuggestions = document.querySelector('#addSelectedSuggestions');
     const batchLanguage = document.querySelector('#batchAnalysisLanguage');
     const batchButton = document.querySelector('#batchAnalysisButton');
     const batchFeedback = document.querySelector('#batchAnalysisFeedback');
@@ -34,6 +38,8 @@
     const assessmentReportsDetail = document.querySelector('#adminAssessmentReportsDetail');
     let videos = [];
     let suggestions = [];
+    const selectedSuggestionIds = new Set();
+    const maxSuggestionSelection = 20;
     let analysisAvailable = false;
     let batchRunning = false;
     let batchStatus = null;
@@ -135,6 +141,10 @@
         if (!suggestionList) return;
         try {
             suggestions = await window.FhemniCatalog.requestJson('/api/admin/suggestions');
+            const importableIds = new Set(importableSuggestions().map(suggestion => suggestion.id));
+            selectedSuggestionIds.forEach(id => {
+                if (!importableIds.has(id)) selectedSuggestionIds.delete(id);
+            });
             renderSuggestions();
         } catch (error) {
             window.FhemniCatalog.renderError(suggestionList, error.message);
@@ -337,7 +347,7 @@
             applyBatchStatus(status);
         } catch (error) {
             showBatchFeedback(t('admin.batchFailed', {
-                completed: 0,
+                processed: 0,
                 count: pending.length,
                 message: error.message
             }), true);
@@ -383,7 +393,7 @@
     function renderBatchStatus() {
         if (!batchStatus) return;
         if (batchStatus.state === 'RUNNING') {
-            const current = Math.min(batchStatus.completed + 1, batchStatus.total);
+            const current = Math.min(batchStatus.completed + (batchStatus.failed || 0) + 1, batchStatus.total);
             showBatchFeedback(batchStatus.currentVideoTitle
                 ? t('admin.batchProgress', {
                     current,
@@ -394,11 +404,17 @@
             return;
         }
         if (batchStatus.state === 'COMPLETED') {
-            showBatchFeedback(t('admin.batchComplete', { count: batchStatus.completed }), false);
+            const failed = batchStatus.failed || 0;
+            showBatchFeedback(failed > 0
+                ? t('admin.batchCompleteWithErrors', {
+                    completed: batchStatus.completed,
+                    failed
+                })
+                : t('admin.batchComplete', { count: batchStatus.completed }), failed > 0);
             return;
         }
         showBatchFeedback(t('admin.batchFailed', {
-            completed: batchStatus.completed,
+            processed: batchStatus.completed + (batchStatus.failed || 0),
             count: batchStatus.total,
             message: batchStatus.error || t('admin.batchEpisodeFailed')
         }), true);
@@ -508,6 +524,7 @@
     function renderSuggestions() {
         suggestionList.replaceChildren();
         suggestionCount.textContent = t('admin.pendingSuggestions', { count: suggestions.length });
+        renderSuggestionSelection();
         if (!suggestions.length) {
             const empty = document.createElement('div');
             empty.className = 'catalog-empty';
@@ -520,7 +537,20 @@
 
     function createSuggestionRow(suggestion) {
         const row = document.createElement('article');
-        row.className = 'admin-suggestion-row';
+        const importable = suggestion.moderationStatus !== 'REVIEW_REQUIRED';
+        row.className = `admin-suggestion-row ${importable ? 'is-importable' : 'requires-review'}`;
+        if (importable) {
+            const select = document.createElement('input');
+            select.type = 'checkbox';
+            select.className = 'admin-suggestion-checkbox';
+            select.checked = selectedSuggestionIds.has(suggestion.id);
+            select.setAttribute('aria-label', t('admin.selectSuggestion', {
+                title: suggestion.title || suggestion.canonicalUrl
+            }));
+            select.addEventListener('change', () => toggleSuggestion(suggestion.id, select));
+            row.classList.toggle('selected', select.checked);
+            row.append(select);
+        }
 
         const copy = document.createElement('div');
         copy.className = 'admin-suggestion-copy';
@@ -569,16 +599,78 @@
         return row;
     }
 
-    function addToImporter(youtubeUrl) {
+    function importableSuggestions() {
+        return suggestions.filter(suggestion => suggestion.moderationStatus !== 'REVIEW_REQUIRED');
+    }
+
+    function toggleSuggestion(id, checkbox) {
+        if (checkbox.checked && selectedSuggestionIds.size >= maxSuggestionSelection) {
+            checkbox.checked = false;
+            showSuggestionFeedback(t('admin.suggestionSelectionLimit', {
+                count: maxSuggestionSelection
+            }), true);
+            return;
+        }
+        if (checkbox.checked) selectedSuggestionIds.add(id);
+        else selectedSuggestionIds.delete(id);
+        checkbox.closest('.admin-suggestion-row')?.classList.toggle('selected', checkbox.checked);
+        renderSuggestionSelection();
+    }
+
+    function toggleAllSuggestions() {
+        const importable = importableSuggestions();
+        const allVisibleSelected = importable.length > 0
+            && importable.slice(0, maxSuggestionSelection)
+                .every(suggestion => selectedSuggestionIds.has(suggestion.id));
+        selectedSuggestionIds.clear();
+        if (!allVisibleSelected) {
+            importable.slice(0, maxSuggestionSelection)
+                .forEach(suggestion => selectedSuggestionIds.add(suggestion.id));
+        }
+        renderSuggestions();
+    }
+
+    function renderSuggestionSelection() {
+        if (!suggestionSelection) return;
+        const importable = importableSuggestions();
+        suggestionSelection.hidden = importable.length === 0;
+        selectedSuggestionCount.textContent = t('admin.selectedSuggestions', {
+            count: selectedSuggestionIds.size,
+            limit: maxSuggestionSelection
+        });
+        addSelectedSuggestions.disabled = selectedSuggestionIds.size === 0;
+        selectAllSuggestions.disabled = importable.length === 0;
+        const selectable = importable.slice(0, maxSuggestionSelection);
+        const selectedVisible = selectable.filter(suggestion => selectedSuggestionIds.has(suggestion.id)).length;
+        selectAllSuggestions.checked = selectable.length > 0 && selectedVisible === selectable.length;
+        selectAllSuggestions.indeterminate = selectedVisible > 0 && selectedVisible < selectable.length;
+    }
+
+    function addSelectedToImporter() {
+        const selectedUrls = importableSuggestions()
+            .filter(suggestion => selectedSuggestionIds.has(suggestion.id))
+            .map(suggestion => suggestion.canonicalUrl);
+        addToImporter(selectedUrls);
+    }
+
+    function addToImporter(youtubeUrls) {
+        const selectedUrls = Array.isArray(youtubeUrls) ? youtubeUrls : [youtubeUrls];
+        if (!selectedUrls.length) return;
         if (!form || !urls) {
-            window.location.assign(`/admin/episodes?youtubeUrl=${encodeURIComponent(youtubeUrl)}`);
+            const parameters = new URLSearchParams();
+            selectedUrls.forEach(youtubeUrl => parameters.append('youtubeUrl', youtubeUrl));
+            window.location.assign(`/admin/episodes?${parameters}`);
             return;
         }
         const lines = urls.value.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
-        if (!lines.some(line => line.split('|')[0].trim() === youtubeUrl)) {
-            lines.push(youtubeUrl);
-            urls.value = lines.join('\n');
-        }
+        const existingUrls = new Set(lines.map(line => line.split('|')[0].trim()));
+        selectedUrls.forEach(youtubeUrl => {
+            if (!existingUrls.has(youtubeUrl)) {
+                lines.push(youtubeUrl);
+                existingUrls.add(youtubeUrl);
+            }
+        });
+        urls.value = lines.join('\n');
         form.scrollIntoView({ behavior: 'smooth', block: 'center' });
         urls.focus({ preventScroll: true });
     }
@@ -679,11 +771,15 @@
         loadAssessmentReports()
     ]));
     refreshSuggestionMetadata?.addEventListener('click', refreshMissingSuggestionMetadata);
+    selectAllSuggestions?.addEventListener('change', toggleAllSuggestions);
+    addSelectedSuggestions?.addEventListener('click', addSelectedToImporter);
     refreshCatalogDates?.addEventListener('click', refreshMissingCatalogDates);
     document.addEventListener('DOMContentLoaded', () => {
         if (urls) {
-            const suggestedUrl = new URLSearchParams(window.location.search).get('youtubeUrl');
-            if (suggestedUrl) urls.value = suggestedUrl;
+            const suggestedUrls = [...new Set(
+                new URLSearchParams(window.location.search).getAll('youtubeUrl').filter(Boolean)
+            )].slice(0, maxSuggestionSelection);
+            if (suggestedUrls.length) urls.value = suggestedUrls.join('\n');
         }
         return Promise.all([
             loadCapabilities(),

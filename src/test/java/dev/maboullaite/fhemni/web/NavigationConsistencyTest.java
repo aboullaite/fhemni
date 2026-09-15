@@ -133,7 +133,7 @@ class NavigationConsistencyTest {
         for (String page : ALL_PAGES) {
             assertThat(html(page))
                     .as("stylesheet in %s", page)
-                    .containsOnlyOnce("/css/dist.css?v=20260914-1");
+                    .containsOnlyOnce("/css/dist.css?v=20260915-1");
         }
     }
 
@@ -233,7 +233,7 @@ class NavigationConsistencyTest {
                 .contains("t('analysis.nonFactualExplanation')");
         assertThat(html("analysis.html"))
                 .contains("/js/analysis.js?v=20260912-2")
-                .contains("/js/i18n.js?v=20260913-6")
+                .contains("/js/i18n.js?v=20260915-1")
                 .doesNotContain("analysis.evidenceKicker");
         assertThat(html("js/i18n.js"))
                 .doesNotContain("analysis.evidenceKicker")
@@ -284,8 +284,8 @@ class NavigationConsistencyTest {
         for (String page : ADMIN_PAGES) {
             assertThat(html(page))
                     .as("mobile assets in %s", page)
-                    .contains("/css/dist.css?v=20260914-1")
-                    .contains("/js/i18n.js?v=20260913-6");
+                    .contains("/css/dist.css?v=20260915-1")
+                    .contains("/js/i18n.js?v=20260915-1");
         }
     }
 
@@ -295,7 +295,7 @@ class NavigationConsistencyTest {
                 .contains("id=\"adminAssessmentReportsAlert\"")
                 .contains("href=\"/admin/programmes?focus=reports\"")
                 .contains("admin.readerReportsAlertTitle")
-                .contains("/js/admin.js?v=20260911-1");
+                .contains("/js/admin.js?v=20260915-1");
         assertThat(html("js/admin.js"))
                 .contains("/api/admin/programmes/assessment-reports")
                 .contains("renderAssessmentReportsAlert");
@@ -323,6 +323,25 @@ class NavigationConsistencyTest {
     }
 
     @Test
+    void suggestedEpisodesCanBeSelectedAndSentToTheBatchImporter() throws IOException {
+        assertThat(html("admin-suggestions.html"))
+                .contains("id=\"selectAllSuggestions\"")
+                .contains("id=\"selectedSuggestionCount\"")
+                .contains("id=\"addSelectedSuggestions\"");
+        assertThat(html("js/admin.js"))
+                .contains("const maxSuggestionSelection = 20")
+                .contains("suggestion.moderationStatus !== 'REVIEW_REQUIRED'")
+                .contains("parameters.append('youtubeUrl', youtubeUrl)")
+                .contains("getAll('youtubeUrl')")
+                .contains("selectedSuggestionIds.clear()")
+                .contains("addToImporter(selectedUrls)");
+        assertThat(html("js/i18n.js"))
+                .contains("'admin.addSelectedToImporter': 'Add selected to importer'")
+                .contains("'admin.addSelectedToImporter': 'Ajouter la sélection'")
+                .contains("'admin.addSelectedToImporter': 'زيد المختارين'");
+    }
+
+    @Test
     void narrowAdminHeadersPutLanguageChoicesBesideTheNavigation() throws IOException {
         assertThat(html("css/dist.css"))
                 .contains("@media (max-width:360px)")
@@ -341,10 +360,10 @@ class NavigationConsistencyTest {
                 .contains("id=\"programmeMedia\" class=\"programme-media\"")
                 .contains("class=\"video-js vjs-big-play-centered\"")
                 .contains("/webjars/video.js/8.23.8/dist/video-js.min.css")
-                .contains("/css/dist.css?v=20260914-1")
+                .contains("/css/dist.css?v=20260915-1")
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.23.8/dist/video.min.js")
-                .contains("/js/i18n.js?v=20260913-6")
+                .contains("/js/i18n.js?v=20260915-1")
                 .contains("/js/party.js?v=20260914-1")
                 .containsOnlyOnce("data-i18n=\"programme.kicker\"")
                 .doesNotContain("data-i18n=\"programme.mediaPowered\"")
