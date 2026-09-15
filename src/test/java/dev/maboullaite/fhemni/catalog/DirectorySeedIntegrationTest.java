@@ -54,6 +54,18 @@ class DirectorySeedIntegrationTest {
         assertThat(byCode.get("FGD").symbolVerified()).isTrue();
         assertThat(byCode.get("FGD").catalogueCode()).isEqualTo("FGD");
         assertThat(byCode.get("PSU").catalogueCode()).isEqualTo("FGD");
+        assertThat(byCode.get("ALAMAL")).satisfies(party -> {
+            assertThat(party.symbolLabelFr()).isEqualTo("Avion");
+            assertThat(party.symbolLabelAr()).isEqualTo("الطائرة");
+            assertThat(party.symbolAsset()).isEqualTo("/assets/parties/alamal-display.png");
+            assertThat(party.symbolVerified()).isTrue();
+        });
+        assertThat(byCode.get("PRD")).satisfies(party -> {
+            assertThat(party.symbolLabelFr()).isEqualTo("Croissant et étoiles");
+            assertThat(party.symbolLabelAr()).isEqualTo("الهلال والنجوم");
+            assertThat(party.symbolAsset()).isEqualTo("/assets/parties/prd-display.png");
+            assertThat(party.symbolVerified()).isTrue();
+        });
         assertThat(partyRepository.visibleCatalogueCodes())
                 .contains("FGD", "PUD")
                 .doesNotContain("PSU");
