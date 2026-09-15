@@ -1,10 +1,11 @@
 # Official party artwork
 
-The files ending in `-maroc-ma` were downloaded unchanged on 2026-09-09 from
+Most files ending in `-maroc-ma` were downloaded unchanged on 2026-09-09 from
 the official [Maroc.ma political-party directory](https://www.maroc.ma/fr/le-maroc/les-partis-politiques-et-syndicats).
+The ALAMAL and PRD additions were downloaded from that directory on 2026-09-15.
 They are kept locally so public pages do not hot-link a third-party service.
 
-FGD's source artwork was downloaded unchanged on the same date from the
+FGD's source artwork was downloaded unchanged on 2026-09-09 from the
 party's official [2026 election platform](https://fgd.ma/apps/loielec/). It is
 also served locally rather than hot-linked.
 
@@ -49,5 +50,7 @@ claim over the artwork.
 | PEDD | `pedd-maroc-ma.png` | [source](https://www.maroc.ma/sites/default/files/2024-10/PARTI%20DE%20LENVIRONNEMENT%20ET%20DU%20DEVELOPPEMENT%20DURABLE.png) | `9b33bdfed7678a8d136ad5d27d6a1a286ef94e0b36877dcf24667a14fbfacbe2` |
 | PUD | `pud-maroc-ma.png` | [source](https://www.maroc.ma/sites/default/files/2024-10/%D8%AD%D8%B2%D8%A8%20%D8%A7%D9%84%D9%88%D8%AD%D8%AF%D8%A9%20%D9%88%D8%A7%D9%84%D8%AF%D9%8A%D9%85%D9%82%D8%B1%D8%A7%D8%B7%D9%8A%D8%A9.png) | `3dbec14201fc80e969339596255e6551b44e5f6075b67528e475cab2888efa94` |
 | PRV | `prv-maroc-ma.png` | [source](https://www.maroc.ma/sites/default/files/2024-10/PARTI%20DE%20LA%20RENAISSANCE%20ET%20DE%20LA%20VERTU.png) | `125eda8653758766917e1e7fc5a5e48495c503b3c6edaad6281ccb7cb0a80f42` |
+| ALAMAL | `alamal-maroc-ma.png` | [source](https://www.maroc.ma/sites/default/files/2024-10/logo_al_amal.png) | `6b609d01a42b3a0f68e4c8a2de2b621de59e7d5e7ea849822f887b1975ae6f9f` |
+| PRD | `prd-maroc-ma.png` | [source](https://www.maroc.ma/sites/default/files/2024-10/PARTI%20DE%20LA%20REFORME%20DU%20DEVELOPPEMENT%20%28P.R.D%29.png) | `5e10b332d26b1213bf85fb887497ed7df5a9f0a36696f78af0bd139edfa034ea` |
 
 `IND` and `UNKNOWN` retain Fhemni's neutral local assets.
