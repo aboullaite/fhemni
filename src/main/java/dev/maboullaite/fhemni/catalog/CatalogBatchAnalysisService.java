@@ -98,18 +98,14 @@ public class CatalogBatchAnalysisService {
         try {
             for (CatalogVideo video : videos) {
                 run.begin(video.title());
-                RevisionSummary previous = latestByVideo.get(video.youtubeVideoId());
-                AnalysisSnapshot analysis = previous != null && previous.status() == AnalysisStatus.FAILED
-                        ? analyses.reprocess(video.canonicalUrl(), run.language().code())
-                        : analyses.create(video.canonicalUrl(), run.language().code());
-                run.analysisStarted(analysis.id());
-                AnalysisSnapshot terminal = awaitTerminal(analysis);
-                if (terminal.status() == AnalysisStatus.FAILED) {
-                    throw new IllegalStateException(terminal.error() == null
-                            ? "The episode analysis failed."
-                            : terminal.error());
+                try {
+                    processEpisode(run, video, latestByVideo.get(video.youtubeVideoId()));
+                    run.episodeCompleted();
+                } catch (InterruptedException exception) {
+                    throw exception;
+                } catch (RuntimeException exception) {
+                    run.episodeFailed(safeMessage(exception));
                 }
-                run.episodeCompleted();
             }
             run.complete();
         } catch (InterruptedException exception) {
@@ -117,6 +113,22 @@ public class CatalogBatchAnalysisService {
             run.fail("The batch was interrupted. Its current analysis may still be running.");
         } catch (RuntimeException exception) {
             run.fail(safeMessage(exception));
+        }
+    }
+
+    private void processEpisode(
+            BatchRun run,
+            CatalogVideo video,
+            RevisionSummary previous) throws InterruptedException {
+        AnalysisSnapshot analysis = previous != null && previous.status() == AnalysisStatus.FAILED
+                ? analyses.reprocess(video.canonicalUrl(), run.language().code())
+                : analyses.create(video.canonicalUrl(), run.language().code());
+        run.analysisStarted(analysis.id());
+        AnalysisSnapshot terminal = awaitTerminal(analysis);
+        if (terminal.status() == AnalysisStatus.FAILED) {
+            throw new IllegalStateException(terminal.error() == null
+                    ? "The episode analysis failed."
+                    : terminal.error());
         }
     }
 
@@ -150,6 +162,7 @@ public class CatalogBatchAnalysisService {
             OutputLanguage language,
             int total,
             int completed,
+            int failed,
             String currentVideoTitle,
             UUID currentAnalysisId,
             String error,
@@ -164,6 +177,7 @@ public class CatalogBatchAnalysisService {
         private final Instant startedAt;
         private BatchState state = BatchState.RUNNING;
         private int completed;
+        private int failed;
         private String currentVideoTitle;
         private UUID currentAnalysisId;
         private String error;
@@ -203,6 +217,14 @@ public class CatalogBatchAnalysisService {
             updatedAt = Instant.now();
         }
 
+        synchronized void episodeFailed(String message) {
+            failed += 1;
+            currentVideoTitle = null;
+            currentAnalysisId = null;
+            error = message;
+            updatedAt = Instant.now();
+        }
+
         synchronized void complete() {
             state = BatchState.COMPLETED;
             currentVideoTitle = null;
@@ -218,7 +240,7 @@ public class CatalogBatchAnalysisService {
 
         synchronized BatchSnapshot snapshot() {
             return new BatchSnapshot(
-                    id, state, language, total, completed, currentVideoTitle,
+                    id, state, language, total, completed, failed, currentVideoTitle,
                     currentAnalysisId, error, startedAt, updatedAt);
         }
     }
