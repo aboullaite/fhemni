@@ -91,6 +91,19 @@ class CivicQuestionnaireIntegrationTest {
         mvc.perform(get("/api/catalog/questionnaires/current").param("lang", "de"))
                 .andExpect(status().isBadRequest());
 
+        mvc.perform(post("/api/catalog/questionnaires/current/compass")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "language": "ar",
+                                  "answers": [
+                                    {"questionKey":"targeted-subsidies","important":false}
+                                  ]
+                                }
+                                """))
+                .andExpect(status().isBadRequest());
+
         mvc.perform(post("/api/catalog/questionnaires/current/profile")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)

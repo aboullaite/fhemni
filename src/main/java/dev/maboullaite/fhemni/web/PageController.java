@@ -3,10 +3,12 @@ package dev.maboullaite.fhemni.web;
 import dev.maboullaite.fhemni.identity.LoginSuccessHandler;
 import dev.maboullaite.fhemni.identity.LoginReturnTargetCookie;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
 
 @Controller
 public class PageController {
@@ -47,11 +49,6 @@ public class PageController {
         return "forward:/compare-programmes.html";
     }
 
-    @GetMapping({"/parties/positions", "/parties/positions/"})
-    public String obsoletePartyPositionsPage() {
-        return "redirect:/priorities";
-    }
-
     @GetMapping({"/people/{slug}", "/people/{slug}/"})
     public String personPage(@PathVariable String slug) {
         return "forward:/person.html";
@@ -59,6 +56,9 @@ public class PageController {
 
     @GetMapping({"/parties/{code}", "/parties/{code}/"})
     public String partyPage(@PathVariable String code) {
+        if (code.equalsIgnoreCase("positions")) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        }
         return "forward:/party.html";
     }
 

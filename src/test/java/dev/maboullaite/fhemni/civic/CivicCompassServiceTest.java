@@ -72,6 +72,10 @@ class CivicCompassServiceTest {
                 "en", Collections.singletonList(null))))
                 .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> service.compass(new ProfileRequest(
+                "en", List.of(new Answer("q1", null, false)))))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("needs a value");
+        assertThatThrownBy(() -> service.compass(new ProfileRequest(
                 "en", List.of(new Answer("q1", 1, false), new Answer("q1", 2, false)))))
                 .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> service.compass(new ProfileRequest(

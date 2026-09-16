@@ -5,7 +5,6 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -180,8 +179,7 @@ class PublicPeopleIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(forwardedUrl("/compare-programmes.html"));
         mvc.perform(get("/parties/positions"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/priorities"));
+                .andExpect(status().isNotFound());
         mvc.perform(get("/parties/PI"))
                 .andExpect(status().isOk())
                 .andExpect(forwardedUrl("/party.html"));
