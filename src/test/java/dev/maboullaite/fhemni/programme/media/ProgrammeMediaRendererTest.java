@@ -1,6 +1,7 @@
 package dev.maboullaite.fhemni.programme.media;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -86,6 +87,12 @@ class ProgrammeMediaRendererTest {
                 "قراءة فهّمني فبرنامج الحركة الديمقراطية الاجتماعية لانتخابات 2026");
 
         assertThat(headline.split("\\\\N", -1)).hasSize(2);
+    }
+
+    @Test
+    void acceptsTheSlowerLibx264Preset() {
+        assertThatCode(() -> new ProgrammeMediaRenderer("ffmpeg", Duration.ofMinutes(2), "slower"))
+                .doesNotThrowAnyException();
     }
 
     private static boolean ffmpegAvailable() {

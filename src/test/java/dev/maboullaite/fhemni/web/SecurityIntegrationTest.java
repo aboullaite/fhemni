@@ -76,6 +76,10 @@ class SecurityIntegrationTest {
                 .andExpect(header().string("Content-Security-Policy",
                         containsString("style-src 'self'; style-src-attr 'unsafe-inline'")))
                 .andExpect(header().string("Content-Security-Policy",
+                        containsString("img-src 'self' data: blob:")))
+                .andExpect(header().string("Content-Security-Policy",
+                        containsString("connect-src 'self' https://storage.googleapis.com")))
+                .andExpect(header().string("Content-Security-Policy",
                         not(containsString("script-src 'self' 'unsafe-inline'"))))
                 .andExpect(header().string("Content-Security-Policy",
                         containsString("media-src 'self' https://storage.googleapis.com")))
@@ -112,6 +116,9 @@ class SecurityIntegrationTest {
                 .andExpect(content().string(containsString(".public-header")));
 
         mvc.perform(get("/webjars/video.js/8.23.8/dist/video.min.js"))
+                .andExpect(status().isOk());
+
+        mvc.perform(get("/webjars/html-to-image/1.11.13/dist/html-to-image.js"))
                 .andExpect(status().isOk());
 
     }

@@ -38,6 +38,7 @@
         <google-auth-library.version>1.52.0</google-auth-library.version>
         <openai-java.version>4.62.0</openai-java.version>
         <video-js.version>8.23.8</video-js.version>
+        <html-to-image.version>1.11.13</html-to-image.version>
     </properties>
 
     <dependencyManagement>
@@ -106,6 +107,11 @@
                     <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.npm</groupId>
+            <artifactId>html-to-image</artifactId>
+            <version>${html-to-image.version}</version>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>

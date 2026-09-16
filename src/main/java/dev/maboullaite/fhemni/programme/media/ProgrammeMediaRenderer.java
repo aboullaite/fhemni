@@ -30,7 +30,7 @@ public class ProgrammeMediaRenderer {
     public static final int WIDTH = 1_080;
     public static final int HEIGHT = 1_350;
     private static final Pattern WESTERN_PERCENTAGE = Pattern.compile("(?<![0-9])([0-9]+(?:[.,][0-9]+)?)%");
-    private static final Set<String> FFMPEG_PRESETS = Set.of("slow", "medium", "fast", "faster", "veryfast");
+    private static final Set<String> FFMPEG_PRESETS = Set.of("slower", "slow", "medium", "fast", "faster", "veryfast");
     private final String ffmpeg;
     private final Duration timeout;
     private final String preset;

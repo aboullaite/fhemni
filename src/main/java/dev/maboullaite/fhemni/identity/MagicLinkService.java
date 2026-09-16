@@ -208,12 +208,7 @@ public class MagicLinkService {
     }
 
     private static String hash(String value) {
-        try {
-            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
-                    .digest(value.getBytes(StandardCharsets.UTF_8)));
-        } catch (NoSuchAlgorithmException impossible) {
-            throw new IllegalStateException("SHA-256 is unavailable", impossible);
-        }
+        return MagicLinkRepository.hash(value);
     }
 
     private static String displayName(String email) {

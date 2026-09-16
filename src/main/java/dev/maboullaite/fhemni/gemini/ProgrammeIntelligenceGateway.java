@@ -344,25 +344,21 @@ public class ProgrammeIntelligenceGateway {
         if (partyCodes == null || partyCodes.isEmpty()) {
             throw new IllegalStateException("At least one visible party is required for programme extraction.");
         }
-        List<String> normalized = partyCodes.stream()
+        return partyCodes.stream()
                 .map(value -> {
                     if (value == null || value.isBlank()) {
                         throw new IllegalArgumentException("Party codes must not be blank.");
                     }
-                    return value;
-                })
-                .map(value -> value.strip().toUpperCase(Locale.ROOT))
-                .map(value -> {
-                    if (!value.matches("[A-Z0-9][A-Z0-9-]{0,9}")) {
+                    String code = value.strip().toUpperCase(Locale.ROOT);
+                    if (!code.matches("[A-Z0-9][A-Z0-9-]{0,9}")) {
                         throw new IllegalArgumentException(
                                 "Party codes must use uppercase letters, numbers, or hyphens.");
                     }
-                    return value;
+                    return code;
                 })
                 .distinct()
                 .sorted()
                 .toList();
-        return normalized;
     }
 
     static String jointFgdRule(List<String> partyCodes) {

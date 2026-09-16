@@ -178,6 +178,8 @@ class PublicPeopleIntegrationTest {
         mvc.perform(get("/parties/compare"))
                 .andExpect(status().isOk())
                 .andExpect(forwardedUrl("/compare-programmes.html"));
+        mvc.perform(get("/parties/positions"))
+                .andExpect(status().isNotFound());
         mvc.perform(get("/parties/PI"))
                 .andExpect(status().isOk())
                 .andExpect(forwardedUrl("/party.html"));

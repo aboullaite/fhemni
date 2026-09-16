@@ -53,6 +53,10 @@ public record AuthProperties(
         return value == null || value.isBlank() ? null : value.strip().toLowerCase(Locale.ROOT);
     }
 
+    private static String clean(String value) {
+        return value == null || value.isBlank() ? null : value.strip();
+    }
+
     public record Provider(String clientId, String clientSecret) {
 
         public Provider {
@@ -66,10 +70,6 @@ public record AuthProperties(
 
         public boolean configured() {
             return clientId != null && clientSecret != null;
-        }
-
-        private static String clean(String value) {
-            return value == null || value.isBlank() ? null : value.strip();
         }
     }
 
@@ -96,10 +96,6 @@ public record AuthProperties(
         public boolean configured() {
             return enabled && baseUrl != null && from != null && mailgun.configured();
         }
-
-        private static String clean(String value) {
-            return value == null || value.isBlank() ? null : value.strip();
-        }
     }
 
     public record Mailgun(String apiKey, String domain, String baseUrl, Duration timeout) {
@@ -120,10 +116,6 @@ public record AuthProperties(
 
         public boolean configured() {
             return apiKey != null && domain != null && baseUrl != null;
-        }
-
-        private static String clean(String value) {
-            return value == null || value.isBlank() ? null : value.strip();
         }
     }
 }
