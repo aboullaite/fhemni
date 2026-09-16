@@ -1612,8 +1612,8 @@ html[dir="rtl"] .programme-heading h2 { margin-bottom: 18px; line-height: 1.32; 
 .priority-share-priority-list strong { display: flex; align-items: center; font-size: 18px; line-height: 1.1; }
 .priority-share-priority-list span { color: #60706e; font-size: 13px; font-weight: 650; line-height: 17px; }
 .priority-share-party-list { display: grid; gap: 12px; align-content: center; margin: 0; padding: 0 50px; list-style: none; }
-.priority-share-party-list li { display: grid; grid-template-columns: 50px 70px minmax(0,1fr) 100px; grid-template-areas: "rank logo identity percentage" ". logo bar bar"; align-items: center; gap: 5px 16px; min-height: 112px; padding: 15px 18px; border: 1px solid rgba(19,44,43,.13); border-inline-start: 5px solid var(--share-party-color); border-radius: 12px; background: rgba(255,255,255,.78); }
-.priority-share-party-list li:first-child { background: color-mix(in srgb, var(--share-party-color) 6%, #fffdf7); box-shadow: 0 10px 28px rgba(19,44,43,.08); }
+.priority-share-party-list li { display: grid; grid-template-columns: 50px 70px minmax(0,1fr) 100px; grid-template-areas: "rank logo identity percentage" ". logo bar bar"; align-items: center; gap: 5px 16px; min-height: 112px; padding: 15px 18px; border: 1px solid rgba(19,44,43,.13); border-inline-start: 5px solid var(--party-accent); border-radius: 12px; background: rgba(255,255,255,.78); }
+.priority-share-party-list li:first-child { background: color-mix(in srgb, var(--party-accent) 6%, #fffdf7); box-shadow: 0 10px 28px rgba(19,44,43,.08); }
 .priority-share-party-rank { grid-area: rank; display: grid; width: 40px; height: 40px; border-radius: 9px; background: #0b4f49; color: white; font: 850 18px/1 "Tajawal Heading Numerals", "Tajawal", sans-serif; place-items: center; }
 .priority-share-party-list img { grid-area: logo; width: 62px; height: 62px; padding: 5px; border: 1px solid rgba(19,44,43,.12); border-radius: 10px; background: white; object-fit: contain; }
 .priority-share-party-identity { grid-area: identity; display: grid; min-width: 0; gap: 3px; }
@@ -1621,7 +1621,7 @@ html[dir="rtl"] .programme-heading h2 { margin-bottom: 18px; line-height: 1.32; 
 .priority-share-party-identity small { color: #60706e; font-size: 13px; font-weight: 600; }
 .priority-share-party-percentage { grid-area: percentage; color: #0b4f49; font: 850 32px/1 "Tajawal Heading Numerals", "Tajawal", sans-serif; text-align: end; }
 .priority-share-party-bar { grid-area: bar; height: 7px; overflow: hidden; border-radius: 999px; background: rgba(19,44,43,.09); }
-.priority-share-party-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--share-party-color); }
+.priority-share-party-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--party-accent); }
 .priority-share-card-footer { align-self: stretch; display: flex; width: calc(100% + 80px); max-width: none; align-items: center; justify-content: space-between; flex-wrap: nowrap; gap: 24px; margin: 0 -40px; padding: 0 40px; border: 0; background: rgba(19,44,43,.055); color: #60706e; font-size: 13px; font-weight: 600; line-height: 1.35; }
 .priority-share-card-footer strong { flex: none; color: #0b4f49; font-size: 14px; font-weight: 850; }
 
@@ -1639,8 +1639,8 @@ html[dir="rtl"] .programme-heading h2 { margin-bottom: 18px; line-height: 1.32; 
 .compass-chart-container { max-width: 540px; margin: 0 auto; }
 .compass-match-list { display: grid; gap: 7px; }
 .compass-match-row { display: grid; grid-template-columns: 28px 38px minmax(0,1fr) auto; grid-template-areas: "rank logo identity pct" ". . bar bar"; align-items: center; gap: 5px 10px; width: 100%; min-width: 0; padding: 11px 13px 12px; border: 1px solid var(--line); border-radius: var(--radius-control); background: rgba(255,255,255,.72); color: var(--ink); cursor: pointer; font: inherit; text-align: start; transition: border-color .16s ease, background .16s ease, box-shadow .16s ease; }
-.compass-match-row:hover { border-color: color-mix(in srgb, var(--match-color) 46%, var(--line)); background: var(--white); box-shadow: 0 5px 18px rgba(31,57,53,.07); }
-.compass-match-top { border-color: color-mix(in srgb, var(--match-color) 58%, var(--line)); background: color-mix(in srgb, var(--match-color) 5%, var(--white)); }
+.compass-match-row:hover { border-color: color-mix(in srgb, var(--party-accent) 46%, var(--line)); background: var(--white); box-shadow: 0 5px 18px rgba(31,57,53,.07); }
+.compass-match-top { border-color: color-mix(in srgb, var(--party-accent) 58%, var(--line)); background: color-mix(in srgb, var(--party-accent) 5%, var(--white)); }
 .compass-match-rank { grid-area: rank; display: grid; width: 26px; height: 26px; place-items: center; border-radius: 8px; background: rgba(19,44,43,.07); color: var(--muted); font-family: "Tajawal Heading Numerals", "Tajawal", Tahoma, Arial, sans-serif; font-size: 11px; font-variant-numeric: tabular-nums; font-weight: 850; line-height: 1; }
 .compass-match-top .compass-match-rank { background: var(--teal-dark); color: white; }
 .compass-match-logo { grid-area: logo; width: 34px; height: 34px; padding: 3px; border: 1px solid var(--line); border-radius: 9px; background: var(--white); object-fit: contain; }
@@ -1650,8 +1650,122 @@ html[dir="rtl"] .programme-heading h2 { margin-bottom: 18px; line-height: 1.32; 
 .compass-match-pct { grid-area: pct; color: var(--ink); font-family: "Tajawal Heading Numerals", "Tajawal", Tahoma, Arial, sans-serif; font-size: 17px; font-variant-numeric: tabular-nums; font-weight: 850; line-height: 1; }
 .compass-match-top .compass-match-pct { color: var(--teal-dark); font-size: 20px; }
 .compass-match-bar { grid-area: bar; height: 5px; overflow: hidden; border-radius: 999px; background: rgba(19,44,43,.09); }
-.compass-match-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--match-color); }
-.compass-match-active { border-color: var(--match-color); background: color-mix(in srgb, var(--match-color) 7%, var(--white)); box-shadow: 0 5px 18px rgba(31,57,53,.09); }
+.compass-match-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--party-accent); }
+.compass-match-active { border-color: var(--party-accent); background: color-mix(in srgb, var(--party-accent) 7%, var(--white)); box-shadow: 0 5px 18px rgba(31,57,53,.09); }
+.party-accent-rni { --party-accent: #1b7fc1; }
+.party-accent-pam { --party-accent: #0a54a3; }
+.party-accent-pi { --party-accent: #c1272d; }
+.party-accent-pjd { --party-accent: #e8a90c; }
+.party-accent-usfp { --party-accent: #e30613; }
+.party-accent-pps { --party-accent: #b71c1c; }
+.party-accent-mp { --party-accent: #2e7d32; }
+.party-accent-fgd { --party-accent: #6a1b9a; }
+.party-accent-uc { --party-accent: #00897b; }
+.party-accent-ffd { --party-accent: #7cb342; }
+.party-accent-mds { --party-accent: #43a047; }
+.party-accent-pud { --party-accent: #b45309; }
+.party-accent-default { --party-accent: var(--teal-dark); }
+.priority-width-0 { width: 0%; }
+.priority-width-1 { width: 1%; }
+.priority-width-2 { width: 2%; }
+.priority-width-3 { width: 3%; }
+.priority-width-4 { width: 4%; }
+.priority-width-5 { width: 5%; }
+.priority-width-6 { width: 6%; }
+.priority-width-7 { width: 7%; }
+.priority-width-8 { width: 8%; }
+.priority-width-9 { width: 9%; }
+.priority-width-10 { width: 10%; }
+.priority-width-11 { width: 11%; }
+.priority-width-12 { width: 12%; }
+.priority-width-13 { width: 13%; }
+.priority-width-14 { width: 14%; }
+.priority-width-15 { width: 15%; }
+.priority-width-16 { width: 16%; }
+.priority-width-17 { width: 17%; }
+.priority-width-18 { width: 18%; }
+.priority-width-19 { width: 19%; }
+.priority-width-20 { width: 20%; }
+.priority-width-21 { width: 21%; }
+.priority-width-22 { width: 22%; }
+.priority-width-23 { width: 23%; }
+.priority-width-24 { width: 24%; }
+.priority-width-25 { width: 25%; }
+.priority-width-26 { width: 26%; }
+.priority-width-27 { width: 27%; }
+.priority-width-28 { width: 28%; }
+.priority-width-29 { width: 29%; }
+.priority-width-30 { width: 30%; }
+.priority-width-31 { width: 31%; }
+.priority-width-32 { width: 32%; }
+.priority-width-33 { width: 33%; }
+.priority-width-34 { width: 34%; }
+.priority-width-35 { width: 35%; }
+.priority-width-36 { width: 36%; }
+.priority-width-37 { width: 37%; }
+.priority-width-38 { width: 38%; }
+.priority-width-39 { width: 39%; }
+.priority-width-40 { width: 40%; }
+.priority-width-41 { width: 41%; }
+.priority-width-42 { width: 42%; }
+.priority-width-43 { width: 43%; }
+.priority-width-44 { width: 44%; }
+.priority-width-45 { width: 45%; }
+.priority-width-46 { width: 46%; }
+.priority-width-47 { width: 47%; }
+.priority-width-48 { width: 48%; }
+.priority-width-49 { width: 49%; }
+.priority-width-50 { width: 50%; }
+.priority-width-51 { width: 51%; }
+.priority-width-52 { width: 52%; }
+.priority-width-53 { width: 53%; }
+.priority-width-54 { width: 54%; }
+.priority-width-55 { width: 55%; }
+.priority-width-56 { width: 56%; }
+.priority-width-57 { width: 57%; }
+.priority-width-58 { width: 58%; }
+.priority-width-59 { width: 59%; }
+.priority-width-60 { width: 60%; }
+.priority-width-61 { width: 61%; }
+.priority-width-62 { width: 62%; }
+.priority-width-63 { width: 63%; }
+.priority-width-64 { width: 64%; }
+.priority-width-65 { width: 65%; }
+.priority-width-66 { width: 66%; }
+.priority-width-67 { width: 67%; }
+.priority-width-68 { width: 68%; }
+.priority-width-69 { width: 69%; }
+.priority-width-70 { width: 70%; }
+.priority-width-71 { width: 71%; }
+.priority-width-72 { width: 72%; }
+.priority-width-73 { width: 73%; }
+.priority-width-74 { width: 74%; }
+.priority-width-75 { width: 75%; }
+.priority-width-76 { width: 76%; }
+.priority-width-77 { width: 77%; }
+.priority-width-78 { width: 78%; }
+.priority-width-79 { width: 79%; }
+.priority-width-80 { width: 80%; }
+.priority-width-81 { width: 81%; }
+.priority-width-82 { width: 82%; }
+.priority-width-83 { width: 83%; }
+.priority-width-84 { width: 84%; }
+.priority-width-85 { width: 85%; }
+.priority-width-86 { width: 86%; }
+.priority-width-87 { width: 87%; }
+.priority-width-88 { width: 88%; }
+.priority-width-89 { width: 89%; }
+.priority-width-90 { width: 90%; }
+.priority-width-91 { width: 91%; }
+.priority-width-92 { width: 92%; }
+.priority-width-93 { width: 93%; }
+.priority-width-94 { width: 94%; }
+.priority-width-95 { width: 95%; }
+.priority-width-96 { width: 96%; }
+.priority-width-97 { width: 97%; }
+.priority-width-98 { width: 98%; }
+.priority-width-99 { width: 99%; }
+.priority-width-100 { width: 100%; }
 .compass-remaining { margin-top: 12px; border-top: 1px solid var(--line); }
 .compass-remaining > summary { width: max-content; margin-top: 10px; color: var(--teal-dark); cursor: pointer; font-size: 11px; font-weight: 850; }
 .compass-match-list-secondary { margin-top: 10px; }

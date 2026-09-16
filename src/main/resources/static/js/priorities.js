@@ -255,7 +255,7 @@
             current: currentIndex + 1,
             total: questionnaire.questions.length
         });
-        document.querySelector('#priorityProgressBar').style.width = `${(currentIndex + 1) * 100 / questionnaire.questions.length}%`;
+        setWidthClass(document.querySelector('#priorityProgressBar'), (currentIndex + 1) * 100 / questionnaire.questions.length);
         document.querySelector('#priorityPrompt').textContent = question.prompt;
         document.querySelector('#priorityContextText').textContent = question.context;
         document.querySelector('#priorityImportant').checked = Boolean(saved?.important);
@@ -382,7 +382,7 @@
             article.innerHTML = `
                 <div class="priority-result-rank">${index + 1}</div>
                 <div><h3>${escapeHtml(priority.label)}</h3>
-                <div class="priority-result-bar"><span style="width:${priority.score}%"></span></div>
+                <div class="priority-result-bar"><span class="${widthClass(priority.score)}"></span></div>
                 <p>${escapeHtml(format(copy().strength, { score: priority.score }))} · ${escapeHtml(format(copy().importantCount, { count: priority.importantCount }))}</p></div>`;
             container.append(article);
         });
@@ -465,7 +465,7 @@
             const item = document.createElement('button');
             item.type = 'button';
             item.className = 'compass-match-row' + (index === 0 ? ' compass-match-top' : '');
-            item.style.setProperty('--match-color', party.color || 'var(--teal-dark)');
+            item.classList.add(partyAccentClass(party.code));
             item.addEventListener('click', () => showPartyDetail(party, c));
 
             const rank = document.createElement('span');
@@ -497,7 +497,7 @@
             const bar = document.createElement('span');
             bar.className = 'compass-match-bar';
             const fill = document.createElement('span');
-            fill.style.width = `${party.compatibility}%`;
+            fill.className = widthClass(party.compatibility);
             bar.append(fill);
 
             item.setAttribute('aria-label', `${party.name}, ${party.compatibility}%, ${coverage.textContent}`);
@@ -767,7 +767,7 @@
         list.className = 'priority-share-party-list';
         compass.parties.filter(party => party.coveredQuestions > 0).slice(0, 3).forEach((party, index) => {
             const item = document.createElement('li');
-            item.style.setProperty('--share-party-color', party.color || '#0b4f49');
+            item.classList.add(partyAccentClass(party.code));
             const rank = document.createElement('span');
             rank.className = 'priority-share-party-rank';
             rank.textContent = index + 1;
@@ -790,12 +790,29 @@
             const bar = document.createElement('span');
             bar.className = 'priority-share-party-bar';
             const fill = document.createElement('span');
-            fill.style.width = `${party.compatibility}%`;
+            fill.className = widthClass(party.compatibility);
             bar.append(fill);
             item.append(rank, logo, identity, percentage, bar);
             list.append(item);
         });
         return list;
+    }
+
+    function widthClass(value) {
+        return `priority-width-${Math.max(0, Math.min(100, Math.round(Number(value) || 0)))}`;
+    }
+
+    function setWidthClass(element, value) {
+        for (const name of [...element.classList]) {
+            if (name.startsWith('priority-width-')) element.classList.remove(name);
+        }
+        element.classList.add(widthClass(value));
+    }
+
+    function partyAccentClass(code) {
+        const supported = new Set(['rni', 'pam', 'pi', 'pjd', 'usfp', 'pps', 'mp', 'fgd', 'uc', 'ffd', 'mds', 'pud']);
+        const normalized = String(code || '').toLowerCase();
+        return supported.has(normalized) ? `party-accent-${normalized}` : 'party-accent-default';
     }
 
     function waitForShareImages(container) {

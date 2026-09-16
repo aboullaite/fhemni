@@ -87,6 +87,16 @@ public class CivicPartyPositionService {
     }
 
     @Transactional
+    public int seedPublishedPositions(UUID editionId, List<PositionDraft> drafts) {
+        if (positions.totalPositionCount(editionId) > 0) return 0;
+        for (PositionDraft draft : drafts) {
+            upsert(editionId, draft.questionKey(), draft.partyCode(), draft.stance(),
+                    draft.summaryAr(), draft.summaryFr(), draft.summaryEn(), draft.reviewerNote());
+        }
+        return positions.publishAllDrafts(editionId, Instant.now());
+    }
+
+    @Transactional
     public void addEvidence(UUID positionId, String labelAr, String labelFr, String labelEn,
                             String sourceUrl, String pageReference, UUID promiseId, int sortOrder) {
         positions.addEvidence(positionId, labelAr, labelFr, labelEn,

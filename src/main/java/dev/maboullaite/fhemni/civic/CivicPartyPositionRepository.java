@@ -9,8 +9,11 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+
+import javax.sql.DataSource;
 
 import dev.maboullaite.fhemni.civic.CivicQuestionnaireRepository.LocalizedText;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -20,9 +23,17 @@ import org.springframework.stereotype.Repository;
 class CivicPartyPositionRepository {
 
     private final JdbcClient jdbc;
+    private final boolean postgres;
 
-    CivicPartyPositionRepository(JdbcClient jdbc) {
+    CivicPartyPositionRepository(JdbcClient jdbc, DataSource dataSource) {
         this.jdbc = jdbc;
+        try (var connection = dataSource.getConnection()) {
+            this.postgres = connection.getMetaData().getDatabaseProductName()
+                    .toLowerCase(Locale.ROOT)
+                    .contains("postgresql");
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Could not identify the civic-position database.", exception);
+        }
     }
 
     List<PositionRow> publishedPositions(UUID editionId) {
@@ -60,6 +71,51 @@ class CivicPartyPositionRepository {
     void upsert(UUID id, UUID editionId, UUID questionId, String partyCode,
                 PartyPositionStance stance, LocalizedText evidenceSummary,
                 String reviewerNote) {
+        if (postgres) {
+            upsertPostgres(id, editionId, questionId, partyCode, stance, evidenceSummary, reviewerNote);
+        } else {
+            upsertH2(id, editionId, questionId, partyCode, stance, evidenceSummary, reviewerNote);
+        }
+    }
+
+    private void upsertPostgres(UUID id, UUID editionId, UUID questionId, String partyCode,
+                                PartyPositionStance stance, LocalizedText evidenceSummary,
+                                String reviewerNote) {
+        jdbc.sql("""
+                        INSERT INTO civic_party_positions (
+                            id, edition_id, question_id, party_code, stance,
+                            evidence_summary_ar, evidence_summary_fr, evidence_summary_en,
+                            editorial_status, reviewer_note, created_at
+                        ) VALUES (
+                            :id, :editionId, :questionId, :partyCode, :stance,
+                            :summaryAr, :summaryFr, :summaryEn,
+                            'DRAFT', :reviewerNote, CURRENT_TIMESTAMP
+                        )
+                        ON CONFLICT (edition_id, question_id, party_code) DO UPDATE
+                           SET stance = EXCLUDED.stance,
+                               evidence_summary_ar = EXCLUDED.evidence_summary_ar,
+                               evidence_summary_fr = EXCLUDED.evidence_summary_fr,
+                               evidence_summary_en = EXCLUDED.evidence_summary_en,
+                               editorial_status = 'DRAFT',
+                               reviewer_note = EXCLUDED.reviewer_note,
+                               reviewed_at = NULL,
+                               published_at = NULL
+                        """)
+                .param("id", id)
+                .param("editionId", editionId)
+                .param("questionId", questionId)
+                .param("partyCode", partyCode)
+                .param("stance", stance.name())
+                .param("summaryAr", evidenceSummary.ar())
+                .param("summaryFr", evidenceSummary.fr())
+                .param("summaryEn", evidenceSummary.en())
+                .param("reviewerNote", reviewerNote, Types.VARCHAR)
+                .update();
+    }
+
+    private void upsertH2(UUID id, UUID editionId, UUID questionId, String partyCode,
+                          PartyPositionStance stance, LocalizedText evidenceSummary,
+                          String reviewerNote) {
         jdbc.sql("""
                         MERGE INTO civic_party_positions (
                             id, edition_id, question_id, party_code, stance,
@@ -82,6 +138,13 @@ class CivicPartyPositionRepository {
                 .param("summaryEn", evidenceSummary.en())
                 .param("reviewerNote", reviewerNote, Types.VARCHAR)
                 .update();
+    }
+
+    int totalPositionCount(UUID editionId) {
+        return jdbc.sql("SELECT COUNT(*) FROM civic_party_positions WHERE edition_id = :editionId")
+                .param("editionId", editionId)
+                .query(Integer.class)
+                .single();
     }
 
     void publish(UUID positionId, Instant publishedAt) {
