@@ -3,14 +3,12 @@ package dev.maboullaite.fhemni.civic;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import dev.maboullaite.fhemni.civic.CivicAnswerValidator.ValidatedAnswers;
 import dev.maboullaite.fhemni.civic.CivicQuestionnaire.Question;
 import dev.maboullaite.fhemni.civic.CivicQuestionnaire.Theme;
 import org.springframework.stereotype.Service;
@@ -30,30 +28,10 @@ public class CivicProfileService {
         }
         String language = CivicQuestionnaireCatalogService.language(request.language());
         CivicQuestionnaire questionnaire = catalog.current(language);
-        List<Answer> answers = request.answers() == null ? List.of() : List.copyOf(request.answers());
-        if (answers.isEmpty()) {
-            throw new IllegalArgumentException("Answer at least one question to build your profile.");
-        }
-
-        Map<String, Question> questions = questionnaire.questions().stream()
-                .collect(Collectors.toUnmodifiableMap(Question::key, Function.identity()));
-        Set<String> seen = new HashSet<>();
-        Map<String, Answer> answersByKey = new LinkedHashMap<>();
-        for (Answer answer : answers) {
-            if (answer == null || answer.questionKey() == null || answer.questionKey().isBlank()) {
-                throw new IllegalArgumentException("Every answer needs a question key.");
-            }
-            if (!seen.add(answer.questionKey())) {
-                throw new IllegalArgumentException("Answer each question only once.");
-            }
-            if (!questions.containsKey(answer.questionKey())) {
-                throw new IllegalArgumentException("Answer references an unknown question.");
-            }
-            if (answer.value() < -2 || answer.value() > 2) {
-                throw new IllegalArgumentException("Answer values must be between -2 and 2.");
-            }
-            answersByKey.put(answer.questionKey(), answer);
-        }
+        ValidatedAnswers validated = CivicAnswerValidator.validate(questionnaire, request.answers());
+        List<Answer> answers = validated.answers();
+        Map<String, Answer> answersByKey = validated.byKey();
+        Map<String, Question> questions = validated.questions();
 
         Map<String, ThemeAccumulator> byTheme = new HashMap<>();
         for (Answer answer : answers) {

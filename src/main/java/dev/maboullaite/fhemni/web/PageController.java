@@ -47,6 +47,11 @@ public class PageController {
         return "forward:/compare-programmes.html";
     }
 
+    @GetMapping({"/parties/positions", "/parties/positions/"})
+    public String obsoletePartyPositionsPage() {
+        return "redirect:/priorities";
+    }
+
     @GetMapping({"/people/{slug}", "/people/{slug}/"})
     public String personPage(@PathVariable String slug) {
         return "forward:/person.html";

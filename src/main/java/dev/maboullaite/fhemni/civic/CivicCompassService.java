@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import dev.maboullaite.fhemni.catalog.PoliticalParty;
 import dev.maboullaite.fhemni.catalog.PoliticalPartyRepository;
+import dev.maboullaite.fhemni.civic.CivicAnswerValidator.ValidatedAnswers;
 import dev.maboullaite.fhemni.civic.CivicPartyPositionRepository.PositionRow;
 import dev.maboullaite.fhemni.civic.CivicProfileService.Answer;
 import dev.maboullaite.fhemni.civic.CivicProfileService.ProfileRequest;
@@ -33,19 +34,14 @@ public class CivicCompassService {
 
     @Transactional(readOnly = true)
     public CompassResult compass(ProfileRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("Answers are required.");
+        }
         String language = CivicQuestionnaireCatalogService.language(request.language());
         CivicQuestionnaire questionnaire = catalog.current(language);
-        List<Answer> answers = request.answers() == null ? List.of() : List.copyOf(request.answers());
-        if (answers.isEmpty()) {
-            throw new IllegalArgumentException("Answer at least one question to compute the compass.");
-        }
-
-        Map<String, Answer> answersByKey = new LinkedHashMap<>();
-        for (Answer answer : answers) {
-            if (answer.questionKey() != null && !answer.questionKey().isBlank()) {
-                answersByKey.put(answer.questionKey(), answer);
-            }
-        }
+        ValidatedAnswers validated = CivicAnswerValidator.validate(questionnaire, request.answers());
+        List<Answer> answers = validated.answers();
+        Map<String, Answer> answersByKey = validated.byKey();
 
         List<PositionRow> published = positions.publishedPositions(questionnaire.id());
         Map<String, List<PositionRow>> byParty = published.stream()
@@ -57,8 +53,7 @@ public class CivicCompassService {
 
         Set<String> answeredKeys = answersByKey.keySet();
 
-        Map<String, CivicQuestionnaire.Question> questionsByKey = questionnaire.questions().stream()
-                .collect(Collectors.toMap(CivicQuestionnaire.Question::key, q -> q, (a, b) -> a));
+        Map<String, CivicQuestionnaire.Question> questionsByKey = validated.questions();
 
         List<PartyMatch> matches = new ArrayList<>();
         for (var entry : byParty.entrySet()) {
@@ -75,7 +70,6 @@ public class CivicCompassService {
             List<QuestionMatch> questionMatches = new ArrayList<>();
 
             for (Answer answer : answers) {
-                if (answer.value() == 0) continue;
                 double weight = answer.important() ? 2.0 : 1.0;
                 totalWeight += weight;
 
