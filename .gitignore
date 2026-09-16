@@ -9,6 +9,8 @@ target/
 secrets/
 application-local.yml
 data/
+!/src/main/resources/data/
+!/src/main/resources/data/civic-party-positions-2026-v1.json
 .tailwind/
 
 # Local or owner-only material.

@@ -1,7 +1,7 @@
 package dev.maboullaite.fhemni.civic;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +12,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.json.JacksonJsonParser;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -23,28 +26,38 @@ public class CivicPositionSeeder implements ApplicationRunner {
     private static final String SEED_FILE_PROPERTY = "fhemni.seed-positions";
 
     private final CivicPartyPositionService positionService;
+    private final ResourceLoader resources;
+    private final String configuredSeed;
 
-    CivicPositionSeeder(CivicPartyPositionService positionService) {
+    CivicPositionSeeder(CivicPartyPositionService positionService,
+                        ResourceLoader resources,
+                        @Value("${fhemni.civic.position-seed:}") String configuredSeed) {
         this.positionService = positionService;
+        this.resources = resources;
+        this.configuredSeed = configuredSeed;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void run(ApplicationArguments args) throws Exception {
-        String seedFile = System.getProperty(SEED_FILE_PROPERTY);
-        if (seedFile == null || seedFile.isBlank()) return;
+        String location = configuredSeed;
+        String legacySeedFile = System.getProperty(SEED_FILE_PROPERTY);
+        if ((location == null || location.isBlank()) && legacySeedFile != null && !legacySeedFile.isBlank()) {
+            location = Path.of(legacySeedFile).toAbsolutePath().toUri().toString();
+        }
+        if (location == null || location.isBlank()) return;
 
-        Path path = Path.of(seedFile);
-        if (!Files.exists(path)) {
-            log.warn("Seed file not found: {}", path);
+        Resource resource = resources.getResource(location);
+        if (!resource.exists()) {
+            log.warn("Civic position seed not found: {}", location);
             return;
         }
 
         UUID editionId = UUID.fromString("c1000000-0000-4000-8000-000000000001");
-        String json = Files.readString(path);
+        String json = resource.getContentAsString(StandardCharsets.UTF_8);
         JacksonJsonParser parser = new JacksonJsonParser();
         List<Object> entries = parser.parseList(json);
-        log.info("Seeding {} positions from {}", entries.size(), path);
+        log.info("Preparing {} civic positions from {}", entries.size(), location);
 
         List<CivicPartyPositionService.PositionDraft> drafts = new ArrayList<>();
         for (Object obj : entries) {
@@ -59,10 +72,11 @@ public class CivicPositionSeeder implements ApplicationRunner {
                     (String) e.getOrDefault("reviewerNote", "")));
         }
 
-        int created = positionService.batchUpsert(editionId, drafts);
-        log.info("Batch upsert complete: {} positions", created);
-
-        int published = positionService.publishAllDrafts(editionId);
-        log.info("Published {} positions", published);
+        int published = positionService.seedPublishedPositions(editionId, drafts);
+        if (published == 0) {
+            log.info("Civic positions already exist for edition {}; seed skipped", editionId);
+        } else {
+            log.info("Seeded and published {} civic positions", published);
+        }
     }
 }

@@ -19,6 +19,8 @@ server:
         secure: true
 
 fhemni:
+  civic:
+    position-seed: ${FHEMNI_CIVIC_POSITION_SEED:classpath:data/civic-party-positions-2026-v1.json}
   cost-control:
     # Production AI spend is opt-in. Set both variables deliberately after configuring a project spend cap.
     analysis-enabled: ${FHEMNI_ANALYSIS_ENABLED:false}
