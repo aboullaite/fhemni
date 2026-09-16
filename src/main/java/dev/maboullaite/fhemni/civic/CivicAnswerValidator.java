@@ -30,6 +30,9 @@ final class CivicAnswerValidator {
             if (answer == null || answer.questionKey() == null || answer.questionKey().isBlank()) {
                 throw new IllegalArgumentException("Every answer needs a question key.");
             }
+            if (answer.value() == null) {
+                throw new IllegalArgumentException("Every answer needs a value.");
+            }
             if (!seen.add(answer.questionKey())) {
                 throw new IllegalArgumentException("Answer each question only once.");
             }

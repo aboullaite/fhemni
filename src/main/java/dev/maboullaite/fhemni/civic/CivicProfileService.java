@@ -148,7 +148,7 @@ public class CivicProfileService {
     public record ProfileRequest(String language, List<Answer> answers) {
     }
 
-    public record Answer(String questionKey, int value, boolean important) {
+    public record Answer(String questionKey, Integer value, boolean important) {
     }
 
     public record Profile(
