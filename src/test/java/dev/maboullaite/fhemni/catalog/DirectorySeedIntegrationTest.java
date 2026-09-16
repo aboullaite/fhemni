@@ -35,7 +35,7 @@ class DirectorySeedIntegrationTest {
         assertThat(parties).extracting(PoliticalParty::code)
                 .containsExactly("RNI", "PAM", "PI", "PJD", "USFP", "PPS", "MP", "FGD",
                         "UC", "FFD", "MDS", "PSU", "PE", "PML", "PVM", "ND", "PDN", "PGV",
-                        "PEDD", "PUD", "PRV", "ALAMAL", "PRD", "IND", "UNKNOWN");
+                        "PEDD", "PUD", "PRV", "ALAMAL", "PRD", "UMD", "IND", "UNKNOWN");
         assertThat(parties).allSatisfy(party ->
                 assertThat(PartyDirectory.validColor(party.color())).isTrue());
         assertThat(parties).allSatisfy(party -> {
@@ -120,7 +120,15 @@ class DirectorySeedIntegrationTest {
                 Map.entry("كمال-الهشومي", affiliation("USFP", "Wk3NOgPXwlQ")),
                 Map.entry("سمير-الباز", affiliation("PML", "w3hjGY-Fcjo")),
                 Map.entry("سليمه-غريطه", affiliation("PRD", "scW1dED_R28")),
-                Map.entry("باني-محمد-ولد-بركه", affiliation("ALAMAL", "SS8hBq5eGe0")));
+                Map.entry("باني-محمد-ولد-بركه", affiliation("ALAMAL", "SS8hBq5eGe0")),
+                Map.entry("سلمي-بنعزيز", affiliation("RNI", "jdXfK7zh7BI")),
+                Map.entry("عمر-حياني", affiliation("FGD", "86UJO6RIC8k")),
+                Map.entry("فوزي-لقجع", affiliation("PAM", "cfM0dKXkuhU")),
+                Map.entry("كنزه-الشرايبي", affiliation("UC", "oGpXLOXTz2E")),
+                Map.entry("محمد-الساسي", affiliation("FGD", "bKDJhfrnWdo")),
+                Map.entry("هشام-عيرود", affiliation("PAM", "txj7Re9gJow")),
+                Map.entry("المهدي-ياسيف", affiliation("RNI", "quf5ok_tkB4")),
+                Map.entry("محمد-زروق", affiliation("MP", "14IF32HrTBs")));
 
         Map<String, CuratedPerson> bySlug = personRepository.findAll().stream()
                 .collect(Collectors.toUnmodifiableMap(CuratedPerson::slug, Function.identity()));
@@ -134,6 +142,39 @@ class DirectorySeedIntegrationTest {
                 assertThat(affiliation.sourceLabel()).isNotBlank();
             });
         });
+    }
+
+    @Test
+    void seedsUmdSecretaryGeneralAndCombinesThePublishedSpellingVariants() {
+        Map<String, PoliticalParty> parties = partyRepository.findAll().stream()
+                .collect(Collectors.toUnmodifiableMap(PoliticalParty::code, Function.identity()));
+        Map<String, CuratedPerson> people = personRepository.findAll().stream()
+                .collect(Collectors.toUnmodifiableMap(CuratedPerson::slug, Function.identity()));
+
+        assertThat(parties).containsKey("UMD");
+        assertThat(parties.get("UMD")).satisfies(party -> {
+            assertThat(party.nameFr()).isEqualTo("Union Marocaine pour la Démocratie");
+            assertThat(party.nameAr()).isEqualTo("حزب الاتحاد المغربي للديمقراطية");
+            assertThat(party.symbolLabelFr()).isEqualTo("Dauphin");
+            assertThat(party.symbolLabelAr()).isEqualTo("الدلفين");
+        });
+
+        CuratedPerson ilham = people.get("الهام-بلفحيلي");
+        assertThat(ilham).isNotNull();
+        assertThat(ilham.partyCode()).isEqualTo("UMD");
+        assertThat(ilham.displayNameAr()).isEqualTo("إلهام بلفحيلي");
+        assertThat(ilham.aliases()).contains("إلهام بلفحيلي", "إلهام بالحيلي");
+        assertThat(ilham.affiliations()).singleElement().satisfies(affiliation -> {
+            assertThat(affiliation.sourceUrl())
+                    .isEqualTo("https://www.youtube.com/watch?v=bt69DSSbomw");
+            assertThat(affiliation.sourceLabel())
+                    .isEqualTo("الأمينة العامة لحزب الاتحاد المغربي للديمقراطية وناشطة حقوقية");
+        });
+
+        PersonDirectory directory = new PersonDirectory(
+                personRepository.findAll(), personRepository.findHonorifics());
+        assertThat(directory.resolve("إلهام بلفحيلي").slug()).isEqualTo("الهام-بلفحيلي");
+        assertThat(directory.resolve("إلهام بالحيلي").slug()).isEqualTo("الهام-بلفحيلي");
     }
 
     @Test

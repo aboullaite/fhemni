@@ -9,6 +9,12 @@ FGD's source artwork was downloaded unchanged on 2026-09-09 from the
 party's official [2026 election platform](https://fgd.ma/apps/loielec/). It is
 also served locally rather than hot-linked.
 
+UMD's source artwork was downloaded unchanged on 2026-09-15 from the party's
+[official Facebook page](https://www.facebook.com/umdofficiel/about), which is
+the party link published by the Maroc.ma directory. The dolphin identity is
+also corroborated by [Hespress](https://www.hespress.com/%D8%A8%D9%84%D9%81%D8%AD%D9%8A%D9%84%D9%8A-%D8%A3%D8%AF%D8%A7%D8%A1-%D8%A7%D9%84%D8%AD%D9%83%D9%88%D9%85%D8%A9-%D8%A3%D9%88%D9%82%D8%AF-%D8%B9%D8%A7%D9%81%D9%8A%D8%A9-%D8%B3%D8%A8%D8%AA%D8%A9-1806002.html),
+which identifies it as the party's electoral symbol.
+
 PDN's umbrella artwork was downloaded unchanged from the
 [TAFRA party catalogue](https://wiki.thevoice.ma/partis/pdn/). Its identity was
 cross-checked against the official [Maroc.ma party directory](https://www.maroc.ma/fr/le-maroc/les-partis-politiques-et-syndicats),
@@ -18,9 +24,10 @@ separate catalogue records and artwork; existing ND affiliations are not
 reassigned.
 
 The UI uses the corresponding `*-display.png` derivatives. These are mechanical
-emblem crops, resized with Lanczos interpolation and centred on equal 256 × 256
-transparent canvases. They are not redrawn, recoloured or generatively edited;
-the unchanged source downloads remain available here for comparison.
+emblem crops or square resizes. Most are centred on equal 256 × 256 transparent
+canvases; UMD's already-square source is resized without removing its background.
+They are not redrawn, recoloured or generatively edited; the unchanged source
+downloads remain available here for comparison.
 
 The respective source terms apply to the artwork, including Maroc.ma's
 [terms of use](https://www.maroc.ma/fr/conditions-generales-d-utilisation).
@@ -52,5 +59,6 @@ claim over the artwork.
 | PRV | `prv-maroc-ma.png` | [source](https://www.maroc.ma/sites/default/files/2024-10/PARTI%20DE%20LA%20RENAISSANCE%20ET%20DE%20LA%20VERTU.png) | `125eda8653758766917e1e7fc5a5e48495c503b3c6edaad6281ccb7cb0a80f42` |
 | ALAMAL | `alamal-maroc-ma.png` | [source](https://www.maroc.ma/sites/default/files/2024-10/logo_al_amal.png) | `6b609d01a42b3a0f68e4c8a2de2b621de59e7d5e7ea849822f887b1975ae6f9f` |
 | PRD | `prd-maroc-ma.png` | [source](https://www.maroc.ma/sites/default/files/2024-10/PARTI%20DE%20LA%20REFORME%20DU%20DEVELOPPEMENT%20%28P.R.D%29.png) | `5e10b332d26b1213bf85fb887497ed7df5a9f0a36696f78af0bd139edfa034ea` |
+| UMD | `umd-facebook-official.jpg` | [source](https://graph.facebook.com/umdofficiel/picture?type=large) | `ea0a2a005e756648b441e6f170db90841e6796fd3e6ced2ab9332b63bd2b4283` |
 
 `IND` and `UNKNOWN` retain Fhemni's neutral local assets.
