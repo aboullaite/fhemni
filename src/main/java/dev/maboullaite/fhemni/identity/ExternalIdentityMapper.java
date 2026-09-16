@@ -34,16 +34,12 @@ public class ExternalIdentityMapper {
         }
         return new ExternalIdentityProfile(
                 provider,
-                subject(provider, user),
+                user.getName(),
                 string(attributes, "login"),
                 first(string(attributes, "name"), string(attributes, "login")),
                 string(attributes, "email"),
                 booleanValue(attributes, "email_verified"),
                 first(string(attributes, "avatar_url"), string(attributes, "picture")));
-    }
-
-    private String subject(String provider, OAuth2User user) {
-        return user.getName();
     }
 
     private static String discordAvatar(String subject, String avatar) {

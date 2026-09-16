@@ -82,6 +82,11 @@ public class PageController {
         return "forward:/privacy.html";
     }
 
+    @GetMapping({"/priorities", "/priorities/"})
+    public String prioritiesPage() {
+        return "forward:/priorities.html";
+    }
+
     @GetMapping({"/suggestions", "/suggestions/"})
     public String suggestionsAlias() {
         return "redirect:/community";

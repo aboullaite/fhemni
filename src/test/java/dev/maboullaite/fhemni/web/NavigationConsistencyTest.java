@@ -30,9 +30,11 @@ class NavigationConsistencyTest {
             "compare-programmes.html",
             "methodology.html",
             "parties.html",
+            "party-positions.html",
             "party.html",
             "person.html",
             "promise.html",
+            "priorities.html",
             "video.html",
             "videos.html");
 
@@ -49,22 +51,113 @@ class NavigationConsistencyTest {
             "login.html",
             "methodology.html",
             "parties.html",
+            "party-positions.html",
             "party.html",
             "person.html",
             "promise.html",
+            "priorities.html",
             "video.html",
             "videos.html");
 
     @Test
-    void everyPrimaryNavigationLinksToHowItWorks() throws IOException {
+    void everyPrimaryNavigationUsesTheCanonicalThreeLinks() throws IOException {
+        assertCanonicalPrimaryNavigation("index.html");
+        for (String page : SECONDARY_PAGES) {
+            assertCanonicalPrimaryNavigation(page);
+        }
+    }
+
+    @Test
+    void everyPrimaryNavigationLinksToThePriorityCompass() throws IOException {
         assertThat(html("index.html"))
-                .contains("href=\"#how-it-works\" data-i18n=\"common.howItWorks\"");
+                .contains("href=\"/priorities\" data-i18n=\"common.prioritiesQuiz\"");
 
         for (String page : SECONDARY_PAGES) {
             assertThat(html(page))
-                    .as("primary navigation in %s", page)
-                    .contains("href=\"/#how-it-works\" data-i18n=\"common.howItWorks\"");
+                    .as("priority compass navigation in %s", page)
+                    .contains("href=\"/priorities\"")
+                    .contains("data-i18n=\"common.prioritiesQuiz\"");
         }
+    }
+
+    @Test
+    void priorityQuestionsUseFormScaleTypeAndMatchingActions() throws IOException {
+        assertThat(html("priorities.html"))
+                .contains("id=\"priorityPrevious\" class=\"priority-secondary-button\"")
+                .contains("id=\"prioritySkip\" class=\"priority-secondary-button\"")
+                .doesNotContain("priority-skip-button");
+        assertThat(html("js/priorities.js"))
+                .contains("context: 'علاش الاختيار ماشي ساهل؟'")
+                .doesNotContain("context: 'شنو المفاضلة هنا؟'");
+        assertThat(html("css/app.css"))
+                .contains("font-size: clamp(26px, 2.4vw, 30px)")
+                .contains("font-weight: 500; line-height: 1.5; text-align: center")
+                .contains("font-size: clamp(21px, 5.5vw, 23px)")
+                .contains("grid-template-columns: repeat(2, minmax(0, 160px))")
+                .contains(".priority-theme-result { display: grid; grid-template-columns: 38px minmax(0,1fr); align-items: start;")
+                .contains(".priority-result-rank { display: grid; width: 34px; height: 34px; place-items: center; margin-top: 1px;")
+                .contains("font-variant-numeric: tabular-nums;")
+                .contains("font-weight: 900; line-height: 1;");
+    }
+
+    @Test
+    void priorityResultsEmphasizeTheCompassPartiesAndRankingWithoutSecondaryAnswerDetails() throws IOException {
+        assertThat(html("priorities.html"))
+                .contains("data-priority-orbit-tag=\"8\"")
+                .contains("class=\"priority-result-section priority-compass-section\"")
+                .contains("class=\"priority-compass-primary\"")
+                .contains("class=\"compass-party-column\"")
+                .contains("id=\"priorityRadarChart\"")
+                .contains("class=\"compass-remaining\"")
+                .contains("id=\"priorityShareDialog\"")
+                .contains("id=\"priorityCompassShareHint\"")
+                .contains("data-priority-share-kind=\"compass\"")
+                .contains("data-priority-share-kind=\"parties\"")
+                .contains("/webjars/html-to-image/1.11.13/dist/html-to-image.js")
+                .contains("class=\"priority-result-section priority-summary-section\"")
+                .doesNotContain("id=\"priorityResultsIntro\"")
+                .doesNotContain("priority-result-details")
+                .doesNotContain("priority-programme-proof-points")
+                .doesNotContain("priorityProgrammeOfficial")
+                .doesNotContain("priorityResultDetailsLabel")
+                .doesNotContain("priorityPositionResults")
+                .doesNotContain("priorityTensionResults")
+                .doesNotContain("priorityMethodologyText");
+        assertThat(html("js/priorities.js"))
+                .contains("orbitTags: ['الأسعار', 'الصحة', 'الماء', 'السكن', 'الحماية الاجتماعية', 'الحكامة', 'الشغل', 'التعليم', 'المساواة']")
+                .contains("compass-profile-radar")
+                .contains("const radarMaximum = Math.max(")
+                .contains("const scaledRadarRadius = score =>")
+                .contains("compass-match-list")
+                .contains("compass-match-row")
+                .contains("compass-match-bar")
+                .contains("window.htmlToImage.toBlob")
+                .contains("navigator.canShare?.({ files: [asset.file] })")
+                .doesNotContain("resultsIntro:")
+                .doesNotContain("programmeOfficial:")
+                .doesNotContain("#priorityProgrammeOfficial")
+                .doesNotContain("شوف تفاصيل الأجوبة")
+                .doesNotContain("Voir le détail des réponses")
+                .doesNotContain("See answer details")
+                .doesNotContain("#priorityResultDetailsLabel")
+                .doesNotContain("renderPositionResults(")
+                .doesNotContain("renderTensions(")
+                .doesNotContain("compass-radar-svg");
+        assertThat(html("css/app.css"))
+                .contains("text-wrap: balance;")
+                .contains(".priority-compass-primary { display: grid;")
+                .contains(".priority-summary-section > h2")
+                .contains(".priority-theme-results { display: grid; grid-template-columns: repeat(2, minmax(0,1fr));")
+                .contains(".priority-theme-result + .priority-theme-result { border-top: 1px solid var(--line);")
+                .doesNotContain(".priority-result-details")
+                .doesNotContain(".priority-programme-proof-points")
+                .contains(".compass-match-list { display: grid;")
+                .contains(".compass-match-row { display: grid;")
+                .contains(".compass-match-bar > span")
+                .contains(".compass-profile-chart { display: grid; place-items: center; min-height: 390px;")
+                .contains(".compass-profile-shape { fill: rgba(15,81,69,.26);")
+                .contains("font-family: \"Tajawal Heading Numerals\", \"Tajawal\", Tahoma, Arial, sans-serif;")
+                .contains(".priority-answer-button[aria-pressed=\"true\"] { border-color: var(--teal-dark);");
     }
 
     @Test
@@ -133,7 +226,7 @@ class NavigationConsistencyTest {
         for (String page : ALL_PAGES) {
             assertThat(html(page))
                     .as("stylesheet in %s", page)
-                    .containsOnlyOnce("/css/dist.css?v=20260915-1");
+                    .containsOnlyOnce("/css/dist.css?v=20260916-22");
         }
     }
 
@@ -284,7 +377,7 @@ class NavigationConsistencyTest {
         for (String page : ADMIN_PAGES) {
             assertThat(html(page))
                     .as("mobile assets in %s", page)
-                    .contains("/css/dist.css?v=20260915-1")
+                    .contains("/css/dist.css?v=20260916-22")
                     .contains("/js/i18n.js?v=20260915-1");
         }
     }
@@ -360,7 +453,7 @@ class NavigationConsistencyTest {
                 .contains("id=\"programmeMedia\" class=\"programme-media\"")
                 .contains("class=\"video-js vjs-big-play-centered\"")
                 .contains("/webjars/video.js/8.23.8/dist/video-js.min.css")
-                .contains("/css/dist.css?v=20260915-1")
+                .contains("/css/dist.css?v=20260916-22")
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.23.8/dist/video.min.js")
                 .contains("/js/i18n.js?v=20260915-1")
@@ -393,5 +486,19 @@ class NavigationConsistencyTest {
 
     private String html(String page) throws IOException {
         return new ClassPathResource("static/" + page).getContentAsString(UTF_8);
+    }
+
+    private void assertCanonicalPrimaryNavigation(String page) throws IOException {
+        String pageHtml = html(page);
+        int start = pageHtml.indexOf("<nav class=\"primary-nav\"");
+        int end = pageHtml.indexOf("</nav>", start);
+        assertThat(start).as("primary navigation start in %s", page).isGreaterThanOrEqualTo(0);
+        assertThat(end).as("primary navigation end in %s", page).isGreaterThan(start);
+        assertThat(pageHtml.substring(start, end))
+                .as("primary navigation in %s", page)
+                .contains("href=\"/videos\"")
+                .contains("href=\"/parties\"")
+                .contains("href=\"/priorities\"")
+                .doesNotContain("common.howItWorks");
     }
 }

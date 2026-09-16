@@ -77,13 +77,14 @@ public class SecurityConfiguration {
                                 "/", "/index.html", "/videos", "/videos/**",
                                 "/analyses/**", "/analysis.html",
                                 "/people/**", "/person.html",
-                                "/parties", "/parties/**", "/parties.html", "/party.html", "/compare-programmes.html",
+                                "/parties", "/parties/**", "/parties.html", "/party.html", "/compare-programmes.html", "/party-positions.html",
                                 "/promises/**", "/promise.html",
                                 "/catalog", "/catalog/**",
                                 "/community", "/community/", "/community.html",
                                 "/methodology", "/methodology/", "/methodology.html",
                                 "/terms", "/terms/", "/terms.html",
                                 "/privacy", "/privacy/", "/privacy.html",
+                                "/priorities", "/priorities/", "/priorities.html",
                                 "/suggestions", "/suggestions/",
                                 "/video.html", "/videos.html", "/login", "/login.html",
                                 "/error", "/favicon.ico", "/css/**", "/js/**", "/assets/**", "/webjars/**",
@@ -97,6 +98,7 @@ public class SecurityConfiguration {
                                 "/api/catalog/people/**", "/api/catalog/parties/**", "/api/catalog/promises/**",
                                 "/api/catalog/policy-topics")
                         .permitAll()
+                        .requestMatchers("/api/catalog/questionnaires/**").permitAll()
                         .requestMatchers("/api/account/policy-topics").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/suggestions").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/suggestions/*/votes").authenticated()
@@ -124,8 +126,8 @@ public class SecurityConfiguration {
                                 default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; \
                                 form-action 'self'; font-src 'self' data: https://storage.googleapis.com; style-src 'self'; style-src-attr 'unsafe-inline'; \
                                 script-src 'self' https://www.googletagmanager.com https://www.youtube.com https://s.ytimg.com; \
-                                connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com; \
-                                img-src 'self' data: https://i.ytimg.com https://*.ytimg.com https://*.googleusercontent.com https://cdn.discordapp.com https://www.google-analytics.com https://www.googletagmanager.com; \
+                                connect-src 'self' https://storage.googleapis.com https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://www.googletagmanager.com; \
+                                img-src 'self' data: blob: https://i.ytimg.com https://*.ytimg.com https://*.googleusercontent.com https://cdn.discordapp.com https://www.google-analytics.com https://www.googletagmanager.com; \
                                 media-src 'self' https://storage.googleapis.com; \
                                 frame-src https://www.youtube.com https://www.youtube-nocookie.com
                                 """.replace("\n", " ")))

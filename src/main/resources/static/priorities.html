@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="fhemni">
+<head>
+    <script src="/js/analytics.js?v=20260911-1"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="18 questions to explore the public priorities and trade-offs that matter to you in Morocco." id="priorityMetaDescription">
+    <title>بوصلة الأولويات — فهّمني</title>
+    <link rel="icon" href="/favicon.ico?v=20260911" sizes="32x32">
+    <link rel="stylesheet" href="/css/dist.css?v=20260916-22">
+</head>
+<body class="public-page priorities-page">
+<div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+
+<header class="site-header public-header">
+    <a class="brand" href="/" aria-label="Fhemni home" data-i18n-aria-label="common.brandHome"><img class="brand-logo brand-logo-full" src="/assets/brand/fhemni-logo.png" alt=""><img class="brand-logo brand-logo-icon" src="/assets/brand/fhemni-icon.png" alt=""></a>
+    <nav class="primary-nav" aria-label="Primary navigation" data-i18n-aria-label="common.primaryNavigation"><a href="/videos" data-i18n="common.catalogue">Catalogue</a><a href="/parties" data-i18n="common.parties">Parties</a><a href="/priorities" class="active" data-i18n="common.prioritiesQuiz">Your priorities</a></nav>
+    <div class="header-actions"><label class="site-language"><span class="sr-only" data-i18n="common.siteLanguage">Website language</span><select data-site-language data-i18n-aria-label="common.siteLanguage" aria-label="Website language"><option value="en">EN</option><option value="fr">FR</option><option value="ar">الدارجة</option></select></label><div id="authNav"></div></div>
+</header>
+
+<main class="priorities-main">
+    <section id="priorityLoading" class="priority-state-card priority-loading" aria-live="polite">
+        <span class="priority-loader" aria-hidden="true"></span>
+        <p>كنوجدو الأسئلة…</p>
+    </section>
+
+    <section id="priorityIntro" class="priority-intro" hidden>
+        <div class="priority-intro-copy">
+            <div class="eyebrow"><span></span><span id="priorityEyebrow">بوصلة الأولويات</span></div>
+            <h1 id="priorityTitle"></h1>
+            <p id="priorityIntroText" class="priority-lead"></p>
+            <div class="priority-intro-meta">
+                <span id="priorityDuration">18 سؤال · حوالي 5 دقايق</span>
+                <span id="priorityPrivacy">الأجوبة كتبقى فهاد الجهاز وما كنخزنوهاش</span>
+            </div>
+            <button id="priorityStart" class="priority-primary-button" type="button">بدا دابا</button>
+        </div>
+        <aside class="priority-intro-visual" aria-hidden="true">
+            <div class="priority-orbit priority-orbit-one"></div>
+            <div class="priority-orbit priority-orbit-two"></div>
+            <div class="priority-orbit-tags">
+                <span data-priority-orbit-tag="0">الأسعار</span><span data-priority-orbit-tag="1">الصحة</span><span data-priority-orbit-tag="2">الماء</span>
+                <span data-priority-orbit-tag="3">السكن</span><span data-priority-orbit-tag="4">الحماية الاجتماعية</span><span data-priority-orbit-tag="5">الحكامة</span>
+                <span data-priority-orbit-tag="6">الشغل</span><span data-priority-orbit-tag="7">التعليم</span><span data-priority-orbit-tag="8">المساواة</span>
+            </div>
+            <div class="priority-compass-mark"><strong>18</strong><small>موضوع</small></div>
+        </aside>
+    </section>
+
+    <section id="priorityQuestionStage" class="priority-question-stage" hidden aria-live="polite">
+        <header class="priority-progress-heading">
+            <div>
+                <span id="priorityTheme" class="priority-theme"></span>
+                <span id="priorityCounter" class="priority-counter"></span>
+            </div>
+            <button id="priorityExit" class="priority-text-button" type="button"></button>
+        </header>
+        <div class="priority-progress-track" aria-hidden="true"><span id="priorityProgressBar"></span></div>
+
+        <article class="priority-question-card">
+            <h2 id="priorityPrompt"></h2>
+            <div id="priorityAnswerChoices" class="priority-answer-choices" role="group"></div>
+            <label class="priority-important-toggle">
+                <input id="priorityImportant" type="checkbox">
+                <span aria-hidden="true">★</span>
+                <strong id="priorityImportantLabel"></strong>
+            </label>
+            <details class="priority-context">
+                <summary id="priorityContextLabel"></summary>
+                <p id="priorityContextText"></p>
+                <div id="prioritySources" class="priority-sources"></div>
+            </details>
+            <div class="priority-question-actions">
+                <button id="priorityPrevious" class="priority-secondary-button" type="button"></button>
+                <button id="prioritySkip" class="priority-secondary-button" type="button"></button>
+            </div>
+        </article>
+    </section>
+
+    <section id="priorityResults" class="priority-results" hidden aria-live="polite">
+        <header class="priority-results-hero">
+            <h1 id="priorityResultsTitle"></h1>
+            <div id="priorityCompletion" class="priority-completion"></div>
+        </header>
+        <section id="priorityCompassSection" class="priority-result-section priority-compass-section" hidden>
+            <div class="priority-compass-heading-row">
+                <div>
+                    <h2 id="priorityCompassTitle"></h2>
+                    <p id="priorityCompassIntro" class="priority-compass-intro"></p>
+                </div>
+                <button id="priorityCompassShare" class="compass-share-button" type="button" aria-haspopup="dialog" hidden>
+                    <span class="compass-share-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false"><path d="M8 12h8M13 7l5 5-5 5M6 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h1"/></svg>
+                    </span>
+                    <span><strong id="priorityCompassShareLabel"></strong><small id="priorityCompassShareHint"></small></span>
+                </button>
+            </div>
+            <div id="priorityCompassLoading" class="priority-compass-loading" hidden>
+                <span class="priority-loader priority-loader-small" aria-hidden="true"></span>
+                <span id="priorityCompassLoadingText"></span>
+            </div>
+            <div class="priority-compass-primary">
+                <div id="priorityRadarChart" class="compass-profile-chart"></div>
+                <div class="compass-party-column">
+                    <div id="compassBarChart" class="compass-chart-container"></div>
+                    <details id="priorityCompassRemaining" class="compass-remaining" hidden>
+                        <summary id="priorityCompassMoreLabel"></summary>
+                        <div id="priorityCompassMore" class="compass-match-list compass-match-list-secondary"></div>
+                    </details>
+                </div>
+            </div>
+            <div id="priorityCompassResults" class="priority-compass-results"></div>
+            <p id="priorityCompassDisclaimer" class="priority-compass-disclaimer"></p>
+        </section>
+        <section class="priority-result-section priority-summary-section">
+            <h2 id="priorityThemesTitle"></h2>
+            <div id="priorityThemeResults" class="priority-theme-results"></div>
+        </section>
+        <section class="priority-programme-next-step" aria-labelledby="priorityProgrammeTitle">
+            <div>
+                <span id="priorityProgrammeKicker" class="section-kicker"></span>
+                <h2 id="priorityProgrammeTitle"></h2>
+                <p id="priorityProgrammeIntro"></p>
+            </div>
+            <div class="priority-programme-actions">
+                <a id="priorityExplore" class="priority-primary-button" href="/parties/compare"></a>
+            </div>
+        </section>
+        <div class="priority-results-actions">
+            <button id="priorityRestart" class="priority-secondary-button" type="button"></button>
+        </div>
+    </section>
+
+    <section id="priorityError" class="priority-state-card" hidden>
+        <strong id="priorityErrorTitle"></strong>
+        <p id="priorityErrorText"></p>
+        <button id="priorityRetry" class="priority-primary-button" type="button"></button>
+    </section>
+</main>
+
+<dialog id="priorityShareDialog" class="priority-share-dialog" aria-labelledby="priorityShareDialogTitle">
+    <button id="priorityShareClose" class="priority-share-close" type="button"></button>
+    <header class="priority-share-heading">
+        <h2 id="priorityShareDialogTitle"></h2>
+        <p id="priorityShareDialogIntro"></p>
+    </header>
+    <div id="priorityShareChoices" class="priority-share-choices" role="group">
+        <button class="priority-share-choice" type="button" data-priority-share-kind="compass" aria-pressed="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="m14.8 9.2-1.6 4-4 1.6 1.6-4 4-1.6Z"/></svg>
+            <span data-priority-share-label="compass"></span>
+        </button>
+        <button class="priority-share-choice" type="button" data-priority-share-kind="parties" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 19v-4M12 19V9M17 19V5"/><path d="M4 19h16"/></svg>
+            <span data-priority-share-label="parties"></span>
+        </button>
+    </div>
+    <div class="priority-share-preview">
+        <span id="priorityShareLoader" class="priority-loader priority-loader-small" aria-hidden="true"></span>
+        <img id="prioritySharePreview" alt="" hidden>
+    </div>
+    <p id="priorityShareStatus" class="priority-share-status" role="status" aria-live="polite"></p>
+    <div class="priority-share-actions">
+        <button id="priorityShareNative" class="priority-primary-button" type="button" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="18" cy="19" r="2"/><path d="m8 11 8-5M8 13l8 5"/></svg>
+            <span data-priority-share-action="native"></span>
+        </button>
+        <button id="priorityShareCopyImage" class="priority-secondary-button" type="button" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="13" height="13" rx="2"/><path d="m7 15 3-3 2 2 2-2 3 3M8 9h.01M9 2h9a3 3 0 0 1 3 3v9"/></svg>
+            <span data-priority-share-action="copy-image"></span>
+        </button>
+        <a id="priorityShareDownload" class="priority-secondary-button" href="#" download>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"/></svg>
+            <span data-priority-share-action="download"></span>
+        </a>
+        <button id="priorityShareCopyText" class="priority-text-button" type="button" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="7" width="11" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h3"/></svg>
+            <span data-priority-share-action="copy-text"></span>
+        </button>
+    </div>
+</dialog>
+
+<footer><img class="footer-logo" src="/assets/brand/fhemni-logo.png" alt="Fhemni — فهّمني"><a href="https://x.com/laytoun" target="_blank" rel="me noopener noreferrer" title="@laytoun on X" data-i18n="common.footer">© 2026 Mohammed Aboullaite</a><a class="footer-feedback-link" href="https://github.com/aboullaite/fhemni/issues" target="_blank" rel="noopener noreferrer" data-i18n="common.suggestFeature">Suggest a feature</a></footer>
+<script src="/js/i18n.js?v=20260915-1" defer></script><script src="/js/auth.js?v=20260911-2" defer></script><script src="/webjars/html-to-image/1.11.13/dist/html-to-image.js" defer></script><script src="/js/priorities.js?v=20260916-29" defer></script>
+</body>
+</html>
