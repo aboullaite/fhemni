@@ -70,9 +70,7 @@ public class CivicPriorityShareService {
         var existing = renewExisting(digest, kind, language, image);
         if (existing.isPresent()) return existing.get();
 
-        String objectKey = objectKey(kind, language, digest);
-        store(objectKey, image);
-        return insert(kind, language, objectKey, digest);
+        return insert(kind, language, digest, image);
     }
 
     @Transactional(readOnly = true)
@@ -147,15 +145,24 @@ public class CivicPriorityShareService {
     private CivicPriorityShare insert(
             CivicPriorityShare.Kind kind,
             String language,
-            String objectKey,
-            String digest) {
+            String digest,
+            byte[] image) {
         for (int attempt = 0; attempt < 3; attempt++) {
+            String token = token();
+            String objectKey = objectKey(kind, language, token, digest);
             CivicPriorityShare share = new CivicPriorityShare(
-                    UUID.randomUUID(), token(), kind, language, objectKey, digest, Instant.now());
-            if (repository.insertIfAbsent(share)) {
-                return share;
+                    UUID.randomUUID(), token, kind, language, objectKey, digest, Instant.now());
+            store(objectKey, image);
+            try {
+                if (repository.insertIfAbsent(share)) {
+                    return share;
+                }
+            } catch (RuntimeException failure) {
+                deleteUnusedStoredImage(objectKey);
+                throw failure;
             }
-            var existing = renewExisting(digest, kind, language, null);
+            deleteUnusedStoredImage(objectKey);
+            var existing = renewExisting(digest, kind, language, image);
             if (existing.isPresent()) return existing.get();
         }
         throw new IllegalStateException("Could not create the share link. Please retry.");
@@ -170,13 +177,12 @@ public class CivicPriorityShareService {
         if (existing.isEmpty()) return existing;
 
         CivicPriorityShare share = existing.get();
-        if (image != null) {
-            // Rewriting the same object also renews its GCS creation time, keeping
-            // bucket lifecycle expiry aligned with the database retention window.
-            store(share.imageObjectKey(), image);
-        }
+        // Rewriting the same object also renews its GCS creation time, keeping
+        // bucket lifecycle expiry aligned with the database retention window.
+        store(share.imageObjectKey(), image);
         Instant renewedAt = Instant.now();
         if (repository.renew(share.token(), renewedAt) == 0) {
+            deleteUnusedStoredImage(share.imageObjectKey());
             return Optional.empty();
         }
         return Optional.of(new CivicPriorityShare(
@@ -207,9 +213,21 @@ public class CivicPriorityShareService {
         if (share.imageObjectKey() != null) storage.delete(share.imageObjectKey());
     }
 
-    private static String objectKey(CivicPriorityShare.Kind kind, String language, String digest) {
+    private void deleteUnusedStoredImage(String objectKey) {
+        try {
+            storage.delete(objectKey);
+        } catch (IOException cleanupFailure) {
+            LOGGER.warn("Could not delete an unused civic-priority share object {}", objectKey, cleanupFailure);
+        }
+    }
+
+    private static String objectKey(
+            CivicPriorityShare.Kind kind,
+            String language,
+            String token,
+            String digest) {
         return "civic-priority-shares/" + language + "/" + kind.name().toLowerCase(Locale.ROOT)
-                + "/" + digest + ".png";
+                + "/" + token + "-" + digest + ".png";
     }
 
     private static void requireValidToken(String token) {

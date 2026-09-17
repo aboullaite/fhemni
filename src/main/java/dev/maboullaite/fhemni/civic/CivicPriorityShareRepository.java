@@ -3,6 +3,9 @@ package dev.maboullaite.fhemni.civic;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,7 +47,7 @@ class CivicPriorityShareRepository {
                         result.getString("language"),
                         result.getString("image_object_key"),
                         result.getString("image_sha256"),
-                        result.getObject("created_at", Instant.class)))
+                        instant(result, "created_at")))
                 .optional();
     }
 
@@ -74,7 +77,7 @@ class CivicPriorityShareRepository {
                          WHERE share_token = :token
                         """)
                 .param("token", token)
-                .param("createdAt", createdAt)
+                .param("createdAt", utc(createdAt))
                 .update();
     }
 
@@ -95,7 +98,7 @@ class CivicPriorityShareRepository {
                 .param("language", share.language())
                 .param("imageObjectKey", share.imageObjectKey())
                 .param("imageSha256", share.imageSha256())
-                .param("createdAt", share.createdAt())
+                .param("createdAt", utc(share.createdAt()))
                 .update();
         return inserted == 1;
     }
@@ -113,11 +116,11 @@ class CivicPriorityShareRepository {
                            AND created_at < :cutoff
                         """)
                 .param("token", token)
-                .param("cutoff", cutoff)
+                .param("cutoff", utc(cutoff))
                 .update();
     }
 
-    java.util.List<Metadata> findCreatedBefore(Instant cutoff, int limit) {
+    List<Metadata> findCreatedBefore(Instant cutoff, int limit) {
         return jdbc.sql("""
                         SELECT share_token, share_kind, language, image_object_key, image_sha256, created_at
                           FROM civic_priority_shares
@@ -125,7 +128,7 @@ class CivicPriorityShareRepository {
                          ORDER BY created_at
                          LIMIT :limit
                         """)
-                .param("cutoff", cutoff)
+                .param("cutoff", utc(cutoff))
                 .param("limit", limit)
                 .query((result, rowNumber) -> new Metadata(
                         result.getString("share_token"),
@@ -133,7 +136,7 @@ class CivicPriorityShareRepository {
                         result.getString("language"),
                         result.getString("image_object_key"),
                         result.getString("image_sha256"),
-                        result.getObject("created_at", Instant.class)))
+                        instant(result, "created_at")))
                 .list();
     }
 
@@ -145,6 +148,14 @@ class CivicPriorityShareRepository {
                 result.getString("language"),
                 result.getString("image_object_key"),
                 result.getString("image_sha256"),
-                result.getObject("created_at", Instant.class));
+                instant(result, "created_at"));
+    }
+
+    private static OffsetDateTime utc(Instant instant) {
+        return instant.atOffset(ZoneOffset.UTC);
+    }
+
+    private static Instant instant(ResultSet result, String column) throws SQLException {
+        return result.getObject(column, OffsetDateTime.class).toInstant();
     }
 }

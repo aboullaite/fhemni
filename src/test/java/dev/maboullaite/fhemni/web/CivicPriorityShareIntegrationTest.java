@@ -98,7 +98,8 @@ class CivicPriorityShareIntegrationTest {
         assertThat(jdbc.sql("SELECT image_object_key FROM civic_priority_shares WHERE share_token = :token")
                 .param("token", pageUrl.substring(pageUrl.lastIndexOf('/') + 1))
                 .query(String.class)
-                .single()).startsWith("civic-priority-shares/");
+                .single()).startsWith("civic-priority-shares/")
+                .contains(pageUrl.substring(pageUrl.lastIndexOf('/') + 1));
 
         mvc.perform(get(pageUrl).header("Forwarded", "proto=https;host=fhemni.ma"))
                 .andExpect(status().isOk())
