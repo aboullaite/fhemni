@@ -21,6 +21,7 @@ class NavigationConsistencyTest {
             "admin-suggestions.html");
 
     private static final List<String> SECONDARY_PAGES = List.of(
+            "404.html",
             "admin.html",
             "admin-episodes.html",
             "admin-people.html",
@@ -38,6 +39,7 @@ class NavigationConsistencyTest {
             "videos.html");
 
     private static final List<String> ALL_PAGES = List.of(
+            "404.html",
             "admin.html",
             "admin-episodes.html",
             "admin-people.html",
@@ -253,11 +255,37 @@ class NavigationConsistencyTest {
     @Test
     void everyPageUsesThePinnedWebFontStylesheet() throws IOException {
         for (String page : ALL_PAGES) {
-            String version = page.equals("priorities.html") ? "20260917-9" : "20260916-22";
+            String version = switch (page) {
+                case "priorities.html" -> "20260917-9";
+                case "404.html" -> "20260917-1";
+                default -> "20260916-22";
+            };
             assertThat(html(page))
                     .as("stylesheet in %s", page)
                     .containsOnlyOnce("/css/dist.css?v=" + version);
         }
+    }
+
+    @Test
+    void notFoundPageStaysFocusedLocalizedAndDirectionSafe() throws IOException {
+        assertThat(html("404.html"))
+                .contains("class=\"not-found-main\"")
+                .contains("class=\"not-found-visual\" dir=\"ltr\" aria-hidden=\"true\"")
+                .contains("data-i18n=\"notFound.title\"")
+                .contains("data-i18n=\"notFound.body\"")
+                .contains("data-i18n=\"notFound.home\"")
+                .contains("data-i18n=\"notFound.parties\"")
+                .doesNotContain("notFound.confidence")
+                .doesNotContain("notFound.verdict");
+        assertThat(html("js/i18n.js"))
+                .contains("'notFound.pageTitle': 'Page not found — Fhemni'")
+                .contains("'notFound.pageTitle': 'Page introuvable — Fhemni'")
+                .contains("'notFound.pageTitle': 'الصفحة ما لقايناش — فهّمني'")
+                .contains("'notFound.title': 'قلّبنا عليها حتى فالمصادر… والو.'");
+        assertThat(html("css/app.css"))
+                .contains(".not-found-visual")
+                .contains("direction: ltr;")
+                .contains("unicode-bidi: isolate;");
     }
 
     @Test

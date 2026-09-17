@@ -32,6 +32,13 @@
             'common.requestTimedOut': 'The request timed out after {seconds} seconds. Please try again.',
             'common.requestCancelled': 'The request was cancelled.',
 
+            'notFound.pageTitle': 'Page not found — Fhemni',
+            'notFound.description': 'This page could not be found, but the rest of Fhemni is working normally.',
+            'notFound.title': 'We even checked the sources… nothing.',
+            'notFound.body': 'The link may have changed, or the page may have been removed. The rest of Fhemni is working normally.',
+            'notFound.home': 'Back to home',
+            'notFound.parties': 'Explore party programmes',
+
             'landing.pageTitle': 'Fhemni — Understand the whole conversation',
             'landing.description': 'Fhemni turns long public YouTube videos into clear, timestamped and evidence-aware briefings.',
             'landing.eyebrow': 'Agentic video understanding',
@@ -187,6 +194,13 @@
             'common.requestTimedOut': 'La requête a expiré après {seconds} secondes. Réessayez.',
             'common.requestCancelled': 'La requête a été annulée.',
 
+            'notFound.pageTitle': 'Page introuvable — Fhemni',
+            'notFound.description': 'Cette page reste introuvable, mais le reste de Fhemni fonctionne normalement.',
+            'notFound.title': 'On a cherché jusque dans les sources… rien.',
+            'notFound.body': 'Le lien a peut-être changé, ou la page a été supprimée. Le reste de Fhemni fonctionne normalement.',
+            'notFound.home': 'Retour à l’accueil',
+            'notFound.parties': 'Voir les programmes',
+
             'landing.pageTitle': 'Fhemni — Comprendre toute la conversation',
             'landing.description': 'Fhemni transforme de longues vidéos YouTube publiques en synthèses claires, horodatées et étayées par des sources.',
             'landing.eyebrow': 'Compréhension vidéo agentique',
@@ -341,6 +355,13 @@
             'common.requestFailed': 'الطلب ما خدمش ({status})',
             'common.requestTimedOut': 'الطلب طول كثر من {seconds} ثانية. عاود جرّب.',
             'common.requestCancelled': 'تلغى الطلب.',
+
+            'notFound.pageTitle': 'الصفحة ما لقايناش — فهّمني',
+            'notFound.description': 'هاد الصفحة ما لقايناش، ولكن باقي فهّمني خدام عادي.',
+            'notFound.title': 'قلّبنا عليها حتى فالمصادر… والو.',
+            'notFound.body': 'يمكن الرابط تبدّل ولا الصفحة تحيدات. باقي فهّمني خدام عادي.',
+            'notFound.home': 'رجع للرئيسية',
+            'notFound.parties': 'شوف برامج الأحزاب',
 
             'landing.pageTitle': 'فهّمني — فهم الحوار كامل',
             'landing.description': 'فهّمني كيحوّل فيديوهات يوتيوب العمومية والطويلة لملخصات واضحة، بالتوقيتات والمصادر.',

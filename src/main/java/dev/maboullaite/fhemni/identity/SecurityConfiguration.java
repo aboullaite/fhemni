@@ -1,5 +1,6 @@
 package dev.maboullaite.fhemni.identity;
 
+import dev.maboullaite.fhemni.web.PublicPageRequestMatcher;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -57,6 +58,7 @@ public class SecurityConfiguration {
                 PathPatternRequestMatcher.withDefaults().matcher("/admin-suggestions.html"),
                 PathPatternRequestMatcher.withDefaults().matcher("/admin-programmes.html"),
                 PathPatternRequestMatcher.withDefaults().matcher("/admin-people.html"));
+        RequestMatcher publicPageFallback = new PublicPageRequestMatcher();
         AuthorizationManager<RequestAuthorizationContext> administrator = (authentication, context) -> {
             var principal = authentication.get();
             return new AuthorizationDecision(currentUser.isAdministrator(principal));
@@ -105,6 +107,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, "/api/suggestions/*/votes").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/suggestions").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/meta").permitAll()
+                        .requestMatchers(publicPageFallback).permitAll()
                         .anyRequest().denyAll())
                 .oauth2Login(oauth -> oauth
                         .loginPage("/login")

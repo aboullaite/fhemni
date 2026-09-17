@@ -481,6 +481,64 @@ footer { display: flex; align-items: center; justify-content: space-between; fle
 .primary-nav a:hover, .primary-nav a.active { color: var(--ink); }
 .primary-nav a.active::after { content: ""; position: absolute; right: 0; bottom: -11px; left: 0; height: 2px; border-radius: 2px; background: var(--orange); }
 
+/* A missing page, treated like one more claim checked by Fhemni. */
+.not-found-page { display: flex; min-height: 100svh; flex-direction: column; }
+.not-found-main { display: grid; width: min(1000px, calc(100% - 40px)); flex: 1; align-items: center; padding: 72px 0 88px; }
+.not-found-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, .85fr); align-items: center; gap: 72px; width: 100%; }
+.not-found-layout > * { min-width: 0; }
+.not-found-copy { width: 100%; max-width: 520px; min-width: 0; }
+.not-found-copy h1 { margin: 0; font-size: clamp(38px, 4.4vw, 58px); line-height: 1.08; text-wrap: balance; }
+html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
+.not-found-copy > p { max-width: 48ch; margin: 18px 0 0; color: var(--muted); font-size: 16px; line-height: 1.75; }
+.not-found-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+.not-found-actions .button-link { min-height: 52px; }
+.not-found-actions .primary-button:focus-visible,
+.not-found-actions .secondary-button:focus-visible { outline: 3px solid rgba(23,107,99,.25); outline-offset: 3px; }
+.not-found-visual {
+    position: relative;
+    isolation: isolate;
+    display: inline-flex;
+    width: max-content;
+    max-width: min(100%, calc(100vw - 48px));
+    align-items: center;
+    justify-self: center;
+    padding: .2em .28em .3em;
+    overflow: visible;
+    color: rgba(19,44,43,.28);
+    direction: ltr;
+    font-family: "Tajawal Heading Numerals", "Tajawal", Tahoma, Arial, sans-serif;
+    font-size: clamp(8rem, 15vw, 12rem);
+    font-weight: 800;
+    letter-spacing: -.08em;
+    line-height: .82;
+    unicode-bidi: isolate;
+}
+.not-found-visual::after { position: absolute; z-index: -1; right: 14%; bottom: 29%; left: 14%; height: .055em; border-radius: 999px; background: rgba(232,111,60,.72); content: ""; }
+.not-found-digit { position: relative; z-index: 1; }
+.not-found-zero { position: relative; z-index: 2; color: var(--teal-dark); }
+.not-found-zero::before { position: absolute; top: 50%; left: 50%; width: .74em; height: .74em; border: .018em solid var(--teal); border-radius: 50%; content: ""; transform: translate(-50%, -50%); }
+.not-found-zero::after { position: absolute; right: -.18em; bottom: -.03em; width: .34em; height: .055em; border-radius: 999px; background: var(--teal); content: ""; transform: rotate(42deg); transform-origin: left center; }
+
+@media (max-width: 760px) {
+    .not-found-main { width: min(calc(100% - 24px), 1000px); padding: 40px 0 64px; }
+    .not-found-layout { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+    .not-found-copy { max-width: 560px; }
+    .not-found-copy h1 { font-size: 32px; }
+    html[dir="rtl"] .not-found-copy h1 { line-height: 1.35; }
+    .not-found-copy > p { margin-top: 12px; font-size: 15px; line-height: 1.7; }
+    .not-found-actions { margin-top: 24px; gap: 10px; }
+    .not-found-visual { order: -1; width: min(290px, 84vw); justify-content: center; padding: .2em .34em .28em; font-size: clamp(7rem, 38vw, 10rem); }
+}
+
+@media (max-width: 479px) {
+    .not-found-actions { align-items: stretch; flex-direction: column; }
+    .not-found-actions .button-link { width: 100%; }
+}
+
+@media (max-width: 360px) {
+    .not-found-page .public-header .primary-nav { justify-content: flex-start; }
+}
+
 .product-hero { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, .65fr); align-items: center; gap: 70px; min-height: 620px; padding: 72px 0 88px; }
 .product-hero-copy { max-width: 760px; }
 .product-hero h1 { font-size: clamp(2.9rem, 5.4vw, 5rem); }
