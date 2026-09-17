@@ -327,9 +327,9 @@
     "questionKey": "competition-prices",
     "partyCode": "FFD",
     "stance": "OPPOSES",
-    "evidenceSummaryAr": "البرنامج يركز على محاربة الاحتكار، تعزيز المنافسة الشريفة، وتفعيل قانون تضارب المصالح بدل التحكم الدائم في الأسعار (ص27).",
-    "evidenceSummaryFr": "Le programme met l'accent sur la lutte contre les monopoles, la promotion de la concurrence loyale et l'application de la loi sur les conflits d'intérêts, plutôt que sur le contrôle permanent des prix (p.27).",
-    "evidenceSummaryEn": "The programme emphasizes fighting monopolies, promoting fair competition, and enforcing conflict-of-interest laws rather than permanent price controls (p.27).",
+    "evidenceSummaryAr": "البرنامج كيدعو صراحة لإعادة تفعيل مسطرة تحديد الأسعار (القانون 104-12) وفرض رخص تصدير وحصص على الخضر الأساسية وإنشاء مرصد مستقل للأسعار والهوامش وتعميم ملصق السعر الأقصى (ص.60).",
+    "evidenceSummaryFr": "Le programme appelle explicitement à réactiver la procédure légale de fixation des prix (Loi 104-12), à imposer des licences et quotas d'exportation sur les légumes essentiels, à créer un observatoire des prix et marges, et à imposer un étiquetage obligatoire du prix maximum (p.60).",
+    "evidenceSummaryEn": "The programme explicitly calls for reactivating the legal price-setting mechanism (Law 104-12), imposing export permits and quotas on essential vegetables, creating an independent prices and margins observatory, and mandatory maximum-price labelling (p.60).",
     "reviewerNote": "Gemini=NO_POSITION, OpenAI=SUPPORTS — resolved to SUPPORTS | REVISED: SUPPORTS→OPPOSES after programme re-read (2026-09-17)"
   },
   {
@@ -381,9 +381,9 @@
     "questionKey": "competition-prices",
     "partyCode": "PJD",
     "stance": "OPPOSES",
-    "evidenceSummaryAr": "البرنامج يركز على تعزيز المنافسة الشريفة ومحاربة الاحتكار والشفافية في الأسواق بدل التحكم الدائم في الأسعار (ص75-76، 67).",
-    "evidenceSummaryFr": "Le programme met l'accent sur la concurrence loyale, la lutte contre les monopoles et la transparence des marchés plutôt que sur le contrôle permanent des prix (p.75-76, 67).",
-    "evidenceSummaryEn": "The programme emphasizes fair competition, fighting monopolies, and market transparency rather than permanent price controls (p.75-76, 67).",
+    "evidenceSummaryAr": "البرنامج كيدعو لنظام دائم لمراقبة وتسقيف هوامش الربح، ومراقبة أسعار المواد الغذائية الأساسية عبر لجان جهوية، وتغليظ عقوبات الاحتكار والمضاربة، وإعادة تشغيل مصفاة سامير (ص.66-67).",
+    "evidenceSummaryFr": "Le programme propose un système permanent de contrôle et de plafonnement des marges bénéficiaires, la surveillance des prix alimentaires via des comités régionaux, le renforcement des sanctions contre les monopoles et la spéculation, et la relance de la raffinerie SAMIR (p.66-67).",
+    "evidenceSummaryEn": "The programme calls for a permanent system to monitor and cap profit margins, regional committees to control basic food prices, heavier penalties for monopolies and speculation, and restarting the SAMIR refinery for fuel price control (pp.66-67).",
     "reviewerNote": "OpenAI only — Gemini failed | CONSOLIDATED: Downgraded from SUPPORTS: PJD 18/18 SUPPORTS not credible, trade-off question | REVISED: MIXED→OPPOSES after programme re-read (2026-09-17)"
   },
   {
@@ -435,9 +435,9 @@
     "questionKey": "sme-jobs",
     "partyCode": "FFD",
     "stance": "MIXED",
-    "evidenceSummaryAr": "البرنامج يعطي أولوية لدعم المقاولات الصغرى والمتوسطة في خلق فرص الشغل (ص22-23، ص28، ص41).",
-    "evidenceSummaryFr": "Le programme donne la priorité au soutien des PME pour la création d'emplois (p.22-23, p.28, p.41).",
-    "evidenceSummaryEn": "The programme prioritizes supporting SMEs for job creation (pp.22-23, 28, 41).",
+    "evidenceSummaryAr": "البرنامج كيدعم المقاولات الصغيرة والمتوسطة (30-35% من الصفقات العمومية)، لكن كيقترح كذلك بنك عمومي للاستثمار وشركة وطنية للتجهيز الصناعي — سياسة صناعية تقودها الدولة إلى جانب دعم المقاولات (ص.18-19، 35-36).",
+    "evidenceSummaryFr": "Le programme soutient les PME (30-35 % des marchés publics) mais propose aussi une banque publique d'investissement et une société nationale d'équipement industriel — une politique industrielle étatique parallèle au soutien des PME (p.18-19, 35-36).",
+    "evidenceSummaryEn": "The programme supports SMEs (30-35% of public contracts) but also proposes a public investment bank and a state-owned industrial equipment company — state-led industrial policy alongside SME support, not SME-first (pp.18-19, 35-36).",
     "reviewerNote": "Gemini=MIXED, OpenAI=SUPPORTS — resolved to SUPPORTS | REVISED: SUPPORTS→MIXED after programme re-read (2026-09-17)"
   },
   {
@@ -759,9 +759,9 @@
     "questionKey": "learning-accountability",
     "partyCode": "FFD",
     "stance": "SUPPORTS",
-    "evidenceSummaryAr": "البرنامج يركز على تأهيل البنية التحتية وتوظيف الأساتذة، مع ذكر تطوير المناهج، لكن لا يعطي أولوية واضحة للقياس والمحاسبة قبل البناء (ص19-21).",
-    "evidenceSummaryFr": "Le programme met l'accent sur l'infrastructure et l'intégration des enseignants, mentionne la réforme des programmes, mais ne donne pas clairement la priorité à la mesure et à la reddition de comptes avant la construction (p.19-21).",
-    "evidenceSummaryEn": "The programme emphasizes infrastructure and teacher integration, mentions curriculum reform, but does not clearly prioritize measurement and accountability before building (pp.19-21).",
+    "evidenceSummaryAr": "البرنامج كينشئ هيئة وطنية مستقلة لتقييم المنظومة التربوية وتعاقدات جهوية على أساس النتائج، مع أولوية مطلقة للتعلمات الأساسية (القراءة والكتابة والحساب) قبل التوسع في البنيات (ص.42).",
+    "evidenceSummaryFr": "Le programme crée un organisme national indépendant d'évaluation du système éducatif et des contrats régionaux basés sur les résultats, avec une priorité absolue aux apprentissages fondamentaux avant l'expansion des infrastructures (p.42).",
+    "evidenceSummaryEn": "The programme establishes an independent national body for evaluating the education system and regional results-based contracts, with absolute priority on basic learning (reading, writing, math) before infrastructure expansion (p.42).",
     "reviewerNote": "Gemini=NO_POSITION, OpenAI=MIXED — resolved to MIXED | REVISED: MIXED→SUPPORTS after programme re-read (2026-09-17)"
   },
   {
@@ -1290,9 +1290,9 @@
     "questionKey": "water-allocation",
     "partyCode": "USFP",
     "stance": "SUPPORTS",
-    "evidenceSummaryAr": "البرنامج يذكر أولوية تسريع مشاريع تحلية المياه وتخزينها، مع بعض الإشارات لتوزيع عادل للموارد، لكنه لا يصرح بأولوية الشرب والأنظمة البيئية على الزراعات المكثفة (ص.37).",
-    "evidenceSummaryFr": "Le programme met l’accent sur le dessalement et le stockage de l’eau, avec quelques références à une répartition équitable, mais sans donner explicitement la priorité à l’eau potable et aux écosystèmes sur les cultures intensives (p.37).",
-    "evidenceSummaryEn": "The programme emphasizes desalination and water storage, with some references to fair distribution, but does not explicitly prioritize drinking water and ecosystems over intensive crops (p.37).",
+    "evidenceSummaryAr": "البرنامج كيعطي الأولوية لشبكات توزيع ماء الشرب وتقليص نسبة ضياع المياه لأقل من 15%، مع الربط بين الأحواض لتوزيع أعدل للموارد وتشجيع الزراعات المقاومة للجفاف (ص.34-37).",
+    "evidenceSummaryFr": "Le programme donne la priorité aux réseaux d'eau potable et à la réduction des pertes à moins de 15 %, avec l'interconnexion des bassins pour une distribution plus équitable et l'encouragement des cultures résistantes à la sécheresse (p.34-37).",
+    "evidenceSummaryEn": "The programme prioritises drinking water networks and reducing water losses to under 15%, with inter-basin links for fairer distribution and encouraging drought-resistant crops (pp.34-37).",
     "reviewerNote": "Gemini=NO_POSITION, OpenAI=MIXED — resolved to MIXED | REVISED: MIXED→SUPPORTS after programme re-read (2026-09-17)"
   },
   {
@@ -1353,9 +1353,9 @@
     "questionKey": "water-demand",
     "partyCode": "PJD",
     "stance": "OPPOSES",
-    "evidenceSummaryAr": "البرنامج يدعو لترشيد الطلب وتغيير الزراعات المستهلكة للماء قبل الاعتماد على التحلية أو التحويلات الكبرى (ص86، 400).",
-    "evidenceSummaryFr": "Le programme appelle à gérer la demande et à changer les cultures gourmandes en eau avant de recourir à la désalinisation ou aux transferts massifs (p.86, 400).",
-    "evidenceSummaryEn": "The programme calls for managing demand and changing water-intensive crops before relying on desalination or large transfers (p.86, 400).",
+    "evidenceSummaryAr": "البرنامج كيدعو لسياسة مائية مندمجة كتربط ترشيد الاستهلاك بتسريع وتيرة إنجاز السدود ومشاريع تحلية مياه البحر والربط المائي بين الأحواض، مع تكثيف بناء السدود التلية (ص.86، 400-401).",
+    "evidenceSummaryFr": "Le programme propose une politique hydrique intégrée liant la rationalisation de la consommation à l'accélération des barrages, des projets de dessalement et d'interconnexion des bassins, avec l'intensification de la construction de barrages collinaires (p.86, 400-401).",
+    "evidenceSummaryEn": "The programme calls for an integrated water policy that links demand rationalisation to accelerating dams, desalination projects, and inter-basin transfers, with intensified hillside dam construction — rejecting demand-first sequencing (pp.86, 400-401).",
     "reviewerNote": "OpenAI only — Gemini failed | CONSOLIDATED: Downgraded from SUPPORTS: PJD 18/18 SUPPORTS not credible, trade-off question | REVISED: MIXED→OPPOSES after programme re-read (2026-09-17)"
   },
   {
@@ -1398,9 +1398,9 @@
     "questionKey": "water-demand",
     "partyCode": "USFP",
     "stance": "SUPPORTS",
-    "evidenceSummaryAr": "البرنامج يدعو لتعميم إعادة استعمال المياه العادمة وتشجيع الاقتصاد في الاستهلاك، لكنه يركز أيضا على مشاريع التحلية والربط بين الأحواض (ص.37).",
-    "evidenceSummaryFr": "Le programme encourage la réutilisation des eaux usées et l’économie d’eau, mais insiste aussi sur le dessalement et l’interconnexion des bassins (p.37).",
-    "evidenceSummaryEn": "The programme encourages reuse of wastewater and water-saving, but also focuses on desalination and basin interconnection projects (p.37).",
+    "evidenceSummaryAr": "البرنامج كيدعو لتعميم إعادة استعمال المياه العادمة وتشجيع أنظمة الاقتصاد في استهلاك المياه والزراعات المقاومة للجفاف، مع تحلية مياه البحر كأداة مكملة (ص.34-37).",
+    "evidenceSummaryFr": "Le programme propose de généraliser la réutilisation des eaux usées, d'encourager les systèmes d'économie d'eau et les cultures résistantes à la sécheresse, le dessalement étant présenté comme un outil complémentaire (p.34-37).",
+    "evidenceSummaryEn": "The programme calls for universalising wastewater reuse, incentivising water-saving systems, and encouraging drought-resistant crops, with desalination presented as a supplementary tool — demand management before supply-side solutions (pp.34-37).",
     "reviewerNote": "Gemini=NO_POSITION, OpenAI=MIXED — resolved to MIXED | REVISED: MIXED→SUPPORTS after programme re-read (2026-09-17)"
   },
   {
@@ -1893,9 +1893,9 @@
     "questionKey": "equality-care",
     "partyCode": "PJD",
     "stance": "OPPOSES",
-    "evidenceSummaryAr": "البرنامج يدعم إصلاحات المساواة الاقتصادية والرعاية المشتركة حتى لو تطلبت تغييرات قانونية وإنفاق إضافي (ص64، 85، 90).",
-    "evidenceSummaryFr": "Le programme soutient les réformes pour l'égalité économique et le partage des soins, même si cela nécessite des changements légaux et des dépenses publiques supplémentaires (p.64, 85, 90).",
-    "evidenceSummaryEn": "The programme supports reforms for economic equality and shared care, even if this requires legal changes and additional public spending (p.64, 85, 90).",
+    "evidenceSummaryAr": "البرنامج كيشدد على انسجام التشريعات المرتبطة بالأسرة مع المرجعية الإسلامية وكيرفض مراجعة مدونة الأسرة اللي كتمس الثوابت، وكيدعو لتشجيع الزواج الشرعي وتكوين ما قبل الزواج بدل إصلاحات المساواة الاقتصادية وتقاسم الرعاية (ص.28).",
+    "evidenceSummaryFr": "Le programme insiste sur la conformité de la législation familiale au référentiel islamique et rejette toute révision du code de la famille touchant aux constantes constitutionnelles, promouvant le mariage légal et la formation pré-maritale plutôt que l'égalité économique et le partage des soins (p.28).",
+    "evidenceSummaryEn": "The programme insists on aligning family legislation with the Islamic framework and resists family code reform affecting constitutional constants, promoting religious marriage and pre-marriage training rather than economic equality and shared care reforms (p.28).",
     "reviewerNote": "OpenAI only — Gemini failed | CONSOLIDATED: Downgraded from SUPPORTS: PJD 18/18 SUPPORTS not credible, trade-off question | REVISED: MIXED→OPPOSES after programme re-read (2026-09-17)"
   },
   {
