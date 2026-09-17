@@ -93,15 +93,20 @@ class CivicPositionSeedIntegrationTest {
     }
 
     @Test
-    void pjdAndUcDifferOnFiveQuestions() throws Exception {
+    void pjdAndUcDifferOnExactlyFiveQuestions() throws Exception {
         var positions = fetchPositions();
 
-        for (String q : List.of("equality-care", "competition-prices", "water-demand",
-                "essential-tax-relief", "learning-accountability")) {
-            String pjd = stanceOf(positions, "PJD", q);
-            String uc = stanceOf(positions, "UC", q);
-            assertThat(pjd).as("PJD and UC must differ on " + q).isNotEqualTo(uc);
-        }
+        var allQuestions = positions.stream()
+                .map(p -> (String) p.get("questionKey")).collect(java.util.stream.Collectors.toSet());
+
+        var differing = allQuestions.stream()
+                .filter(q -> !stanceOf(positions, "PJD", q).equals(stanceOf(positions, "UC", q)))
+                .collect(java.util.stream.Collectors.toSet());
+
+        assertThat(differing).as("PJD/UC differences")
+                .containsExactlyInAnyOrder(
+                        "equality-care", "competition-prices", "water-demand",
+                        "essential-tax-relief", "learning-accountability");
     }
 
     @SuppressWarnings("unchecked")
