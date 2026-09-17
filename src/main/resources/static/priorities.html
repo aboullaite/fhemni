@@ -7,7 +7,7 @@
     <meta name="description" content="18 questions to explore the public priorities and trade-offs that matter to you in Morocco." id="priorityMetaDescription">
     <title>بوصلة الأولويات — فهّمني</title>
     <link rel="icon" href="/favicon.ico?v=20260911" sizes="32x32">
-    <link rel="stylesheet" href="/css/dist.css?v=20260916-22">
+    <link rel="stylesheet" href="/css/dist.css?v=20260917-9">
 </head>
 <body class="public-page priorities-page">
 <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
@@ -164,22 +164,37 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="18" cy="19" r="2"/><path d="m8 11 8-5M8 13l8 5"/></svg>
             <span data-priority-share-action="native"></span>
         </button>
-        <button id="priorityShareCopyImage" class="priority-secondary-button" type="button" disabled>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="13" height="13" rx="2"/><path d="m7 15 3-3 2 2 2-2 3 3M8 9h.01M9 2h9a3 3 0 0 1 3 3v9"/></svg>
-            <span data-priority-share-action="copy-image"></span>
-        </button>
+        <div id="priorityShareLinkMenu" class="priority-share-link-menu">
+            <button id="priorityShareLink" class="priority-secondary-button priority-share-link-button" type="button" aria-controls="prioritySocialShares" aria-expanded="false" disabled>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1.1 1.1"/><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1.1-1.1"/></svg>
+                <span data-priority-share-action="link"></span>
+            </button>
+            <div id="prioritySocialShares" class="priority-social-shares" role="menu" hidden>
+                <button type="button" role="menuitem" data-priority-social="facebook" aria-label="Facebook" title="Facebook">
+                    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M16 8.049C16 3.603 12.418 0 8 0S0 3.603 0 8.049c0 4.017 2.926 7.347 6.75 7.951v-5.625H4.719V8.049H6.75V6.276c0-2.017 1.194-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.994 0-1.304.621-1.304 1.258v1.509h2.219l-.355 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951Z"/></svg>
+                </button>
+                <button type="button" role="menuitem" data-priority-social="whatsapp" aria-label="WhatsApp" title="WhatsApp">
+                    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93a7.898 7.898 0 0 0-2.327-5.607Zm-5.607 12.2a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592Zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.514.646-.63.775-.115.133-.23.148-.428.05-.197-.1-.836-.308-1.59-.984-.59-.525-.986-1.175-1.103-1.372-.116-.198-.013-.306.087-.404.09-.088.197-.23.296-.346.1-.116.133-.198.198-.33.065-.134.033-.249-.017-.347-.05-.099-.445-1.074-.61-1.47-.16-.389-.323-.335-.445-.34-.115-.007-.247-.007-.379-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.131 1.396 2.132 3.383 2.992.473.205.842.326 1.13.419.475.151.907.129 1.249.078.38-.058 1.171-.48 1.338-.943.164-.462.164-.858.115-.943-.05-.082-.182-.131-.38-.23Z"/></svg>
+                </button>
+                <button type="button" role="menuitem" data-priority-social="x" aria-label="X" title="X">
+                    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.6.75Zm-.86 13.028h1.36L4.323 2.145H2.865l8.875 11.633Z"/></svg>
+                </button>
+                <button type="button" role="menuitem" data-priority-social="linkedin" aria-label="LinkedIn" title="LinkedIn">
+                    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146Zm4.943 12.248V6.169H2.542v7.225h2.401Zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248S2.4 3.225 2.4 3.934c0 .694.521 1.248 1.327 1.248h.016Zm4.908 8.212V9.359c0-.216.016-.432.08-.586.174-.431.572-.878 1.24-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.765-3.252-1.274 0-1.845.7-2.165 1.193h.03V6.169H6.287c.03.678 0 7.225 0 7.225h2.364Z"/></svg>
+                </button>
+                <button type="button" role="menuitem" data-priority-social="copy" aria-label="Copy link" title="Copy link">
+                    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.354 6.354a.5.5 0 0 0-.708-.708l-2 2a3.5 3.5 0 0 0 4.95 4.95l1.5-1.5a.5.5 0 0 0-.708-.708l-1.5 1.5a2.5 2.5 0 0 1-3.536-3.536l2-2Zm7.292 3.292a.5.5 0 0 0 .708.708l2-2a3.5 3.5 0 0 0-4.95-4.95l-1.5 1.5a.5.5 0 0 0 .708.708l1.5-1.5a2.5 2.5 0 0 1 3.536 3.536l-2 2Z"/><path d="M5.354 10.646a.5.5 0 0 1 0-.708l4.584-4.584a.5.5 0 0 1 .708.708l-4.584 4.584a.5.5 0 0 1-.708 0Z"/></svg>
+                </button>
+            </div>
+        </div>
         <a id="priorityShareDownload" class="priority-secondary-button" href="#" download>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"/></svg>
             <span data-priority-share-action="download"></span>
         </a>
-        <button id="priorityShareCopyText" class="priority-text-button" type="button" disabled>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="7" width="11" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h3"/></svg>
-            <span data-priority-share-action="copy-text"></span>
-        </button>
     </div>
 </dialog>
 
 <footer><img class="footer-logo" src="/assets/brand/fhemni-logo.png" alt="Fhemni — فهّمني"><a href="https://x.com/laytoun" target="_blank" rel="me noopener noreferrer" title="@laytoun on X" data-i18n="common.footer">© 2026 Mohammed Aboullaite</a><a class="footer-feedback-link" href="https://github.com/aboullaite/fhemni/issues" target="_blank" rel="noopener noreferrer" data-i18n="common.suggestFeature">Suggest a feature</a></footer>
-<script src="/js/i18n.js?v=20260915-1" defer></script><script src="/js/auth.js?v=20260911-2" defer></script><script src="/webjars/html-to-image/1.11.13/dist/html-to-image.js" defer></script><script src="/js/priorities.js?v=20260917-1" defer></script>
+<script src="/js/i18n.js?v=20260915-1" defer></script><script src="/js/auth.js?v=20260911-2" defer></script><script src="/webjars/html-to-image/1.11.13/dist/html-to-image.js" defer></script><script src="/js/priorities.js?v=20260917-14" defer></script>
 </body>
 </html>

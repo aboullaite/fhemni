@@ -1,0 +1,82 @@
+.priority-share-public-page {
+    min-height: 100vh;
+    margin: 0;
+    background: radial-gradient(circle at 14% 12%, rgba(207, 230, 220, .55), transparent 34%), #f5f1e8;
+    color: #132c2b;
+    font-family: "Tajawal", Tahoma, Arial, sans-serif;
+}
+
+.priority-share-public-shell {
+    width: min(980px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 24px 0 48px;
+}
+
+.priority-share-public-brand {
+    display: inline-flex;
+    margin-bottom: 22px;
+}
+
+.priority-share-public-brand img {
+    width: auto;
+    height: 42px;
+}
+
+.priority-share-public-card {
+    display: grid;
+    grid-template-columns: minmax(0, 600px) minmax(260px, 1fr);
+    align-items: stretch;
+    overflow: hidden;
+    border: 1px solid rgba(19, 44, 43, .14);
+    border-radius: 16px;
+    background: #fffdf7;
+    box-shadow: 0 22px 60px rgba(19, 44, 43, .1);
+}
+
+.priority-share-public-card > img {
+    display: block;
+    width: 100%;
+    height: auto;
+    align-self: center;
+    border-inline-end: 1px solid rgba(19, 44, 43, .1);
+}
+
+.priority-share-public-card > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+    padding: 28px;
+    background: rgba(207, 230, 220, .18);
+}
+
+.priority-share-public-card h1 {
+    margin: 0;
+    color: #0b4f49;
+    font-size: clamp(23px, 2.4vw, 30px);
+    font-weight: 850;
+    line-height: 1.25;
+}
+
+.priority-share-public-card p {
+    margin: 0;
+    color: #60706e;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+.priority-share-public-card .priority-primary-button {
+    align-self: flex-start;
+    margin-top: 6px;
+    text-decoration: none;
+}
+
+@media (max-width: 820px) {
+    .priority-share-public-shell { width: min(100% - 20px, 640px); padding-top: 16px; }
+    .priority-share-public-brand { margin-bottom: 14px; }
+    .priority-share-public-brand img { height: 34px; }
+    .priority-share-public-card { grid-template-columns: 1fr; border-radius: 12px; }
+    .priority-share-public-card > img { border-inline-end: 0; border-bottom: 1px solid rgba(19, 44, 43, .1); }
+    .priority-share-public-card > div { padding: 20px; }
+    .priority-share-public-card .priority-primary-button { align-self: stretch; width: 100%; }
+}

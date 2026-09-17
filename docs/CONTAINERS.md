@@ -31,8 +31,18 @@ openssl rand -base64 32 > .secrets/postgres_password
 : > .secrets/admin_identities
 : > .secrets/google_cloud_media_credentials
 : > .secrets/google_cloud_media_writer_credentials
+: > .secrets/google_cloud_share_credentials
 chmod 444 .secrets/*
 ```
+
+Public priority-result cards store only metadata in PostgreSQL. Their PNG files
+live in the private bucket configured by `FHEMNI_CIVIC_SHARE_GCS_PROJECT` and
+`FHEMNI_CIVIC_SHARE_GCS_BUCKET`. Give the identity in
+`.secrets/google_cloud_share_credentials` object create/read/delete access only
+to that bucket (or to a dedicated managed folder). Do not reuse the programme
+media reader identity, and prefer a dedicated share-card bucket so a compromised
+web process cannot modify programme videos. Share objects and their database
+metadata are removed together after the configured retention period.
 
 Add Gemini, OpenAI, OAuth, or Mailgun API key values only to the corresponding
 ignored file. Never

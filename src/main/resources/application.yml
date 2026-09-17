@@ -38,6 +38,17 @@ server:
       timeout: ${FHEMNI_LOGIN_SESSION_TIMEOUT:8h}
 
 fhemni:
+  civic:
+    shares:
+      storage: ${FHEMNI_CIVIC_SHARE_STORAGE:local}
+      local-directory: ${FHEMNI_CIVIC_SHARE_LOCAL_DIRECTORY:./data/civic-priority-shares}
+      retention: ${FHEMNI_CIVIC_SHARE_RETENTION:P30D}
+      cleanup-interval-ms: ${FHEMNI_CIVIC_SHARE_CLEANUP_INTERVAL_MS:3600000}
+      gcs:
+        project-id: ${FHEMNI_CIVIC_SHARE_GCS_PROJECT:}
+        bucket: ${FHEMNI_CIVIC_SHARE_GCS_BUCKET:}
+        credentials: ${FHEMNI_CIVIC_SHARE_GCS_CREDENTIALS:}
+        request-timeout: ${FHEMNI_CIVIC_SHARE_GCS_REQUEST_TIMEOUT:PT2M}
   analytics:
     measurement-id: ${FHEMNI_ANALYTICS_ID:}
   auth:

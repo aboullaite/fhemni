@@ -37,6 +37,10 @@ services:
       FHEMNI_PROGRAMME_MEDIA_GCS_PROJECT: ${FHEMNI_PROGRAMME_MEDIA_GCS_PROJECT:?FHEMNI_PROGRAMME_MEDIA_GCS_PROJECT is required}
       FHEMNI_PROGRAMME_MEDIA_GCS_BUCKET: ${FHEMNI_PROGRAMME_MEDIA_GCS_BUCKET:?FHEMNI_PROGRAMME_MEDIA_GCS_BUCKET is required}
       GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/google_cloud_media_credentials
+      FHEMNI_CIVIC_SHARE_STORAGE: gcs
+      FHEMNI_CIVIC_SHARE_GCS_PROJECT: ${FHEMNI_CIVIC_SHARE_GCS_PROJECT:?FHEMNI_CIVIC_SHARE_GCS_PROJECT is required}
+      FHEMNI_CIVIC_SHARE_GCS_BUCKET: ${FHEMNI_CIVIC_SHARE_GCS_BUCKET:?FHEMNI_CIVIC_SHARE_GCS_BUCKET is required}
+      FHEMNI_CIVIC_SHARE_GCS_CREDENTIALS: /run/secrets/google_cloud_share_credentials
     secrets:
       - source: postgres_password
         target: JDBC_DATABASE_PASSWORD
@@ -58,6 +62,8 @@ services:
         target: FHEMNI_ADMIN_IDENTITIES
       - source: google_cloud_media_credentials
         target: google_cloud_media_credentials
+      - source: google_cloud_share_credentials
+        target: google_cloud_share_credentials
     depends_on:
       database:
         condition: service_healthy
@@ -107,6 +113,10 @@ services:
       FHEMNI_PROGRAMME_MEDIA_GCS_PROJECT: ${FHEMNI_PROGRAMME_MEDIA_GCS_PROJECT:?FHEMNI_PROGRAMME_MEDIA_GCS_PROJECT is required}
       FHEMNI_PROGRAMME_MEDIA_GCS_BUCKET: ${FHEMNI_PROGRAMME_MEDIA_GCS_BUCKET:?FHEMNI_PROGRAMME_MEDIA_GCS_BUCKET is required}
       GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/google_cloud_media_writer_credentials
+      FHEMNI_CIVIC_SHARE_STORAGE: gcs
+      FHEMNI_CIVIC_SHARE_GCS_PROJECT: ${FHEMNI_CIVIC_SHARE_GCS_PROJECT:?FHEMNI_CIVIC_SHARE_GCS_PROJECT is required}
+      FHEMNI_CIVIC_SHARE_GCS_BUCKET: ${FHEMNI_CIVIC_SHARE_GCS_BUCKET:?FHEMNI_CIVIC_SHARE_GCS_BUCKET is required}
+      FHEMNI_CIVIC_SHARE_GCS_CREDENTIALS: /run/secrets/google_cloud_share_credentials
     secrets:
       - source: postgres_password
         target: JDBC_DATABASE_PASSWORD
@@ -114,6 +124,8 @@ services:
         target: GEMINI_API_KEY
       - source: google_cloud_media_writer_credentials
         target: google_cloud_media_writer_credentials
+      - source: google_cloud_share_credentials
+        target: google_cloud_share_credentials
     depends_on:
       database:
         condition: service_healthy
@@ -157,3 +169,5 @@ secrets:
     file: ${FHEMNI_SECRETS_DIR:-.secrets}/google_cloud_media_credentials
   google_cloud_media_writer_credentials:
     file: ${FHEMNI_SECRETS_DIR:-.secrets}/google_cloud_media_writer_credentials
+  google_cloud_share_credentials:
+    file: ${FHEMNI_SECRETS_DIR:-.secrets}/google_cloud_share_credentials
