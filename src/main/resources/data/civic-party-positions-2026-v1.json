@@ -281,11 +281,11 @@
   {
     "questionKey": "essential-tax-relief",
     "partyCode": "PPS",
-    "stance": "MIXED",
+    "stance": "NO_POSITION",
     "evidenceSummaryAr": "البرنامج كيركز على توسيع الوعاء الضريبي والضريبة على الثروة ورفع سقف الإعفاء من ضريبة الدخل، ولكن ماكاينش التزام صريح بتخفيض الضرائب على السلع والخدمات الأساسية.",
-    "evidenceSummaryFr": "Le programme prévoit d'élargir l'assiette fiscale, d'instaurer un impôt sur la fortune et de relever le seuil d'exonération de l'IR, mais n'aborde pas la baisse des taxes sur les biens de première nécessité.",
-    "evidenceSummaryEn": "The programme focuses on broadening the tax base, introducing a wealth tax, and raising the income tax exemption threshold, but does not explicitly address reducing taxes on essential goods and services.",
-    "reviewerNote": "Gemini=NO_POSITION, OpenAI=NO_POSITION — AGREE | REVISED: NO_POSITION→MIXED after programme re-read (2026-09-17)"
+    "evidenceSummaryFr": "Le programme prévoit d'élargir l'assiette fiscale et d'instaurer un impôt sur la fortune, mais n'aborde pas la baisse des taxes sur les biens de première nécessité.",
+    "evidenceSummaryEn": "The programme focuses on broadening the tax base and introducing a wealth tax, but does not address reducing taxes on essential goods and services.",
+    "reviewerNote": "Gemini=MIXED, OpenAI=SUPPORTS — resolved to SUPPORTS | CONSOLIDATED: Downgraded from SUPPORTS: UC 18/18 SUPPORTS not credible, trade-off question | REVISED: NO_POSITION→MIXED after programme re-read (2026-09-17) | CORRECTED: MIXED→NO_POSITION, evidence does not support any position on this specific question"
   },
   {
     "questionKey": "essential-tax-relief",
@@ -336,9 +336,9 @@
     "questionKey": "competition-prices",
     "partyCode": "FGD",
     "stance": "MIXED",
-    "evidenceSummaryAr": "البرنامج كيطالب بالتسقيف الصريح للأسعار وتفعيل مسطرة تحديدها قانونياً للمواد الأساسية (الزيت، الحليب، السكر، الدقيق)، وتقنين هوامش أرباح المحروقات بدل الاكتفاء بآليات المنافسة الحرة.",
-    "evidenceSummaryFr": "Le programme réclame le plafonnement direct et l'encadrement réglementaire des prix des produits de base ainsi que la régulation des marges sur les carburants, rejetant la seule logique du marché et de la concurrence.",
-    "evidenceSummaryEn": "The programme calls for direct legal price controls and caps on basic foodstuffs as well as fuel margins, opposing sole reliance on free-market competition mechanisms.",
+    "evidenceSummaryAr": "البرنامج فيه جانبين: كيدعو لإنهاء الاحتكارات وتعزيز المنافسة الشريفة (ص.27)، ولكن كيطالب أيضاً بتسقيف أسعار المواد الأساسية وتقنين هوامش المحروقات وعقود سلاسل القيمة الموجهة من الدولة (ص.5، 36).",
+    "evidenceSummaryFr": "Le programme affiche deux orientations : il prône la fin des monopoles et le renforcement de la concurrence loyale (p.27), mais réclame aussi le plafonnement des prix de base, la régulation des marges pétrolières et des contrats de chaîne de valeur pilotés par l'État (p.5, 36).",
+    "evidenceSummaryEn": "The programme has two sides: it calls for ending monopolies and strengthening fair competition (p.27), but also demands price caps on basic goods, fuel margin regulation, and state-directed value-chain contracts (pp.5, 36).",
     "reviewerNote": "Gemini=OPPOSES, OpenAI=MIXED — resolved to OPPOSES | REVISED: OPPOSES→MIXED after programme re-read (2026-09-17)"
   },
   {
@@ -354,9 +354,9 @@
     "questionKey": "competition-prices",
     "partyCode": "MP",
     "stance": "MIXED",
-    "evidenceSummaryAr": "البرنامج يدعو لتعزيز المنافسة الشريفة، الشفافية، وتتبع الأسعار عبر منصة رقمية، مع محاربة الاحتكار والمضاربة بدل فرض تسقيف دائم (ص.7-8).",
-    "evidenceSummaryFr": "Le programme prône la concurrence loyale, la transparence et le suivi des prix via une plateforme numérique, luttant contre la spéculation plutôt que des contrôles permanents (p.7-8).",
-    "evidenceSummaryEn": "The programme advocates for fair competition, transparency, and price monitoring via a digital platform, fighting speculation rather than permanent controls (pp.7-8).",
+    "evidenceSummaryAr": "البرنامج كيدعو للمنافسة الشريفة والشفافية عبر منصة رقمية لتتبع الأسعار (ص.7)، ولكن كيفرض أيضاً هدنة تصديرية (حظر تصدير) على المواد الغذائية الأساسية ومراقبة مباشرة للأسواق (ص.8-9).",
+    "evidenceSummaryFr": "Le programme prône la concurrence loyale et la transparence via une plateforme numérique de suivi des prix (p.7), mais impose aussi un moratoire à l'exportation de denrées de base et un contrôle direct des marchés (p.8-9).",
+    "evidenceSummaryEn": "The programme advocates fair competition and transparency via a digital price-monitoring platform (p.7), but also imposes export bans on basic foodstuffs and direct market controls (pp.8-9).",
     "reviewerNote": "Gemini=NO_POSITION, OpenAI=SUPPORTS — resolved to SUPPORTS | REVISED: SUPPORTS→MIXED after programme re-read (2026-09-17)"
   },
   {
@@ -390,9 +390,9 @@
     "questionKey": "competition-prices",
     "partyCode": "PPS",
     "stance": "MIXED",
-    "evidenceSummaryAr": "البرنامج كيدعو صراحة لتسقيف الأسعار وهوامش الربح للمحروقات وتثبيت أسعار المواد الغذائية، وماكيعتمدش فقط على آليات المنافسة الحرة.",
-    "evidenceSummaryFr": "Le parti exige expressément l'encadrement des prix et des marges des distributeurs de carburants ainsi que la stabilisation des prix alimentaires, rejetant l'idée de s'en remettre uniquement au jeu de la concurrence.",
-    "evidenceSummaryEn": "The programme explicitly calls for capping prices and profit margins of fuel distributors and stabilizing food prices, rejecting reliance solely on market competition over price controls.",
+    "evidenceSummaryAr": "البرنامج كيدعو لتقليص الوضعيات الاحتكارية وضمان المنافسة الحرة وإصلاح مجلس المنافسة (ص.26)، ولكن كيطالب أيضاً بتسقيف أسعار وهوامش المحروقات وتثبيت أسعار المواد الغذائية الاستراتيجية (ص.34).",
+    "evidenceSummaryFr": "Le programme veut réduire les oligopoles et garantir la libre concurrence via la réforme du Conseil de la concurrence (p.26), mais exige aussi le plafonnement des marges pétrolières et la stabilisation des prix alimentaires stratégiques (p.34).",
+    "evidenceSummaryEn": "The programme calls for reducing oligopolies and guaranteeing free competition through Competition Council reform (p.26), but also demands fuel margin caps and strategic food price stabilisation (p.34).",
     "reviewerNote": "Gemini=OPPOSES, OpenAI=MIXED — resolved to OPPOSES | REVISED: OPPOSES→MIXED after programme re-read (2026-09-17)"
   },
   {

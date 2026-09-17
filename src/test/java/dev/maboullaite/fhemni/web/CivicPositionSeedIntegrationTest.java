@@ -9,10 +9,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,24 +56,15 @@ class CivicPositionSeedIntegrationTest {
                 .andExpect(jsonPath("$.parties", hasSize(12)));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void seededStancesMatchRevisedClassifications() throws Exception {
-        String json = mvc.perform(get("/api/admin/civic-positions/" + EDITION_ID)
-                        .with(user("admin").roles("ADMIN")))
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
-
-        List<Object> raw = new JacksonJsonParser().parseList(json);
-        List<Map<String, Object>> positions = raw.stream()
-                .map(o -> (Map<String, Object>) o).toList();
+        var positions = fetchPositions();
 
         assertThat(positions).hasSize(216);
 
-        Set<String> keys = new HashSet<>();
-        for (Map<String, Object> p : positions) {
-            keys.add(p.get("partyCode") + "/" + p.get("questionKey"));
-        }
+        var keys = positions.stream()
+                .map(p -> p.get("partyCode") + "/" + p.get("questionKey"))
+                .collect(java.util.stream.Collectors.toSet());
         assertThat(keys).as("216 unique party/question pairs").hasSize(216);
 
         assertStance(positions, "PJD", "equality-care", "OPPOSES");
@@ -92,7 +81,7 @@ class CivicPositionSeedIntegrationTest {
         assertStance(positions, "FGD", "targeted-subsidies", "SUPPORTS");
         assertStance(positions, "FGD", "sme-jobs", "SUPPORTS");
         assertStance(positions, "PPS", "competition-prices", "MIXED");
-        assertStance(positions, "PPS", "essential-tax-relief", "MIXED");
+        assertStance(positions, "PPS", "essential-tax-relief", "NO_POSITION");
         assertStance(positions, "USFP", "competition-prices", "MIXED");
         assertStance(positions, "USFP", "water-demand", "SUPPORTS");
         assertStance(positions, "USFP", "water-allocation", "SUPPORTS");
@@ -103,16 +92,9 @@ class CivicPositionSeedIntegrationTest {
         assertStance(positions, "PUD", "water-demand", "MIXED");
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void pjdAndUcDifferOnFiveQuestions() throws Exception {
-        String json = mvc.perform(get("/api/admin/civic-positions/" + EDITION_ID)
-                        .with(user("admin").roles("ADMIN")))
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
-
-        List<Map<String, Object>> positions = new JacksonJsonParser().parseList(json)
-                .stream().map(o -> (Map<String, Object>) o).toList();
+        var positions = fetchPositions();
 
         for (String q : List.of("equality-care", "competition-prices", "water-demand",
                 "essential-tax-relief", "learning-accountability")) {
@@ -120,6 +102,16 @@ class CivicPositionSeedIntegrationTest {
             String uc = stanceOf(positions, "UC", q);
             assertThat(pjd).as("PJD and UC must differ on " + q).isNotEqualTo(uc);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> fetchPositions() throws Exception {
+        String json = mvc.perform(get("/api/admin/civic-positions/" + EDITION_ID)
+                        .with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        return new JacksonJsonParser().parseList(json).stream()
+                .map(o -> (Map<String, Object>) o).toList();
     }
 
     private static void assertStance(List<Map<String, Object>> positions,

@@ -1,17 +1,9 @@
--- Revise civic party positions after full programme re-read (2026-09-17).
--- 23 stance corrections across 12 parties verified against original programme PDFs.
-
 UPDATE civic_party_positions SET stance = 'SUPPORTS',
     reviewer_note = COALESCE(reviewer_note, '') || ' | REVISED: MIXED→SUPPORTS after programme re-read',
     reviewed_at = CURRENT_TIMESTAMP
 WHERE party_code = 'FGD' AND question_id IN (SELECT id FROM civic_questions WHERE question_key = 'targeted-subsidies')
   AND edition_id = 'c1000000-0000-4000-8000-000000000001';
 
-UPDATE civic_party_positions SET stance = 'MIXED',
-    reviewer_note = COALESCE(reviewer_note, '') || ' | REVISED: NO_POSITION→MIXED after programme re-read',
-    reviewed_at = CURRENT_TIMESTAMP
-WHERE party_code = 'PPS' AND question_id IN (SELECT id FROM civic_questions WHERE question_key = 'essential-tax-relief')
-  AND edition_id = 'c1000000-0000-4000-8000-000000000001';
 
 UPDATE civic_party_positions SET stance = 'SUPPORTS',
     reviewer_note = COALESCE(reviewer_note, '') || ' | REVISED: MIXED→SUPPORTS after programme re-read',
@@ -29,12 +21,18 @@ WHERE party_code = 'FFD' AND question_id IN (SELECT id FROM civic_questions WHER
   AND edition_id = 'c1000000-0000-4000-8000-000000000001';
 
 UPDATE civic_party_positions SET stance = 'MIXED',
+    evidence_summary_ar = 'البرنامج فيه جانبين: كيدعو لإنهاء الاحتكارات وتعزيز المنافسة الشريفة (ص.27)، ولكن كيطالب أيضاً بتسقيف أسعار المواد الأساسية وتقنين هوامش المحروقات وعقود سلاسل القيمة الموجهة من الدولة (ص.5، 36).',
+    evidence_summary_fr = 'Le programme affiche deux orientations : il prône la fin des monopoles et le renforcement de la concurrence loyale (p.27), mais réclame aussi le plafonnement des prix de base, la régulation des marges pétrolières et des contrats de chaîne de valeur pilotés par l''État (p.5, 36).',
+    evidence_summary_en = 'The programme has two sides: it calls for ending monopolies and strengthening fair competition (p.27), but also demands price caps on basic goods, fuel margin regulation, and state-directed value-chain contracts (pp.5, 36).',
     reviewer_note = COALESCE(reviewer_note, '') || ' | REVISED: OPPOSES→MIXED after programme re-read',
     reviewed_at = CURRENT_TIMESTAMP
 WHERE party_code = 'FGD' AND question_id IN (SELECT id FROM civic_questions WHERE question_key = 'competition-prices')
   AND edition_id = 'c1000000-0000-4000-8000-000000000001';
 
 UPDATE civic_party_positions SET stance = 'MIXED',
+    evidence_summary_ar = 'البرنامج كيدعو للمنافسة الشريفة والشفافية عبر منصة رقمية لتتبع الأسعار (ص.7)، ولكن كيفرض أيضاً هدنة تصديرية (حظر تصدير) على المواد الغذائية الأساسية ومراقبة مباشرة للأسواق (ص.8-9).',
+    evidence_summary_fr = 'Le programme prône la concurrence loyale et la transparence via une plateforme numérique de suivi des prix (p.7), mais impose aussi un moratoire à l''exportation de denrées de base et un contrôle direct des marchés (p.8-9).',
+    evidence_summary_en = 'The programme advocates fair competition and transparency via a digital price-monitoring platform (p.7), but also imposes export bans on basic foodstuffs and direct market controls (pp.8-9).',
     reviewer_note = COALESCE(reviewer_note, '') || ' | REVISED: SUPPORTS→MIXED after programme re-read',
     reviewed_at = CURRENT_TIMESTAMP
 WHERE party_code = 'MP' AND question_id IN (SELECT id FROM civic_questions WHERE question_key = 'competition-prices')
@@ -50,6 +48,9 @@ WHERE party_code = 'PJD' AND question_id IN (SELECT id FROM civic_questions WHER
   AND edition_id = 'c1000000-0000-4000-8000-000000000001';
 
 UPDATE civic_party_positions SET stance = 'MIXED',
+    evidence_summary_ar = 'البرنامج كيدعو لتقليص الوضعيات الاحتكارية وضمان المنافسة الحرة وإصلاح مجلس المنافسة (ص.26)، ولكن كيطالب أيضاً بتسقيف أسعار وهوامش المحروقات وتثبيت أسعار المواد الغذائية الاستراتيجية (ص.34).',
+    evidence_summary_fr = 'Le programme veut réduire les oligopoles et garantir la libre concurrence via la réforme du Conseil de la concurrence (p.26), mais exige aussi le plafonnement des marges pétrolières et la stabilisation des prix alimentaires stratégiques (p.34).',
+    evidence_summary_en = 'The programme calls for reducing oligopolies and guaranteeing free competition through Competition Council reform (p.26), but also demands fuel margin caps and strategic food price stabilisation (p.34).',
     reviewer_note = COALESCE(reviewer_note, '') || ' | REVISED: OPPOSES→MIXED after programme re-read',
     reviewed_at = CURRENT_TIMESTAMP
 WHERE party_code = 'PPS' AND question_id IN (SELECT id FROM civic_questions WHERE question_key = 'competition-prices')
