@@ -85,6 +85,7 @@ public class SecurityConfiguration {
                                 "/terms", "/terms/", "/terms.html",
                                 "/privacy", "/privacy/", "/privacy.html",
                                 "/priorities", "/priorities/", "/priorities.html",
+                                "/s/priorities/**",
                                 "/suggestions", "/suggestions/",
                                 "/video.html", "/videos.html", "/login", "/login.html",
                                 "/error", "/favicon.ico", "/css/**", "/js/**", "/assets/**", "/webjars/**",

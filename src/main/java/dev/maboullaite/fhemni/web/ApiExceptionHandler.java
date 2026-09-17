@@ -66,6 +66,13 @@ public class ApiExceptionHandler {
                 .body(problem(HttpStatus.TOO_MANY_REQUESTS, exception.getMessage()));
     }
 
+    @ExceptionHandler(PriorityShareRateLimitException.class)
+    ResponseEntity<ProblemDetail> tooManyPriorityShares(PriorityShareRateLimitException exception) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header(HttpHeaders.RETRY_AFTER, Long.toString(exception.retryAfterSeconds()))
+                .body(problem(HttpStatus.TOO_MANY_REQUESTS, exception.getMessage()));
+    }
+
     private ProblemDetail problem(HttpStatus status, String detail) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
         problem.setTitle(status.getReasonPhrase());

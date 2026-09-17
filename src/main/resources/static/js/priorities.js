@@ -30,17 +30,17 @@
             compassDetails: 'التفاصيل', compassReviewed: '{count} موقف تم تحليلهم من البرامج الرسمية',
             compassDisclaimer: 'التوافق مبني على البرامج المنشورة. الغياب ما كيعنيش معارضة.',
             compassShare: 'شارك النتيجة ديالك', compassShareHint: 'البوصلة ولا أقرب 3',
-            shareTitle: 'شارك النتيجة ديالك', shareIntro: 'اختار الصورة اللي بغيتي تشارك.',
+            shareTitle: 'شارك النتيجة ديالك', shareIntro: 'شارك الصورة مباشرة، ولا صايب رابط عمومي بمعاينة. الرابط كيطلع غير صورة النتيجة وما كيطلعش الأجوبة ديالك.',
             shareCompass: 'بوصلة الأولويات', shareParties: 'أقرب 3 أحزاب',
             shareCompassTitle: 'بوصلة الأولويات ديالي', sharePartiesTitle: 'الأحزاب الأقرب لأولوياتي',
-            sharePreparing: 'كنوجدو الصورة…', shareNative: 'شارك', shareDownload: 'حمّل الصورة',
-            shareCopyImage: 'نسخ الصورة', shareCopyText: 'نسخ النص', shareCopied: 'تنسخات',
+            sharePreparing: 'كنوجدو الصورة…', sharePublishing: 'كنوجدو الرابط العمومي…', shareNative: 'شارك الصورة', shareLink: 'شارك الرابط', shareDownload: 'حمّل الصورة', shareChooseNetwork: 'اختار فين بغيتي تشارك',
             shareError: 'ما قدرناش نوجدو الصورة. عاود جرّب.', shareClose: 'سد',
             shareCardNote: 'مقارنة مبنية على المواقف الموثقة فالبرامج الرسمية المنشورة.',
             shareCardCta: 'دخل حتى نتا وجرّبها',
+            storyQuestion: 'وانت، شنو كيهمّك أكثر؟', storySubtitle: 'جاوب على 18 سؤال ودير بوصلة الأولويات ديالك.', storyCta: 'جرّبها فـ fhemni.ma',
             sharePreviewCompass: 'معاينة بوصلة الأولويات', sharePreviewParties: 'معاينة أقرب ثلاثة أحزاب',
-            shareCompassText: 'أبرز الأولويات ديالي: {items}\n\nجرّب بوصلة فهّمني: https://fhemni.ma/priorities',
-            sharePartiesText: 'هاد الأحزاب هي الأقرب لأولوياتي حسب البرامج الرسمية المنشورة:\n{items}\n\nجرّب بوصلة فهّمني: https://fhemni.ma/priorities'
+            shareCompassText: 'يالله جربت بوصلة الأولويات ديالي فـ فهّمني، وطلع ليا بلي أهم المواضيع عندي هي: {items}.\n\nوانت، شنو الأولويات ديالك؟ جرّبها: https://fhemni.ma/priorities',
+            sharePartiesText: 'يالله اكتشفت فـ فهّمني الأحزاب الأقرب لأولوياتي، حسب البرامج الرسمية المنشورة:\n{items}\n\nوانت، شكون الأقرب لأولوياتك؟ جرّبها: https://fhemni.ma/priorities'
         },
         fr: {
             pageTitle: 'Boussole des priorités — Fhemni',
@@ -71,17 +71,17 @@
             compassDetails: 'Détails', compassReviewed: '{count} positions analysées à partir des programmes officiels',
             compassDisclaimer: 'La compatibilité est basée sur les programmes publiés. L\'absence ne signifie pas opposition.',
             compassShare: 'Partager mon résultat', compassShareHint: 'Boussole ou top 3',
-            shareTitle: 'Partager votre résultat', shareIntro: 'Choisissez l’image que vous souhaitez partager.',
+            shareTitle: 'Partager votre résultat', shareIntro: 'Partagez directement l’image ou créez un lien public avec aperçu. Seule l’image du résultat est publiée, jamais vos réponses individuelles.',
             shareCompass: 'Boussole des priorités', shareParties: '3 partis les plus proches',
             shareCompassTitle: 'Ma boussole des priorités', sharePartiesTitle: 'Les partis les plus proches de mes priorités',
-            sharePreparing: 'Préparation de l’image…', shareNative: 'Partager', shareDownload: 'Télécharger l’image',
-            shareCopyImage: 'Copier l’image', shareCopyText: 'Copier le texte', shareCopied: 'Copié',
+            sharePreparing: 'Préparation de l’image…', sharePublishing: 'Création du lien public…', shareNative: 'Partager l’image', shareLink: 'Partager le lien', shareDownload: 'Télécharger l’image', shareChooseNetwork: 'Choisissez où partager',
             shareError: 'Impossible de préparer l’image. Réessayez.', shareClose: 'Fermer',
             shareCardNote: 'Comparaison fondée sur les positions documentées dans les programmes officiels publiés.',
             shareCardCta: 'À vous de jouer',
+            storyQuestion: 'Et vous, quelles sont vos priorités ?', storySubtitle: 'Répondez à 18 questions et créez votre boussole des priorités.', storyCta: 'Essayez-la sur fhemni.ma',
             sharePreviewCompass: 'Aperçu de la boussole des priorités', sharePreviewParties: 'Aperçu des trois partis les plus proches',
-            shareCompassText: 'Mes principales priorités : {items}\n\nEssayez la boussole Fhemni : https://fhemni.ma/priorities',
-            sharePartiesText: 'Les partis les plus proches de mes priorités selon les programmes officiels publiés :\n{items}\n\nEssayez la boussole Fhemni : https://fhemni.ma/priorities'
+            shareCompassText: 'Je viens de tester la boussole des priorités de Fhemni. Mes sujets les plus importants sont : {items}.\n\nEt vous, quelles sont vos priorités ? Essayez-la : https://fhemni.ma/priorities',
+            sharePartiesText: 'Je viens de découvrir sur Fhemni les partis les plus proches de mes priorités, selon les programmes officiels publiés :\n{items}\n\nEt vous, quels partis sont les plus proches de vos priorités ? Essayez-la : https://fhemni.ma/priorities'
         },
         en: {
             pageTitle: 'Priority compass — Fhemni',
@@ -112,17 +112,17 @@
             compassDetails: 'Details', compassReviewed: '{count} positions analysed from official programmes',
             compassDisclaimer: 'Compatibility is based on published programmes. Absence does not mean opposition.',
             compassShare: 'Share my result', compassShareHint: 'Compass or top 3',
-            shareTitle: 'Share your result', shareIntro: 'Choose the image you want to share.',
+            shareTitle: 'Share your result', shareIntro: 'Share the image directly or create a public preview link. Only the result image is published—never your individual answers.',
             shareCompass: 'Priority compass', shareParties: 'Closest 3 parties',
             shareCompassTitle: 'My priority compass', sharePartiesTitle: 'Parties closest to my priorities',
-            sharePreparing: 'Preparing image…', shareNative: 'Share', shareDownload: 'Download image',
-            shareCopyImage: 'Copy image', shareCopyText: 'Copy text', shareCopied: 'Copied',
+            sharePreparing: 'Preparing image…', sharePublishing: 'Creating public link…', shareNative: 'Share image', shareLink: 'Share link', shareDownload: 'Download image', shareChooseNetwork: 'Choose where to share',
             shareError: 'We could not prepare the image. Try again.', shareClose: 'Close',
             shareCardNote: 'Comparison based on documented positions in published official programmes.',
             shareCardCta: 'Try it yourself',
+            storyQuestion: 'What matters most to you?', storySubtitle: 'Answer 18 questions and create your priority compass.', storyCta: 'Try it at fhemni.ma',
             sharePreviewCompass: 'Priority compass preview', sharePreviewParties: 'Closest three parties preview',
-            shareCompassText: 'My clearest priorities: {items}\n\nTry the Fhemni compass: https://fhemni.ma/priorities',
-            sharePartiesText: 'The parties closest to my priorities according to published official programmes:\n{items}\n\nTry the Fhemni compass: https://fhemni.ma/priorities'
+            shareCompassText: 'I just tried Fhemni’s priority compass. The issues that matter most to me are: {items}.\n\nWhat are your priorities? Try it: https://fhemni.ma/priorities',
+            sharePartiesText: 'I just discovered the parties closest to my priorities on Fhemni, according to published official programmes:\n{items}\n\nWhich parties are closest to your priorities? Try it: https://fhemni.ma/priorities'
         }
     };
 
@@ -159,6 +159,7 @@
             if (event.target === event.currentTarget) closeShareDialog();
         });
         document.querySelector('#priorityShareDialog').addEventListener('close', event => {
+            closeSocialShareMenu();
             event.currentTarget.returnFocus?.focus();
             event.currentTarget.returnFocus = null;
         });
@@ -166,8 +167,16 @@
             button.addEventListener('click', () => selectShareKind(button.dataset.priorityShareKind));
         });
         document.querySelector('#priorityShareNative').addEventListener('click', shareSelectedAsset);
-        document.querySelector('#priorityShareCopyImage').addEventListener('click', copySelectedShareImage);
-        document.querySelector('#priorityShareCopyText').addEventListener('click', copySelectedShareText);
+        document.querySelector('#priorityShareLink').addEventListener('click', shareSelectedPublicLink);
+        document.querySelectorAll('[data-priority-social]').forEach(button => {
+            button.addEventListener('click', () => shareToSocialNetwork(button.dataset.prioritySocial));
+        });
+        document.addEventListener('click', event => {
+            if (!event.target.closest('#priorityShareLinkMenu')) closeSocialShareMenu();
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') closeSocialShareMenu();
+        });
         document.querySelector('#priorityShareDownload').addEventListener('click', event => {
             if (event.currentTarget.classList.contains('disabled')) event.preventDefault();
             else track('priority_result_shared', { kind: selectedShareKind, method: 'download' });
@@ -228,8 +237,7 @@
         document.querySelector('#priorityShareClose').title = value.shareClose;
         document.querySelector('#priorityShareClose').setAttribute('aria-label', value.shareClose);
         document.querySelector('[data-priority-share-action="native"]').textContent = value.shareNative;
-        document.querySelector('[data-priority-share-action="copy-image"]').textContent = value.shareCopyImage;
-        document.querySelector('[data-priority-share-action="copy-text"]').textContent = value.shareCopyText;
+        document.querySelector('[data-priority-share-action="link"]').textContent = value.shareLink;
         document.querySelector('[data-priority-share-action="download"]').textContent = value.shareDownload;
     }
 
@@ -515,6 +523,8 @@
     let shareAssetGeneration = 0;
     let shareAssetPromises = new Map();
     const shareAssets = new Map();
+    const publicShareUrls = new Map();
+    let selectedPublicShare;
     let selectedShareKind = 'compass';
 
     function prepareShareAssets(compass, c) {
@@ -540,6 +550,8 @@
     function clearShareAssets() {
         shareAssets.forEach(asset => URL.revokeObjectURL(asset.previewUrl));
         shareAssets.clear();
+        publicShareUrls.clear();
+        selectedPublicShare = undefined;
         shareAssetPromises = new Map();
     }
 
@@ -551,23 +563,39 @@
         const renderRoot = document.createElement('div');
         renderRoot.className = 'priority-share-render-root';
         const card = createShareCard(kind, compass, c);
-        renderRoot.append(card);
+        const story = createStoryCard(kind, compass, c);
+        renderRoot.append(card, story);
         document.body.append(renderRoot);
 
         try {
-            await waitForShareImages(card);
-            const blob = await window.htmlToImage.toBlob(card, {
-                width: 1080,
-                height: 566,
-                pixelRatio: 1,
-                cacheBust: true,
-                backgroundColor: '#fffdf7'
-            });
-            if (!blob) throw new Error('Image renderer returned no data');
+            await Promise.all([waitForShareImages(card), waitForShareImages(story)]);
+            const [blob, storyBlob] = await Promise.all([
+                window.htmlToImage.toBlob(card, {
+                    width: 1080,
+                    height: 566,
+                    canvasWidth: 1200,
+                    canvasHeight: 630,
+                    // Produce a 2400×1260 retina card in one browser render. Keeping
+                    // the final social asset at this size avoids a second lossy-looking
+                    // enlargement in high-density previews and preserves Arabic type.
+                    pixelRatio: 2,
+                    cacheBust: true,
+                    backgroundColor: '#fffdf7'
+                }),
+                window.htmlToImage.toBlob(story, {
+                    width: 1080,
+                    height: 1920,
+                    pixelRatio: 1,
+                    cacheBust: true,
+                    backgroundColor: '#fffdf7'
+                })
+            ]);
+            if (!blob || !storyBlob) throw new Error('Image renderer returned no data');
             const filename = kind === 'compass' ? 'fhemni-priority-compass.png' : 'fhemni-party-matches.png';
+            const storyFilename = kind === 'compass' ? 'fhemni-priority-compass-story.png' : 'fhemni-party-matches-story.png';
             return {
                 blob,
-                file: new File([blob], filename, { type: 'image/png' }),
+                file: new File([storyBlob], storyFilename, { type: 'image/png' }),
                 filename,
                 previewUrl: URL.createObjectURL(blob),
                 text: shareText(kind, compass, c),
@@ -609,40 +637,77 @@
         return card;
     }
 
+    function createStoryCard(kind, compass, c) {
+        const card = document.createElement('article');
+        card.className = `priority-story-card priority-story-card-${kind}`;
+        card.lang = currentLocale;
+        card.dir = currentLocale === 'ar' ? 'rtl' : 'ltr';
+
+        const header = document.createElement('header');
+        header.className = 'priority-story-header';
+        const logo = document.createElement('img');
+        logo.src = '/assets/brand/fhemni-logo.png';
+        logo.alt = '';
+        const domain = document.createElement('span');
+        domain.textContent = 'fhemni.ma';
+        header.append(logo, domain);
+
+        const heading = document.createElement('h2');
+        heading.textContent = kind === 'compass' ? c.shareCompassTitle : c.sharePartiesTitle;
+
+        const result = document.createElement('div');
+        result.className = 'priority-story-result';
+        if (kind === 'compass') {
+            result.append(createStoryPriorityList(c));
+            const visual = document.createElement('div');
+            visual.className = 'priority-story-radar-shell';
+            const radar = createShareRadar('priority-story-radar', 1.18, 140, 58, 1.08, 14);
+            if (radar) visual.append(radar);
+            result.append(visual);
+        } else {
+            const parties = createPartyShareBody(compass, c);
+            parties.classList.add('priority-story-party-list');
+            result.append(parties);
+        }
+
+        const note = document.createElement('p');
+        note.className = 'priority-story-note';
+        note.textContent = c.shareCardNote;
+
+        const callout = document.createElement('section');
+        callout.className = 'priority-story-callout';
+        const question = document.createElement('h3');
+        question.textContent = c.storyQuestion;
+        const subtitle = document.createElement('p');
+        subtitle.textContent = c.storySubtitle;
+        const cta = document.createElement('strong');
+        cta.textContent = c.storyCta;
+        callout.append(question, subtitle, cta);
+
+        card.append(header, heading, result, note, callout);
+        return card;
+    }
+
+    function createStoryPriorityList(c) {
+        const list = document.createElement('ol');
+        list.className = 'priority-story-priority-list';
+        currentPriorities.slice(0, 3).forEach(priority => {
+            const item = document.createElement('li');
+            const label = document.createElement('strong');
+            label.textContent = priority.label;
+            const score = document.createElement('span');
+            score.textContent = format(c.strength, { score: priority.score });
+            item.append(label, score);
+            list.append(item);
+        });
+        return list;
+    }
+
     function createCompassShareBody(c) {
         const body = document.createElement('div');
         body.className = 'priority-share-card-body priority-share-card-compass-body';
-        const radar = document.querySelector('#priorityRadarChart svg')?.cloneNode(true);
-        if (radar) {
-            radar.removeAttribute('role');
-            radar.removeAttribute('aria-label');
-            radar.classList.add('priority-share-card-radar');
-            expandShareRadarGeometry(radar, 1.3);
-            widenShareRadarLabels(radar, 148, 50);
-            spreadShareRadarLabels(radar, 1.13);
-            fitShareRadarViewBox(radar, 10);
-            radar.querySelectorAll('.compass-profile-grid').forEach(grid => {
-                grid.setAttribute('fill', 'none');
-                grid.setAttribute('stroke', 'rgba(19,44,43,.17)');
-                grid.setAttribute('stroke-width', '1.2');
-                grid.setAttribute('stroke-dasharray', grid.classList.contains('compass-profile-grid-outer') ? 'none' : '3 4');
-            });
-            radar.querySelectorAll('.compass-profile-axis').forEach(axis => {
-                axis.setAttribute('stroke', 'rgba(19,44,43,.15)');
-                axis.setAttribute('stroke-width', '1.1');
-            });
-            const shape = radar.querySelector('.compass-profile-shape');
-            shape?.setAttribute('fill', 'rgba(15,81,69,.26)');
-            shape?.setAttribute('stroke', '#0b4f49');
-            shape?.setAttribute('stroke-width', '4');
-            shape?.setAttribute('stroke-linejoin', 'round');
-            radar.querySelectorAll('.compass-profile-dot').forEach(dot => {
-                dot.setAttribute('fill', '#e86f3c');
-                dot.setAttribute('stroke', '#fffdf7');
-                dot.setAttribute('stroke-width', '2.5');
-            });
-            body.append(radar);
-        }
+        const radar = createShareRadar('priority-share-card-radar', 1.3, 148, 50, 1.13, 10);
+        if (radar) body.append(radar);
 
         const list = document.createElement('ol');
         list.className = 'priority-share-priority-list';
@@ -657,6 +722,39 @@
         });
         body.append(list);
         return body;
+    }
+
+    function createShareRadar(className, geometryFactor, labelWidth, labelHeight, labelFactor, padding) {
+        const radar = document.querySelector('#priorityRadarChart svg')?.cloneNode(true);
+        if (!radar) return null;
+        radar.removeAttribute('role');
+        radar.removeAttribute('aria-label');
+        radar.classList.add(className);
+        expandShareRadarGeometry(radar, geometryFactor);
+        widenShareRadarLabels(radar, labelWidth, labelHeight);
+        spreadShareRadarLabels(radar, labelFactor);
+        fitShareRadarViewBox(radar, padding);
+        radar.querySelectorAll('.compass-profile-grid').forEach(grid => {
+            grid.setAttribute('fill', 'none');
+            grid.setAttribute('stroke', 'rgba(19,44,43,.17)');
+            grid.setAttribute('stroke-width', '1.2');
+            grid.setAttribute('stroke-dasharray', grid.classList.contains('compass-profile-grid-outer') ? 'none' : '3 4');
+        });
+        radar.querySelectorAll('.compass-profile-axis').forEach(axis => {
+            axis.setAttribute('stroke', 'rgba(19,44,43,.15)');
+            axis.setAttribute('stroke-width', '1.1');
+        });
+        const shape = radar.querySelector('.compass-profile-shape');
+        shape?.setAttribute('fill', 'rgba(15,81,69,.26)');
+        shape?.setAttribute('stroke', '#0b4f49');
+        shape?.setAttribute('stroke-width', '4');
+        shape?.setAttribute('stroke-linejoin', 'round');
+        radar.querySelectorAll('.compass-profile-dot').forEach(dot => {
+            dot.setAttribute('fill', '#e86f3c');
+            dot.setAttribute('stroke', '#fffdf7');
+            dot.setAttribute('stroke-width', '2.5');
+        });
+        return radar;
     }
 
     function expandShareRadarGeometry(radar, factor) {
@@ -855,6 +953,7 @@
         const loader = document.querySelector('#priorityShareLoader');
         const previewContainer = document.querySelector('.priority-share-preview');
         const status = document.querySelector('#priorityShareStatus');
+        closeSocialShareMenu(true);
         preview.hidden = true;
         loader.hidden = false;
         previewContainer.setAttribute('aria-busy', 'true');
@@ -882,19 +981,14 @@
 
     function setShareControls(asset) {
         const nativeButton = document.querySelector('#priorityShareNative');
-        const copyImageButton = document.querySelector('#priorityShareCopyImage');
-        const copyTextButton = document.querySelector('#priorityShareCopyText');
+        const linkButton = document.querySelector('#priorityShareLink');
         const download = document.querySelector('#priorityShareDownload');
-        const canShareFile = Boolean(asset && navigator.share && navigator.canShare?.({ files: [asset.file] }));
-        const canCopyImage = Boolean(asset && navigator.clipboard?.write && window.ClipboardItem);
-        const canCopyText = Boolean(asset && navigator.clipboard?.writeText);
+        const canShareFile = Boolean(asset && isMobileShareDevice()
+            && navigator.share && navigator.canShare?.({ files: [asset.file] }));
 
         nativeButton.hidden = !canShareFile;
         nativeButton.disabled = !canShareFile;
-        copyImageButton.hidden = !canCopyImage;
-        copyImageButton.disabled = !canCopyImage;
-        copyTextButton.hidden = !canCopyText;
-        copyTextButton.disabled = !canCopyText;
+        linkButton.disabled = !asset;
         download.classList.toggle('disabled', !asset);
         download.setAttribute('aria-disabled', String(!asset));
         download.href = asset?.previewUrl || '#';
@@ -912,33 +1006,79 @@
         }
     }
 
-    async function copySelectedShareImage() {
+    async function shareSelectedPublicLink() {
         const asset = shareAssets.get(selectedShareKind);
         if (!asset) return;
-        try {
-            await navigator.clipboard.write([new ClipboardItem({ 'image/png': asset.blob })]);
-            showShareSuccess();
-            track('priority_result_shared', { kind: selectedShareKind, method: 'copy_image' });
-        } catch (_) {
-            showShareError();
-        }
-    }
-
-    async function copySelectedShareText() {
-        const asset = shareAssets.get(selectedShareKind);
-        if (!asset) return;
-        try {
-            await navigator.clipboard.writeText(asset.text);
-            showShareSuccess();
-        } catch (_) {
-            showShareError();
-        }
-    }
-
-    function showShareSuccess() {
+        const button = document.querySelector('#priorityShareLink');
         const status = document.querySelector('#priorityShareStatus');
+        button.disabled = true;
         status.classList.remove('error');
-        status.textContent = `✓ ${copy().shareCopied}`;
+        status.textContent = copy().sharePublishing;
+        try {
+            const url = publicShareUrls.get(selectedShareKind) || await publishShareAsset(asset);
+            publicShareUrls.set(selectedShareKind, url);
+            const text = asset.text.replace(/https:\/\/fhemni\.ma\/priorities/g, '').trim();
+            selectedPublicShare = { title: asset.title, text, url };
+            if (isMobileShareDevice() && navigator.share) {
+                await navigator.share({ title: asset.title, text, url });
+                status.textContent = '';
+                track('priority_result_shared', { kind: selectedShareKind, method: 'public_link_native' });
+            } else {
+                const menu = document.querySelector('#priorityShareLinkMenu');
+                document.querySelector('#prioritySocialShares').hidden = false;
+                menu.classList.add('is-open');
+                button.setAttribute('aria-expanded', 'true');
+                status.textContent = copy().shareChooseNetwork;
+                track('priority_result_shared', { kind: selectedShareKind, method: 'public_link_options' });
+            }
+        } catch (error) {
+            if (error?.name === 'AbortError') status.textContent = '';
+            else showShareError();
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    async function publishShareAsset(asset) {
+        const body = new FormData();
+        body.append('kind', selectedShareKind);
+        body.append('language', currentLocale);
+        body.append('image', asset.blob, asset.filename);
+        const options = await window.FhemniAuth.withCsrf({ method: 'POST', body });
+        const response = await fetch('/api/catalog/questionnaires/current/shares', options);
+        if (!response.ok) throw new Error(`Share link request failed: ${response.status}`);
+        const created = await response.json();
+        return new URL(created.url, window.location.origin).href;
+    }
+
+    function isMobileShareDevice() {
+        return navigator.maxTouchPoints > 0 && window.matchMedia('(pointer: coarse)').matches;
+    }
+
+    function closeSocialShareMenu(reset = false) {
+        const menu = document.querySelector('#priorityShareLinkMenu');
+        const button = document.querySelector('#priorityShareLink');
+        const shares = document.querySelector('#prioritySocialShares');
+        menu?.classList.remove('is-open');
+        button?.setAttribute('aria-expanded', 'false');
+        if (reset && shares) shares.hidden = true;
+    }
+
+    function shareToSocialNetwork(network) {
+        if (!selectedPublicShare) return;
+        const { text, url } = selectedPublicShare;
+        const encodedUrl = encodeURIComponent(url);
+        const encodedText = encodeURIComponent(text.trim());
+        const destinations = {
+            facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+            whatsapp: `https://wa.me/?text=${encodedText}%0A%0A${encodedUrl}`,
+            x: `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`,
+            linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`
+        };
+        const destination = destinations[network];
+        if (!destination) return;
+        window.open(destination, '_blank', 'noopener,noreferrer,width=720,height=680');
+        track('priority_result_shared', { kind: selectedShareKind, method: `public_link_${network}` });
     }
 
     function showShareError() {

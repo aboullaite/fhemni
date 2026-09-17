@@ -111,6 +111,12 @@ class NavigationConsistencyTest {
                 .contains("id=\"priorityCompassShareHint\"")
                 .contains("data-priority-share-kind=\"compass\"")
                 .contains("data-priority-share-kind=\"parties\"")
+                .contains("id=\"priorityShareLink\"")
+                .contains("data-priority-share-action=\"link\"")
+                .contains("data-priority-social=\"facebook\"")
+                .contains("data-priority-social=\"whatsapp\"")
+                .contains("data-priority-social=\"x\"")
+                .contains("data-priority-social=\"linkedin\"")
                 .contains("/webjars/html-to-image/1.11.13/dist/html-to-image.js")
                 .contains("class=\"priority-result-section priority-summary-section\"")
                 .doesNotContain("id=\"priorityResultsIntro\"")
@@ -131,7 +137,17 @@ class NavigationConsistencyTest {
                 .contains("compass-match-bar")
                 .contains("function widthClass(value)")
                 .contains("window.htmlToImage.toBlob")
+                .contains("height: 1920")
+                .contains("fhemni-priority-compass-story.png")
                 .contains("navigator.canShare?.({ files: [asset.file] })")
+                .contains("navigator.share({ title: asset.title, text: asset.text, files: [asset.file] })")
+                .contains("/api/catalog/questionnaires/current/shares")
+                .contains("navigator.share({ title: asset.title, text, url })")
+                .contains("function isMobileShareDevice()")
+                .contains("https://www.facebook.com/sharer/sharer.php")
+                .contains("https://wa.me/")
+                .doesNotContain("priorityShareCopyImage")
+                .doesNotContain("priorityShareCopyText")
                 .doesNotContain(".style.")
                 .doesNotContain("style=\"")
                 .doesNotContain("resultsIntro:")
@@ -213,6 +229,8 @@ class NavigationConsistencyTest {
                 .contains("third-party identity provider")
                 .contains("authentication-provider data")
                 .contains("request access, correction, export, objection, restriction, or deletion")
+                .contains("public share link")
+                .contains("individual answers used to create it are not uploaded")
                 .doesNotContain("Discord user ID")
                 .doesNotContain("associated Discord data")
                 .doesNotContain("Discord's Authorized Apps");
@@ -225,9 +243,10 @@ class NavigationConsistencyTest {
     @Test
     void everyPageUsesThePinnedWebFontStylesheet() throws IOException {
         for (String page : ALL_PAGES) {
+            String version = page.equals("priorities.html") ? "20260917-8" : "20260916-22";
             assertThat(html(page))
                     .as("stylesheet in %s", page)
-                    .containsOnlyOnce("/css/dist.css?v=20260916-22");
+                    .containsOnlyOnce("/css/dist.css?v=" + version);
         }
     }
 
