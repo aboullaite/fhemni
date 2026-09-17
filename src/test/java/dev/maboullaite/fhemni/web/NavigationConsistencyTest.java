@@ -118,6 +118,7 @@ class NavigationConsistencyTest {
                 .contains("data-priority-social=\"x\"")
                 .contains("data-priority-social=\"linkedin\"")
                 .contains("data-priority-social=\"copy\"")
+                .contains("/js/priorities.js?v=20260917-15")
                 .contains("/webjars/html-to-image/1.11.13/dist/html-to-image.js")
                 .contains("class=\"priority-result-section priority-summary-section\"")
                 .doesNotContain("id=\"priorityResultsIntro\"")
