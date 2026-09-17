@@ -124,6 +124,35 @@ class SecurityIntegrationTest {
     }
 
     @Test
+    void servesTheBrandedNotFoundPageWithoutHijackingApisOrAssets() throws Exception {
+        mvc.perform(get("/this-page-was-never-here").accept(MediaType.TEXT_HTML))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
+                .andExpect(content().string(containsString("class=\"not-found-main\"")))
+                .andExpect(content().string(containsString("data-i18n=\"notFound.title\"")));
+
+        mvc.perform(get("/an-old-page.html").accept(MediaType.TEXT_HTML))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString("class=\"not-found-main\"")));
+
+        mvc.perform(get("/parties/positions").accept(MediaType.TEXT_HTML))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString("class=\"not-found-main\"")));
+
+        mvc.perform(get("/api/this-endpoint-does-not-exist").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is4xxClientError())
+                .andExpect(content().string(not(containsString("class=\"not-found-main\""))));
+
+        mvc.perform(get("/api;ignored=segment/this-endpoint-does-not-exist").accept(MediaType.TEXT_HTML))
+                .andExpect(status().is4xxClientError())
+                .andExpect(content().string(not(containsString("class=\"not-found-main\""))));
+
+        mvc.perform(get("/assets/this-image-does-not-exist.png").accept(MediaType.IMAGE_PNG))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(not(containsString("class=\"not-found-main\""))));
+    }
+
+    @Test
     void rejectsAnonymousChatAtTheServerBoundary() throws Exception {
         mvc.perform(post("/api/analyses/00000000-0000-0000-0000-000000000000/questions")
                         .with(csrf())
