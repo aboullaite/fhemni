@@ -17,6 +17,7 @@ import java.util.HexFormat;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Semaphore;
 
@@ -66,7 +67,7 @@ public class CivicPriorityShareService {
         byte[] image = normalizePngWithPermit(uploadedImage);
         String digest = sha256(image);
 
-        var existing = repository.findByImage(digest, kind, language);
+        var existing = renewExisting(digest, kind, language, image);
         if (existing.isPresent()) return existing.get();
 
         String objectKey = objectKey(kind, language, digest);
@@ -115,17 +116,17 @@ public class CivicPriorityShareService {
             var expired = repository.findCreatedBefore(cutoff, CLEANUP_BATCH_SIZE);
             if (expired.isEmpty()) return;
 
-            int deleted = 0;
             for (CivicPriorityShare.Metadata share : expired) {
+                if (repository.deleteByTokenIfCreatedBefore(share.token(), cutoff) == 0) {
+                    continue;
+                }
                 try {
                     deleteStoredImage(share);
-                    repository.deleteByToken(share.token());
-                    deleted++;
                 } catch (IOException failure) {
                     LOGGER.warn("Could not delete expired civic-priority share {}", share.token(), failure);
                 }
             }
-            if (expired.size() < CLEANUP_BATCH_SIZE || deleted == 0) return;
+            if (expired.size() < CLEANUP_BATCH_SIZE) return;
         }
     }
 
@@ -154,10 +155,33 @@ public class CivicPriorityShareService {
             if (repository.insertIfAbsent(share)) {
                 return share;
             }
-            var existing = repository.findByImage(digest, kind, language);
+            var existing = renewExisting(digest, kind, language, null);
             if (existing.isPresent()) return existing.get();
         }
         throw new IllegalStateException("Could not create the share link. Please retry.");
+    }
+
+    private Optional<CivicPriorityShare> renewExisting(
+            String digest,
+            CivicPriorityShare.Kind kind,
+            String language,
+            byte[] image) {
+        var existing = repository.findByImage(digest, kind, language);
+        if (existing.isEmpty()) return existing;
+
+        CivicPriorityShare share = existing.get();
+        if (image != null) {
+            // Rewriting the same object also renews its GCS creation time, keeping
+            // bucket lifecycle expiry aligned with the database retention window.
+            store(share.imageObjectKey(), image);
+        }
+        Instant renewedAt = Instant.now();
+        if (repository.renew(share.token(), renewedAt) == 0) {
+            return Optional.empty();
+        }
+        return Optional.of(new CivicPriorityShare(
+                share.id(), share.token(), share.kind(), share.language(),
+                share.imageObjectKey(), share.imageSha256(), renewedAt));
     }
 
     private void store(String objectKey, byte[] image) {

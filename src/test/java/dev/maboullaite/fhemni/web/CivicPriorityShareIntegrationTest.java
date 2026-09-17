@@ -15,6 +15,9 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
@@ -24,6 +27,7 @@ import javax.imageio.ImageIO;
 import dev.maboullaite.fhemni.civic.CivicPriorityShareService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
@@ -54,6 +58,9 @@ class CivicPriorityShareIntegrationTest {
 
     @Autowired
     private CivicPriorityShareService shares;
+
+    @Value("${fhemni.civic.shares.local-directory:./data/civic-priority-shares}")
+    private String shareDirectory;
 
     @Test
     void createsAConsentDrivenPublicPreviewWithoutUploadingAnswers() throws Exception {
@@ -189,6 +196,58 @@ class CivicPriorityShareIntegrationTest {
         shares.deleteExpiredShares();
 
         mvc.perform(get(pageUrl)).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void resharingRenewsTheExistingTokenAndStoredImage() throws Exception {
+        byte[] image = png(800, 400);
+        String firstResponse = mvc.perform(post(SHARE_PATH)
+                        .queryParam("kind", "compass")
+                        .queryParam("language", "fr")
+                        .contentType(MediaType.IMAGE_PNG)
+                        .content(image)
+                        .with(csrf()))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        String pageUrl = objectMapper.readTree(firstResponse).get("url").asText();
+        String token = pageUrl.substring(pageUrl.lastIndexOf('/') + 1);
+        String objectKey = jdbc.sql("""
+                        SELECT image_object_key
+                          FROM civic_priority_shares
+                         WHERE share_token = :token
+                        """)
+                .param("token", token)
+                .query(String.class)
+                .single();
+        Instant expiredAt = Instant.now().minus(31, ChronoUnit.DAYS);
+        jdbc.sql("UPDATE civic_priority_shares SET created_at = :createdAt WHERE share_token = :token")
+                .param("createdAt", expiredAt)
+                .param("token", token)
+                .update();
+        Path storedImage = Path.of(shareDirectory).toAbsolutePath().normalize().resolve(objectKey);
+        Files.setLastModifiedTime(storedImage, FileTime.from(expiredAt));
+
+        Instant renewedAfter = Instant.now().minusSeconds(1);
+        String secondResponse = mvc.perform(post(SHARE_PATH)
+                        .queryParam("kind", "compass")
+                        .queryParam("language", "fr")
+                        .contentType(MediaType.IMAGE_PNG)
+                        .content(image)
+                        .with(csrf()))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+
+        assertThat(objectMapper.readTree(secondResponse).get("url").asText()).isEqualTo(pageUrl);
+        assertThat(jdbc.sql("SELECT created_at FROM civic_priority_shares WHERE share_token = :token")
+                .param("token", token)
+                .query(Instant.class)
+                .single()).isAfter(renewedAfter);
+        assertThat(Files.getLastModifiedTime(storedImage).toInstant()).isAfter(expiredAt);
+
+        shares.deleteExpiredShares();
+
+        mvc.perform(get(pageUrl)).andExpect(status().isOk());
+        mvc.perform(get(pageUrl + "/image")).andExpect(status().isOk());
     }
 
     @Test

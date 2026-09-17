@@ -67,6 +67,17 @@ class CivicPriorityShareRepository {
                 .optional();
     }
 
+    int renew(String token, Instant createdAt) {
+        return jdbc.sql("""
+                        UPDATE civic_priority_shares
+                           SET created_at = :createdAt
+                         WHERE share_token = :token
+                        """)
+                .param("token", token)
+                .param("createdAt", createdAt)
+                .update();
+    }
+
     boolean insertIfAbsent(CivicPriorityShare share) {
         int inserted = jdbc.sql("""
                         INSERT INTO civic_priority_shares (
@@ -92,6 +103,17 @@ class CivicPriorityShareRepository {
     int deleteByToken(String token) {
         return jdbc.sql("DELETE FROM civic_priority_shares WHERE share_token = :token")
                 .param("token", token)
+                .update();
+    }
+
+    int deleteByTokenIfCreatedBefore(String token, Instant cutoff) {
+        return jdbc.sql("""
+                        DELETE FROM civic_priority_shares
+                         WHERE share_token = :token
+                           AND created_at < :cutoff
+                        """)
+                .param("token", token)
+                .param("cutoff", cutoff)
                 .update();
     }
 
