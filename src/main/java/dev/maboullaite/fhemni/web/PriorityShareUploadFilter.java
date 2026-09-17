@@ -20,7 +20,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 class PriorityShareUploadFilter extends OncePerRequestFilter {
 
     private static final String UPLOAD_PATH = "/api/catalog/questionnaires/current/shares";
-    private static final long MAX_REQUEST_BYTES = CivicPriorityShareService.MAX_UPLOAD_BYTES + 64L * 1024L;
+    private static final long MAX_REQUEST_BYTES = CivicPriorityShareService.MAX_UPLOAD_BYTES;
 
     private final PriorityShareRateLimiter rateLimiter;
 
@@ -31,7 +31,34 @@ class PriorityShareUploadFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         return !"POST".equalsIgnoreCase(request.getMethod())
-                || !UPLOAD_PATH.equals(request.getRequestURI().substring(request.getContextPath().length()));
+                || !UPLOAD_PATH.equals(uploadPath(request));
+    }
+
+    private static String uploadPath(HttpServletRequest request) {
+        String path = request.getServletPath();
+        if (path == null || path.isEmpty()) {
+            String requestUri = request.getRequestURI();
+            String contextPath = request.getContextPath();
+            path = requestUri.substring(Math.min(contextPath.length(), requestUri.length()));
+        }
+        return stripMatrixParameters(path);
+    }
+
+    private static String stripMatrixParameters(String path) {
+        StringBuilder clean = new StringBuilder(path.length());
+        boolean parameter = false;
+        for (int index = 0; index < path.length(); index++) {
+            char character = path.charAt(index);
+            if (character == ';') {
+                parameter = true;
+            } else if (character == '/') {
+                parameter = false;
+                clean.append(character);
+            } else if (!parameter) {
+                clean.append(character);
+            }
+        }
+        return clean.toString();
     }
 
     @Override
@@ -51,7 +78,7 @@ class PriorityShareUploadFilter extends OncePerRequestFilter {
         if (contentLength < 0) {
             contentLength = parseContentLength(request.getHeader(HttpHeaders.CONTENT_LENGTH));
         }
-        if (contentLength < 0 || contentLength > MAX_REQUEST_BYTES) {
+        if (contentLength > MAX_REQUEST_BYTES) {
             writeProblem(response, HttpStatus.PAYLOAD_TOO_LARGE, "The share card must be 2 MB or smaller.");
             return;
         }

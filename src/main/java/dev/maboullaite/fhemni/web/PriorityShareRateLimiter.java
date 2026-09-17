@@ -2,7 +2,6 @@ package dev.maboullaite.fhemni.web;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -16,6 +15,7 @@ class PriorityShareRateLimiter {
     private final int maxRequests;
     private final Duration window;
     private final int maxTrackedClients;
+    private RequestWindow overflow;
 
     PriorityShareRateLimiter(
             @Value("${fhemni.civic.shares.max-requests-per-window:20}") int maxRequests,
@@ -36,20 +36,24 @@ class PriorityShareRateLimiter {
         if (current == null || !now.isBefore(current.startedAt().plus(window))) {
             makeRoom(now);
             if (!clients.containsKey(client) && clients.size() >= maxTrackedClients) {
-                Iterator<String> oldest = clients.keySet().iterator();
-                if (oldest.hasNext()) {
-                    oldest.next();
-                    oldest.remove();
-                }
+                overflow = updatedWindow(overflow, now);
+                return;
             }
             clients.put(client, new RequestWindow(now, 1));
             return;
+        }
+        clients.put(client, updatedWindow(current, now));
+    }
+
+    private RequestWindow updatedWindow(RequestWindow current, Instant now) {
+        if (current == null || !now.isBefore(current.startedAt().plus(window))) {
+            return new RequestWindow(now, 1);
         }
         if (current.count() >= maxRequests) {
             long retryAfter = Math.max(1, Duration.between(now, current.startedAt().plus(window)).toSeconds());
             throw new PriorityShareRateLimitException(retryAfter);
         }
-        clients.put(client, new RequestWindow(current.startedAt(), current.count() + 1));
+        return new RequestWindow(current.startedAt(), current.count() + 1);
     }
 
     private void makeRoom(Instant now) {

@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.util.HtmlUtils;
 
 @RestController
@@ -36,18 +35,16 @@ public class CivicPriorityShareController {
 
     @PostMapping(
             value = "/api/catalog/questionnaires/current/shares",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+            consumes = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<CreatedShare> create(
             @RequestParam String kind,
             @RequestParam String language,
-            @RequestParam MultipartFile image) throws IOException {
-        if (!MediaType.IMAGE_PNG_VALUE.equalsIgnoreCase(image.getContentType())) {
-            throw new IllegalArgumentException("The share card must be a PNG image.");
-        }
-        if (image.getSize() > CivicPriorityShareService.MAX_UPLOAD_BYTES) {
+            HttpServletRequest request) throws IOException {
+        byte[] image = request.getInputStream().readNBytes(CivicPriorityShareService.MAX_UPLOAD_BYTES + 1);
+        if (image.length > CivicPriorityShareService.MAX_UPLOAD_BYTES) {
             throw new PriorityShareUploadTooLargeException();
         }
-        CivicPriorityShare share = shares.create(kind, language, image.getBytes());
+        CivicPriorityShare share = shares.create(kind, language, image);
         String path = path(share.token());
         return ResponseEntity.created(URI.create(path)).body(new CreatedShare(path, path + "/image"));
     }
@@ -99,6 +96,7 @@ public class CivicPriorityShareController {
         String description = escape(copy.description());
         String imageAlt = escape(copy.imageAlt());
         String cta = escape(copy.cta());
+        String openGraphLocale = escape(copy.openGraphLocale());
         String safeCanonical = escape(canonical);
         String safeImage = escape(image);
         String safeDestination = escape(destination);
@@ -150,7 +148,7 @@ public class CivicPriorityShareController {
                 </html>
                 """.formatted(
                 language, direction, title, description, safeCanonical,
-                copy.openGraphLocale(), safeCanonical, title, description,
+                openGraphLocale, safeCanonical, title, description,
                 safeImage, safeImage, imageAlt, title, description, safeImage, imageAlt,
                 safeImage, imageAlt, title, description, safeDestination, cta);
     }

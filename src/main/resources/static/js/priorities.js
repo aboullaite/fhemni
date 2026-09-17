@@ -1045,12 +1045,15 @@
     }
 
     async function publishShareAsset(kind, asset) {
-        const body = new FormData();
-        body.append('kind', kind);
-        body.append('language', currentLocale);
-        body.append('image', asset.blob, asset.filename);
-        const options = await window.FhemniAuth.withCsrf({ method: 'POST', body });
-        const response = await fetch('/api/catalog/questionnaires/current/shares', options);
+        const endpoint = new URL('/api/catalog/questionnaires/current/shares', window.location.origin);
+        endpoint.searchParams.set('kind', kind);
+        endpoint.searchParams.set('language', currentLocale);
+        const options = await window.FhemniAuth.withCsrf({
+            method: 'POST',
+            headers: { 'Content-Type': 'image/png' },
+            body: asset.blob
+        });
+        const response = await fetch(endpoint, options);
         if (!response.ok) throw new Error(`Share link request failed: ${response.status}`);
         const created = await response.json();
         return new URL(created.url, window.location.origin).href;

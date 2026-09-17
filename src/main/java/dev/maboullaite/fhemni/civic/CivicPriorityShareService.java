@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.concurrent.Semaphore;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -40,10 +41,12 @@ public class CivicPriorityShareService {
     private static final long MAX_SOURCE_PIXELS = 8_000_000;
     private static final int MAX_STORED_IMAGE_BYTES = 12_000_000;
     private static final int CLEANUP_BATCH_SIZE = 100;
+    private static final int MAX_CONCURRENT_IMAGE_DECODES = 3;
 
     private final CivicPriorityShareRepository repository;
     private final CivicPriorityShareImageStorage storage;
     private final Duration retention;
+    private final Semaphore imageDecoders = new Semaphore(MAX_CONCURRENT_IMAGE_DECODES, true);
 
     CivicPriorityShareService(
             CivicPriorityShareRepository repository,
@@ -60,7 +63,7 @@ public class CivicPriorityShareService {
     public CivicPriorityShare create(String kindValue, String languageValue, byte[] uploadedImage) {
         CivicPriorityShare.Kind kind = CivicPriorityShare.Kind.parse(kindValue);
         String language = language(languageValue);
-        byte[] image = normalizePng(uploadedImage);
+        byte[] image = normalizePngWithPermit(uploadedImage);
         String digest = sha256(image);
 
         var existing = repository.findByImage(digest, kind, language);
@@ -107,14 +110,36 @@ public class CivicPriorityShareService {
 
     @Scheduled(fixedDelayString = "${fhemni.civic.shares.cleanup-interval-ms:3600000}")
     public void deleteExpiredShares() {
-        for (CivicPriorityShare.Metadata share
-                : repository.findCreatedBefore(Instant.now().minus(retention), CLEANUP_BATCH_SIZE)) {
-            try {
-                deleteStoredImage(share);
-                repository.deleteByToken(share.token());
-            } catch (IOException failure) {
-                LOGGER.warn("Could not delete expired civic-priority share {}", share.token(), failure);
+        Instant cutoff = Instant.now().minus(retention);
+        while (true) {
+            var expired = repository.findCreatedBefore(cutoff, CLEANUP_BATCH_SIZE);
+            if (expired.isEmpty()) return;
+
+            int deleted = 0;
+            for (CivicPriorityShare.Metadata share : expired) {
+                try {
+                    deleteStoredImage(share);
+                    repository.deleteByToken(share.token());
+                    deleted++;
+                } catch (IOException failure) {
+                    LOGGER.warn("Could not delete expired civic-priority share {}", share.token(), failure);
+                }
             }
+            if (expired.size() < CLEANUP_BATCH_SIZE || deleted == 0) return;
+        }
+    }
+
+    private byte[] normalizePngWithPermit(byte[] uploadedImage) {
+        boolean acquired = false;
+        try {
+            imageDecoders.acquire();
+            acquired = true;
+            return normalizePng(uploadedImage);
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Share image processing was interrupted.", interrupted);
+        } finally {
+            if (acquired) imageDecoders.release();
         }
     }
 
