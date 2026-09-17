@@ -117,6 +117,7 @@ class NavigationConsistencyTest {
                 .contains("data-priority-social=\"whatsapp\"")
                 .contains("data-priority-social=\"x\"")
                 .contains("data-priority-social=\"linkedin\"")
+                .contains("data-priority-social=\"copy\"")
                 .contains("/webjars/html-to-image/1.11.13/dist/html-to-image.js")
                 .contains("class=\"priority-result-section priority-summary-section\"")
                 .doesNotContain("id=\"priorityResultsIntro\"")
@@ -146,6 +147,9 @@ class NavigationConsistencyTest {
                 .contains("function isMobileShareDevice()")
                 .contains("https://www.facebook.com/sharer/sharer.php")
                 .contains("https://wa.me/")
+                .contains("navigator.clipboard.writeText(text.trim())")
+                .contains("navigator.clipboard.writeText(url)")
+                .contains("shareLinkedInCopied")
                 .doesNotContain("priorityShareCopyImage")
                 .doesNotContain("priorityShareCopyText")
                 .doesNotContain(".style.")
@@ -243,7 +247,7 @@ class NavigationConsistencyTest {
     @Test
     void everyPageUsesThePinnedWebFontStylesheet() throws IOException {
         for (String page : ALL_PAGES) {
-            String version = page.equals("priorities.html") ? "20260917-8" : "20260916-22";
+            String version = page.equals("priorities.html") ? "20260917-9" : "20260916-22";
             assertThat(html(page))
                     .as("stylesheet in %s", page)
                     .containsOnlyOnce("/css/dist.css?v=" + version);

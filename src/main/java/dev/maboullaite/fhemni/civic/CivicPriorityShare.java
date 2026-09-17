@@ -9,9 +9,22 @@ public record CivicPriorityShare(
         String token,
         Kind kind,
         String language,
-        byte[] imagePng,
+        String imageObjectKey,
         String imageSha256,
         Instant createdAt) {
+
+    public Metadata metadata() {
+        return new Metadata(token, kind, language, imageObjectKey, imageSha256, createdAt);
+    }
+
+    public record Metadata(
+            String token,
+            Kind kind,
+            String language,
+            String imageObjectKey,
+            String imageSha256,
+            Instant createdAt) {
+    }
 
     public enum Kind {
         COMPASS,
@@ -29,4 +42,3 @@ public record CivicPriorityShare(
         }
     }
 }
-

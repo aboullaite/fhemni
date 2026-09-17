@@ -1592,7 +1592,7 @@ html[dir="rtl"] .programme-heading h2 { margin-bottom: 18px; line-height: 1.32; 
 .priority-share-actions .disabled { pointer-events: none; opacity: .4; }
 .priority-share-link-menu { position: relative; display: inline-flex; }
 .priority-share-link-menu > .priority-share-link-button { width: 100%; }
-.priority-social-shares { position: absolute; z-index: 5; inset-block-end: 100%; inset-inline-start: 0; display: grid; width: max-content; grid-template-columns: repeat(4, 38px); gap: 6px; padding: 7px; border: 1px solid rgba(23,107,99,.22); border-radius: 11px; background: #fffdf7; box-shadow: 0 16px 38px rgba(19,44,43,.2); opacity: 0; pointer-events: none; translate: 0 5px; visibility: hidden; transition: opacity .14s ease, translate .14s ease, visibility .14s; }
+.priority-social-shares { position: absolute; z-index: 5; inset-block-end: 100%; inset-inline-start: 0; display: grid; width: max-content; grid-template-columns: repeat(5, 38px); gap: 6px; padding: 7px; border: 1px solid rgba(23,107,99,.22); border-radius: 11px; background: #fffdf7; box-shadow: 0 16px 38px rgba(19,44,43,.2); opacity: 0; pointer-events: none; translate: 0 5px; visibility: hidden; transition: opacity .14s ease, translate .14s ease, visibility .14s; }
 .priority-social-shares::after { position: absolute; inset-block-start: 100%; inset-inline-start: 50%; width: 10px; height: 10px; border-inline-end: 1px solid rgba(23,107,99,.22); border-block-end: 1px solid rgba(23,107,99,.22); background: #fffdf7; content: ""; rotate: 45deg; translate: -50% -6px; }
 [dir="rtl"] .priority-social-shares::after { translate: 50% -6px; }
 .priority-share-link-menu:hover .priority-social-shares:not([hidden]), .priority-share-link-menu:focus-within .priority-social-shares:not([hidden]), .priority-share-link-menu.is-open .priority-social-shares:not([hidden]) { opacity: 1; pointer-events: auto; translate: 0 -8px; visibility: visible; }
@@ -1846,5 +1846,5 @@ html[dir="rtl"] .programme-heading h2 { margin-bottom: 18px; line-height: 1.32; 
     .priority-share-link-menu { width: 100%; }
     .priority-share-actions .priority-text-button { grid-column: 1 / -1; width: 100%; margin-inline-start: 0; }
     .priority-share-actions #priorityShareDownload { grid-column: 1 / -1; }
-    .priority-social-shares { grid-template-columns: repeat(4, 38px); }
+    .priority-social-shares { grid-template-columns: repeat(5, 38px); }
 }

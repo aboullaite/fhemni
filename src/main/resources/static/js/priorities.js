@@ -33,7 +33,7 @@
             shareTitle: 'شارك النتيجة ديالك', shareIntro: 'شارك الصورة مباشرة، ولا صايب رابط عمومي بمعاينة. الرابط كيطلع غير صورة النتيجة وما كيطلعش الأجوبة ديالك.',
             shareCompass: 'بوصلة الأولويات', shareParties: 'أقرب 3 أحزاب',
             shareCompassTitle: 'بوصلة الأولويات ديالي', sharePartiesTitle: 'الأحزاب الأقرب لأولوياتي',
-            sharePreparing: 'كنوجدو الصورة…', sharePublishing: 'كنوجدو الرابط العمومي…', shareNative: 'شارك الصورة', shareLink: 'شارك الرابط', shareDownload: 'حمّل الصورة', shareChooseNetwork: 'اختار فين بغيتي تشارك',
+            sharePreparing: 'كنوجدو الصورة…', sharePublishing: 'كنوجدو الرابط العمومي…', shareNative: 'شارك الصورة', shareLink: 'شارك الرابط', shareDownload: 'حمّل الصورة', shareChooseNetwork: 'اختار فين بغيتي تشارك', shareCopyLink: 'نسخ الرابط', shareLinkCopied: 'تنسخ الرابط.', shareLinkCopyError: 'ما قدرناش ننسخو الرابط.', shareLinkedInCopied: 'نسخنا لك النص. لصقو فـ منشور LinkedIn.',
             shareError: 'ما قدرناش نوجدو الصورة. عاود جرّب.', shareClose: 'سد',
             shareCardNote: 'مقارنة مبنية على المواقف الموثقة فالبرامج الرسمية المنشورة.',
             shareCardCta: 'دخل حتى نتا وجرّبها',
@@ -74,7 +74,7 @@
             shareTitle: 'Partager votre résultat', shareIntro: 'Partagez directement l’image ou créez un lien public avec aperçu. Seule l’image du résultat est publiée, jamais vos réponses individuelles.',
             shareCompass: 'Boussole des priorités', shareParties: '3 partis les plus proches',
             shareCompassTitle: 'Ma boussole des priorités', sharePartiesTitle: 'Les partis les plus proches de mes priorités',
-            sharePreparing: 'Préparation de l’image…', sharePublishing: 'Création du lien public…', shareNative: 'Partager l’image', shareLink: 'Partager le lien', shareDownload: 'Télécharger l’image', shareChooseNetwork: 'Choisissez où partager',
+            sharePreparing: 'Préparation de l’image…', sharePublishing: 'Création du lien public…', shareNative: 'Partager l’image', shareLink: 'Partager le lien', shareDownload: 'Télécharger l’image', shareChooseNetwork: 'Choisissez où partager', shareCopyLink: 'Copier le lien', shareLinkCopied: 'Lien copié.', shareLinkCopyError: 'Impossible de copier le lien.', shareLinkedInCopied: 'Texte copié. Collez-le dans votre publication LinkedIn.',
             shareError: 'Impossible de préparer l’image. Réessayez.', shareClose: 'Fermer',
             shareCardNote: 'Comparaison fondée sur les positions documentées dans les programmes officiels publiés.',
             shareCardCta: 'À vous de jouer',
@@ -115,7 +115,7 @@
             shareTitle: 'Share your result', shareIntro: 'Share the image directly or create a public preview link. Only the result image is published—never your individual answers.',
             shareCompass: 'Priority compass', shareParties: 'Closest 3 parties',
             shareCompassTitle: 'My priority compass', sharePartiesTitle: 'Parties closest to my priorities',
-            sharePreparing: 'Preparing image…', sharePublishing: 'Creating public link…', shareNative: 'Share image', shareLink: 'Share link', shareDownload: 'Download image', shareChooseNetwork: 'Choose where to share',
+            sharePreparing: 'Preparing image…', sharePublishing: 'Creating public link…', shareNative: 'Share image', shareLink: 'Share link', shareDownload: 'Download image', shareChooseNetwork: 'Choose where to share', shareCopyLink: 'Copy link', shareLinkCopied: 'Link copied.', shareLinkCopyError: 'Could not copy the link.', shareLinkedInCopied: 'Text copied. Paste it into your LinkedIn post.',
             shareError: 'We could not prepare the image. Try again.', shareClose: 'Close',
             shareCardNote: 'Comparison based on documented positions in published official programmes.',
             shareCardCta: 'Try it yourself',
@@ -239,6 +239,9 @@
         document.querySelector('[data-priority-share-action="native"]').textContent = value.shareNative;
         document.querySelector('[data-priority-share-action="link"]').textContent = value.shareLink;
         document.querySelector('[data-priority-share-action="download"]').textContent = value.shareDownload;
+        const copyLink = document.querySelector('[data-priority-social="copy"]');
+        copyLink.title = value.shareCopyLink;
+        copyLink.setAttribute('aria-label', value.shareCopyLink);
     }
 
     function renderIntro() {
@@ -1007,7 +1010,8 @@
     }
 
     async function shareSelectedPublicLink() {
-        const asset = shareAssets.get(selectedShareKind);
+        const kind = selectedShareKind;
+        const asset = shareAssets.get(kind);
         if (!asset) return;
         const button = document.querySelector('#priorityShareLink');
         const status = document.querySelector('#priorityShareStatus');
@@ -1015,33 +1019,34 @@
         status.classList.remove('error');
         status.textContent = copy().sharePublishing;
         try {
-            const url = publicShareUrls.get(selectedShareKind) || await publishShareAsset(asset);
-            publicShareUrls.set(selectedShareKind, url);
+            const url = publicShareUrls.get(kind) || await publishShareAsset(kind, asset);
+            publicShareUrls.set(kind, url);
+            if (selectedShareKind !== kind) return;
             const text = asset.text.replace(/https:\/\/fhemni\.ma\/priorities/g, '').trim();
-            selectedPublicShare = { title: asset.title, text, url };
+            selectedPublicShare = { kind, title: asset.title, text, url };
             if (isMobileShareDevice() && navigator.share) {
                 await navigator.share({ title: asset.title, text, url });
                 status.textContent = '';
-                track('priority_result_shared', { kind: selectedShareKind, method: 'public_link_native' });
+                track('priority_result_shared', { kind, method: 'public_link_native' });
             } else {
                 const menu = document.querySelector('#priorityShareLinkMenu');
                 document.querySelector('#prioritySocialShares').hidden = false;
                 menu.classList.add('is-open');
                 button.setAttribute('aria-expanded', 'true');
                 status.textContent = copy().shareChooseNetwork;
-                track('priority_result_shared', { kind: selectedShareKind, method: 'public_link_options' });
+                track('priority_result_shared', { kind, method: 'public_link_options' });
             }
         } catch (error) {
             if (error?.name === 'AbortError') status.textContent = '';
             else showShareError();
         } finally {
-            button.disabled = false;
+            if (selectedShareKind === kind) button.disabled = false;
         }
     }
 
-    async function publishShareAsset(asset) {
+    async function publishShareAsset(kind, asset) {
         const body = new FormData();
-        body.append('kind', selectedShareKind);
+        body.append('kind', kind);
         body.append('language', currentLocale);
         body.append('image', asset.blob, asset.filename);
         const options = await window.FhemniAuth.withCsrf({ method: 'POST', body });
@@ -1066,7 +1071,20 @@
 
     function shareToSocialNetwork(network) {
         if (!selectedPublicShare) return;
-        const { text, url } = selectedPublicShare;
+        const { kind, text, url } = selectedPublicShare;
+        if (network === 'copy') {
+            const status = document.querySelector('#priorityShareStatus');
+            navigator.clipboard.writeText(url).then(() => {
+                status.classList.remove('error');
+                status.textContent = copy().shareLinkCopied;
+                closeSocialShareMenu();
+                track('priority_result_shared', { kind, method: 'public_link_copy' });
+            }).catch(() => {
+                status.classList.add('error');
+                status.textContent = copy().shareLinkCopyError;
+            });
+            return;
+        }
         const encodedUrl = encodeURIComponent(url);
         const encodedText = encodeURIComponent(text.trim());
         const destinations = {
@@ -1077,8 +1095,16 @@
         };
         const destination = destinations[network];
         if (!destination) return;
+        const linkedInCopy = network === 'linkedin' && navigator.clipboard?.writeText
+            ? navigator.clipboard.writeText(text.trim())
+            : null;
         window.open(destination, '_blank', 'noopener,noreferrer,width=720,height=680');
-        track('priority_result_shared', { kind: selectedShareKind, method: `public_link_${network}` });
+        linkedInCopy?.then(() => {
+            const status = document.querySelector('#priorityShareStatus');
+            status.classList.remove('error');
+            status.textContent = copy().shareLinkedInCopied;
+        }).catch(() => {});
+        track('priority_result_shared', { kind, method: `public_link_${network}` });
     }
 
     function showShareError() {

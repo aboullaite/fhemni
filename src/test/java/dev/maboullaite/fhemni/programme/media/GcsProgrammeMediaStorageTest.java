@@ -2,16 +2,26 @@ package dev.maboullaite.fhemni.programme.media;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketTimeoutException;
 import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.security.KeyPairGenerator;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
+import com.google.auth.oauth2.AccessToken;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +67,29 @@ class GcsProgrammeMediaStorageTest {
         assertThat(url).doesNotContainPattern("X-Goog-Credential=[^&]+%2F\\d{8}Z%2F");
         String signature = url.substring(url.indexOf("X-Goog-Signature=") + "X-Goog-Signature=".length());
         assertThat(signature).matches("[0-9a-f]{512}");
+    }
+
+    @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    void deletesAnObjectThroughTheAuthenticatedJsonApi() throws Exception {
+        GoogleCredentials credentials = GoogleCredentials.create(
+                new AccessToken("test-token", new Date(System.currentTimeMillis() + 3_600_000)));
+        HttpClient http = mock(HttpClient.class);
+        HttpResponse<InputStream> response = mock(HttpResponse.class);
+        when(response.statusCode()).thenReturn(204);
+        when(response.body()).thenReturn(new ByteArrayInputStream(new byte[0]));
+        when(http.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenReturn(response);
+        var storage = new GcsProgrammeMediaStorage(
+                "example-project", "private-media", Duration.ofMinutes(2), credentials, http);
+
+        assertThat(storage.delete("civic-priority-shares/ar/compass/card.png")).isTrue();
+
+        var request = org.mockito.ArgumentCaptor.forClass(HttpRequest.class);
+        verify(http).send(request.capture(), any(HttpResponse.BodyHandler.class));
+        assertThat(request.getValue().method()).isEqualTo("DELETE");
+        assertThat(request.getValue().uri().toASCIIString())
+                .isEqualTo("https://storage.googleapis.com/storage/v1/b/private-media/o/"
+                        + "civic-priority-shares%2Far%2Fcompass%2Fcard.png");
     }
 
     @Test

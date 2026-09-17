@@ -2,7 +2,8 @@ package dev.maboullaite.fhemni.web;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 class PriorityShareRateLimiter {
 
-    private final Map<String, RequestWindow> clients = new HashMap<>();
+    private final Map<String, RequestWindow> clients = new LinkedHashMap<>(16, .75f, true);
     private final int maxRequests;
     private final Duration window;
     private final int maxTrackedClients;
@@ -35,7 +36,11 @@ class PriorityShareRateLimiter {
         if (current == null || !now.isBefore(current.startedAt().plus(window))) {
             makeRoom(now);
             if (!clients.containsKey(client) && clients.size() >= maxTrackedClients) {
-                throw new PriorityShareRateLimitException(window.toSeconds());
+                Iterator<String> oldest = clients.keySet().iterator();
+                if (oldest.hasNext()) {
+                    oldest.next();
+                    oldest.remove();
+                }
             }
             clients.put(client, new RequestWindow(now, 1));
             return;
@@ -61,4 +66,3 @@ class PriorityShareRateLimiter {
     private record RequestWindow(Instant startedAt, int count) {
     }
 }
-

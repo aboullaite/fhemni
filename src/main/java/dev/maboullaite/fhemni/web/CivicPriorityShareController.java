@@ -14,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,14 +26,12 @@ import org.springframework.web.util.HtmlUtils;
 public class CivicPriorityShareController {
 
     private static final CacheControl PAGE_CACHE = CacheControl.maxAge(Duration.ofHours(1)).cachePublic();
-    private static final CacheControl IMAGE_CACHE = CacheControl.maxAge(Duration.ofDays(365)).cachePublic().immutable();
+    private static final CacheControl IMAGE_CACHE = CacheControl.maxAge(Duration.ofDays(1)).cachePublic().mustRevalidate();
 
     private final CivicPriorityShareService shares;
-    private final PriorityShareRateLimiter rateLimiter;
 
-    CivicPriorityShareController(CivicPriorityShareService shares, PriorityShareRateLimiter rateLimiter) {
+    CivicPriorityShareController(CivicPriorityShareService shares) {
         this.shares = shares;
-        this.rateLimiter = rateLimiter;
     }
 
     @PostMapping(
@@ -41,22 +40,23 @@ public class CivicPriorityShareController {
     public ResponseEntity<CreatedShare> create(
             @RequestParam String kind,
             @RequestParam String language,
-            @RequestParam MultipartFile image,
-            HttpServletRequest request) throws IOException {
-        rateLimiter.check(request.getRemoteAddr());
+            @RequestParam MultipartFile image) throws IOException {
         if (!MediaType.IMAGE_PNG_VALUE.equalsIgnoreCase(image.getContentType())) {
             throw new IllegalArgumentException("The share card must be a PNG image.");
         }
+        if (image.getSize() > CivicPriorityShareService.MAX_UPLOAD_BYTES) {
+            throw new PriorityShareUploadTooLargeException();
+        }
         CivicPriorityShare share = shares.create(kind, language, image.getBytes());
-        String path = path(share);
+        String path = path(share.token());
         return ResponseEntity.created(URI.create(path)).body(new CreatedShare(path, path + "/image"));
     }
 
     @GetMapping(value = "/s/priorities/{token}", produces = MediaType.TEXT_HTML_VALUE)
     public ResponseEntity<String> page(@PathVariable String token, HttpServletRequest request) {
-        CivicPriorityShare share = shares.find(token);
-        ShareCopy copy = ShareCopy.forShare(share);
-        String path = path(share);
+        CivicPriorityShare.Metadata share = shares.findMetadata(token);
+        ShareCopy copy = ShareCopy.forShare(share.kind(), share.language());
+        String path = path(share.token());
         String canonical = absolute(request, path);
         String image = absolute(request, path + "/image");
         String destination = "/priorities?lang=" + share.language();
@@ -68,21 +68,27 @@ public class CivicPriorityShareController {
     }
 
     @GetMapping(value = "/s/priorities/{token}/image", produces = MediaType.IMAGE_PNG_VALUE)
-    public ResponseEntity<byte[]> image(@PathVariable String token) {
-        CivicPriorityShare share = shares.find(token);
-        String filename = share.kind() == CivicPriorityShare.Kind.COMPASS
+    public ResponseEntity<byte[]> image(@PathVariable String token) throws IOException {
+        CivicPriorityShareService.StoredImage image = shares.findImage(token);
+        String filename = image.kind() == CivicPriorityShare.Kind.COMPASS
                 ? "fhemni-priority-compass.png"
                 : "fhemni-party-matches.png";
         return ResponseEntity.ok()
                 .cacheControl(IMAGE_CACHE)
-                .eTag(share.imageSha256())
+                .eTag(image.sha256())
                 .contentType(MediaType.IMAGE_PNG)
                 .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline().filename(filename).build().toString())
-                .body(share.imagePng());
+                .body(image.bytes());
+    }
+
+    @DeleteMapping("/api/admin/civic-priority-shares/{token}")
+    public ResponseEntity<Void> delete(@PathVariable String token) throws IOException {
+        shares.delete(token);
+        return ResponseEntity.noContent().build();
     }
 
     private static String pageHtml(
-            CivicPriorityShare share,
+            CivicPriorityShare.Metadata share,
             ShareCopy copy,
             String canonical,
             String image,
@@ -106,7 +112,7 @@ public class CivicPriorityShareController {
                     <meta name="description" content="%s">
                     <link rel="canonical" href="%s">
                     <link rel="icon" href="/favicon.ico?v=20260911" sizes="32x32">
-                    <link rel="stylesheet" href="/css/dist.css?v=20260916-22">
+                    <link rel="stylesheet" href="/css/dist.css?v=20260917-9">
                     <link rel="stylesheet" href="/css/priority-share.css?v=20260917-2">
                     <meta property="og:type" content="website">
                     <meta property="og:site_name" content="Fhemni.ma">
@@ -149,8 +155,8 @@ public class CivicPriorityShareController {
                 safeImage, imageAlt, title, description, safeDestination, cta);
     }
 
-    private static String path(CivicPriorityShare share) {
-        return "/s/priorities/" + share.token();
+    private static String path(String token) {
+        return "/s/priorities/" + token;
     }
 
     private static String absolute(HttpServletRequest request, String path) {
@@ -174,9 +180,9 @@ public class CivicPriorityShareController {
             String cta,
             String openGraphLocale) {
 
-        static ShareCopy forShare(CivicPriorityShare share) {
-            boolean compass = share.kind() == CivicPriorityShare.Kind.COMPASS;
-            return switch (share.language()) {
+        static ShareCopy forShare(CivicPriorityShare.Kind kind, String language) {
+            boolean compass = kind == CivicPriorityShare.Kind.COMPASS;
+            return switch (language) {
                 case "fr" -> new ShareCopy(
                         compass ? "Ma boussole des priorités — Fhemni" : "Les partis les plus proches de mes priorités — Fhemni",
                         "Un résultat personnel fondé sur les positions documentées dans les programmes officiels publiés.",

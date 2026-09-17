@@ -55,7 +55,7 @@ public class GcsProgrammeMediaStorage implements ProgrammeMediaStorage {
                 HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(20)).build());
     }
 
-    GcsProgrammeMediaStorage(
+    public GcsProgrammeMediaStorage(
             String projectId,
             String bucket,
             Duration timeout,
@@ -142,6 +142,22 @@ public class GcsProgrammeMediaStorage implements ProgrammeMediaStorage {
         long size = response.headers().firstValueAsLong("Content-Length").orElse(-1L);
         String contentType = response.headers().firstValue("Content-Type").orElse("application/octet-stream");
         return new StoredObject(withBodyTimeout(response.body(), timeout), size, contentType);
+    }
+
+    public boolean delete(String objectKey) throws IOException {
+        URI uri = URI.create("https://storage.googleapis.com/storage/v1/b/"
+                + encode(bucket) + "/o/" + encode(requiredObjectKey(objectKey)));
+        HttpRequest request = HttpRequest.newBuilder(uri)
+                .timeout(timeout)
+                .header("Authorization", bearer())
+                .DELETE()
+                .build();
+        HttpResponse<InputStream> response = send(request);
+        try (InputStream body = withBodyTimeout(response.body(), timeout)) {
+            if (response.statusCode() == 404) return false;
+            requireSuccess(response.statusCode(), body, "delete");
+            return true;
+        }
     }
 
     static InputStream withBodyTimeout(InputStream body, Duration timeout) {

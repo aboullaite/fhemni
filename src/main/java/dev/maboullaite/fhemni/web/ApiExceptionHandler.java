@@ -59,6 +59,12 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(detail);
     }
 
+    @ExceptionHandler(PriorityShareUploadTooLargeException.class)
+    ResponseEntity<ProblemDetail> priorityShareUploadTooLarge(PriorityShareUploadTooLargeException exception) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(problem(HttpStatus.PAYLOAD_TOO_LARGE, exception.getMessage()));
+    }
+
     @ExceptionHandler(SuggestionRateLimitException.class)
     ResponseEntity<ProblemDetail> tooManySuggestions(SuggestionRateLimitException exception) {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
