@@ -18,7 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest(properties = {
         "fhemni.gemini.api-key=",
-        "fhemni.civic.shares.cleanup-retry-delay=PT0S",
+        "fhemni.civic.shares.cleanup-claim-lease=PT0S",
         "spring.datasource.url=jdbc:h2:mem:civic-priority-share-cleanup-retry-test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"
 })
 class CivicPriorityShareCleanupRetryIntegrationTest {

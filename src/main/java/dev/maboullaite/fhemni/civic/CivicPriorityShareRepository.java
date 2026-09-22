@@ -194,31 +194,34 @@ class CivicPriorityShareRepository {
 
     int claimPendingDeletion(
             PendingDeletion deletion,
+            UUID claimToken,
             Instant attemptedAt,
             Instant retryAt) {
         return jdbc.sql("""
                         UPDATE civic_priority_share_deletions
                            SET last_attempted_at = :attemptedAt,
+                               claim_token = :claimToken,
                                next_attempt_at = :retryAt
                          WHERE share_token = :token
                            AND next_attempt_at = :observedNextAttemptAt
                            AND next_attempt_at <= :attemptedAt
                         """)
                 .param("attemptedAt", utc(attemptedAt))
+                .param("claimToken", claimToken)
                 .param("retryAt", utc(retryAt))
                 .param("token", deletion.token())
                 .param("observedNextAttemptAt", utc(deletion.nextAttemptAt()))
                 .update();
     }
 
-    int deleteClaimedDeletion(String token, Instant attemptedAt) {
+    int deleteClaimedDeletion(String token, UUID claimToken) {
         return jdbc.sql("""
                         DELETE FROM civic_priority_share_deletions
                          WHERE share_token = :token
-                           AND last_attempted_at = :attemptedAt
+                           AND claim_token = :claimToken
                         """)
                 .param("token", token)
-                .param("attemptedAt", utc(attemptedAt))
+                .param("claimToken", claimToken)
                 .update();
     }
 

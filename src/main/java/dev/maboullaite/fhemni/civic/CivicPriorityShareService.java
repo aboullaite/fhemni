@@ -47,24 +47,24 @@ public class CivicPriorityShareService {
     private final CivicPriorityShareRepository repository;
     private final CivicPriorityShareImageStorage storage;
     private final Duration retention;
-    private final Duration cleanupRetryDelay;
+    private final Duration cleanupClaimLease;
     private final Semaphore imageDecoders = new Semaphore(MAX_CONCURRENT_IMAGE_DECODES, true);
 
     CivicPriorityShareService(
             CivicPriorityShareRepository repository,
             CivicPriorityShareImageStorage storage,
             @Value("${fhemni.civic.shares.retention:P30D}") Duration retention,
-            @Value("${fhemni.civic.shares.cleanup-retry-delay:PT5M}") Duration cleanupRetryDelay) {
+            @Value("${fhemni.civic.shares.cleanup-claim-lease:PT5M}") Duration cleanupClaimLease) {
         if (retention == null || retention.isZero() || retention.isNegative()) {
             throw new IllegalArgumentException("Priority-share retention must be positive");
         }
-        if (cleanupRetryDelay == null || cleanupRetryDelay.isNegative()) {
-            throw new IllegalArgumentException("Priority-share cleanup retry delay must not be negative");
+        if (cleanupClaimLease == null || cleanupClaimLease.isNegative()) {
+            throw new IllegalArgumentException("Priority-share cleanup claim lease must not be negative");
         }
         this.repository = repository;
         this.storage = storage;
         this.retention = retention;
-        this.cleanupRetryDelay = cleanupRetryDelay;
+        this.cleanupClaimLease = cleanupClaimLease;
     }
 
     public CivicPriorityShare create(String kindValue, String languageValue, byte[] uploadedImage) {
@@ -144,15 +144,17 @@ public class CivicPriorityShareService {
 
             for (CivicPriorityShareRepository.PendingDeletion deletion : pending) {
                 Instant attemptedAt = Instant.now();
+                UUID claimToken = UUID.randomUUID();
                 if (repository.claimPendingDeletion(
                         deletion,
+                        claimToken,
                         attemptedAt,
-                        attemptedAt.plus(cleanupRetryDelay)) == 0) {
+                        attemptedAt.plus(cleanupClaimLease)) == 0) {
                     continue;
                 }
                 try {
                     storage.delete(deletion.objectKey());
-                    repository.deleteClaimedDeletion(deletion.token(), attemptedAt);
+                    repository.deleteClaimedDeletion(deletion.token(), claimToken);
                 } catch (IOException failure) {
                     LOGGER.warn("Could not delete expired civic-priority share {}", deletion.token(), failure);
                 }

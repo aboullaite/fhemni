@@ -44,7 +44,7 @@ fhemni:
       local-directory: ${FHEMNI_CIVIC_SHARE_LOCAL_DIRECTORY:./data/civic-priority-shares}
       retention: ${FHEMNI_CIVIC_SHARE_RETENTION:P30D}
       cleanup-interval-ms: ${FHEMNI_CIVIC_SHARE_CLEANUP_INTERVAL_MS:3600000}
-      cleanup-retry-delay: ${FHEMNI_CIVIC_SHARE_CLEANUP_RETRY_DELAY:PT5M}
+      cleanup-claim-lease: ${FHEMNI_CIVIC_SHARE_CLEANUP_CLAIM_LEASE:PT5M}
       gcs:
         project-id: ${FHEMNI_CIVIC_SHARE_GCS_PROJECT:}
         bucket: ${FHEMNI_CIVIC_SHARE_GCS_BUCKET:}
