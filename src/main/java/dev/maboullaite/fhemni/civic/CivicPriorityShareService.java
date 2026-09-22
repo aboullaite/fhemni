@@ -47,18 +47,24 @@ public class CivicPriorityShareService {
     private final CivicPriorityShareRepository repository;
     private final CivicPriorityShareImageStorage storage;
     private final Duration retention;
+    private final Duration cleanupClaimLease;
     private final Semaphore imageDecoders = new Semaphore(MAX_CONCURRENT_IMAGE_DECODES, true);
 
     CivicPriorityShareService(
             CivicPriorityShareRepository repository,
             CivicPriorityShareImageStorage storage,
-            @Value("${fhemni.civic.shares.retention:P30D}") Duration retention) {
+            @Value("${fhemni.civic.shares.retention:P30D}") Duration retention,
+            @Value("${fhemni.civic.shares.cleanup-claim-lease:PT5M}") Duration cleanupClaimLease) {
         if (retention == null || retention.isZero() || retention.isNegative()) {
             throw new IllegalArgumentException("Priority-share retention must be positive");
+        }
+        if (cleanupClaimLease == null || cleanupClaimLease.isNegative()) {
+            throw new IllegalArgumentException("Priority-share cleanup claim lease must not be negative");
         }
         this.repository = repository;
         this.storage = storage;
         this.retention = retention;
+        this.cleanupClaimLease = cleanupClaimLease;
     }
 
     public CivicPriorityShare create(String kindValue, String languageValue, byte[] uploadedImage) {
@@ -110,21 +116,50 @@ public class CivicPriorityShareService {
     @Scheduled(fixedDelayString = "${fhemni.civic.shares.cleanup-interval-ms:3600000}")
     public void deleteExpiredShares() {
         Instant cutoff = Instant.now().minus(retention);
+        moveExpiredSharesToDeletionQueue(cutoff);
+        deletePendingShares();
+    }
+
+    private void moveExpiredSharesToDeletionQueue(Instant cutoff) {
         while (true) {
             var expired = repository.findCreatedBefore(cutoff, CLEANUP_BATCH_SIZE);
             if (expired.isEmpty()) return;
 
+            int moved = 0;
             for (CivicPriorityShare.Metadata share : expired) {
-                if (repository.deleteByTokenIfCreatedBefore(share.token(), cutoff) == 0) {
-                    continue;
-                }
-                try {
-                    deleteStoredImage(share);
-                } catch (IOException failure) {
-                    LOGGER.warn("Could not delete expired civic-priority share {}", share.token(), failure);
+                if (repository.moveToDeletionQueueIfExpired(share.token(), cutoff, Instant.now()).isPresent()) {
+                    moved++;
                 }
             }
             if (expired.size() < CLEANUP_BATCH_SIZE) return;
+            if (moved == 0) return;
+        }
+    }
+
+    private void deletePendingShares() {
+        Instant readyAt = Instant.now();
+        while (true) {
+            var pending = repository.findPendingDeletions(readyAt, CLEANUP_BATCH_SIZE);
+            if (pending.isEmpty()) return;
+
+            for (CivicPriorityShareRepository.PendingDeletion deletion : pending) {
+                Instant attemptedAt = Instant.now();
+                UUID claimToken = UUID.randomUUID();
+                if (repository.claimPendingDeletion(
+                        deletion,
+                        claimToken,
+                        attemptedAt,
+                        attemptedAt.plus(cleanupClaimLease)) == 0) {
+                    continue;
+                }
+                try {
+                    storage.delete(deletion.objectKey());
+                    repository.deleteClaimedDeletion(deletion.token(), claimToken);
+                } catch (IOException failure) {
+                    LOGGER.warn("Could not delete expired civic-priority share {}", deletion.token(), failure);
+                }
+            }
+            if (pending.size() < CLEANUP_BATCH_SIZE) return;
         }
     }
 
