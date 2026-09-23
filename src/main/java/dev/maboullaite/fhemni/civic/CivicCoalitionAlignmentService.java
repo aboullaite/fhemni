@@ -11,6 +11,8 @@ import java.util.Set;
 
 import dev.maboullaite.fhemni.civic.CivicPartyPositionRepository.StanceRow;
 import dev.maboullaite.fhemni.civic.CivicQuestionnaireRepository.AlignmentQuestionData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class CivicCoalitionAlignmentService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CivicCoalitionAlignmentService.class);
     private static final int MINIMUM_COMPARABLE_QUESTIONS = 6;
     private static final int MINIMUM_COVERAGE_PERCENT = 33;
 
@@ -48,7 +51,10 @@ public class CivicCoalitionAlignmentService {
         }
         var editionId = questions.getFirst().editionId();
         if (questions.stream().anyMatch(question -> !question.editionId().equals(editionId))) {
-            throw new IllegalStateException("Only one priority questionnaire edition can be published.");
+            LOGGER.warn("Coalition alignment is unavailable because multiple questionnaire editions are published");
+            return new Alignment(
+                    "INSUFFICIENT_DATA", null, null, 0, 0,
+                    0, 0, List.of(), List.of());
         }
         int pairCount = selected.size() * (selected.size() - 1) / 2;
         int possiblePairQuestions = pairCount * questions.size();

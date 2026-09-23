@@ -30,11 +30,11 @@ SELECT
 
 CREATE TEMP TABLE incoming_election_regions (
     election_id UUID NOT NULL,
-    code VARCHAR(80) NOT NULL,
-    name_ar VARCHAR(180) NOT NULL,
-    name_fr VARCHAR(180) NOT NULL,
-    name_en VARCHAR(180) NOT NULL,
-    map_key VARCHAR(32) NOT NULL,
+    code VARCHAR(32) NOT NULL,
+    name_ar VARCHAR(160) NOT NULL,
+    name_fr VARCHAR(160) NOT NULL,
+    name_en VARCHAR(160) NOT NULL,
+    map_key VARCHAR(16) NOT NULL,
     allocated_seats INTEGER,
     status VARCHAR(16) NOT NULL,
     sort_order INTEGER NOT NULL,
@@ -60,7 +60,7 @@ INSERT INTO incoming_election_regions (
 
 CREATE TEMP TABLE incoming_election_party_results (
     election_id UUID NOT NULL,
-    party_code VARCHAR(16) NOT NULL,
+    party_code VARCHAR(10) NOT NULL,
     votes BIGINT,
     local_seats INTEGER NOT NULL,
     regional_list_seats INTEGER NOT NULL,
@@ -70,8 +70,8 @@ CREATE TEMP TABLE incoming_election_party_results (
 
 CREATE TEMP TABLE incoming_election_region_party_results (
     election_id UUID NOT NULL,
-    region_code VARCHAR(80) NOT NULL,
-    party_code VARCHAR(16) NOT NULL,
+    region_code VARCHAR(32) NOT NULL,
+    party_code VARCHAR(10) NOT NULL,
     local_seats INTEGER NOT NULL,
     regional_list_seats INTEGER NOT NULL,
     total_seats INTEGER NOT NULL,
@@ -244,6 +244,15 @@ WHERE election_id = '20260000-0000-4000-8000-000000000001'
        WHERE incoming.election_id = election_region_party_results.election_id
          AND incoming.region_code = election_region_party_results.region_code
          AND incoming.party_code = election_region_party_results.party_code
+  );
+
+DELETE FROM election_regions
+WHERE election_id = '20260000-0000-4000-8000-000000000001'
+  AND NOT EXISTS (
+      SELECT 1
+        FROM incoming_election_regions incoming
+       WHERE incoming.election_id = election_regions.election_id
+         AND incoming.code = election_regions.code
   );
 
 DELETE FROM election_party_results

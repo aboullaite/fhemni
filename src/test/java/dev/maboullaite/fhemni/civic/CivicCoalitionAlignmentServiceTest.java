@@ -47,4 +47,27 @@ class CivicCoalitionAlignmentServiceTest {
         assertThat(alignment.status()).isEqualTo("INSUFFICIENT_DATA");
         assertThat(alignment.possiblePairQuestions()).isEqualTo(19);
     }
+
+    @Test
+    void multiplePublishedEditionsDegradeWithoutLoadingPositions() {
+        List<AlignmentQuestionData> questions = List.of(
+                question(UUID.randomUUID(), "question-1"),
+                question(UUID.randomUUID(), "question-2"));
+        when(questionnaires.currentAlignmentQuestions()).thenReturn(questions);
+
+        var alignment = service.evaluate(List.of("RNI", "PAM"), "en");
+
+        assertThat(alignment.status()).isEqualTo("INSUFFICIENT_DATA");
+        assertThat(alignment.possiblePairQuestions()).isZero();
+        verifyNoInteractions(positions);
+    }
+
+    private static AlignmentQuestionData question(UUID editionId, String key) {
+        return new AlignmentQuestionData(
+                editionId,
+                key,
+                "theme",
+                1,
+                new LocalizedText("موضوع", "Thème", "Theme"));
+    }
 }

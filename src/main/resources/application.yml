@@ -41,6 +41,7 @@ fhemni:
   elections:
     coalitions:
       max-requests-per-window: ${FHEMNI_ELECTION_COALITION_REQUEST_LIMIT:60}
+      global-max-requests-per-window: ${FHEMNI_ELECTION_COALITION_GLOBAL_REQUEST_LIMIT:600}
       request-window: ${FHEMNI_ELECTION_COALITION_REQUEST_WINDOW:PT1M}
       max-tracked-clients: ${FHEMNI_ELECTION_COALITION_MAX_CLIENTS:10000}
   civic:
