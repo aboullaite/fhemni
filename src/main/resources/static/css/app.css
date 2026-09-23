@@ -543,6 +543,7 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .election-status { display: inline-flex; align-items: center; gap: 8px; width: max-content; padding: 6px 10px; border: 1px solid rgba(232,111,60,.25); border-radius: 999px; background: rgba(232,111,60,.08); color: #a44320; font-size: 10px; font-weight: 850; }
 .election-status::before { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 4px rgba(232,111,60,.12); content: ""; }
 .election-updated { color: var(--muted); font-size: 11px; font-weight: 650; }
+.election-stale { color: #a44320; font-size: 10px; font-weight: 800; }
 .election-progress-card { display: grid; min-height: 150px; align-content: center; gap: 9px; padding: 22px; border: 1px solid rgba(23,107,99,.24); border-radius: var(--radius-panel); background: linear-gradient(135deg,rgba(207,230,220,.48),rgba(255,255,255,.8)); box-shadow: 0 14px 45px rgba(31,57,53,.06); }
 .election-progress-card strong { font: 800 35px/1 "Tajawal Heading Numerals", "Tajawal", sans-serif; }
 .election-progress-card p { margin: 0; color: var(--muted); font-size: 11px; font-weight: 700; }

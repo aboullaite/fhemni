@@ -9,12 +9,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 import dev.maboullaite.fhemni.election.ElectionResultRepository.ElectionRow;
 import dev.maboullaite.fhemni.election.ElectionResultRepository.PartyResultRow;
 import dev.maboullaite.fhemni.election.ElectionResultRepository.RegionPartyResultRow;
 import dev.maboullaite.fhemni.election.ElectionResultRepository.RegionRow;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -28,7 +30,7 @@ public class ElectionResultService {
         this.repository = repository;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public ElectionResultSnapshot result(String slug, String requestedLanguage) {
         String language = language(requestedLanguage);
         ElectionRow election = repository.election(slug)
@@ -76,6 +78,22 @@ public class ElectionResultService {
                 election.sourceUpdatedAt(),
                 election.updatedAt());
         return new ElectionResultSnapshot(language, overview, parties, regions);
+    }
+
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
+    CoalitionResultData coalitionResult(String slug) {
+        ElectionRow election = repository.election(slug)
+                .orElseThrow(() -> new NoSuchElementException("Election not found: " + slug));
+        Map<String, Integer> seatsByParty = repository.partyResults(election.id()).stream()
+                .collect(Collectors.toUnmodifiableMap(PartyResultRow::code, PartyResultRow::totalSeats));
+        int declaredSeats = seatsByParty.values().stream().mapToInt(Integer::intValue).sum();
+        if (declaredSeats > election.totalSeats()) {
+            throw new IllegalStateException("Declared seats exceed the configured chamber size.");
+        }
+        return new CoalitionResultData(
+                (election.totalSeats() / 2) + 1,
+                election.updatedAt(),
+                seatsByParty);
     }
 
     public static String language(String requestedLanguage) {
@@ -155,6 +173,12 @@ public class ElectionResultService {
             ElectionOverview election,
             List<PartyResult> parties,
             List<RegionResult> regions) {
+    }
+
+    record CoalitionResultData(
+            int majoritySeats,
+            Instant updatedAt,
+            Map<String, Integer> seatsByParty) {
     }
 
     public record ElectionOverview(

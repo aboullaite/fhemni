@@ -9,17 +9,50 @@
 BEGIN;
 SELECT pg_advisory_xact_lock(hashtext('fhemni:legislative-2026-results'));
 
+-- Edit this one row for every official snapshot. source_updated_at is the
+-- ordering key that prevents an older file from replacing newer production data.
+CREATE TEMP TABLE incoming_election_snapshot ON COMMIT DROP AS
+SELECT
+    UUID '20260000-0000-4000-8000-000000000001' AS id,
+    CAST('legislative-2026' AS VARCHAR(40)) AS slug,
+    DATE '2026-09-23' AS election_date,
+    CAST('COUNTING' AS VARCHAR(16)) AS status,
+    395 AS total_seats,
+    CAST(NULL AS BIGINT) AS registered_voters,
+    CAST(NULL AS BIGINT) AS votes_cast,
+    CAST(NULL AS BIGINT) AS valid_votes,
+    CAST(NULL AS VARCHAR(32)) AS vote_basis,
+    CAST('النتائج الرسمية المعلنة' AS VARCHAR(300)) AS source_label_ar,
+    CAST('Résultats officiels publiés' AS VARCHAR(300)) AS source_label_fr,
+    CAST('Published official results' AS VARCHAR(300)) AS source_label_en,
+    CAST(NULL AS VARCHAR(1200)) AS source_url,
+    CAST(NULL AS TIMESTAMP WITH TIME ZONE) AS source_updated_at;
+
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+          FROM elections current_snapshot
+          JOIN incoming_election_snapshot incoming ON incoming.id = current_snapshot.id
+         WHERE current_snapshot.source_updated_at IS NOT NULL
+           AND (incoming.source_updated_at IS NULL
+                OR incoming.source_updated_at < current_snapshot.source_updated_at)
+    ) THEN
+        RAISE EXCEPTION 'Refusing to replace the current election result with an older source snapshot';
+    END IF;
+END $$;
+
 INSERT INTO elections (
     id, slug, election_date, status, total_seats,
     registered_voters, votes_cast, valid_votes, vote_basis,
     source_label_ar, source_label_fr, source_label_en,
     source_url, source_updated_at, updated_at
-) VALUES (
-    '20260000-0000-4000-8000-000000000001', 'legislative-2026', DATE '2026-09-23', 'COUNTING', 395,
-    NULL, NULL, NULL, NULL,
-    'النتائج الرسمية المعلنة', 'Résultats officiels publiés', 'Published official results',
-    NULL, NULL, CURRENT_TIMESTAMP
-)
+) SELECT
+    id, slug, election_date, status, total_seats,
+    registered_voters, votes_cast, valid_votes, vote_basis,
+    source_label_ar, source_label_fr, source_label_en,
+    source_url, source_updated_at, CURRENT_TIMESTAMP
+FROM incoming_election_snapshot
 ON CONFLICT (id) DO UPDATE SET
     slug = EXCLUDED.slug,
     election_date = EXCLUDED.election_date,
@@ -34,7 +67,18 @@ ON CONFLICT (id) DO UPDATE SET
     source_label_en = EXCLUDED.source_label_en,
     source_url = EXCLUDED.source_url,
     source_updated_at = EXCLUDED.source_updated_at,
-    updated_at = EXCLUDED.updated_at;
+    updated_at = EXCLUDED.updated_at
+WHERE ROW(
+    elections.slug, elections.election_date, elections.status, elections.total_seats,
+    elections.registered_voters, elections.votes_cast, elections.valid_votes, elections.vote_basis,
+    elections.source_label_ar, elections.source_label_fr, elections.source_label_en,
+    elections.source_url, elections.source_updated_at
+) IS DISTINCT FROM ROW(
+    EXCLUDED.slug, EXCLUDED.election_date, EXCLUDED.status, EXCLUDED.total_seats,
+    EXCLUDED.registered_voters, EXCLUDED.votes_cast, EXCLUDED.valid_votes, EXCLUDED.vote_basis,
+    EXCLUDED.source_label_ar, EXCLUDED.source_label_fr, EXCLUDED.source_label_en,
+    EXCLUDED.source_url, EXCLUDED.source_updated_at
+);
 
 INSERT INTO election_regions (
     election_id, code, name_ar, name_fr, name_en, map_key,
@@ -60,7 +104,16 @@ ON CONFLICT (election_id, code) DO UPDATE SET
     allocated_seats = EXCLUDED.allocated_seats,
     status = EXCLUDED.status,
     sort_order = EXCLUDED.sort_order,
-    updated_at = EXCLUDED.updated_at;
+    updated_at = EXCLUDED.updated_at
+WHERE ROW(
+    election_regions.name_ar, election_regions.name_fr, election_regions.name_en,
+    election_regions.map_key, election_regions.allocated_seats,
+    election_regions.status, election_regions.sort_order
+) IS DISTINCT FROM ROW(
+    EXCLUDED.name_ar, EXCLUDED.name_fr, EXCLUDED.name_en,
+    EXCLUDED.map_key, EXCLUDED.allocated_seats,
+    EXCLUDED.status, EXCLUDED.sort_order
+);
 
 DELETE FROM election_region_party_results
 WHERE election_id = '20260000-0000-4000-8000-000000000001';
@@ -87,6 +140,17 @@ DECLARE
     declared_seats BIGINT;
     result_status VARCHAR(16);
 BEGIN
+    IF EXISTS (
+        SELECT 1 FROM election_party_results
+         WHERE election_id = '20260000-0000-4000-8000-000000000001'
+           AND party_code = 'UNKNOWN'
+        UNION ALL
+        SELECT 1 FROM election_region_party_results
+         WHERE election_id = '20260000-0000-4000-8000-000000000001'
+           AND party_code = 'UNKNOWN'
+    ) THEN
+        RAISE EXCEPTION 'UNKNOWN cannot hold seats in a published election snapshot';
+    END IF;
     SELECT total_seats, status INTO chamber_seats, result_status
     FROM elections WHERE slug = 'legislative-2026';
     SELECT COALESCE(SUM(total_seats), 0) INTO declared_seats
@@ -97,6 +161,24 @@ BEGIN
     END IF;
     IF result_status IN ('FINAL', 'CORRECTED') AND declared_seats <> chamber_seats THEN
         RAISE EXCEPTION 'A final result must declare exactly % seats, found %', chamber_seats, declared_seats;
+    END IF;
+END $$;
+
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+          FROM election_regions region
+          LEFT JOIN election_region_party_results result
+            ON result.election_id = region.election_id
+           AND result.region_code = region.code
+         WHERE region.election_id = '20260000-0000-4000-8000-000000000001'
+           AND region.status = 'FINAL'
+         GROUP BY region.code, region.allocated_seats
+        HAVING region.allocated_seats IS NULL
+            OR COALESCE(SUM(result.total_seats), 0) <> region.allocated_seats
+    ) THEN
+        RAISE EXCEPTION 'Every final region must reconcile exactly with its allocated seats';
     END IF;
 END $$;
 

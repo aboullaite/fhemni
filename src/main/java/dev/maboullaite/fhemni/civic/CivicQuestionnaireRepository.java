@@ -3,7 +3,10 @@ package dev.maboullaite.fhemni.civic;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
@@ -62,7 +65,7 @@ class CivicQuestionnaireRepository {
     }
 
     List<QuestionData> questions(UUID editionId) {
-        return jdbc.sql("""
+        List<QuestionData> questions = jdbc.sql("""
                         SELECT id, question_key, theme_code, sort_order,
                                prompt_ar, prompt_fr, prompt_en,
                                context_ar, context_fr, context_en
@@ -80,24 +83,63 @@ class CivicQuestionnaireRepository {
                             rs.getInt("sort_order"),
                             localized(rs, "prompt"),
                             localized(rs, "context"),
-                            sources(questionId));
+                            List.of());
                 })
+                .list();
+        Map<UUID, List<SourceData>> sourcesByQuestion = sources(
+                questions.stream().map(QuestionData::id).toList());
+        return questions.stream()
+                .map(question -> new QuestionData(
+                        question.id(), question.key(), question.themeCode(), question.order(),
+                        question.prompt(), question.context(),
+                        List.copyOf(sourcesByQuestion.getOrDefault(question.id(), List.of()))))
+                .toList();
+    }
+
+    List<AlignmentQuestionData> currentAlignmentQuestions() {
+        return jdbc.sql("""
+                        SELECT edition.id AS edition_id, question.question_key,
+                               question.theme_code, question.sort_order,
+                               theme.label_ar, theme.label_fr, theme.label_en
+                          FROM civic_questionnaire_editions edition
+                          JOIN civic_questions question ON question.edition_id = edition.id
+                          JOIN civic_questionnaire_themes theme
+                            ON theme.edition_id = edition.id
+                           AND theme.code = question.theme_code
+                         WHERE edition.status = 'PUBLISHED'
+                           AND question.status = 'PUBLISHED'
+                         ORDER BY question.sort_order
+                        """)
+                .query((rs, rowNumber) -> new AlignmentQuestionData(
+                        rs.getObject("edition_id", UUID.class),
+                        rs.getString("question_key"),
+                        rs.getString("theme_code"),
+                        rs.getInt("sort_order"),
+                        localized(rs, "label")))
                 .list();
     }
 
-    private List<SourceData> sources(UUID questionId) {
-        return jdbc.sql("""
-                        SELECT label_ar, label_fr, label_en, source_url, source_date
+    private Map<UUID, List<SourceData>> sources(List<UUID> questionIds) {
+        if (questionIds.isEmpty()) return Map.of();
+        Map<UUID, List<SourceData>> sourcesByQuestion = new LinkedHashMap<>();
+        jdbc.sql("""
+                        SELECT question_id, label_ar, label_fr, label_en, source_url, source_date
                           FROM civic_question_sources
-                         WHERE question_id = :questionId
-                         ORDER BY sort_order, id
+                         WHERE question_id IN (:questionIds)
+                         ORDER BY question_id, sort_order, id
                         """)
-                .param("questionId", questionId)
-                .query((rs, rowNumber) -> new SourceData(
-                        localized(rs, "label"),
-                        rs.getString("source_url"),
-                        rs.getObject("source_date", LocalDate.class)))
+                .param("questionIds", questionIds)
+                .query((rs, rowNumber) -> {
+                    UUID questionId = rs.getObject("question_id", UUID.class);
+                    SourceData source = new SourceData(
+                            localized(rs, "label"),
+                            rs.getString("source_url"),
+                            rs.getObject("source_date", LocalDate.class));
+                    sourcesByQuestion.computeIfAbsent(questionId, ignored -> new ArrayList<>()).add(source);
+                    return source;
+                })
                 .list();
+        return sourcesByQuestion;
     }
 
     private EditionData mapEdition(ResultSet rs, int rowNumber) throws SQLException {
@@ -148,6 +190,14 @@ class CivicQuestionnaireRepository {
             LocalizedText prompt,
             LocalizedText context,
             List<SourceData> sources) {
+    }
+
+    record AlignmentQuestionData(
+            UUID editionId,
+            String key,
+            String themeCode,
+            int order,
+            LocalizedText themeLabel) {
     }
 
     record SourceData(LocalizedText label, String url, LocalDate date) {

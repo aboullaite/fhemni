@@ -6,14 +6,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import dev.maboullaite.fhemni.civic.CivicCoalitionAlignmentService;
 import dev.maboullaite.fhemni.civic.CivicCoalitionAlignmentService.Alignment;
-import dev.maboullaite.fhemni.election.ElectionResultService.ElectionResultSnapshot;
-import dev.maboullaite.fhemni.election.ElectionResultService.PartyResult;
+import dev.maboullaite.fhemni.election.ElectionResultService.CoalitionResultData;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -30,7 +28,7 @@ public class CoalitionEvaluationService {
         this.alignments = alignments;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public CoalitionEvaluation evaluate(String electionSlug, CoalitionRequest request) {
         if (request == null) throw new IllegalArgumentException("A coalition request is required.");
         String language = ElectionResultService.language(request.language());
@@ -50,23 +48,21 @@ public class CoalitionEvaluationService {
             throw new IllegalArgumentException("Select each party only once.");
         }
 
-        ElectionResultSnapshot snapshot = elections.result(electionSlug, language);
-        Map<String, PartyResult> available = snapshot.parties().stream()
-                .collect(Collectors.toMap(PartyResult::code, Function.identity()));
-        if (!available.keySet().containsAll(uniqueCodes)) {
+        CoalitionResultData result = elections.coalitionResult(electionSlug);
+        Map<String, Integer> seatsByParty = result.seatsByParty();
+        if (!seatsByParty.keySet().containsAll(uniqueCodes)) {
             throw new IllegalArgumentException("Select only parties included in this election result.");
         }
 
         int selectedSeats = uniqueCodes.stream()
-                .map(available::get)
-                .mapToInt(PartyResult::totalSeats)
+                .mapToInt(seatsByParty::get)
                 .sum();
-        int majoritySeats = snapshot.election().majoritySeats();
+        int majoritySeats = result.majoritySeats();
         boolean hasMajority = selectedSeats >= majoritySeats;
         Alignment alignment = alignments.evaluate(List.copyOf(uniqueCodes), language);
         return new CoalitionEvaluation(
                 selectedSeats,
-                snapshot.election().updatedAt(),
+                result.updatedAt(),
                 majoritySeats,
                 Math.max(0, majoritySeats - selectedSeats),
                 Math.max(0, selectedSeats - majoritySeats),

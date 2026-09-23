@@ -9,8 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import dev.maboullaite.fhemni.civic.CivicPartyPositionRepository.PositionRow;
+import dev.maboullaite.fhemni.civic.CivicPartyPositionRepository.StanceRow;
+import dev.maboullaite.fhemni.civic.CivicQuestionnaireRepository.AlignmentQuestionData;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -19,22 +21,29 @@ public class CivicCoalitionAlignmentService {
     private static final int MINIMUM_COMPARABLE_QUESTIONS = 6;
     private static final int MINIMUM_COVERAGE_PERCENT = 33;
 
-    private final CivicQuestionnaireCatalogService catalog;
+    private final CivicQuestionnaireRepository questionnaires;
     private final CivicPartyPositionRepository positions;
 
-    CivicCoalitionAlignmentService(CivicQuestionnaireCatalogService catalog,
+    CivicCoalitionAlignmentService(CivicQuestionnaireRepository questionnaires,
                                     CivicPartyPositionRepository positions) {
-        this.catalog = catalog;
+        this.questionnaires = questionnaires;
         this.positions = positions;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public Alignment evaluate(List<String> partyCodes, String requestedLanguage) {
         String language = CivicQuestionnaireCatalogService.language(requestedLanguage);
         List<String> selected = partyCodes == null ? List.of() : partyCodes.stream().distinct().toList();
-        CivicQuestionnaire questionnaire = catalog.current(language);
+        List<AlignmentQuestionData> questions = questionnaires.currentAlignmentQuestions();
+        if (questions.size() != 18) {
+            throw new IllegalStateException("A published priority questionnaire must contain exactly 18 questions.");
+        }
+        var editionId = questions.getFirst().editionId();
+        if (questions.stream().anyMatch(question -> !question.editionId().equals(editionId))) {
+            throw new IllegalStateException("Only one priority questionnaire edition can be published.");
+        }
         int pairCount = selected.size() * (selected.size() - 1) / 2;
-        int possiblePairQuestions = pairCount * questionnaire.questions().size();
+        int possiblePairQuestions = pairCount * questions.size();
         if (selected.size() < 2) {
             return new Alignment(
                     "NEEDS_MORE_PARTIES", null, null, 0, 0,
@@ -43,8 +52,7 @@ public class CivicCoalitionAlignmentService {
 
         Map<String, Map<String, PartyPositionStance>> byParty = new LinkedHashMap<>();
         Set<String> selectedCodes = Set.copyOf(selected);
-        for (PositionRow row : positions.publishedPositions(questionnaire.id())) {
-            if (!selectedCodes.contains(row.partyCode())) continue;
+        for (StanceRow row : positions.publishedStances(editionId, selectedCodes)) {
             byParty.computeIfAbsent(row.partyCode(), ignored -> new HashMap<>())
                     .put(row.questionKey(), row.stance());
         }
@@ -58,7 +66,7 @@ public class CivicCoalitionAlignmentService {
             for (int rightIndex = leftIndex + 1; rightIndex < selected.size(); rightIndex++) {
                 Map<String, PartyPositionStance> left = byParty.getOrDefault(selected.get(leftIndex), Map.of());
                 Map<String, PartyPositionStance> right = byParty.getOrDefault(selected.get(rightIndex), Map.of());
-                for (CivicQuestionnaire.Question question : questionnaire.questions()) {
+                for (AlignmentQuestionData question : questions) {
                     PartyPositionStance leftStance = left.get(question.key());
                     PartyPositionStance rightStance = right.get(question.key());
                     if (!comparable(leftStance) || !comparable(rightStance)) continue;
@@ -69,7 +77,8 @@ public class CivicCoalitionAlignmentService {
                     comparableQuestions.add(question.key());
                     themeScores.computeIfAbsent(
                                     question.themeCode(),
-                                    ignored -> new ThemeAccumulator(question.themeCode(), question.themeLabel()))
+                                    ignored -> new ThemeAccumulator(
+                                            question.themeCode(), question.themeLabel().get(language)))
                             .add(questionScore);
                 }
             }

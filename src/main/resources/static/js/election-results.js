@@ -3,6 +3,9 @@
     const COALITION_URL = '/api/catalog/elections/2026/coalitions/evaluate';
     const MAP_URL = '/assets/maps/morocco-regions-2026.svg';
     const POLL_INTERVAL_MS = 30_000;
+    const REQUEST_TIMEOUT_MS = 10_000;
+    const MAX_POLL_BACKOFF_MS = 5 * 60_000;
+    const COALITION_DEBOUNCE_MS = 250;
     const PARTY_CLASSES = new Set(['rni', 'pam', 'pi', 'pjd', 'usfp', 'pps', 'mp', 'fgd', 'uc', 'ffd', 'mds', 'pud', 'psu', 'pe', 'pml', 'pvm', 'nd', 'pgv', 'pedd', 'prv', 'pdn', 'alamal', 'prd', 'umd', 'ind']);
     const COPY = {
         ar: {
@@ -10,7 +13,7 @@
             loading: 'كنجيبو آخر النتائج…',
             retry: 'عاود جرّب', errorTitle: 'ما قدرناش نجيبو النتائج دابا', errorText: 'عاود جرّب من بعد لحظات.',
             status: { SCHEDULED: 'قريباً', COUNTING: 'الفرز جاري', PRELIMINARY: 'نتائج مؤقتة', FINAL: 'نتائج نهائية', CORRECTED: 'نتائج مصححة' },
-            updated: 'آخر تحديث {date}', progress: 'تقدم النتائج', seatsDeclared: '{declared} من {total} مقعد معلن',
+            updated: 'آخر تحديث {date}', stale: 'التحديث متوقف مؤقتاً · هاد آخر نتائج متوفرة', progress: 'تقدم النتائج', seatsDeclared: '{declared} من {total} مقعد معلن',
             metrics: ['المقاعد المعلنة', 'المشاركة', 'مقاعد الدوائر المحلية', 'مقاعد اللوائح الجهوية'],
             tabs: ['الخريطة والجهات', 'النتائج الوطنية', 'كوّن الأغلبية ديالك'],
             mapTitle: 'النتائج حسب الجهات', mapIntro: 'دوز فوق أي جهة، ولا اختارها، باش تشوف الأحزاب والمقاعد المعلنة فيها.', mapSelect: 'اختار الجهة', mapLegend: 'لون محايد: الخريطة ما كتنسبش الجهة لحزب واحد.',
@@ -25,7 +28,7 @@
             loading: 'Chargement des derniers résultats…',
             retry: 'Réessayer', errorTitle: 'Impossible de charger les résultats', errorText: 'Réessayez dans quelques instants.',
             status: { SCHEDULED: 'À venir', COUNTING: 'Dépouillement en cours', PRELIMINARY: 'Résultats provisoires', FINAL: 'Résultats définitifs', CORRECTED: 'Résultats corrigés' },
-            updated: 'Mise à jour {date}', progress: 'Progression des résultats', seatsDeclared: '{declared} sièges déclarés sur {total}',
+            updated: 'Mise à jour {date}', stale: 'Actualisation momentanément interrompue · derniers résultats affichés', progress: 'Progression des résultats', seatsDeclared: '{declared} sièges déclarés sur {total}',
             metrics: ['Sièges déclarés', 'Participation', 'Sièges locaux', 'Sièges des listes régionales'],
             tabs: ['Carte et régions', 'Résultats nationaux', 'Composez votre majorité'],
             mapTitle: 'Résultats régionaux', mapIntro: 'Survolez, ciblez ou touchez une région pour voir tous les partis et sièges déclarés.', mapSelect: 'Choisir une région', mapLegend: 'Couleur neutre : une région peut compter plusieurs partis.',
@@ -40,7 +43,7 @@
             loading: 'Loading the latest results…',
             retry: 'Try again', errorTitle: 'We could not load the results', errorText: 'Please try again in a moment.',
             status: { SCHEDULED: 'Coming soon', COUNTING: 'Counting in progress', PRELIMINARY: 'Preliminary results', FINAL: 'Final results', CORRECTED: 'Corrected results' },
-            updated: 'Updated {date}', progress: 'Results progress', seatsDeclared: '{declared} of {total} seats declared',
+            updated: 'Updated {date}', stale: 'Live refresh temporarily unavailable · showing the latest available results', progress: 'Results progress', seatsDeclared: '{declared} of {total} seats declared',
             metrics: ['Seats declared', 'Turnout', 'Local seats', 'Regional-list seats'],
             tabs: ['Map and regions', 'National results', 'Build your majority'],
             mapTitle: 'Regional results', mapIntro: 'Hover, focus or tap a region to see every party and declared seat.', mapSelect: 'Choose a region', mapLegend: 'Neutral colour: each region can contain several parties.',
@@ -58,7 +61,11 @@
     let selectedRegionKey;
     let selectedPartyCodes = new Set();
     let coalitionRequest = 0;
+    let coalitionTimer;
+    let coalitionAbortController;
     let pollTimer;
+    let pollFailureCount = 0;
+    let resultRequestInFlight = false;
 
     const byId = id => document.getElementById(id);
     const format = (template, values) => Object.entries(values).reduce((text, entry) => text.replaceAll(`{${entry[0]}}`, entry[1]), template);
@@ -73,10 +80,10 @@
         copy = COPY[locale] || COPY.ar;
         applyCopy();
         bindTabs();
-        byId('electionRetry').addEventListener('click', load);
+        byId('electionRetry').addEventListener('click', () => load());
         byId('electionRegionSelect').addEventListener('change', event => selectRegion(event.target.value, true));
         load();
-        document.addEventListener('visibilitychange', schedulePoll);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
     }
 
     function applyCopy() {
@@ -95,19 +102,36 @@
     }
 
     async function load(options = {}) {
+        if (resultRequestInFlight) return;
+        resultRequestInFlight = true;
         if (!snapshot) showState('loading');
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
         try {
-            const response = await fetch(`${RESULT_URL}?lang=${encodeURIComponent(locale)}`, { headers: { Accept: 'application/json' } });
+            const response = await fetch(`${RESULT_URL}?lang=${encodeURIComponent(locale)}`, {
+                headers: { Accept: 'application/json' },
+                signal: controller.signal
+            });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             snapshot = await response.json();
+            pollFailureCount = 0;
+            byId('electionStale').hidden = true;
             render();
             showState('content');
             if (!options.poll) track('election_results_opened', { election_year: 2026, result_status: snapshot.election.status });
         } catch (error) {
-            if (!snapshot) showState('error');
+            pollFailureCount++;
+            if (!snapshot) {
+                showState('error');
+            } else {
+                setText('electionStale', copy.stale);
+                byId('electionStale').hidden = false;
+            }
             console.error('Election results could not be loaded.', error);
         } finally {
-            schedulePoll();
+            window.clearTimeout(timeout);
+            resultRequestInFlight = false;
+            schedulePoll(nextPollDelay());
         }
     }
 
@@ -117,9 +141,19 @@
         byId('electionContent').hidden = state !== 'content';
     }
 
-    function schedulePoll() {
+    function schedulePoll(delay = POLL_INTERVAL_MS) {
         window.clearTimeout(pollTimer);
-        if (!document.hidden) pollTimer = window.setTimeout(() => load({ poll: true }), POLL_INTERVAL_MS);
+        if (!document.hidden) pollTimer = window.setTimeout(() => load({ poll: true }), delay);
+    }
+
+    function nextPollDelay() {
+        if (!pollFailureCount) return POLL_INTERVAL_MS;
+        return Math.min(POLL_INTERVAL_MS * (2 ** Math.min(pollFailureCount, 4)), MAX_POLL_BACKOFF_MS);
+    }
+
+    function handleVisibilityChange() {
+        window.clearTimeout(pollTimer);
+        if (!document.hidden) load({ poll: true });
     }
 
     function render() {
@@ -129,7 +163,8 @@
     function renderOverview() {
         const election = snapshot.election;
         setText('electionStatus', copy.status[election.status] || election.status);
-        setText('electionUpdated', election.updatedAt ? format(copy.updated, { date: new Intl.DateTimeFormat(locale === 'ar' ? 'ar-MA' : locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(election.updatedAt)) }) : '');
+        const publishedAt = election.sourceUpdatedAt || election.updatedAt;
+        setText('electionUpdated', publishedAt ? format(copy.updated, { date: new Intl.DateTimeFormat(locale === 'ar' ? 'ar-MA' : locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(publishedAt)) }) : '');
         const progress = election.totalSeats ? election.declaredSeats * 100 / election.totalSeats : 0;
         setText('electionProgressValue', `${number(Math.round(progress))}%`);
         setText('electionProgressTitle', format(copy.seatsDeclared, { declared: number(election.declaredSeats), total: number(election.totalSeats) }));
@@ -285,8 +320,18 @@
         if (selectedPartyCodes.has(code)) selectedPartyCodes.delete(code); else selectedPartyCodes.add(code);
         byId('electionCoalitionParties').querySelector(`[data-party-code="${code}"]`)?.setAttribute('aria-pressed', String(selectedPartyCodes.has(code)));
         renderCoalitionSummary();
-        evaluateCoalition();
+        scheduleCoalitionEvaluation();
         track('election_coalition_changed', { election_year: 2026, selected_party_count: selectedPartyCodes.size });
+    }
+
+    function scheduleCoalitionEvaluation() {
+        window.clearTimeout(coalitionTimer);
+        coalitionAbortController?.abort();
+        if (selectedPartyCodes.size < 2) {
+            coalitionRequest++;
+            return;
+        }
+        coalitionTimer = window.setTimeout(evaluateCoalition, COALITION_DEBOUNCE_MS);
     }
 
     function renderCoalitionSummary() {
@@ -304,15 +349,17 @@
     async function evaluateCoalition() {
         const requestId = ++coalitionRequest;
         if (selectedPartyCodes.size < 2) return;
+        coalitionAbortController = new AbortController();
         setText('electionAlignmentNote', copy.alignmentLoading);
         try {
             const options = await window.FhemniAuth.withCsrf({ method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ language: locale, partyCodes: [...selectedPartyCodes] }) });
-            const response = await fetch(COALITION_URL, options);
+            const response = await fetch(COALITION_URL, { ...options, signal: coalitionAbortController.signal });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const evaluation = await response.json();
             if (requestId !== coalitionRequest) return;
             renderAlignment(evaluation.alignment);
         } catch (error) {
+            if (error.name === 'AbortError') return;
             if (requestId === coalitionRequest) { byId('electionAlignment').hidden = true; setText('electionAlignmentNote', copy.alignmentMissing); }
             console.error('Coalition alignment could not be calculated.', error);
         }

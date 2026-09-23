@@ -6,13 +6,15 @@ The durable recovery artifact is [`data/elections/2026/results.sql`](../../data/
 
 ## Update workflow
 
-1. Copy each figure from an official published source. Record its URL and publication time in the election row.
-2. Edit `data/elections/2026/results.sql` with the full national and regional snapshot. Never infer missing seats or votes.
+1. Copy each figure from an official published source. Record its URL and publication time in `incoming_election_snapshot` at the top of the SQL file.
+2. Edit `data/elections/2026/results.sql` with the full national and regional snapshot. Never infer missing seats or votes. An older `source_updated_at` is rejected before any result row changes.
 3. Review these invariants before touching production:
    - every party code exists in `political_parties`;
    - `total_seats = local_seats + regional_list_seats` for every row;
    - national declared seats never exceed 395;
    - a `FINAL` or `CORRECTED` snapshot totals exactly 395 seats;
+   - `UNKNOWN` never holds national or regional seats;
+   - every `FINAL` region totals exactly its configured allocation;
    - a party's regional total never exceeds its national total;
    - the source URL and source timestamp match the figures being entered.
 4. Apply the committed file through the existing secure PostgreSQL access path:
@@ -35,7 +37,7 @@ The durable recovery artifact is [`data/elections/2026/results.sql`](../../data/
 
 On a database where Flyway migrations have completed, run the latest committed `results.sql`. It upserts election and region metadata, replaces the complete national and regional result snapshot, validates it, and commits atomically.
 
-The application displays a counting state when the snapshot contains no party rows. That is deliberate: the repository contains no invented election result.
+The application displays a counting state when the snapshot contains no party rows. That is deliberate: the repository contains no invented election result. Replaying an unchanged snapshot leaves `updated_at` untouched, while a genuinely changed snapshot receives the transaction time.
 
 ## Corrections
 

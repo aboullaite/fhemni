@@ -98,7 +98,7 @@ class ElectionResultIntegrationTest {
                 .andExpect(content().string(containsString("id=\"electionMapPanel\"")))
                 .andExpect(content().string(containsString("id=\"electionNationalPanel\"")))
                 .andExpect(content().string(containsString("id=\"electionCoalitionPanel\"")))
-                .andExpect(content().string(containsString("/js/election-results.js?v=20260923-1")));
+                .andExpect(content().string(containsString("/js/election-results.js?v=20260923-6")));
     }
 
     @Test

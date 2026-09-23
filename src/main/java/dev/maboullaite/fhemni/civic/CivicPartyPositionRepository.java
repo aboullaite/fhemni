@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.sql.DataSource;
@@ -50,6 +51,26 @@ class CivicPartyPositionRepository {
                 .query(this::mapPosition)
                 .list();
         return withEvidence(positions);
+    }
+
+    List<StanceRow> publishedStances(UUID editionId, Set<String> partyCodes) {
+        if (partyCodes.isEmpty()) return List.of();
+        return jdbc.sql("""
+                        SELECT question.question_key, position.party_code, position.stance
+                          FROM civic_party_positions position
+                          JOIN civic_questions question ON question.id = position.question_id
+                         WHERE position.edition_id = :editionId
+                           AND position.editorial_status = 'PUBLISHED'
+                           AND position.party_code IN (:partyCodes)
+                         ORDER BY question.sort_order, position.party_code
+                        """)
+                .param("editionId", editionId)
+                .param("partyCodes", partyCodes)
+                .query((result, rowNumber) -> new StanceRow(
+                        result.getString("question_key"),
+                        result.getString("party_code"),
+                        PartyPositionStance.valueOf(result.getString("stance"))))
+                .list();
     }
 
     List<PositionRow> allPositions(UUID editionId) {
@@ -265,6 +286,9 @@ class CivicPartyPositionRepository {
             PartyPositionStance stance,
             LocalizedText evidenceSummary,
             List<EvidenceRow> evidence) {
+    }
+
+    record StanceRow(String questionKey, String partyCode, PartyPositionStance stance) {
     }
 
     record EvidenceRow(
