@@ -71,6 +71,9 @@
         }
         if (path === '/parties' || path === '/parties.html') return page('parties', 'Parties');
         if (path === '/priorities' || path === '/priorities.html') return page('priorities', 'Priority compass');
+        if (path === '/elections/2026' || path === '/election-results.html') {
+            return page('election_results', '2026 election results', '2026');
+        }
         if (path === '/parties/compare' || path === '/compare-programmes.html') {
             return page('programme_compare', 'Programme comparison');
         }
