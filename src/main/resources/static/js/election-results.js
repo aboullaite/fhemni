@@ -7,7 +7,7 @@
     const COPY = {
         ar: {
             title: 'نتائج الانتخابات التشريعية 2026', description: 'تابع توزيع المقاعد وطنياً وحسب الجهات، وجرّب تبني أغلبية برلمانية.', eyebrow: 'تشريعيات 2026',
-            intro: 'النتائج الرسمية المعلنة، المقاعد حسب الأحزاب والجهات، وأداة باش تجرّب التحالفات الممكنة.', loading: 'كنجيبو آخر النتائج…',
+            loading: 'كنجيبو آخر النتائج…',
             retry: 'عاود جرّب', errorTitle: 'ما قدرناش نجيبو النتائج دابا', errorText: 'عاود جرّب من بعد لحظات.',
             status: { SCHEDULED: 'قريباً', COUNTING: 'الفرز جاري', PRELIMINARY: 'نتائج مؤقتة', FINAL: 'نتائج نهائية', CORRECTED: 'نتائج مصححة' },
             updated: 'آخر تحديث {date}', progress: 'تقدم النتائج', seatsDeclared: '{declared} من {total} مقعد معلن',
@@ -22,7 +22,7 @@
         },
         fr: {
             title: 'Résultats des législatives 2026', description: 'Suivez la répartition des sièges au niveau national et régional, puis composez votre majorité.', eyebrow: 'Législatives 2026',
-            intro: 'Résultats officiels publiés, sièges par parti et par région, et un outil pour explorer les coalitions possibles.', loading: 'Chargement des derniers résultats…',
+            loading: 'Chargement des derniers résultats…',
             retry: 'Réessayer', errorTitle: 'Impossible de charger les résultats', errorText: 'Réessayez dans quelques instants.',
             status: { SCHEDULED: 'À venir', COUNTING: 'Dépouillement en cours', PRELIMINARY: 'Résultats provisoires', FINAL: 'Résultats définitifs', CORRECTED: 'Résultats corrigés' },
             updated: 'Mise à jour {date}', progress: 'Progression des résultats', seatsDeclared: '{declared} sièges déclarés sur {total}',
@@ -37,7 +37,7 @@
         },
         en: {
             title: '2026 legislative election results', description: 'Follow national and regional seat distribution, then build a parliamentary majority.', eyebrow: '2026 legislative election',
-            intro: 'Published official results, seats by party and region, and a tool for exploring possible coalitions.', loading: 'Loading the latest results…',
+            loading: 'Loading the latest results…',
             retry: 'Try again', errorTitle: 'We could not load the results', errorText: 'Please try again in a moment.',
             status: { SCHEDULED: 'Coming soon', COUNTING: 'Counting in progress', PRELIMINARY: 'Preliminary results', FINAL: 'Final results', CORRECTED: 'Corrected results' },
             updated: 'Updated {date}', progress: 'Results progress', seatsDeclared: '{declared} of {total} seats declared',
@@ -84,7 +84,7 @@
         document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
         document.title = `${copy.title} — Fhemni`;
         byId('electionMetaDescription').content = copy.description;
-        setText('electionLoadingText', copy.loading); setText('electionEyebrow', copy.eyebrow); setText('electionTitle', copy.title); setText('electionIntro', copy.intro);
+        setText('electionLoadingText', copy.loading); setText('electionEyebrow', copy.eyebrow); setText('electionTitle', copy.title);
         setText('electionRetry', copy.retry); setText('electionErrorTitle', copy.errorTitle); setText('electionErrorText', copy.errorText);
         setText('electionProgressLabel', copy.progress);
         setText('electionMapTab', copy.tabs[0]); setText('electionNationalTab', copy.tabs[1]); setText('electionCoalitionTab', copy.tabs[2]);
