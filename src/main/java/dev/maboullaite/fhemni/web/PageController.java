@@ -92,6 +92,11 @@ public class PageController {
         return "forward:/priorities.html";
     }
 
+    @GetMapping({"/elections/2026", "/elections/2026/"})
+    public String electionResultsPage() {
+        return "forward:/election-results.html";
+    }
+
     @GetMapping({"/suggestions", "/suggestions/"})
     public String suggestionsAlias() {
         return "redirect:/community";

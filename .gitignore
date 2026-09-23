@@ -9,6 +9,13 @@ target/
 secrets/
 application-local.yml
 data/
+!data/
+data/*
+!data/elections/
+data/elections/*
+!data/elections/2026/
+data/elections/2026/*
+!data/elections/2026/results.sql
 !/src/main/resources/data/
 !/src/main/resources/data/civic-party-positions-2026-v1.json
 .tailwind/

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="fhemni">
+<head>
+    <script src="/js/analytics.js?v=20260923-1"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta id="electionMetaDescription" name="description" content="Live Moroccan legislative election results by party and region.">
+    <title>نتائج الانتخابات التشريعية 2026 — فهّمني</title>
+    <link rel="icon" href="/favicon.ico?v=20260911" sizes="32x32">
+    <link rel="stylesheet" href="/css/dist.css?v=20260923-4">
+</head>
+<body class="public-page election-page">
+<div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+
+<header class="site-header public-header">
+    <a class="brand" href="/" aria-label="Fhemni home" data-i18n-aria-label="common.brandHome"><img class="brand-logo brand-logo-full" src="/assets/brand/fhemni-logo.png" alt=""><img class="brand-logo brand-logo-icon" src="/assets/brand/fhemni-icon.png" alt=""></a>
+    <nav class="primary-nav" aria-label="Primary navigation" data-i18n-aria-label="common.primaryNavigation"><a href="/elections/2026" class="active" data-i18n="common.electionResults">Election results</a><a href="/videos" data-i18n="common.catalogue">Catalogue</a><a href="/parties" data-i18n="common.parties">Parties</a><a href="/priorities" data-i18n="common.prioritiesQuiz">Your priorities</a></nav>
+    <div class="header-actions"><label class="site-language"><span class="sr-only" data-i18n="common.siteLanguage">Website language</span><select data-site-language data-i18n-aria-label="common.siteLanguage" aria-label="Website language"><option value="en">EN</option><option value="fr">FR</option><option value="ar">الدارجة</option></select></label><div id="authNav"></div></div>
+</header>
+
+<main class="election-main">
+    <section id="electionLoading" class="election-state-card" aria-live="polite">
+        <span class="priority-loader" aria-hidden="true"></span>
+        <p id="electionLoadingText">كنجيبو آخر النتائج…</p>
+    </section>
+
+    <section id="electionError" class="election-state-card" hidden>
+        <strong id="electionErrorTitle"></strong>
+        <p id="electionErrorText"></p>
+        <button id="electionRetry" class="priority-primary-button" type="button"></button>
+    </section>
+
+    <div id="electionContent" hidden>
+        <section class="election-hero" aria-labelledby="electionTitle">
+            <div class="election-hero-copy">
+                <div class="eyebrow"><span></span><span id="electionEyebrow"></span></div>
+                <div class="election-status-row">
+                    <span id="electionStatus" class="election-status"></span>
+                    <span id="electionUpdated" class="election-updated"></span>
+                    <span id="electionStale" class="election-stale" role="status" hidden></span>
+                </div>
+                <h1 id="electionTitle"></h1>
+            </div>
+            <aside class="election-progress-card" aria-labelledby="electionProgressTitle">
+                <span id="electionProgressLabel" class="section-kicker"></span>
+                <strong id="electionProgressValue"></strong>
+                <div class="election-progress-track" aria-hidden="true"><span id="electionProgressBar"></span></div>
+                <p id="electionProgressTitle"></p>
+            </aside>
+        </section>
+
+        <section id="electionMetrics" class="election-metrics" aria-label="Election summary"></section>
+
+        <div class="election-tabs" role="tablist" aria-label="Election result views" id="electionTabs">
+            <button id="electionMapTab" type="button" role="tab" aria-controls="electionMapPanel" aria-selected="true" data-election-tab="map"></button>
+            <button id="electionNationalTab" type="button" role="tab" aria-controls="electionNationalPanel" aria-selected="false" data-election-tab="national"></button>
+            <button id="electionCoalitionTab" type="button" role="tab" aria-controls="electionCoalitionPanel" aria-selected="false" data-election-tab="coalition"></button>
+        </div>
+
+        <section id="electionMapPanel" class="election-panel" role="tabpanel" aria-labelledby="electionMapTab">
+            <header class="election-section-heading">
+                <div><h2 id="electionMapTitle"></h2><p id="electionMapIntro"></p></div>
+                <label class="election-region-select"><span id="electionRegionSelectLabel"></span><select id="electionRegionSelect"></select></label>
+            </header>
+            <div class="election-map-layout">
+                <div id="electionMapStage" class="election-map-stage">
+                    <div id="electionMapCanvas" class="election-map-canvas" aria-label="Interactive map of Morocco"></div>
+                    <div id="electionMapTooltip" class="election-map-tooltip" role="status" hidden></div>
+                    <div class="election-map-legend"><span aria-hidden="true"></span><span id="electionMapLegend"></span></div>
+                </div>
+                <aside id="electionRegionDetails" class="election-region-details" aria-live="polite"></aside>
+            </div>
+        </section>
+
+        <section id="electionNationalPanel" class="election-panel" role="tabpanel" aria-labelledby="electionNationalTab" hidden>
+            <header class="election-section-heading"><div><h2 id="electionNationalTitle"></h2><p id="electionNationalIntro"></p></div></header>
+            <div id="electionNationalEmpty" class="election-empty" hidden></div>
+            <div id="electionNationalResults">
+                <div id="electionSeatRibbon" class="election-seat-ribbon" aria-label="Seat distribution"></div>
+                <div id="electionPartyBars" class="election-party-bars"></div>
+            </div>
+        </section>
+
+        <section id="electionCoalitionPanel" class="election-panel election-coalition-panel" role="tabpanel" aria-labelledby="electionCoalitionTab" hidden>
+            <header class="election-section-heading"><div><h2 id="electionCoalitionTitle"></h2><p id="electionCoalitionIntro"></p></div></header>
+            <div id="electionCoalitionEmpty" class="election-empty" hidden></div>
+            <div id="electionCoalitionBuilder">
+                <div class="election-coalition-layout">
+                    <div><h3 id="electionCoalitionChoose"></h3><div id="electionCoalitionParties" class="election-coalition-parties"></div></div>
+                    <aside class="election-coalition-summary" aria-live="polite">
+                        <span id="electionCoalitionSummaryLabel" class="section-kicker"></span>
+                        <strong id="electionCoalitionSeats">0</strong>
+                        <span id="electionCoalitionSeatUnit"></span>
+                        <div class="election-coalition-track" aria-hidden="true"><span id="electionCoalitionBar"></span><i id="electionCoalitionThreshold"></i></div>
+                        <p id="electionCoalitionVerdict"></p>
+                    </aside>
+                </div>
+                <section id="electionAlignment" class="election-alignment" hidden>
+                    <div class="election-alignment-score"><span id="electionAlignmentLabel"></span><strong id="electionAlignmentScore"></strong><small id="electionAlignmentCoverage"></small></div>
+                    <div><h3 id="electionAgreementTitle"></h3><div id="electionAgreements" class="election-theme-chips"></div></div>
+                    <div><h3 id="electionTensionTitle"></h3><div id="electionTensions" class="election-theme-chips election-theme-chips-tension"></div></div>
+                </section>
+                <p id="electionAlignmentNote" class="election-method-note"></p>
+            </div>
+        </section>
+
+        <aside class="election-source-note">
+            <div><strong id="electionSourceTitle"></strong><span id="electionSourceText"></span></div>
+            <a id="electionSourceLink" target="_blank" rel="noopener noreferrer" hidden></a>
+        </aside>
+    </div>
+</main>
+
+<footer><img class="footer-logo" src="/assets/brand/fhemni-logo.png" alt="Fhemni — فهّمني"><a href="https://x.com/laytoun" target="_blank" rel="me noopener noreferrer" title="@laytoun on X" data-i18n="common.footer">© 2026 Mohammed Aboullaite</a><a class="footer-feedback-link" href="https://github.com/aboullaite/fhemni/issues" target="_blank" rel="noopener noreferrer" data-i18n="common.suggestFeature">Suggest a feature</a></footer>
+<script src="/js/i18n.js?v=20260923-1" defer></script><script src="/js/auth.js?v=20260911-2" defer></script><script src="/js/election-results.js?v=20260923-7" defer></script>
+</body>
+</html>

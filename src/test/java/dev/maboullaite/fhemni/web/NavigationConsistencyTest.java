@@ -29,6 +29,7 @@ class NavigationConsistencyTest {
             "admin-suggestions.html",
             "community.html",
             "compare-programmes.html",
+            "election-results.html",
             "methodology.html",
             "parties.html",
             "party.html",
@@ -48,6 +49,7 @@ class NavigationConsistencyTest {
             "analysis.html",
             "community.html",
             "compare-programmes.html",
+            "election-results.html",
             "index.html",
             "login.html",
             "methodology.html",
@@ -60,11 +62,47 @@ class NavigationConsistencyTest {
             "videos.html");
 
     @Test
-    void everyPrimaryNavigationUsesTheCanonicalThreeLinks() throws IOException {
+    void everyPrimaryNavigationUsesTheCanonicalLinks() throws IOException {
         assertCanonicalPrimaryNavigation("index.html");
         for (String page : SECONDARY_PAGES) {
             assertCanonicalPrimaryNavigation(page);
         }
+    }
+
+    @Test
+    void everyPrimaryNavigationLinksToElectionResults() throws IOException {
+        assertThat(html("index.html"))
+                .contains("href=\"/elections/2026\" data-i18n=\"common.electionResults\"")
+                .contains("class=\"primary-button button-link\" href=\"/elections/2026\"")
+                .contains("data-i18n=\"landing.electionResultsCta\"")
+                .contains("/js/i18n.js?v=20260923-1");
+        for (String page : SECONDARY_PAGES) {
+            assertThat(html(page))
+                    .as("election result navigation in %s", page)
+                    .contains("href=\"/elections/2026\"")
+                    .contains("data-i18n=\"common.electionResults\"");
+        }
+    }
+
+    @Test
+    void electionResultPageProvidesAccessibleDataDrivenViews() throws IOException {
+        assertThat(html("election-results.html"))
+                .contains("role=\"tablist\"")
+                .contains("id=\"electionMapPanel\"")
+                .contains("id=\"electionNationalPanel\"")
+                .contains("id=\"electionCoalitionPanel\"")
+                .contains("id=\"electionRegionSelect\"")
+                .contains("/js/election-results.js?v=20260923-7")
+                .doesNotContain("style=\"");
+        assertThat(html("js/election-results.js"))
+                .contains("/api/catalog/elections/2026/results")
+                .contains("/api/catalog/elections/2026/coalitions/evaluate")
+                .contains("/assets/maps/morocco-regions-2026.svg")
+                .contains("event.key === 'Enter' || event.key === ' '")
+                .doesNotContain(".style.");
+        assertThat(html("assets/maps/morocco-regions-2026.svg"))
+                .contains("data-region-key=\"MA-01\"")
+                .contains("data-region-key=\"MA-12\"");
     }
 
     @Test
@@ -263,6 +301,7 @@ class NavigationConsistencyTest {
             String version = switch (page) {
                 case "priorities.html" -> "20260917-9";
                 case "404.html" -> "20260917-1";
+                case "election-results.html" -> "20260923-4";
                 default -> "20260916-22";
             };
             assertThat(html(page))
@@ -333,9 +372,10 @@ class NavigationConsistencyTest {
     @Test
     void everyPageUsesCampaignAwarePrivacySafeAnalytics() throws IOException {
         for (String page : ALL_PAGES) {
+            String version = page.equals("election-results.html") ? "20260923-1" : "20260911-1";
             assertThat(html(page))
                     .as("analytics asset in %s", page)
-                    .contains("/js/analytics.js?v=20260911-1");
+                    .contains("/js/analytics.js?v=" + version);
         }
 
         assertThat(html("js/analytics.js"))
@@ -557,11 +597,16 @@ class NavigationConsistencyTest {
         int end = pageHtml.indexOf("</nav>", start);
         assertThat(start).as("primary navigation start in %s", page).isGreaterThanOrEqualTo(0);
         assertThat(end).as("primary navigation end in %s", page).isGreaterThan(start);
-        assertThat(pageHtml.substring(start, end))
+        String navigation = pageHtml.substring(start, end);
+        assertThat(navigation)
                 .as("primary navigation in %s", page)
+                .contains("href=\"/elections/2026\"")
                 .contains("href=\"/videos\"")
                 .contains("href=\"/parties\"")
                 .contains("href=\"/priorities\"")
                 .doesNotContain("common.howItWorks");
+        assertThat(navigation.indexOf("href=\"/elections/2026\""))
+                .as("election results lead the primary navigation in %s", page)
+                .isLessThan(navigation.indexOf("href=\"/videos\""));
     }
 }
