@@ -179,8 +179,8 @@
     function renderOverview() {
         const election = snapshot.election;
         setText('electionStatus', copy.status[election.status] || election.status);
-        const publishedAt = election.sourceUpdatedAt || election.updatedAt;
-        setText('electionUpdated', publishedAt ? format(copy.updated, { date: new Intl.DateTimeFormat(locale === 'ar' ? 'ar-MA' : locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(publishedAt)) }) : '');
+        const checkedAt = election.updatedAt || election.sourceUpdatedAt;
+        setText('electionUpdated', checkedAt ? format(copy.updated, { date: new Intl.DateTimeFormat(locale === 'ar' ? 'ar-MA' : locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(checkedAt)) }) : '');
         const progress = election.totalSeats ? election.declaredSeats * 100 / election.totalSeats : 0;
         setText('electionProgressValue', `${number(Math.round(progress))}%`);
         setText('electionProgressTitle', format(copy.seatsDeclared, { declared: number(election.declaredSeats), total: number(election.totalSeats) }));
