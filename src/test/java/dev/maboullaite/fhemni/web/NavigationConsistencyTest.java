@@ -597,11 +597,16 @@ class NavigationConsistencyTest {
         int end = pageHtml.indexOf("</nav>", start);
         assertThat(start).as("primary navigation start in %s", page).isGreaterThanOrEqualTo(0);
         assertThat(end).as("primary navigation end in %s", page).isGreaterThan(start);
-        assertThat(pageHtml.substring(start, end))
+        String navigation = pageHtml.substring(start, end);
+        assertThat(navigation)
                 .as("primary navigation in %s", page)
+                .contains("href=\"/elections/2026\"")
                 .contains("href=\"/videos\"")
                 .contains("href=\"/parties\"")
                 .contains("href=\"/priorities\"")
                 .doesNotContain("common.howItWorks");
+        assertThat(navigation.indexOf("href=\"/elections/2026\""))
+                .as("election results lead the primary navigation in %s", page)
+                .isLessThan(navigation.indexOf("href=\"/videos\""));
     }
 }
