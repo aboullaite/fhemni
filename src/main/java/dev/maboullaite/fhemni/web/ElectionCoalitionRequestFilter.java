@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ReadListener;
 import jakarta.servlet.ServletException;
@@ -20,6 +22,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
@@ -27,12 +30,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 class ElectionCoalitionRequestFilter extends OncePerRequestFilter {
 
     static final int MAX_REQUEST_BYTES = 16_384;
-
-    private final ElectionCoalitionRateLimiter rateLimiter;
-
-    ElectionCoalitionRequestFilter(ElectionCoalitionRateLimiter rateLimiter) {
-        this.rateLimiter = rateLimiter;
-    }
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -45,14 +43,6 @@ class ElectionCoalitionRequestFilter extends OncePerRequestFilter {
             HttpServletRequest request,
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
-        try {
-            rateLimiter.check(request.getRemoteAddr());
-        } catch (ElectionCoalitionRateLimitException exception) {
-            response.setHeader(HttpHeaders.RETRY_AFTER, Long.toString(exception.retryAfterSeconds()));
-            writeProblem(response, HttpStatus.TOO_MANY_REQUESTS, exception.getMessage());
-            return;
-        }
-
         long contentLength = request.getContentLengthLong();
         if (contentLength < 0) {
             contentLength = parseContentLength(request.getHeader(HttpHeaders.CONTENT_LENGTH));
@@ -87,7 +77,8 @@ class ElectionCoalitionRequestFilter extends OncePerRequestFilter {
         if (path == null || path.isEmpty()) {
             String requestUri = request.getRequestURI();
             String contextPath = request.getContextPath();
-            path = requestUri.substring(Math.min(contextPath.length(), requestUri.length()));
+            String encodedPath = requestUri.substring(Math.min(contextPath.length(), requestUri.length()));
+            path = UriUtils.decode(encodedPath, StandardCharsets.UTF_8);
         }
         StringBuilder clean = new StringBuilder(path.length());
         boolean matrixParameter = false;
@@ -114,19 +105,21 @@ class ElectionCoalitionRequestFilter extends OncePerRequestFilter {
         }
     }
 
-    private static void writeTooLarge(HttpServletResponse response) throws IOException {
+    private void writeTooLarge(HttpServletResponse response) throws IOException {
         writeProblem(
                 response,
                 HttpStatus.PAYLOAD_TOO_LARGE,
                 "The coalition request must be 16 KB or smaller.");
     }
 
-    private static void writeProblem(HttpServletResponse response, HttpStatus status, String detail) throws IOException {
+    private void writeProblem(HttpServletResponse response, HttpStatus status, String detail) throws IOException {
         response.setStatus(status.value());
         response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        response.getWriter().write("{\"title\":\"" + status.getReasonPhrase()
-                + "\",\"status\":" + status.value() + ",\"detail\":\"" + detail + "\"}");
+        OBJECT_MAPPER.writeValue(response.getOutputStream(), Map.of(
+                "title", status.getReasonPhrase(),
+                "status", status.value(),
+                "detail", detail));
     }
 
     private static final class BufferedBodyRequest extends HttpServletRequestWrapper {

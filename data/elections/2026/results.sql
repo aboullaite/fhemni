@@ -342,8 +342,7 @@ BEGIN
     IF result_status IN ('FINAL', 'CORRECTED') AND declared_seats <> chamber_seats THEN
         RAISE EXCEPTION 'A final result must declare exactly % seats, found %', chamber_seats, declared_seats;
     END IF;
-    IF result_status IN ('FINAL', 'CORRECTED')
-       AND valid_vote_count IS NOT NULL
+    IF valid_vote_count IS NOT NULL
        AND (
            declared_votes <> valid_vote_count
            OR EXISTS (
@@ -352,7 +351,7 @@ BEGIN
                   AND votes IS NULL
            )
        ) THEN
-        RAISE EXCEPTION 'A final result with valid_votes must reconcile every party vote exactly';
+        RAISE EXCEPTION 'A snapshot with valid_votes must reconcile every party vote exactly';
     END IF;
 END $$;
 
@@ -360,6 +359,7 @@ DO $$
 DECLARE
     chamber_seats INTEGER;
     allocated_regional_seats BIGINT;
+    all_regions_final BOOLEAN;
     result_status VARCHAR(16);
 BEGIN
     SELECT total_seats, status INTO chamber_seats, result_status
@@ -372,12 +372,18 @@ BEGIN
        ) THEN
         RAISE EXCEPTION 'Every region must be final before the national result is final';
     END IF;
-    SELECT COALESCE(SUM(allocated_seats), 0) INTO allocated_regional_seats
+    SELECT COALESCE(SUM(allocated_seats), 0),
+           COALESCE(BOOL_AND(status = 'FINAL'), FALSE)
+      INTO allocated_regional_seats, all_regions_final
     FROM election_regions
     WHERE election_id = '20260000-0000-4000-8000-000000000001';
-    IF result_status IN ('FINAL', 'CORRECTED')
+    IF allocated_regional_seats > chamber_seats THEN
+        RAISE EXCEPTION 'Regional allocations (%) exceed chamber size (%)',
+            allocated_regional_seats, chamber_seats;
+    END IF;
+    IF (result_status IN ('FINAL', 'CORRECTED') OR all_regions_final)
        AND allocated_regional_seats <> chamber_seats THEN
-        RAISE EXCEPTION 'Final regional allocations (%) must equal chamber size (%)',
+        RAISE EXCEPTION 'Complete regional allocations (%) must equal chamber size (%)',
             allocated_regional_seats, chamber_seats;
     END IF;
     IF EXISTS (

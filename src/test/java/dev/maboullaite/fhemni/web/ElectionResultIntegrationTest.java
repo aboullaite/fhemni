@@ -2,6 +2,11 @@ package dev.maboullaite.fhemni.web;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -21,6 +26,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest(properties = {
@@ -38,8 +44,12 @@ class ElectionResultIntegrationTest {
     @Autowired
     private JdbcClient jdbc;
 
+    @MockitoBean
+    private ElectionCoalitionRateLimiter coalitionRateLimiter;
+
     @BeforeEach
     void loadSyntheticResultSnapshot() {
+        reset(coalitionRateLimiter);
         jdbc.sql("DELETE FROM election_region_party_results WHERE election_id = :electionId")
                 .param("electionId", ELECTION_ID).update();
         jdbc.sql("DELETE FROM election_party_results WHERE election_id = :electionId")
@@ -116,6 +126,41 @@ class ElectionResultIntegrationTest {
                 .andExpect(jsonPath("$.hasMajority").value(true))
                 .andExpect(jsonPath("$.seatsAboveMajority").value(2))
                 .andExpect(jsonPath("$.alignment.status").exists());
+        verify(coalitionRateLimiter).check(anyString());
+    }
+
+    @Test
+    void doesNotChargeQuotaForRequestsRejectedByCsrfOrMediaTypeValidation() throws Exception {
+        String body = """
+                {"language":"en","partyCodes":["RNI","PAM"]}
+                """;
+        mvc.perform(post("/api/catalog/elections/2026/coalitions/evaluate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/api/catalog/elections/2026/coalitions/evaluate")
+                        .with(csrf())
+                        .contentType(MediaType.TEXT_PLAIN)
+                        .content(body))
+                .andExpect(status().isUnsupportedMediaType());
+
+        verifyNoInteractions(coalitionRateLimiter);
+    }
+
+    @Test
+    void returnsStructuredRateLimitResponsesAfterRequestValidation() throws Exception {
+        doThrow(new ElectionCoalitionRateLimitException(17))
+                .when(coalitionRateLimiter).check(anyString());
+
+        mvc.perform(post("/api/catalog/elections/2026/coalitions/evaluate")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"language":"en","partyCodes":["RNI","PAM"]}
+                                """))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(header().string(HttpHeaders.RETRY_AFTER, "17"))
+                .andExpect(jsonPath("$.status").value(429));
     }
 
     @Test
@@ -127,6 +172,7 @@ class ElectionResultIntegrationTest {
                 .andExpect(status().isPayloadTooLarge())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(413));
+        verifyNoInteractions(coalitionRateLimiter);
     }
 
     @Test
