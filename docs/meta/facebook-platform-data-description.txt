@@ -1,0 +1,11 @@
+Fhemni uses Meta Platform Data only to let a person create or access a Fhemni account with Facebook Login.
+
+Fhemni requests only the public_profile and email permissions. After the user approves Facebook Login, Meta returns an authorization code to Fhemni's server-side OAuth callback. Fhemni exchanges that code with Meta and receives the person's app-scoped Facebook user ID, name, email address when available, and profile picture URL.
+
+Fhemni stores the app-scoped Facebook user ID as the external identity linked to an internal Fhemni user ID. The name, optional email address, optional profile picture URL, email-verification status, and login timestamps are stored in Fhemni's access-restricted PostgreSQL database. A server-side session is created and the browser receives only a Secure, HttpOnly, SameSite=Lax session cookie. OAuth state and credentials are retained only as required for the login session and are removed when the session expires or the user logs out.
+
+The data is used to authenticate the person, display their name and optional profile picture, keep their selected policy interests available across devices, and associate their private Fhemni activity with the correct account. Fhemni does not use Meta Platform Data for advertising, political targeting, profiling, sale, or enrichment.
+
+Fhemni does not send Meta Platform Data to Gemini, OpenAI, Google Cloud Storage, analytics providers, political parties, advertisers, or data brokers. Service logs are configured not to record OAuth authorization codes, access tokens, app secrets, or full user-profile responses.
+
+A user can request deletion through Fhemni's public account-data deletion route. Meta's deauthorization callback is also supported. On a valid deletion or deauthorization request, Fhemni removes the Facebook identity and associated Fhemni account data from the application database, except for information that must be retained temporarily for security or legal obligations. Any such retained information is minimized, access-restricted, and deleted when the obligation ends.

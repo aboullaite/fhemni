@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050" role="img" aria-labelledby="title description">
+  <title id="title">Fhemni Facebook Platform Data Flow</title>
+  <desc id="description">Server-side OAuth login flow showing the Facebook data received by Fhemni, its restricted storage, use, and deletion path.</desc>
+  <defs>
+    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#087267"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#ad2c31"/>
+    </marker>
+    <style>
+      .title { font: 700 42px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; fill: #123b38; }
+      .subtitle { font: 400 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; fill: #60726f; }
+      .node-title { font: 700 23px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; fill: #123b38; }
+      .node-body { font: 400 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; fill: #435b57; }
+      .flow-label { font: 600 17px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; fill: #123b38; }
+      .small { font: 400 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; fill: #60726f; }
+      .note-title { font: 700 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; fill: #123b38; }
+      .note-body { font: 400 17px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; fill: #435b57; }
+      .node { fill: #ffffff; stroke: #c6d3ce; stroke-width: 2; }
+      .node-meta { fill: #eef5ff; stroke: #7ca4e8; stroke-width: 2; }
+      .node-store { fill: #eef8f3; stroke: #78aa98; stroke-width: 2; }
+      .node-delete { fill: #fff5f3; stroke: #d78884; stroke-width: 2; }
+      .control { fill: none; stroke: #087267; stroke-width: 3; marker-end: url(#arrow-green); }
+      .data { fill: none; stroke: #ad2c31; stroke-width: 4; marker-end: url(#arrow-red); }
+      .delete { fill: none; stroke: #ad2c31; stroke-width: 3; stroke-dasharray: 10 8; marker-end: url(#arrow-red); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1050" fill="#fffdf7"/>
+
+  <text x="70" y="78" class="title">Fhemni — Facebook Platform Data Flow</text>
+  <text x="70" y="116" class="subtitle">Server-side OAuth 2.0 login · minimum permissions: public_profile and email</text>
+
+  <rect x="70" y="185" width="355" height="205" rx="18" class="node"/>
+  <circle cx="130" cy="245" r="30" fill="#dcece5"/>
+  <path d="M117 248a13 13 0 1 1 26 0M107 286c4-18 16-27 23-27s19 9 23 27" fill="none" stroke="#087267" stroke-width="4" stroke-linecap="round"/>
+  <text x="180" y="238" class="node-title">User’s browser</text>
+  <text x="180" y="271" class="node-body">Chooses “Continue with Facebook”</text>
+  <text x="102" y="330" class="node-body">Receives only a secure, HttpOnly</text>
+  <text x="102" y="357" class="node-body">Fhemni session cookie after login</text>
+
+  <rect x="620" y="185" width="355" height="205" rx="18" class="node-meta"/>
+  <circle cx="680" cy="245" r="31" fill="#1877f2"/>
+  <text x="670" y="260" style="font:700 43px Arial,sans-serif;fill:#fff">f</text>
+  <text x="730" y="238" class="node-title">Meta Facebook Login</text>
+  <text x="730" y="271" class="node-body">Authentication and consent</text>
+  <text x="652" y="330" class="node-body">Returns an authorization code, then</text>
+  <text x="652" y="357" class="node-body">the approved basic profile fields</text>
+
+  <rect x="1175" y="185" width="355" height="205" rx="18" class="node"/>
+  <rect x="1212" y="215" width="62" height="62" rx="15" fill="#ad2c31"/>
+  <path d="M1234 232l25 14-25 14z" fill="#fffdf7"/>
+  <path d="M1227 267h39" stroke="#fffdf7" stroke-width="5" stroke-linecap="round"/>
+  <text x="1300" y="238" class="node-title">Fhemni backend</text>
+  <text x="1300" y="271" class="node-body">Spring Security OAuth client</text>
+  <text x="1207" y="330" class="node-body">Validates state, exchanges the code,</text>
+  <text x="1207" y="357" class="node-body">maps the profile and creates a session</text>
+
+  <path d="M425 240 C500 200 540 200 620 240" class="control"/>
+  <text x="455" y="190" class="flow-label">1. OAuth redirect</text>
+
+  <path d="M975 250 C1040 218 1100 218 1175 250" class="control"/>
+  <text x="1005" y="203" class="flow-label">2. Authorization code</text>
+
+  <path d="M1175 322 C1100 365 1040 365 975 322" class="data"/>
+  <text x="998" y="412" class="flow-label">3. Platform Data returned to Fhemni</text>
+  <text x="1018" y="442" class="small">Facebook user ID · name · email if provided · profile picture URL</text>
+
+  <rect x="1175" y="540" width="355" height="215" rx="18" class="node-store"/>
+  <ellipse cx="1239" cy="594" rx="35" ry="14" fill="#cfe6dc" stroke="#087267" stroke-width="3"/>
+  <path d="M1204 594v58c0 8 16 14 35 14s35-6 35-14v-58" fill="#cfe6dc" stroke="#087267" stroke-width="3"/>
+  <ellipse cx="1239" cy="652" rx="35" ry="14" fill="none" stroke="#087267" stroke-width="3"/>
+  <text x="1300" y="586" class="node-title">Restricted PostgreSQL</text>
+  <text x="1300" y="619" class="node-body">Account identity and session store</text>
+  <text x="1207" y="700" class="node-body">Internal user ID · Facebook subject ID</text>
+  <text x="1207" y="727" class="node-body">name · email · avatar URL · timestamps</text>
+
+  <path d="M1353 390 L1353 540" class="data"/>
+  <text x="1375" y="470" class="flow-label">4. Store account</text>
+  <text x="1375" y="498" class="small">Encrypted transport;</text>
+  <text x="1375" y="523" class="small">restricted DB access</text>
+
+  <rect x="70" y="540" width="450" height="215" rx="18" class="node"/>
+  <text x="102" y="588" class="node-title">Fhemni account features</text>
+  <text x="102" y="628" class="node-body">• Authenticate the user and prevent impersonation</text>
+  <text x="102" y="662" class="node-body">• Display the user’s name and optional avatar</text>
+  <text x="102" y="696" class="node-body">• Keep policy-topic preferences across devices</text>
+  <text x="102" y="730" class="node-body">• Associate private app activity with the account</text>
+
+  <path d="M1175 650 C950 650 760 650 520 650" class="control"/>
+  <text x="704" y="625" class="flow-label">5. Resolve the signed-in Fhemni account</text>
+
+  <rect x="620" y="825" width="355" height="145" rx="18" class="node-delete"/>
+  <text x="652" y="870" class="node-title">Deletion and deauthorization</text>
+  <text x="652" y="907" class="node-body">User deletion request or Meta callback</text>
+  <text x="652" y="938" class="node-body">removes the identity and account data</text>
+
+  <path d="M250 390 C250 820 500 895 620 895" class="delete"/>
+  <text x="115" y="838" class="flow-label">6. User requests deletion</text>
+  <path d="M975 355 C1050 480 1045 810 975 882" class="delete"/>
+  <text x="985" y="840" class="flow-label">Meta deauthorization callback</text>
+  <path d="M975 920 C1120 915 1230 845 1318 755" class="delete"/>
+  <text x="1088" y="962" class="flow-label">7. Delete stored Platform Data</text>
+
+  <rect x="70" y="825" width="450" height="145" rx="18" fill="#eef8f3" stroke="#78aa98" stroke-width="2"/>
+  <text x="102" y="870" class="note-title">No onward sharing of Platform Data</text>
+  <text x="102" y="907" class="note-body">Facebook identity data is not sent to AI providers, GCS,</text>
+  <text x="102" y="936" class="note-body">advertisers, analytics services, parties, or data brokers.</text>
+
+  <line x1="70" y1="1005" x2="1530" y2="1005" stroke="#c6d3ce" stroke-width="2"/>
+  <line x1="98" y1="1028" x2="160" y2="1028" class="data"/>
+  <text x="175" y="1034" class="small">Platform Data</text>
+  <line x1="340" y1="1028" x2="402" y2="1028" class="control"/>
+  <text x="417" y="1034" class="small">Authorization or internal account flow</text>
+  <line x1="815" y1="1028" x2="877" y2="1028" class="delete"/>
+  <text x="892" y="1034" class="small">Deletion flow</text>
+</svg>
