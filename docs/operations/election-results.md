@@ -12,10 +12,12 @@ The durable recovery artifact is [`data/elections/2026/results.sql`](../../data/
    - every party code exists in `political_parties`;
    - `total_seats = local_seats + regional_list_seats` for every row;
    - national declared seats never exceed 395;
+   - declared party votes never exceed `valid_votes`, and final vote totals reconcile exactly when `valid_votes` is present;
    - a `FINAL` or `CORRECTED` snapshot totals exactly 395 seats;
    - `UNKNOWN` never holds national or regional seats;
    - every `FINAL` region totals exactly its configured allocation;
-   - a party's regional total never exceeds its national total;
+   - final regional allocations total exactly 395 seats and every region is final;
+   - a party's regional local, regional-list, and total seats never exceed the corresponding national figures;
    - the source URL and source timestamp match the figures being entered.
 4. Apply the committed file through the existing secure PostgreSQL access path:
 

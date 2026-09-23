@@ -119,6 +119,17 @@ class ElectionResultIntegrationTest {
     }
 
     @Test
+    void rejectsOversizedCoalitionJsonBeforeRequestBodyDeserialization() throws Exception {
+        mvc.perform(post("/api/catalog/elections/2026/coalitions/evaluate")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("x".repeat(ElectionCoalitionRequestFilter.MAX_REQUEST_BYTES + 1)))
+                .andExpect(status().isPayloadTooLarge())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.status").value(413));
+    }
+
+    @Test
     void rejectsUnknownLanguagesYearsAndCoalitionParties() throws Exception {
         mvc.perform(get("/api/catalog/elections/2026/results").param("lang", "es"))
                 .andExpect(status().isBadRequest());

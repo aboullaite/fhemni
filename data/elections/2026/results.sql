@@ -309,6 +309,8 @@ DO $$
 DECLARE
     chamber_seats INTEGER;
     declared_seats BIGINT;
+    declared_votes BIGINT;
+    valid_vote_count BIGINT;
     result_status VARCHAR(16);
 BEGIN
     IF EXISTS (
@@ -322,21 +324,62 @@ BEGIN
     ) THEN
         RAISE EXCEPTION 'UNKNOWN cannot hold seats in a published election snapshot';
     END IF;
-    SELECT total_seats, status INTO chamber_seats, result_status
+    SELECT total_seats, valid_votes, status
+      INTO chamber_seats, valid_vote_count, result_status
     FROM elections WHERE slug = 'legislative-2026';
     SELECT COALESCE(SUM(total_seats), 0) INTO declared_seats
+    FROM election_party_results
+    WHERE election_id = '20260000-0000-4000-8000-000000000001';
+    SELECT COALESCE(SUM(votes), 0) INTO declared_votes
     FROM election_party_results
     WHERE election_id = '20260000-0000-4000-8000-000000000001';
     IF declared_seats > chamber_seats THEN
         RAISE EXCEPTION 'Declared seats (%) exceed chamber size (%)', declared_seats, chamber_seats;
     END IF;
+    IF valid_vote_count IS NOT NULL AND declared_votes > valid_vote_count THEN
+        RAISE EXCEPTION 'Declared party votes (%) exceed valid votes (%)', declared_votes, valid_vote_count;
+    END IF;
     IF result_status IN ('FINAL', 'CORRECTED') AND declared_seats <> chamber_seats THEN
         RAISE EXCEPTION 'A final result must declare exactly % seats, found %', chamber_seats, declared_seats;
+    END IF;
+    IF result_status IN ('FINAL', 'CORRECTED')
+       AND valid_vote_count IS NOT NULL
+       AND (
+           declared_votes <> valid_vote_count
+           OR EXISTS (
+               SELECT 1 FROM election_party_results
+                WHERE election_id = '20260000-0000-4000-8000-000000000001'
+                  AND votes IS NULL
+           )
+       ) THEN
+        RAISE EXCEPTION 'A final result with valid_votes must reconcile every party vote exactly';
     END IF;
 END $$;
 
 DO $$
+DECLARE
+    chamber_seats INTEGER;
+    allocated_regional_seats BIGINT;
+    result_status VARCHAR(16);
 BEGIN
+    SELECT total_seats, status INTO chamber_seats, result_status
+    FROM elections WHERE slug = 'legislative-2026';
+    IF result_status IN ('FINAL', 'CORRECTED')
+       AND EXISTS (
+           SELECT 1 FROM election_regions
+            WHERE election_id = '20260000-0000-4000-8000-000000000001'
+              AND status <> 'FINAL'
+       ) THEN
+        RAISE EXCEPTION 'Every region must be final before the national result is final';
+    END IF;
+    SELECT COALESCE(SUM(allocated_seats), 0) INTO allocated_regional_seats
+    FROM election_regions
+    WHERE election_id = '20260000-0000-4000-8000-000000000001';
+    IF result_status IN ('FINAL', 'CORRECTED')
+       AND allocated_regional_seats <> chamber_seats THEN
+        RAISE EXCEPTION 'Final regional allocations (%) must equal chamber size (%)',
+            allocated_regional_seats, chamber_seats;
+    END IF;
     IF EXISTS (
         SELECT 1
           FROM election_regions region
@@ -362,10 +405,15 @@ BEGIN
           ON national.election_id = regional.election_id
          AND national.party_code = regional.party_code
         WHERE regional.election_id = '20260000-0000-4000-8000-000000000001'
-        GROUP BY regional.party_code, national.total_seats
-        HAVING SUM(regional.total_seats) > COALESCE(national.total_seats, -1)
+        GROUP BY regional.party_code,
+                 national.local_seats,
+                 national.regional_list_seats,
+                 national.total_seats
+        HAVING SUM(regional.local_seats) > COALESCE(national.local_seats, -1)
+            OR SUM(regional.regional_list_seats) > COALESCE(national.regional_list_seats, -1)
+            OR SUM(regional.total_seats) > COALESCE(national.total_seats, -1)
     ) THEN
-        RAISE EXCEPTION 'A regional party total exceeds its national party total';
+        RAISE EXCEPTION 'A regional party result exceeds a national seat component';
     END IF;
 END $$;
 
