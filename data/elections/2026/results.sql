@@ -28,6 +28,70 @@ SELECT
     CAST(NULL AS VARCHAR(1200)) AS source_url,
     CAST(NULL AS TIMESTAMP WITH TIME ZONE) AS source_updated_at;
 
+CREATE TEMP TABLE incoming_election_regions (
+    election_id UUID NOT NULL,
+    code VARCHAR(80) NOT NULL,
+    name_ar VARCHAR(180) NOT NULL,
+    name_fr VARCHAR(180) NOT NULL,
+    name_en VARCHAR(180) NOT NULL,
+    map_key VARCHAR(32) NOT NULL,
+    allocated_seats INTEGER,
+    status VARCHAR(16) NOT NULL,
+    sort_order INTEGER NOT NULL,
+    PRIMARY KEY (election_id, code)
+) ON COMMIT DROP;
+
+INSERT INTO incoming_election_regions (
+    election_id, code, name_ar, name_fr, name_en, map_key,
+    allocated_seats, status, sort_order
+) VALUES
+    ('20260000-0000-4000-8000-000000000001', 'tanger-tetouan-al-hoceima', 'طنجة - تطوان - الحسيمة', 'Tanger-Tétouan-Al Hoceïma', 'Tanger-Tetouan-Al Hoceima', 'MA-01', NULL, 'PENDING', 1),
+    ('20260000-0000-4000-8000-000000000001', 'oriental', 'الشرق', 'L''Oriental', 'Oriental', 'MA-02', NULL, 'PENDING', 2),
+    ('20260000-0000-4000-8000-000000000001', 'fes-meknes', 'فاس - مكناس', 'Fès-Meknès', 'Fes-Meknes', 'MA-03', NULL, 'PENDING', 3),
+    ('20260000-0000-4000-8000-000000000001', 'rabat-sale-kenitra', 'الرباط - سلا - القنيطرة', 'Rabat-Salé-Kénitra', 'Rabat-Sale-Kenitra', 'MA-04', NULL, 'PENDING', 4),
+    ('20260000-0000-4000-8000-000000000001', 'beni-mellal-khenifra', 'بني ملال - خنيفرة', 'Béni Mellal-Khénifra', 'Beni Mellal-Khenifra', 'MA-05', NULL, 'PENDING', 5),
+    ('20260000-0000-4000-8000-000000000001', 'casablanca-settat', 'الدار البيضاء - سطات', 'Casablanca-Settat', 'Casablanca-Settat', 'MA-06', NULL, 'PENDING', 6),
+    ('20260000-0000-4000-8000-000000000001', 'marrakech-safi', 'مراكش - آسفي', 'Marrakech-Safi', 'Marrakech-Safi', 'MA-07', NULL, 'PENDING', 7),
+    ('20260000-0000-4000-8000-000000000001', 'draa-tafilalet', 'درعة - تافيلالت', 'Drâa-Tafilalet', 'Draa-Tafilalet', 'MA-08', NULL, 'PENDING', 8),
+    ('20260000-0000-4000-8000-000000000001', 'souss-massa', 'سوس - ماسة', 'Souss-Massa', 'Souss-Massa', 'MA-09', NULL, 'PENDING', 9),
+    ('20260000-0000-4000-8000-000000000001', 'guelmim-oued-noun', 'كلميم - واد نون', 'Guelmim-Oued Noun', 'Guelmim-Oued Noun', 'MA-10', NULL, 'PENDING', 10),
+    ('20260000-0000-4000-8000-000000000001', 'laayoune-sakia-el-hamra', 'العيون - الساقية الحمراء', 'Laâyoune-Sakia El Hamra', 'Laayoune-Sakia El Hamra', 'MA-11', NULL, 'PENDING', 11),
+    ('20260000-0000-4000-8000-000000000001', 'dakhla-oued-ed-dahab', 'الداخلة - وادي الذهب', 'Dakhla-Oued Ed-Dahab', 'Dakhla-Oued Ed-Dahab', 'MA-12', NULL, 'PENDING', 12);
+
+CREATE TEMP TABLE incoming_election_party_results (
+    election_id UUID NOT NULL,
+    party_code VARCHAR(16) NOT NULL,
+    votes BIGINT,
+    local_seats INTEGER NOT NULL,
+    regional_list_seats INTEGER NOT NULL,
+    total_seats INTEGER NOT NULL,
+    PRIMARY KEY (election_id, party_code)
+) ON COMMIT DROP;
+
+CREATE TEMP TABLE incoming_election_region_party_results (
+    election_id UUID NOT NULL,
+    region_code VARCHAR(80) NOT NULL,
+    party_code VARCHAR(16) NOT NULL,
+    local_seats INTEGER NOT NULL,
+    regional_list_seats INTEGER NOT NULL,
+    total_seats INTEGER NOT NULL,
+    PRIMARY KEY (election_id, region_code, party_code)
+) ON COMMIT DROP;
+
+-- Add the complete current snapshot to the two incoming result tables.
+-- National rows must satisfy total_seats = local_seats + regional_list_seats.
+-- Example shape only (do not uncomment without verified official figures):
+-- INSERT INTO incoming_election_party_results
+--     (election_id, party_code, votes, local_seats, regional_list_seats, total_seats)
+-- VALUES
+--     ('20260000-0000-4000-8000-000000000001', 'RNI', NULL, 0, 0, 0);
+--
+-- Regional rows follow the same rule:
+-- INSERT INTO incoming_election_region_party_results
+--     (election_id, region_code, party_code, local_seats, regional_list_seats, total_seats)
+-- VALUES
+--     ('20260000-0000-4000-8000-000000000001', 'casablanca-settat', 'RNI', 0, 0, 0);
+
 DO $$
 BEGIN
     IF EXISTS (
@@ -39,6 +103,72 @@ BEGIN
                 OR incoming.source_updated_at < current_snapshot.source_updated_at)
     ) THEN
         RAISE EXCEPTION 'Refusing to replace the current election result with an older source snapshot';
+    END IF;
+END $$;
+
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+          FROM elections current_snapshot
+          JOIN incoming_election_snapshot incoming ON incoming.id = current_snapshot.id
+         WHERE current_snapshot.source_updated_at IS NOT DISTINCT FROM incoming.source_updated_at
+           AND (
+               ROW(
+                   current_snapshot.slug, current_snapshot.election_date, current_snapshot.status,
+                   current_snapshot.total_seats, current_snapshot.registered_voters,
+                   current_snapshot.votes_cast, current_snapshot.valid_votes, current_snapshot.vote_basis,
+                   current_snapshot.source_label_ar, current_snapshot.source_label_fr,
+                   current_snapshot.source_label_en, current_snapshot.source_url
+               ) IS DISTINCT FROM ROW(
+                   incoming.slug, incoming.election_date, incoming.status,
+                   incoming.total_seats, incoming.registered_voters,
+                   incoming.votes_cast, incoming.valid_votes, incoming.vote_basis,
+                   incoming.source_label_ar, incoming.source_label_fr,
+                   incoming.source_label_en, incoming.source_url
+               )
+               OR EXISTS (
+                   (SELECT code, name_ar, name_fr, name_en, map_key, allocated_seats, status, sort_order
+                      FROM election_regions WHERE election_id = current_snapshot.id
+                    EXCEPT
+                    SELECT code, name_ar, name_fr, name_en, map_key, allocated_seats, status, sort_order
+                      FROM incoming_election_regions WHERE election_id = incoming.id)
+                   UNION ALL
+                   (SELECT code, name_ar, name_fr, name_en, map_key, allocated_seats, status, sort_order
+                      FROM incoming_election_regions WHERE election_id = incoming.id
+                    EXCEPT
+                    SELECT code, name_ar, name_fr, name_en, map_key, allocated_seats, status, sort_order
+                      FROM election_regions WHERE election_id = current_snapshot.id)
+               )
+               OR EXISTS (
+                   (SELECT party_code, votes, local_seats, regional_list_seats, total_seats
+                      FROM election_party_results WHERE election_id = current_snapshot.id
+                    EXCEPT
+                    SELECT party_code, votes, local_seats, regional_list_seats, total_seats
+                      FROM incoming_election_party_results WHERE election_id = incoming.id)
+                   UNION ALL
+                   (SELECT party_code, votes, local_seats, regional_list_seats, total_seats
+                      FROM incoming_election_party_results WHERE election_id = incoming.id
+                    EXCEPT
+                    SELECT party_code, votes, local_seats, regional_list_seats, total_seats
+                      FROM election_party_results WHERE election_id = current_snapshot.id)
+               )
+               OR EXISTS (
+                   (SELECT region_code, party_code, local_seats, regional_list_seats, total_seats
+                      FROM election_region_party_results WHERE election_id = current_snapshot.id
+                    EXCEPT
+                    SELECT region_code, party_code, local_seats, regional_list_seats, total_seats
+                      FROM incoming_election_region_party_results WHERE election_id = incoming.id)
+                   UNION ALL
+                   (SELECT region_code, party_code, local_seats, regional_list_seats, total_seats
+                      FROM incoming_election_region_party_results WHERE election_id = incoming.id
+                    EXCEPT
+                    SELECT region_code, party_code, local_seats, regional_list_seats, total_seats
+                      FROM election_region_party_results WHERE election_id = current_snapshot.id)
+               )
+           )
+    ) THEN
+        RAISE EXCEPTION 'Refusing a different election snapshot with the same source_updated_at; use a newer official revision timestamp';
     END IF;
 END $$;
 
@@ -83,19 +213,10 @@ WHERE ROW(
 INSERT INTO election_regions (
     election_id, code, name_ar, name_fr, name_en, map_key,
     allocated_seats, status, sort_order, updated_at
-) VALUES
-    ('20260000-0000-4000-8000-000000000001', 'tanger-tetouan-al-hoceima', 'طنجة - تطوان - الحسيمة', 'Tanger-Tétouan-Al Hoceïma', 'Tanger-Tetouan-Al Hoceima', 'MA-01', NULL, 'PENDING', 1, CURRENT_TIMESTAMP),
-    ('20260000-0000-4000-8000-000000000001', 'oriental', 'الشرق', 'L''Oriental', 'Oriental', 'MA-02', NULL, 'PENDING', 2, CURRENT_TIMESTAMP),
-    ('20260000-0000-4000-8000-000000000001', 'fes-meknes', 'فاس - مكناس', 'Fès-Meknès', 'Fes-Meknes', 'MA-03', NULL, 'PENDING', 3, CURRENT_TIMESTAMP),
-    ('20260000-0000-4000-8000-000000000001', 'rabat-sale-kenitra', 'الرباط - سلا - القنيطرة', 'Rabat-Salé-Kénitra', 'Rabat-Sale-Kenitra', 'MA-04', NULL, 'PENDING', 4, CURRENT_TIMESTAMP),
-    ('20260000-0000-4000-8000-000000000001', 'beni-mellal-khenifra', 'بني ملال - خنيفرة', 'Béni Mellal-Khénifra', 'Beni Mellal-Khenifra', 'MA-05', NULL, 'PENDING', 5, CURRENT_TIMESTAMP),
-    ('20260000-0000-4000-8000-000000000001', 'casablanca-settat', 'الدار البيضاء - سطات', 'Casablanca-Settat', 'Casablanca-Settat', 'MA-06', NULL, 'PENDING', 6, CURRENT_TIMESTAMP),
-    ('20260000-0000-4000-8000-000000000001', 'marrakech-safi', 'مراكش - آسفي', 'Marrakech-Safi', 'Marrakech-Safi', 'MA-07', NULL, 'PENDING', 7, CURRENT_TIMESTAMP),
-    ('20260000-0000-4000-8000-000000000001', 'draa-tafilalet', 'درعة - تافيلالت', 'Drâa-Tafilalet', 'Draa-Tafilalet', 'MA-08', NULL, 'PENDING', 8, CURRENT_TIMESTAMP),
-    ('20260000-0000-4000-8000-000000000001', 'souss-massa', 'سوس - ماسة', 'Souss-Massa', 'Souss-Massa', 'MA-09', NULL, 'PENDING', 9, CURRENT_TIMESTAMP),
-    ('20260000-0000-4000-8000-000000000001', 'guelmim-oued-noun', 'كلميم - واد نون', 'Guelmim-Oued Noun', 'Guelmim-Oued Noun', 'MA-10', NULL, 'PENDING', 10, CURRENT_TIMESTAMP),
-    ('20260000-0000-4000-8000-000000000001', 'laayoune-sakia-el-hamra', 'العيون - الساقية الحمراء', 'Laâyoune-Sakia El Hamra', 'Laayoune-Sakia El Hamra', 'MA-11', NULL, 'PENDING', 11, CURRENT_TIMESTAMP),
-    ('20260000-0000-4000-8000-000000000001', 'dakhla-oued-ed-dahab', 'الداخلة - وادي الذهب', 'Dakhla-Oued Ed-Dahab', 'Dakhla-Oued Ed-Dahab', 'MA-12', NULL, 'PENDING', 12, CURRENT_TIMESTAMP)
+) SELECT
+    election_id, code, name_ar, name_fr, name_en, map_key,
+    allocated_seats, status, sort_order, CURRENT_TIMESTAMP
+FROM incoming_election_regions
 ON CONFLICT (election_id, code) DO UPDATE SET
     name_ar = EXCLUDED.name_ar,
     name_fr = EXCLUDED.name_fr,
@@ -116,23 +237,64 @@ WHERE ROW(
 );
 
 DELETE FROM election_region_party_results
-WHERE election_id = '20260000-0000-4000-8000-000000000001';
-DELETE FROM election_party_results
-WHERE election_id = '20260000-0000-4000-8000-000000000001';
+WHERE election_id = '20260000-0000-4000-8000-000000000001'
+  AND NOT EXISTS (
+      SELECT 1
+        FROM incoming_election_region_party_results incoming
+       WHERE incoming.election_id = election_region_party_results.election_id
+         AND incoming.region_code = election_region_party_results.region_code
+         AND incoming.party_code = election_region_party_results.party_code
+  );
 
--- Add the complete current snapshot here before deployment-day execution.
--- National rows must satisfy total_seats = local_seats + regional_list_seats.
--- Example shape only (do not uncomment without verified official figures):
--- INSERT INTO election_party_results
---     (election_id, party_code, votes, local_seats, regional_list_seats, total_seats, updated_at)
--- VALUES
---     ('20260000-0000-4000-8000-000000000001', 'RNI', NULL, 0, 0, 0, CURRENT_TIMESTAMP);
---
--- Regional rows follow the same rule:
--- INSERT INTO election_region_party_results
---     (election_id, region_code, party_code, local_seats, regional_list_seats, total_seats, updated_at)
--- VALUES
---     ('20260000-0000-4000-8000-000000000001', 'casablanca-settat', 'RNI', 0, 0, 0, CURRENT_TIMESTAMP);
+DELETE FROM election_party_results
+WHERE election_id = '20260000-0000-4000-8000-000000000001'
+  AND NOT EXISTS (
+      SELECT 1
+        FROM incoming_election_party_results incoming
+       WHERE incoming.election_id = election_party_results.election_id
+         AND incoming.party_code = election_party_results.party_code
+  );
+
+INSERT INTO election_party_results (
+    election_id, party_code, votes, local_seats,
+    regional_list_seats, total_seats, updated_at
+) SELECT
+    election_id, party_code, votes, local_seats,
+    regional_list_seats, total_seats, CURRENT_TIMESTAMP
+FROM incoming_election_party_results
+ON CONFLICT (election_id, party_code) DO UPDATE SET
+    votes = EXCLUDED.votes,
+    local_seats = EXCLUDED.local_seats,
+    regional_list_seats = EXCLUDED.regional_list_seats,
+    total_seats = EXCLUDED.total_seats,
+    updated_at = EXCLUDED.updated_at
+WHERE ROW(
+    election_party_results.votes, election_party_results.local_seats,
+    election_party_results.regional_list_seats, election_party_results.total_seats
+) IS DISTINCT FROM ROW(
+    EXCLUDED.votes, EXCLUDED.local_seats,
+    EXCLUDED.regional_list_seats, EXCLUDED.total_seats
+);
+
+INSERT INTO election_region_party_results (
+    election_id, region_code, party_code, local_seats,
+    regional_list_seats, total_seats, updated_at
+) SELECT
+    election_id, region_code, party_code, local_seats,
+    regional_list_seats, total_seats, CURRENT_TIMESTAMP
+FROM incoming_election_region_party_results
+ON CONFLICT (election_id, region_code, party_code) DO UPDATE SET
+    local_seats = EXCLUDED.local_seats,
+    regional_list_seats = EXCLUDED.regional_list_seats,
+    total_seats = EXCLUDED.total_seats,
+    updated_at = EXCLUDED.updated_at
+WHERE ROW(
+    election_region_party_results.local_seats,
+    election_region_party_results.regional_list_seats,
+    election_region_party_results.total_seats
+) IS DISTINCT FROM ROW(
+    EXCLUDED.local_seats, EXCLUDED.regional_list_seats, EXCLUDED.total_seats
+);
 
 DO $$
 DECLARE

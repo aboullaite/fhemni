@@ -34,9 +34,17 @@ public class CivicCoalitionAlignmentService {
     public Alignment evaluate(List<String> partyCodes, String requestedLanguage) {
         String language = CivicQuestionnaireCatalogService.language(requestedLanguage);
         List<String> selected = partyCodes == null ? List.of() : partyCodes.stream().distinct().toList();
+        if (selected.size() < 2) {
+            return new Alignment(
+                    "NEEDS_MORE_PARTIES", null, null, 0, 0,
+                    0, 0, List.of(), List.of());
+        }
+
         List<AlignmentQuestionData> questions = questionnaires.currentAlignmentQuestions();
-        if (questions.size() != 18) {
-            throw new IllegalStateException("A published priority questionnaire must contain exactly 18 questions.");
+        if (questions.isEmpty()) {
+            return new Alignment(
+                    "INSUFFICIENT_DATA", null, null, 0, 0,
+                    0, 0, List.of(), List.of());
         }
         var editionId = questions.getFirst().editionId();
         if (questions.stream().anyMatch(question -> !question.editionId().equals(editionId))) {
@@ -44,11 +52,6 @@ public class CivicCoalitionAlignmentService {
         }
         int pairCount = selected.size() * (selected.size() - 1) / 2;
         int possiblePairQuestions = pairCount * questions.size();
-        if (selected.size() < 2) {
-            return new Alignment(
-                    "NEEDS_MORE_PARTIES", null, null, 0, 0,
-                    possiblePairQuestions, 0, List.of(), List.of());
-        }
 
         Map<String, Map<String, PartyPositionStance>> byParty = new LinkedHashMap<>();
         Set<String> selectedCodes = Set.copyOf(selected);

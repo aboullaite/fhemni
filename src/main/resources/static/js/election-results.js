@@ -66,6 +66,8 @@
     let pollTimer;
     let pollFailureCount = 0;
     let resultRequestInFlight = false;
+    let resultAbortController;
+    let pendingManualRetry = false;
 
     const byId = id => document.getElementById(id);
     const format = (template, values) => Object.entries(values).reduce((text, entry) => text.replaceAll(`{${entry[0]}}`, entry[1]), template);
@@ -102,10 +104,17 @@
     }
 
     async function load(options = {}) {
-        if (resultRequestInFlight) return;
+        if (resultRequestInFlight) {
+            if (!options.poll) {
+                pendingManualRetry = true;
+                resultAbortController?.abort();
+            }
+            return;
+        }
         resultRequestInFlight = true;
         if (!snapshot) showState('loading');
         const controller = new AbortController();
+        resultAbortController = controller;
         const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
         try {
             const response = await fetch(`${RESULT_URL}?lang=${encodeURIComponent(locale)}`, {
@@ -120,6 +129,7 @@
             showState('content');
             if (!options.poll) track('election_results_opened', { election_year: 2026, result_status: snapshot.election.status });
         } catch (error) {
+            if (error.name === 'AbortError' && pendingManualRetry) return;
             pollFailureCount++;
             if (!snapshot) {
                 showState('error');
@@ -131,7 +141,13 @@
         } finally {
             window.clearTimeout(timeout);
             resultRequestInFlight = false;
-            schedulePoll(nextPollDelay());
+            resultAbortController = undefined;
+            if (pendingManualRetry) {
+                pendingManualRetry = false;
+                load();
+            } else {
+                schedulePoll(nextPollDelay());
+            }
         }
     }
 

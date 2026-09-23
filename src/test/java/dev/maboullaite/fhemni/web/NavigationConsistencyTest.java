@@ -92,7 +92,7 @@ class NavigationConsistencyTest {
                 .contains("id=\"electionNationalPanel\"")
                 .contains("id=\"electionCoalitionPanel\"")
                 .contains("id=\"electionRegionSelect\"")
-                .contains("/js/election-results.js?v=20260923-6")
+                .contains("/js/election-results.js?v=20260923-7")
                 .doesNotContain("style=\"");
         assertThat(html("js/election-results.js"))
                 .contains("/api/catalog/elections/2026/results")

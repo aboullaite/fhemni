@@ -8,6 +8,7 @@ import dev.maboullaite.fhemni.election.CoalitionEvaluationService.CoalitionEvalu
 import dev.maboullaite.fhemni.election.CoalitionEvaluationService.CoalitionRequest;
 import dev.maboullaite.fhemni.election.ElectionResultService;
 import dev.maboullaite.fhemni.election.ElectionResultService.ElectionResultSnapshot;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,11 +27,14 @@ public class ElectionResultController {
 
     private final ElectionResultService results;
     private final CoalitionEvaluationService coalitions;
+    private final ElectionCoalitionRateLimiter coalitionRateLimiter;
 
     public ElectionResultController(ElectionResultService results,
-                                    CoalitionEvaluationService coalitions) {
+                                    CoalitionEvaluationService coalitions,
+                                    ElectionCoalitionRateLimiter coalitionRateLimiter) {
         this.results = results;
         this.coalitions = coalitions;
+        this.coalitionRateLimiter = coalitionRateLimiter;
     }
 
     @GetMapping("/api/catalog/elections/{year}/results")
@@ -51,7 +55,9 @@ public class ElectionResultController {
     @PostMapping("/api/catalog/elections/{year}/coalitions/evaluate")
     public ResponseEntity<CoalitionEvaluation> evaluate(
             @PathVariable String year,
-            @RequestBody CoalitionRequest request) {
+            @RequestBody CoalitionRequest request,
+            HttpServletRequest httpRequest) {
+        coalitionRateLimiter.check(httpRequest.getRemoteAddr());
         try {
             return ResponseEntity.ok()
                     .cacheControl(CacheControl.noStore())
