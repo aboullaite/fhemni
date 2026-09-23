@@ -13,10 +13,10 @@
             updated: 'آخر تحديث {date}', progress: 'تقدم النتائج', seatsDeclared: '{declared} من {total} مقعد معلن',
             metrics: ['المقاعد المعلنة', 'المشاركة', 'مقاعد الدوائر المحلية', 'مقاعد اللوائح الجهوية'],
             tabs: ['الخريطة والجهات', 'النتائج الوطنية', 'كوّن الأغلبية ديالك'],
-            mapKicker: 'النتائج حسب الجهات', mapTitle: 'الخريطة الانتخابية', mapIntro: 'دوز فوق أي جهة، ولا اختارها، باش تشوف الأحزاب والمقاعد المعلنة فيها.', mapSelect: 'اختار الجهة', mapLegend: 'لون محايد: الخريطة ما كتنسبش الجهة لحزب واحد.',
+            mapKicker: 'النتائج حسب الجهات', mapIntro: 'دوز فوق أي جهة، ولا اختارها، باش تشوف الأحزاب والمقاعد المعلنة فيها.', mapSelect: 'اختار الجهة', mapLegend: 'لون محايد: الخريطة ما كتنسبش الجهة لحزب واحد.',
             regionStatus: { PENDING: 'في انتظار النتائج', PARTIAL: 'نتائج جزئية', FINAL: 'نتائج نهائية' }, regionPending: 'النتائج مازال ما تعلناتش فهاد الجهة.', regionSeats: '{count} مقعد معلن', regionAllocated: '{count} مقعد مخصص', seats: 'مقاعد', seat: 'مقعد',
-            nationalKicker: 'الصورة الوطنية', nationalTitle: 'توزيع المقاعد على الأحزاب', nationalIntro: 'الأحزاب مرتبة حسب عدد المقاعد المعلنة. ما كنعلنوش على أغلبية هنا؛ جرّب التحالفات فالأداة.', noResults: 'مازال ما كاين حتى مقعد معلن. هاد الصفحة غادي تتحدّث مباشرة ملي تدخل النتائج الرسمية.', votes: '{count} صوت', voteShare: '{percent}% من الأصوات',
-            coalitionKicker: 'مختبر التحالفات', coalitionTitle: 'كوّن الأغلبية ديالك', coalitionIntro: 'اختار الأحزاب وشوف واش وصلو لـ198 مقعد، وشنو مستوى التقارب بين برامجهم المنشورة.', coalitionChoose: 'اختار الأحزاب', coalitionSummary: 'التحالف ديالك', coalitionSeats: 'مقعد من 395', coalitionNeed: 'خاصك {count} مقعد آخر باش توصل للأغلبية.', coalitionWon: 'وصلتي للأغلبية بـ{count} مقعد زيادة.', coalitionStart: 'اختار جوج أحزاب على الأقل باش نحسبو التقارب.', coalitionNoResults: 'الأداة غادي تولّي متاحة ملي تتعلن المقاعد.',
+            nationalTitle: 'توزيع المقاعد على الأحزاب', nationalIntro: 'الأحزاب مرتبة حسب عدد المقاعد المعلنة. ما كنعلنوش على أغلبية هنا؛ جرّب التحالفات فالأداة.', noResults: 'مازال ما كاين حتى مقعد معلن. هاد الصفحة غادي تتحدّث مباشرة ملي تدخل النتائج الرسمية.', votes: '{count} صوت', voteShare: '{percent}% من الأصوات',
+            coalitionTitle: 'كوّن الأغلبية ديالك', coalitionIntro: 'اختار الأحزاب وشوف واش وصلو لـ198 مقعد، وشنو مستوى التقارب بين برامجهم المنشورة.', coalitionChoose: 'اختار الأحزاب', coalitionSummary: 'التحالف ديالك', coalitionSeats: 'مقعد من 395', coalitionNeed: 'خاصك {count} مقعد آخر باش توصل للأغلبية.', coalitionWon: 'وصلتي للأغلبية بـ{count} مقعد زيادة.', coalitionStart: 'اختار جوج أحزاب على الأقل باش نحسبو التقارب.', coalitionNoResults: 'الأداة غادي تولّي متاحة ملي تتعلن المقاعد.',
             alignment: 'التقارب البرنامجي', alignmentStrong: 'تقارب قوي', alignmentMedium: 'تقارب متوسط', alignmentWeak: 'تقارب ضعيف', alignmentLoading: 'كنحسبو التقارب…', alignmentMissing: 'المعطيات المنشورة ما كافياش باش نعطيو نقطة عادلة.', coverage: 'التغطية {percent}% · {questions} أسئلة قابلة للمقارنة', agreements: 'أقوى نقاط الالتقاء', tensions: 'أبرز نقاط الاختلاف', none: 'ما كايناش نقطة بارزة',
             method: 'نقطة التقارب كتستعمل غير المواقف الموثقة من البرامج المنشورة. المواقف الناقصة ولا «ما كاينش موقف» ما كتتحسبش كموقف محايد.', sourceTitle: 'المصدر', sourceOpen: 'شوف المصدر الرسمي'
         },
@@ -28,10 +28,10 @@
             updated: 'Mise à jour {date}', progress: 'Progression des résultats', seatsDeclared: '{declared} sièges déclarés sur {total}',
             metrics: ['Sièges déclarés', 'Participation', 'Sièges locaux', 'Sièges des listes régionales'],
             tabs: ['Carte et régions', 'Résultats nationaux', 'Composez votre majorité'],
-            mapKicker: 'Résultats régionaux', mapTitle: 'La carte électorale', mapIntro: 'Survolez, ciblez ou touchez une région pour voir tous les partis et sièges déclarés.', mapSelect: 'Choisir une région', mapLegend: 'Couleur neutre : une région peut compter plusieurs partis.',
+            mapKicker: 'Résultats régionaux', mapIntro: 'Survolez, ciblez ou touchez une région pour voir tous les partis et sièges déclarés.', mapSelect: 'Choisir une région', mapLegend: 'Couleur neutre : une région peut compter plusieurs partis.',
             regionStatus: { PENDING: 'En attente', PARTIAL: 'Résultats partiels', FINAL: 'Résultats définitifs' }, regionPending: 'Aucun résultat n’a encore été publié pour cette région.', regionSeats: '{count} sièges déclarés', regionAllocated: '{count} sièges attribués', seats: 'sièges', seat: 'siège',
-            nationalKicker: 'Vue nationale', nationalTitle: 'Répartition des sièges par parti', nationalIntro: 'Les partis sont classés par sièges déclarés. La majorité est explorée séparément dans le simulateur.', noResults: 'Aucun siège n’a encore été déclaré. La page se mettra à jour dès l’ajout des résultats officiels.', votes: '{count} voix', voteShare: '{percent}% des voix',
-            coalitionKicker: 'Laboratoire des coalitions', coalitionTitle: 'Composez votre majorité', coalitionIntro: 'Choisissez des partis, atteignez 198 sièges et consultez leur proximité sur la base des programmes publiés.', coalitionChoose: 'Choisissez les partis', coalitionSummary: 'Votre coalition', coalitionSeats: 'sièges sur 395', coalitionNeed: 'Il manque {count} sièges pour obtenir la majorité.', coalitionWon: 'Majorité atteinte avec {count} sièges d’avance.', coalitionStart: 'Choisissez au moins deux partis pour calculer leur proximité.', coalitionNoResults: 'Le simulateur sera disponible dès la publication des sièges.',
+            nationalTitle: 'Répartition des sièges par parti', nationalIntro: 'Les partis sont classés par sièges déclarés. La majorité est explorée séparément dans le simulateur.', noResults: 'Aucun siège n’a encore été déclaré. La page se mettra à jour dès l’ajout des résultats officiels.', votes: '{count} voix', voteShare: '{percent}% des voix',
+            coalitionTitle: 'Composez votre majorité', coalitionIntro: 'Choisissez des partis, atteignez 198 sièges et consultez leur proximité sur la base des programmes publiés.', coalitionChoose: 'Choisissez les partis', coalitionSummary: 'Votre coalition', coalitionSeats: 'sièges sur 395', coalitionNeed: 'Il manque {count} sièges pour obtenir la majorité.', coalitionWon: 'Majorité atteinte avec {count} sièges d’avance.', coalitionStart: 'Choisissez au moins deux partis pour calculer leur proximité.', coalitionNoResults: 'Le simulateur sera disponible dès la publication des sièges.',
             alignment: 'Proximité programmatique', alignmentStrong: 'Forte proximité', alignmentMedium: 'Proximité moyenne', alignmentWeak: 'Faible proximité', alignmentLoading: 'Calcul de la proximité…', alignmentMissing: 'Les données publiées ne suffisent pas pour fournir un score honnête.', coverage: 'Couverture {percent}% · {questions} questions comparables', agreements: 'Principaux points d’accord', tensions: 'Principaux points de tension', none: 'Aucun thème saillant',
             method: 'Le score utilise uniquement les positions documentées dans les programmes publiés. Une position absente ou non définie n’est jamais traitée comme neutre.', sourceTitle: 'Source', sourceOpen: 'Ouvrir la source officielle'
         },
@@ -43,10 +43,10 @@
             updated: 'Updated {date}', progress: 'Results progress', seatsDeclared: '{declared} of {total} seats declared',
             metrics: ['Seats declared', 'Turnout', 'Local seats', 'Regional-list seats'],
             tabs: ['Map and regions', 'National results', 'Build your majority'],
-            mapKicker: 'Regional results', mapTitle: 'The electoral map', mapIntro: 'Hover, focus or tap a region to see every party and declared seat.', mapSelect: 'Choose a region', mapLegend: 'Neutral colour: each region can contain several parties.',
+            mapKicker: 'Regional results', mapIntro: 'Hover, focus or tap a region to see every party and declared seat.', mapSelect: 'Choose a region', mapLegend: 'Neutral colour: each region can contain several parties.',
             regionStatus: { PENDING: 'Awaiting results', PARTIAL: 'Partial results', FINAL: 'Final results' }, regionPending: 'No results have been published for this region yet.', regionSeats: '{count} seats declared', regionAllocated: '{count} seats allocated', seats: 'seats', seat: 'seat',
-            nationalKicker: 'National picture', nationalTitle: 'Seats by party', nationalIntro: 'Parties are ranked by declared seats. Majority-building is explored separately in the coalition tool.', noResults: 'No seats have been declared yet. This page will update when official results are entered.', votes: '{count} votes', voteShare: '{percent}% of votes',
-            coalitionKicker: 'Coalition lab', coalitionTitle: 'Build your majority', coalitionIntro: 'Select parties, reach 198 seats, and see how closely their published programmes align.', coalitionChoose: 'Choose parties', coalitionSummary: 'Your coalition', coalitionSeats: 'seats out of 395', coalitionNeed: '{count} more seats needed for a majority.', coalitionWon: 'Majority reached with {count} seats to spare.', coalitionStart: 'Choose at least two parties to calculate programme alignment.', coalitionNoResults: 'The builder will be available once seats are published.',
+            nationalTitle: 'Seats by party', nationalIntro: 'Parties are ranked by declared seats. Majority-building is explored separately in the coalition tool.', noResults: 'No seats have been declared yet. This page will update when official results are entered.', votes: '{count} votes', voteShare: '{percent}% of votes',
+            coalitionTitle: 'Build your majority', coalitionIntro: 'Select parties, reach 198 seats, and see how closely their published programmes align.', coalitionChoose: 'Choose parties', coalitionSummary: 'Your coalition', coalitionSeats: 'seats out of 395', coalitionNeed: '{count} more seats needed for a majority.', coalitionWon: 'Majority reached with {count} seats to spare.', coalitionStart: 'Choose at least two parties to calculate programme alignment.', coalitionNoResults: 'The builder will be available once seats are published.',
             alignment: 'Programme alignment', alignmentStrong: 'Strong alignment', alignmentMedium: 'Medium alignment', alignmentWeak: 'Weak alignment', alignmentLoading: 'Calculating alignment…', alignmentMissing: 'The published data is not sufficient for an honest score.', coverage: '{percent}% coverage · {questions} comparable questions', agreements: 'Strongest common ground', tensions: 'Main tensions', none: 'No standout theme',
             method: 'Alignment uses documented positions from published programmes only. Missing and “no position” entries are never treated as neutral.', sourceTitle: 'Source', sourceOpen: 'Open official source'
         }
@@ -88,9 +88,9 @@
         setText('electionRetry', copy.retry); setText('electionErrorTitle', copy.errorTitle); setText('electionErrorText', copy.errorText);
         setText('electionProgressLabel', copy.progress);
         setText('electionMapTab', copy.tabs[0]); setText('electionNationalTab', copy.tabs[1]); setText('electionCoalitionTab', copy.tabs[2]);
-        setText('electionMapKicker', copy.mapKicker); setText('electionMapTitle', copy.mapTitle); setText('electionMapIntro', copy.mapIntro); setText('electionRegionSelectLabel', copy.mapSelect); setText('electionMapLegend', copy.mapLegend);
-        setText('electionNationalKicker', copy.nationalKicker); setText('electionNationalTitle', copy.nationalTitle); setText('electionNationalIntro', copy.nationalIntro); setText('electionNationalEmpty', copy.noResults);
-        setText('electionCoalitionKicker', copy.coalitionKicker); setText('electionCoalitionTitle', copy.coalitionTitle); setText('electionCoalitionIntro', copy.coalitionIntro); setText('electionCoalitionChoose', copy.coalitionChoose); setText('electionCoalitionSummaryLabel', copy.coalitionSummary); setText('electionCoalitionSeatUnit', copy.coalitionSeats); setText('electionCoalitionEmpty', copy.coalitionNoResults);
+        setText('electionMapKicker', copy.mapKicker); setText('electionMapIntro', copy.mapIntro); setText('electionRegionSelectLabel', copy.mapSelect); setText('electionMapLegend', copy.mapLegend);
+        setText('electionNationalTitle', copy.nationalTitle); setText('electionNationalIntro', copy.nationalIntro); setText('electionNationalEmpty', copy.noResults);
+        setText('electionCoalitionTitle', copy.coalitionTitle); setText('electionCoalitionIntro', copy.coalitionIntro); setText('electionCoalitionChoose', copy.coalitionChoose); setText('electionCoalitionSummaryLabel', copy.coalitionSummary); setText('electionCoalitionSeatUnit', copy.coalitionSeats); setText('electionCoalitionEmpty', copy.coalitionNoResults);
         setText('electionAlignmentLabel', copy.alignment); setText('electionAgreementTitle', copy.agreements); setText('electionTensionTitle', copy.tensions); setText('electionAlignmentNote', copy.method); setText('electionSourceTitle', copy.sourceTitle); setText('electionSourceLink', copy.sourceOpen);
     }
 
@@ -138,12 +138,26 @@
 
     function renderMetrics() {
         const election = snapshot.election;
-        const declaredMetric = locale === 'ar'
-            ? `${number(election.declaredSeats)} من ${number(election.totalSeats)}`
-            : `${number(election.declaredSeats)} / ${number(election.totalSeats)}`;
-        const values = [declaredMetric, election.turnoutPercent == null ? '—' : `${percent(election.turnoutPercent)}%`, number(election.localSeats), number(election.regionalListSeats)];
+        const values = [null, election.turnoutPercent == null ? '—' : `${percent(election.turnoutPercent)}%`, number(election.localSeats), number(election.regionalListSeats)];
         const root = clear('electionMetrics');
-        copy.metrics.forEach((label, index) => root.append(card('article', 'election-metric', [element('span', '', label), element('strong', '', values[index])])))
+        copy.metrics.forEach((label, index) => {
+            const value = index === 0 ? declaredSeatMetric(election) : element('strong', '', values[index]);
+            root.append(card('article', 'election-metric', [element('span', '', label), value]));
+        });
+    }
+
+    function declaredSeatMetric(election) {
+        const value = element('strong');
+        if (locale !== 'ar') {
+            value.textContent = `${number(election.declaredSeats)} / ${number(election.totalSeats)}`;
+            return value;
+        }
+        value.append(
+            element('bdi', '', number(election.declaredSeats)),
+            element('span', 'election-metric-separator', 'من'),
+            element('bdi', '', number(election.totalSeats))
+        );
+        return value;
     }
 
     function renderRegionSelect() {

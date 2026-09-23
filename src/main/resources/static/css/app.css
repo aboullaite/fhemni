@@ -552,6 +552,7 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .election-metric { display: grid; gap: 6px; min-height: 86px; align-content: center; padding: 16px 18px; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--surface); box-shadow: 0 9px 24px rgba(31,57,53,.04); }
 .election-metric span { color: var(--muted); font-size: 10px; font-weight: 750; }
 .election-metric strong { font: 850 22px/1.1 "Tajawal Heading Numerals", "Tajawal", sans-serif; }
+.election-metric .election-metric-separator { padding-inline: 4px; color: var(--muted); font-family: "Tajawal", Tahoma, Arial, sans-serif; font-size: 10px; font-weight: 700; }
 .election-tabs { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; width: min(620px,100%); margin: 0 auto 16px; padding: 4px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,253,247,.72); }
 .election-tabs button { min-height: 38px; padding: 8px 13px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); cursor: pointer; font-family: inherit; font-size: 11px; font-weight: 850; line-height: 1.25; transition: background .16s ease,color .16s ease,box-shadow .16s ease; }
 .election-tabs button[aria-selected="true"] { background: var(--teal-dark); color: white; box-shadow: 0 6px 16px rgba(19,44,43,.14); }
@@ -583,7 +584,7 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .election-tooltip-party .election-party-logo { width: 28px; height: 28px; border-radius: 7px; }
 .election-party-logo-fallback { display: grid; color: var(--party-accent); font-size: 9px; font-weight: 850; place-items: center; }
 .election-region-details { min-height: 520px; padding: 20px; border: 1px solid var(--line); border-radius: var(--radius-panel); background: rgba(207,230,220,.14); }
-.election-region-details h3 { margin: 7px 0 5px; font-size: 20px; font-weight: 750; line-height: 1.35; }
+.election-region-details h3 { margin: 7px 0 5px; font-size: 17px; font-weight: 700; line-height: 1.45; }
 .election-region-seat-total { margin: 0 0 20px; color: var(--muted); font-size: 11px; font-weight: 700; }
 .election-region-parties { display: grid; gap: 7px; }
 .election-region-party { min-height: 55px; padding: 9px 10px; border: 1px solid var(--line); border-inline-start: 4px solid var(--party-accent); border-radius: 12px; background: rgba(255,255,255,.72); font-size: 12px; font-weight: 750; }
