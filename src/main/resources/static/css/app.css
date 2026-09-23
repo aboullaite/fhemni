@@ -634,6 +634,10 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .election-source-note a { color: var(--teal-dark); font-weight: 850; }
 .party-accent-psu { --party-accent: #5aaee6; }.party-accent-pe { --party-accent: #b45182; }.party-accent-pml { --party-accent: #e8c34c; }.party-accent-pvm { --party-accent: #bfcc39; }.party-accent-nd { --party-accent: #6d7486; }.party-accent-pgv { --party-accent: #4e9c60; }.party-accent-pedd { --party-accent: #83af4a; }.party-accent-prv { --party-accent: #ad6d53; }.party-accent-pdn { --party-accent: #8870b6; }.party-accent-alamal { --party-accent: #d9973d; }.party-accent-prd { --party-accent: #648eb5; }.party-accent-umd { --party-accent: #6f9a85; }.party-accent-ind { --party-accent: #687371; }
 
+@media (min-width: 901px) {
+    .election-map-tooltip { inset-inline: auto; left: 18px; }
+}
+
 @media (max-width: 900px) {
     .election-hero { grid-template-columns: 1fr; gap: 22px; }
     .election-progress-card { min-height: 150px; }
