@@ -72,7 +72,10 @@ class NavigationConsistencyTest {
     @Test
     void everyPrimaryNavigationLinksToElectionResults() throws IOException {
         assertThat(html("index.html"))
-                .contains("href=\"/elections/2026\" data-i18n=\"common.electionResults\"");
+                .contains("href=\"/elections/2026\" data-i18n=\"common.electionResults\"")
+                .contains("class=\"primary-button button-link\" href=\"/elections/2026\"")
+                .contains("data-i18n=\"landing.electionResultsCta\"")
+                .contains("/js/i18n.js?v=20260923-1");
         for (String page : SECONDARY_PAGES) {
             assertThat(html(page))
                     .as("election result navigation in %s", page)
