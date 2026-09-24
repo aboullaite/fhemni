@@ -88,6 +88,36 @@ class ElectionResultRepository {
                 .list();
     }
 
+    List<ConstituencyWinnerRow> constituencyWinners(UUID electionId) {
+        return jdbc.sql("""
+                        SELECT constituency.region_code,
+                               winner.party_code,
+                               constituency.code AS constituency_code,
+                               constituency.name_ar,
+                               constituency.name_fr,
+                               constituency.name_en,
+                               constituency.status,
+                               constituency.sort_order AS constituency_sort_order,
+                               winner.candidate_key,
+                               winner.candidate_name,
+                               winner.votes,
+                               winner.sort_order AS winner_sort_order
+                          FROM election_constituency_winners winner
+                          JOIN election_constituencies constituency
+                            ON constituency.election_id = winner.election_id
+                           AND constituency.code = winner.constituency_code
+                         WHERE winner.election_id = :electionId
+                           AND winner.party_code <> 'UNKNOWN'
+                         ORDER BY constituency.region_code,
+                                  winner.party_code,
+                                  constituency.sort_order,
+                                  winner.sort_order
+                        """)
+                .param("electionId", electionId)
+                .query(this::mapConstituencyWinner)
+                .list();
+    }
+
     private ElectionRow mapElection(ResultSet result, int rowNumber) throws SQLException {
         return new ElectionRow(
                 result.getObject("id", UUID.class),
@@ -118,7 +148,7 @@ class ElectionResultRepository {
                 result.getInt("sort_order"),
                 nullableLong(result, "votes"),
                 result.getInt("local_seats"),
-                result.getInt("regional_list_seats"),
+                result.getObject("regional_list_seats", Integer.class),
                 result.getInt("total_seats"));
     }
 
@@ -147,6 +177,22 @@ class ElectionResultRepository {
                 result.getInt("local_seats"),
                 result.getInt("regional_list_seats"),
                 result.getInt("total_seats"));
+    }
+
+    private ConstituencyWinnerRow mapConstituencyWinner(ResultSet result, int rowNumber) throws SQLException {
+        return new ConstituencyWinnerRow(
+                result.getString("region_code"),
+                result.getString("party_code"),
+                result.getString("constituency_code"),
+                result.getString("name_ar"),
+                result.getString("name_fr"),
+                result.getString("name_en"),
+                result.getString("status"),
+                result.getInt("constituency_sort_order"),
+                result.getString("candidate_key"),
+                result.getString("candidate_name"),
+                nullableLong(result, "votes"),
+                result.getInt("winner_sort_order"));
     }
 
     private static Long nullableLong(ResultSet result, String column) throws SQLException {
@@ -192,7 +238,7 @@ class ElectionResultRepository {
             int sortOrder,
             Long votes,
             int localSeats,
-            int regionalListSeats,
+            Integer regionalListSeats,
             int totalSeats) {
     }
 
@@ -219,5 +265,20 @@ class ElectionResultRepository {
             int localSeats,
             int regionalListSeats,
             int totalSeats) {
+    }
+
+    record ConstituencyWinnerRow(
+            String regionCode,
+            String partyCode,
+            String constituencyCode,
+            String constituencyNameAr,
+            String constituencyNameFr,
+            String constituencyNameEn,
+            String status,
+            int constituencySortOrder,
+            String candidateKey,
+            String candidateName,
+            Long votes,
+            int winnerSortOrder) {
     }
 }
