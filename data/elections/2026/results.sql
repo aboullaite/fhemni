@@ -809,9 +809,14 @@ BEGIN
             ON national.election_id = winner.election_id
            AND national.party_code = winner.party_code
          WHERE winner.election_id = '20260000-0000-4000-8000-000000000001'
-           AND national.regional_list_seats IS NOT NULL
-         GROUP BY winner.party_code, national.regional_list_seats
-        HAVING COUNT(*) > national.regional_list_seats
+         GROUP BY winner.party_code,
+                  national.regional_list_seats,
+                  national.local_seats,
+                  national.total_seats
+        HAVING COUNT(*) > COALESCE(
+            national.regional_list_seats,
+            national.total_seats - national.local_seats
+        )
     ) THEN
         RAISE EXCEPTION 'Named regional-list winners exceed a national party regional-list seat total';
     END IF;
