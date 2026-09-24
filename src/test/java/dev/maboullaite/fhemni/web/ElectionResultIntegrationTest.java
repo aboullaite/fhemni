@@ -196,7 +196,7 @@ class ElectionResultIntegrationTest {
     }
 
     @Test
-    void preservesCompletePartyTotalsWhenTheLocalRegionalSplitIsNotPublished() throws Exception {
+    void usesVerifiedRegionalRowsWhenTheCompleteNationalSplitIsNotPublished() throws Exception {
         jdbc.sql("""
                         UPDATE election_party_results
                            SET regional_list_seats = NULL,
@@ -214,7 +214,7 @@ class ElectionResultIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.election.declaredSeats").value(217))
                 .andExpect(jsonPath("$.election.localSeats").value(156))
-                .andExpect(jsonPath("$.election.regionalListSeats").doesNotExist())
+                .andExpect(jsonPath("$.election.regionalListSeats").value(3))
                 .andExpect(jsonPath("$.parties[0].totalSeats").value(97))
                 .andExpect(jsonPath("$.parties[0].regionalListSeats").doesNotExist());
     }
