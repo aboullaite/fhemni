@@ -6,6 +6,7 @@
     const REQUEST_TIMEOUT_MS = 10_000;
     const MAX_POLL_BACKOFF_MS = 5 * 60_000;
     const COALITION_DEBOUNCE_MS = 250;
+    const MAX_COALITION_PARTIES = 5;
     const PARTY_CLASSES = new Set(['rni', 'pam', 'pi', 'pjd', 'usfp', 'pps', 'mp', 'fgd', 'uc', 'ffd', 'mds', 'pud', 'psu', 'pe', 'pml', 'pvm', 'nd', 'pgv', 'pedd', 'prv', 'pdn', 'alamal', 'prd', 'umd', 'ind']);
     const COPY = {
         ar: {
@@ -19,7 +20,7 @@
             mapTitle: 'النتائج حسب الجهات', mapIntro: 'دوز فوق أي جهة، ولا اختارها، باش تشوف الأحزاب والمقاعد المعلنة فيها.', mapSelect: 'اختار الجهة', mapLegend: 'لون محايد: الخريطة ما كتنسبش الجهة لحزب واحد.',
             regionStatus: { PENDING: 'في انتظار النتائج', PARTIAL: 'نتائج جزئية', FINAL: 'نتائج نهائية' }, regionPending: 'النتائج مازال ما تعلناتش فهاد الجهة.', regionSeats: '{count} مقعد معلن', regionAllocated: '{count} مقعد مخصص', seats: 'مقاعد', seat: 'مقعد', winner: 'الفائز', constituency: 'الدائرة الانتخابية',
             nationalTitle: 'توزيع المقاعد على الأحزاب', nationalIntro: 'الأحزاب مرتبة حسب عدد المقاعد المعلنة. ما كنعلنوش على أغلبية هنا؛ جرّب التحالفات فالأداة.', noResults: 'مازال ما كاين حتى مقعد معلن. هاد الصفحة غادي تتحدّث مباشرة ملي تدخل النتائج الرسمية.', votes: '{count} صوت', voteShare: '{percent}% من الأصوات',
-            coalitionTitle: 'كوّن الأغلبية ديالك', coalitionIntro: 'اختار الأحزاب وشوف واش وصلو لـ198 مقعد، وشنو مستوى التقارب بين برامجهم المنشورة.', coalitionChoose: 'اختار الأحزاب', coalitionSummary: 'التحالف ديالك', coalitionSeats: 'مقعد من 395', coalitionNeed: 'خاصك {count} مقعد آخر باش توصل للأغلبية.', coalitionWon: 'وصلتي للأغلبية بـ{count} مقعد زيادة.', coalitionStart: 'اختار جوج أحزاب على الأقل باش نحسبو التقارب.', coalitionNoResults: 'الأداة غادي تولّي متاحة ملي تتعلن المقاعد.',
+            coalitionTitle: 'كوّن الأغلبية ديالك', coalitionIntro: 'الحزب المتصدر ثابت. زيد حتى لـ4 أحزاب وشوف واش توصل للأغلبية، وشنو مستوى التقارب بين البرامج.', coalitionLeader: 'الحزب المتصدر', coalitionSummary: 'التحالف ديالك', coalitionSeats: 'مقعد من 395', coalitionNeed: 'خاصك {count} مقعد آخر باش توصل للأغلبية.', coalitionWon: 'وصلتي للأغلبية بـ{count} مقعد زيادة.', coalitionStart: 'زيد حزب آخر على الأقل باش نحسبو التقارب.', coalitionNoResults: 'الأداة غادي تولّي متاحة ملي تتعلن المقاعد.',
             alignment: 'التقارب البرنامجي', alignmentStrong: 'تقارب قوي', alignmentMedium: 'تقارب متوسط', alignmentWeak: 'تقارب ضعيف', alignmentLoading: 'كنحسبو التقارب…', alignmentMissing: 'المعطيات المنشورة ما كافياش باش نعطيو نقطة عادلة.', coverage: 'التغطية {percent}% · {questions} أسئلة قابلة للمقارنة', agreements: 'أقوى نقاط الالتقاء', tensions: 'أبرز نقاط الاختلاف', none: 'ما كايناش نقطة بارزة',
             method: 'نقطة التقارب كتستعمل غير المواقف الموثقة من البرامج المنشورة. المواقف الناقصة ولا «ما كاينش موقف» ما كتتحسبش كموقف محايد.', sourceTitle: 'المصدر', sourceOpen: 'شوف المصدر الرسمي'
         },
@@ -34,7 +35,7 @@
             mapTitle: 'Résultats régionaux', mapIntro: 'Survolez, ciblez ou touchez une région pour voir tous les partis et sièges déclarés.', mapSelect: 'Choisir une région', mapLegend: 'Couleur neutre : une région peut compter plusieurs partis.',
             regionStatus: { PENDING: 'En attente', PARTIAL: 'Résultats partiels', FINAL: 'Résultats définitifs' }, regionPending: 'Aucun résultat n’a encore été publié pour cette région.', regionSeats: '{count} sièges déclarés', regionAllocated: '{count} sièges attribués', seats: 'sièges', seat: 'siège', winner: 'Élu', constituency: 'Circonscription',
             nationalTitle: 'Répartition des sièges par parti', nationalIntro: 'Les partis sont classés par sièges déclarés. La majorité est explorée séparément dans le simulateur.', noResults: 'Aucun siège n’a encore été déclaré. La page se mettra à jour dès l’ajout des résultats officiels.', votes: '{count} voix', voteShare: '{percent}% des voix',
-            coalitionTitle: 'Composez votre majorité', coalitionIntro: 'Choisissez des partis, atteignez 198 sièges et consultez leur proximité sur la base des programmes publiés.', coalitionChoose: 'Choisissez les partis', coalitionSummary: 'Votre coalition', coalitionSeats: 'sièges sur 395', coalitionNeed: 'Il manque {count} sièges pour obtenir la majorité.', coalitionWon: 'Majorité atteinte avec {count} sièges d’avance.', coalitionStart: 'Choisissez au moins deux partis pour calculer leur proximité.', coalitionNoResults: 'Le simulateur sera disponible dès la publication des sièges.',
+            coalitionTitle: 'Composez votre majorité', coalitionIntro: 'Le parti arrivé en tête est fixé. Ajoutez jusqu’à 4 partis, atteignez 198 sièges et consultez la proximité de leurs programmes.', coalitionLeader: 'Parti arrivé en tête', coalitionSummary: 'Votre coalition', coalitionSeats: 'sièges sur 395', coalitionNeed: 'Il manque {count} sièges pour obtenir la majorité.', coalitionWon: 'Majorité atteinte avec {count} sièges d’avance.', coalitionStart: 'Ajoutez au moins un autre parti pour calculer leur proximité.', coalitionNoResults: 'Le simulateur sera disponible dès la publication des sièges.',
             alignment: 'Proximité programmatique', alignmentStrong: 'Forte proximité', alignmentMedium: 'Proximité moyenne', alignmentWeak: 'Faible proximité', alignmentLoading: 'Calcul de la proximité…', alignmentMissing: 'Les données publiées ne suffisent pas pour fournir un score honnête.', coverage: 'Couverture {percent}% · {questions} questions comparables', agreements: 'Principaux points d’accord', tensions: 'Principaux points de tension', none: 'Aucun thème saillant',
             method: 'Le score utilise uniquement les positions documentées dans les programmes publiés. Une position absente ou non définie n’est jamais traitée comme neutre.', sourceTitle: 'Source', sourceOpen: 'Ouvrir la source officielle'
         },
@@ -49,7 +50,7 @@
             mapTitle: 'Regional results', mapIntro: 'Hover, focus or tap a region to see every party and declared seat.', mapSelect: 'Choose a region', mapLegend: 'Neutral colour: each region can contain several parties.',
             regionStatus: { PENDING: 'Awaiting results', PARTIAL: 'Partial results', FINAL: 'Final results' }, regionPending: 'No results have been published for this region yet.', regionSeats: '{count} seats declared', regionAllocated: '{count} seats allocated', seats: 'seats', seat: 'seat', winner: 'Winner', constituency: 'Constituency',
             nationalTitle: 'Seats by party', nationalIntro: 'Parties are ranked by declared seats. Majority-building is explored separately in the coalition tool.', noResults: 'No seats have been declared yet. This page will update when official results are entered.', votes: '{count} votes', voteShare: '{percent}% of votes',
-            coalitionTitle: 'Build your majority', coalitionIntro: 'Select parties, reach 198 seats, and see how closely their published programmes align.', coalitionChoose: 'Choose parties', coalitionSummary: 'Your coalition', coalitionSeats: 'seats out of 395', coalitionNeed: '{count} more seats needed for a majority.', coalitionWon: 'Majority reached with {count} seats to spare.', coalitionStart: 'Choose at least two parties to calculate programme alignment.', coalitionNoResults: 'The builder will be available once seats are published.',
+            coalitionTitle: 'Build your majority', coalitionIntro: 'The leading party is fixed. Add up to 4 parties, reach 198 seats, and see how closely their published programmes align.', coalitionLeader: 'Leading party', coalitionSummary: 'Your coalition', coalitionSeats: 'seats out of 395', coalitionNeed: '{count} more seats needed for a majority.', coalitionWon: 'Majority reached with {count} seats to spare.', coalitionStart: 'Add at least one other party to calculate programme alignment.', coalitionNoResults: 'The builder will be available once seats are published.',
             alignment: 'Programme alignment', alignmentStrong: 'Strong alignment', alignmentMedium: 'Medium alignment', alignmentWeak: 'Weak alignment', alignmentLoading: 'Calculating alignment…', alignmentMissing: 'The published data is not sufficient for an honest score.', coverage: '{percent}% coverage · {questions} comparable questions', agreements: 'Strongest common ground', tensions: 'Main tensions', none: 'No standout theme',
             method: 'Alignment uses documented positions from published programmes only. Missing and “no position” entries are never treated as neutral.', sourceTitle: 'Source', sourceOpen: 'Open official source'
         }
@@ -68,6 +69,7 @@
     let resultRequestInFlight = false;
     let resultAbortController;
     let pendingManualRetry = false;
+    let pendingFreshReload = false;
 
     const byId = id => document.getElementById(id);
     const format = (template, values) => Object.entries(values).reduce((text, entry) => text.replaceAll(`{${entry[0]}}`, entry[1]), template);
@@ -87,6 +89,7 @@
         byId('electionRegionSelect').addEventListener('change', event => selectRegion(event.target.value, true));
         load();
         document.addEventListener('visibilitychange', handleVisibilityChange);
+        document.addEventListener('fhemni:localechange', handleLocaleChange);
     }
 
     function applyCopy() {
@@ -100,7 +103,7 @@
         setText('electionMapTab', copy.tabs[0]); setText('electionNationalTab', copy.tabs[1]); setText('electionCoalitionTab', copy.tabs[2]);
         setText('electionMapTitle', copy.mapTitle); setText('electionMapIntro', copy.mapIntro); setText('electionRegionSelectLabel', copy.mapSelect); setText('electionMapLegend', copy.mapLegend);
         setText('electionNationalTitle', copy.nationalTitle); setText('electionNationalIntro', copy.nationalIntro); setText('electionNationalEmpty', copy.noResults);
-        setText('electionCoalitionTitle', copy.coalitionTitle); setText('electionCoalitionIntro', copy.coalitionIntro); setText('electionCoalitionChoose', copy.coalitionChoose); setText('electionCoalitionSummaryLabel', copy.coalitionSummary); setText('electionCoalitionSeatUnit', copy.coalitionSeats); setText('electionCoalitionEmpty', copy.coalitionNoResults);
+        setText('electionCoalitionTitle', copy.coalitionTitle); setText('electionCoalitionIntro', copy.coalitionIntro); setText('electionCoalitionSummaryLabel', copy.coalitionSummary); setText('electionCoalitionSeatUnit', copy.coalitionSeats); setText('electionCoalitionEmpty', copy.coalitionNoResults);
         setText('electionAlignmentLabel', copy.alignment); setText('electionAgreementTitle', copy.agreements); setText('electionTensionTitle', copy.tensions); setText('electionAlignmentNote', copy.method); setText('electionSourceTitle', copy.sourceTitle); setText('electionSourceLink', copy.sourceOpen);
     }
 
@@ -108,6 +111,7 @@
         if (resultRequestInFlight) {
             if (!options.poll) {
                 pendingManualRetry = true;
+                pendingFreshReload ||= Boolean(options.fresh);
                 resultAbortController?.abort();
             }
             return;
@@ -120,6 +124,7 @@
         try {
             const response = await fetch(`${RESULT_URL}?lang=${encodeURIComponent(locale)}`, {
                 headers: { Accept: 'application/json' },
+                cache: options.fresh ? 'no-store' : 'default',
                 signal: controller.signal
             });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -144,8 +149,10 @@
             resultRequestInFlight = false;
             resultAbortController = undefined;
             if (pendingManualRetry) {
+                const fresh = pendingFreshReload;
                 pendingManualRetry = false;
-                load();
+                pendingFreshReload = false;
+                load({ fresh });
             } else {
                 schedulePoll(nextPollDelay());
             }
@@ -171,6 +178,22 @@
     function handleVisibilityChange() {
         window.clearTimeout(pollTimer);
         if (!document.hidden) load({ poll: true });
+    }
+
+    function handleLocaleChange(event) {
+        const nextLocale = event.detail?.locale || window.FhemniI18n?.locale() || 'ar';
+        if (!COPY[nextLocale] || nextLocale === locale) return;
+        locale = nextLocale;
+        copy = COPY[locale];
+        applyCopy();
+        hideTooltip();
+        window.clearTimeout(pollTimer);
+        window.clearTimeout(coalitionTimer);
+        coalitionAbortController?.abort();
+        coalitionRequest++;
+        byId('electionAlignment').hidden = true;
+        load({ fresh: true });
+        scheduleCoalitionEvaluation();
     }
 
     function render() {
@@ -320,34 +343,72 @@
         byId('electionCoalitionEmpty').hidden = hasResults;
         byId('electionCoalitionBuilder').hidden = !hasResults;
         if (!hasResults) return;
-        selectedPartyCodes = new Set([...selectedPartyCodes].filter(code => snapshot.parties.some(party => party.code === code)));
+        const previousSelection = selectedPartyCodes;
+        const leaderCode = leadingPartyCode();
+        const availableCodes = new Set(snapshot.parties.filter(party => party.totalSeats > 0).map(party => party.code));
+        const retainedCodes = [...selectedPartyCodes].filter(code => code !== leaderCode && availableCodes.has(code));
+        const nextSelection = new Set([...(leaderCode ? [leaderCode] : []), ...retainedCodes.slice(0, MAX_COALITION_PARTIES - (leaderCode ? 1 : 0))]);
+        const selectionChanged = previousSelection.size !== nextSelection.size
+            || [...previousSelection].some(code => !nextSelection.has(code));
+        selectedPartyCodes = nextSelection;
         const root = clear('electionCoalitionParties');
         snapshot.parties.filter(party => party.totalSeats > 0).forEach(party => {
             const button = element('button', `election-coalition-party ${partyClass(party.code)}`);
             button.type = 'button'; button.dataset.partyCode = party.code;
-            button.setAttribute('aria-pressed', String(selectedPartyCodes.has(party.code)));
-            button.append(logo(party), element('span', '', party.name), element('strong', '', number(party.totalSeats)));
+            const identity = element('span', 'election-coalition-party-name', party.name);
+            if (party.code === leaderCode) identity.append(element('small', 'election-coalition-lock', copy.coalitionLeader));
+            button.append(logo(party), identity, element('strong', '', number(party.totalSeats)));
             button.addEventListener('click', () => toggleParty(party.code));
             root.append(button);
         });
+        syncCoalitionPartyButtons();
         renderCoalitionSummary();
+        if (selectionChanged) scheduleCoalitionEvaluation();
     }
 
     function toggleParty(code) {
+        if (code === leadingPartyCode()) return;
         if (selectedPartyCodes.has(code)) selectedPartyCodes.delete(code); else selectedPartyCodes.add(code);
-        byId('electionCoalitionParties').querySelector(`[data-party-code="${code}"]`)?.setAttribute('aria-pressed', String(selectedPartyCodes.has(code)));
+        if (selectedPartyCodes.size > MAX_COALITION_PARTIES) {
+            selectedPartyCodes.delete(code);
+            return;
+        }
+        syncCoalitionPartyButtons();
         renderCoalitionSummary();
         scheduleCoalitionEvaluation();
         track('election_coalition_changed', { election_year: 2026, selected_party_count: selectedPartyCodes.size });
     }
 
+    function leadingPartyCode() {
+        const parties = snapshot?.parties?.filter(party => party.totalSeats > 0) || [];
+        const maximumSeats = Math.max(...parties.map(party => party.totalSeats), 0);
+        const leaders = parties.filter(party => party.totalSeats === maximumSeats);
+        return leaders.length === 1 ? leaders[0].code : undefined;
+    }
+
+    function syncCoalitionPartyButtons() {
+        const leaderCode = leadingPartyCode();
+        const selectionFull = selectedPartyCodes.size >= MAX_COALITION_PARTIES;
+        byId('electionCoalitionParties').querySelectorAll('[data-party-code]').forEach(button => {
+            const selected = selectedPartyCodes.has(button.dataset.partyCode);
+            const locked = button.dataset.partyCode === leaderCode;
+            const unavailable = selectionFull && !selected;
+            button.setAttribute('aria-pressed', String(selected));
+            button.setAttribute('aria-disabled', String(locked || unavailable));
+            button.classList.toggle('is-locked', locked);
+            button.classList.toggle('is-unavailable', unavailable);
+        });
+    }
+
     function scheduleCoalitionEvaluation() {
         window.clearTimeout(coalitionTimer);
+        coalitionRequest++;
         coalitionAbortController?.abort();
         if (selectedPartyCodes.size < 2) {
-            coalitionRequest++;
             return;
         }
+        byId('electionAlignment').hidden = true;
+        setText('electionAlignmentNote', copy.alignmentLoading);
         coalitionTimer = window.setTimeout(evaluateCoalition, COALITION_DEBOUNCE_MS);
     }
 
@@ -366,19 +427,30 @@
     async function evaluateCoalition() {
         const requestId = ++coalitionRequest;
         if (selectedPartyCodes.size < 2) return;
-        coalitionAbortController = new AbortController();
+        const controller = new AbortController();
+        coalitionAbortController = controller;
+        let timedOut = false;
+        const timeout = window.setTimeout(() => {
+            timedOut = true;
+            controller.abort();
+        }, REQUEST_TIMEOUT_MS);
+        byId('electionAlignment').hidden = true;
         setText('electionAlignmentNote', copy.alignmentLoading);
         try {
             const options = await window.FhemniAuth.withCsrf({ method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ language: locale, partyCodes: [...selectedPartyCodes] }) });
-            const response = await fetch(COALITION_URL, { ...options, signal: coalitionAbortController.signal });
+            if (requestId !== coalitionRequest || controller.signal.aborted) return;
+            const response = await fetch(COALITION_URL, { ...options, signal: controller.signal });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const evaluation = await response.json();
             if (requestId !== coalitionRequest) return;
             renderAlignment(evaluation.alignment);
         } catch (error) {
-            if (error.name === 'AbortError') return;
+            if (error.name === 'AbortError' && !timedOut) return;
             if (requestId === coalitionRequest) { byId('electionAlignment').hidden = true; setText('electionAlignmentNote', copy.alignmentMissing); }
             console.error('Coalition alignment could not be calculated.', error);
+        } finally {
+            window.clearTimeout(timeout);
+            if (coalitionAbortController === controller) coalitionAbortController = undefined;
         }
     }
 

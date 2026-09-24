@@ -12,6 +12,8 @@ public record PoliticalParty(
         String code,
         String nameFr,
         String nameAr,
+        String catalogueNameFr,
+        String catalogueNameAr,
         String color,
         String symbolLabelFr,
         String symbolLabelAr,
@@ -21,6 +23,7 @@ public record PoliticalParty(
         boolean visible) {
 
     PoliticalParty(String code, String nameFr, String nameAr, String color, boolean visible) {
-        this(code, nameFr, nameAr, color, code, code, "/assets/parties/party.svg", false, code, visible);
+        this(code, nameFr, nameAr, nameFr, nameAr, color, code, code,
+                "/assets/parties/party.svg", false, code, visible);
     }
 }

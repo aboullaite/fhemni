@@ -128,7 +128,7 @@ public class CivicPartyPositionService {
                 .filter(partyLookup::containsKey)
                 .map(code -> {
                     PoliticalParty party = partyLookup.get(code);
-                    String name = language.equals("ar") ? party.nameAr() : party.nameFr();
+                    String name = language.equals("ar") ? party.catalogueNameAr() : party.catalogueNameFr();
                     return new PartyColumn(code, name, party.color(), party.symbolAsset());
                 })
                 .toList();

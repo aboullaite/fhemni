@@ -116,6 +116,35 @@ class ElectionResultIntegrationTest {
     }
 
     @Test
+    void usesTheOfficialElectionAllianceNameForTheFgdCanonicalCode() throws Exception {
+        insertNational("FGD", 0, 0, 0);
+        insertRegional("casablanca-settat", "FGD", 0, 0);
+        jdbc.sql("""
+                        UPDATE election_party_display_names
+                           SET name_en = 'Left Alliance'
+                         WHERE election_id = :electionId AND party_code = 'FGD'
+                        """)
+                .param("electionId", ELECTION_ID)
+                .update();
+
+        mvc.perform(get("/api/catalog/elections/2026/results").param("lang", "ar"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.parties[3].code").value("FGD"))
+                .andExpect(jsonPath("$.parties[3].name").value("تحالف اليسار"))
+                .andExpect(jsonPath("$.regions[5].parties[3].name").value("تحالف اليسار"));
+
+        mvc.perform(get("/api/catalog/elections/2026/results").param("lang", "fr"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.parties[3].name").value("Alliance de la Gauche"))
+                .andExpect(jsonPath("$.regions[5].parties[3].name").value("Alliance de la Gauche"));
+
+        mvc.perform(get("/api/catalog/elections/2026/results").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.parties[3].name").value("Left Alliance"))
+                .andExpect(jsonPath("$.regions[5].parties[3].name").value("Left Alliance"));
+    }
+
+    @Test
     void servesAnExplicitOfficialTurnoutWithoutInventingVoterCounts() throws Exception {
         jdbc.sql("""
                         UPDATE elections
@@ -144,7 +173,7 @@ class ElectionResultIntegrationTest {
                 .andExpect(content().string(containsString("id=\"electionMapPanel\"")))
                 .andExpect(content().string(containsString("id=\"electionNationalPanel\"")))
                 .andExpect(content().string(containsString("id=\"electionCoalitionPanel\"")))
-                .andExpect(content().string(containsString("/js/election-results.js?v=20260924-8")));
+                .andExpect(content().string(containsString("/js/election-results.js?v=20260924-14")));
     }
 
     @Test
@@ -187,6 +216,25 @@ class ElectionResultIntegrationTest {
                 .andExpect(jsonPath("$.seatsAboveMajority").value(2))
                 .andExpect(jsonPath("$.alignment.status").exists());
         verify(coalitionRateLimiter).check(anyString());
+    }
+
+    @Test
+    void requiresTheLeadingPartyAndCapsGovernmentCoalitionsAtFiveParties() throws Exception {
+        mvc.perform(post("/api/catalog/elections/2026/coalitions/evaluate")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"language":"en","partyCodes":["PAM","PJD"]}
+                                """))
+                .andExpect(status().isBadRequest());
+
+        mvc.perform(post("/api/catalog/elections/2026/coalitions/evaluate")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"language":"en","partyCodes":["RNI","PAM","PJD","PI","MP","UC"]}
+                                """))
+                .andExpect(status().isBadRequest());
     }
 
     @Test

@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class CoalitionEvaluationService {
 
-    private static final int MAXIMUM_PARTIES = 40;
+    private static final int MAXIMUM_PARTIES = 5;
 
     private final ElectionResultService elections;
     private final CivicCoalitionAlignmentService alignments;
@@ -52,6 +52,14 @@ public class CoalitionEvaluationService {
         Map<String, Integer> seatsByParty = result.seatsByParty();
         if (!seatsByParty.keySet().containsAll(uniqueCodes)) {
             throw new IllegalArgumentException("Select only parties included in this election result.");
+        }
+        int leadingSeats = seatsByParty.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+        List<String> leadingPartyCodes = seatsByParty.entrySet().stream()
+                .filter(entry -> entry.getValue() == leadingSeats)
+                .map(Map.Entry::getKey)
+                .toList();
+        if (leadingPartyCodes.size() == 1 && !uniqueCodes.contains(leadingPartyCodes.getFirst())) {
+            throw new IllegalArgumentException("A government coalition must include the leading party.");
         }
 
         int selectedSeats = uniqueCodes.stream()

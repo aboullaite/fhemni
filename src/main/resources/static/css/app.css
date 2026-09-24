@@ -617,9 +617,13 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .election-coalition-layout h3, .election-alignment h3 { margin: 0 0 13px; font-size: 14px; font-weight: 850; }
 .election-coalition-parties { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
 .election-coalition-party { display: grid; grid-template-columns: 42px minmax(0,1fr) auto; align-items: center; gap: 10px; min-height: 62px; padding: 9px 12px; border: 1px solid var(--line); border-radius: var(--radius-control); background: rgba(255,255,255,.65); color: var(--ink); cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 750; line-height: 1.35; text-align: start; transition: border-color .16s ease,background .16s ease,box-shadow .16s ease,transform .16s ease; }
-.election-coalition-party:hover { border-color: var(--party-accent); transform: translateY(-1px); }
+.election-coalition-party:hover:not([aria-disabled="true"]) { border-color: var(--party-accent); transform: translateY(-1px); }
 .election-coalition-party[aria-pressed="true"] { border-color: var(--party-accent); background: color-mix(in srgb,var(--party-accent) 9%,white); box-shadow: inset 5px 0 0 var(--party-accent); }
 [dir="rtl"] .election-coalition-party[aria-pressed="true"] { box-shadow: inset -5px 0 0 var(--party-accent); }
+.election-coalition-party-name { display: grid; gap: 2px; min-width: 0; }
+.election-coalition-lock { color: var(--muted); font-size: 9px; font-weight: 700; }
+.election-coalition-party.is-locked { cursor: default; }
+.election-coalition-party.is-unavailable { cursor: not-allowed; opacity: .42; }
 .election-coalition-party strong { color: var(--party-accent); font: 900 17px/1 "Tajawal Heading Numerals","Tajawal",sans-serif; }
 .election-coalition-summary { position: sticky; top: 22px; display: grid; min-height: 240px; align-content: center; gap: 10px; padding: 22px; border-radius: var(--radius-panel); background: var(--teal-dark); color: white; box-shadow: 0 14px 36px rgba(11,79,73,.16); }
 .election-coalition-summary .section-kicker { color: rgba(255,255,255,.68); }

@@ -187,7 +187,7 @@ public class PersonCatalogService {
                             .findFirst()
                             .orElse(null);
             result.add(new PartySummary(
-                    party.code(), party.nameFr(), party.nameAr(), party.color(),
+                    party.code(), party.catalogueNameFr(), party.catalogueNameAr(), party.color(),
                     party.symbolLabelFr(), party.symbolLabelAr(), party.symbolAsset(), party.symbolVerified(),
                     memberPartyCodes.stream().sorted().toList(), programmePartyCode,
                     members.size(), appearances, claims));
@@ -236,7 +236,7 @@ public class PersonCatalogService {
                         .findFirst()
                         .orElse(null);
         return new PartyProfile(
-                party.code(), party.nameFr(), party.nameAr(), party.color(),
+                party.code(), party.catalogueNameFr(), party.catalogueNameAr(), party.color(),
                 party.symbolLabelFr(), party.symbolLabelAr(), party.symbolAsset(), party.symbolVerified(),
                 memberPartyCodes.stream().sorted().toList(), programmePartyCode,
                 members.size(), appearances, claims, partyEpisodes);

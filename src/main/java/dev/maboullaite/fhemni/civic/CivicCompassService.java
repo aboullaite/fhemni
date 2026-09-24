@@ -97,7 +97,7 @@ public class CivicCompassService {
                     .filter(p -> answeredKeys.contains(p.questionKey()) && p.stance() != PartyPositionStance.NO_POSITION)
                     .count();
 
-            String name = language.equals("ar") ? party.nameAr() : party.nameFr();
+            String name = language.equals("ar") ? party.catalogueNameAr() : party.catalogueNameFr();
             matches.add(new PartyMatch(
                     partyCode, name, party.color(), party.symbolAsset(),
                     compatibility, coveredCount, answers.size(),

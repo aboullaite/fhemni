@@ -137,6 +137,8 @@ class PublicPeopleIntegrationTest {
 
         mvc.perform(get("/api/catalog/parties/FGD"))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nameAr").value("تحالف اليسار"))
+                .andExpect(jsonPath("$.nameFr").value("Alliance de la Gauche"))
                 .andExpect(jsonPath("$.memberPartyCodes", hasItem("FGD")))
                 .andExpect(jsonPath("$.memberPartyCodes", hasItem("PSU")))
                 .andExpect(jsonPath("$.members").value(2))
@@ -144,7 +146,16 @@ class PublicPeopleIntegrationTest {
 
         mvc.perform(get("/api/catalog/parties/PSU"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value("FGD"));
+                .andExpect(jsonPath("$.code").value("FGD"))
+                .andExpect(jsonPath("$.nameAr").value("تحالف اليسار"))
+                .andExpect(jsonPath("$.nameFr").value("Alliance de la Gauche"));
+
+        mvc.perform(get("/api/catalog/people/nabila-mounib"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.person.partyCode").value("PSU"))
+                .andExpect(jsonPath("$.person.partyCatalogueCode").value("FGD"))
+                .andExpect(jsonPath("$.person.partyNameAr").value("الحزب الاشتراكي الموحد"))
+                .andExpect(jsonPath("$.person.partyNameFr").value("Parti Socialiste Unifié"));
 
         mvc.perform(get("/api/catalog/people").param("party", "FGD"))
                 .andExpect(status().isOk())
