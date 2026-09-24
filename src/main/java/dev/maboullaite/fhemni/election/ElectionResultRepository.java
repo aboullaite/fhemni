@@ -130,6 +130,21 @@ class ElectionResultRepository {
                 .list();
     }
 
+    List<RegionalListWinnerRow> regionalListWinners(UUID electionId) {
+        return jdbc.sql("""
+                        SELECT region_code, party_code, candidate_key, candidate_name,
+                               result_status, source_label, source_url,
+                               source_updated_at, sort_order
+                          FROM election_regional_list_winners
+                         WHERE election_id = :electionId
+                           AND party_code <> 'UNKNOWN'
+                         ORDER BY region_code, party_code, sort_order, candidate_key
+                        """)
+                .param("electionId", electionId)
+                .query(this::mapRegionalListWinner)
+                .list();
+    }
+
     private ElectionRow mapElection(ResultSet result, int rowNumber) throws SQLException {
         return new ElectionRow(
                 result.getObject("id", UUID.class),
@@ -207,6 +222,19 @@ class ElectionResultRepository {
                 result.getString("candidate_name"),
                 nullableLong(result, "votes"),
                 result.getInt("winner_sort_order"));
+    }
+
+    private RegionalListWinnerRow mapRegionalListWinner(ResultSet result, int rowNumber) throws SQLException {
+        return new RegionalListWinnerRow(
+                result.getString("region_code"),
+                result.getString("party_code"),
+                result.getString("candidate_key"),
+                result.getString("candidate_name"),
+                result.getString("result_status"),
+                result.getString("source_label"),
+                result.getString("source_url"),
+                instant(result, "source_updated_at"),
+                result.getInt("sort_order"));
     }
 
     private static Long nullableLong(ResultSet result, String column) throws SQLException {
@@ -296,5 +324,17 @@ class ElectionResultRepository {
             String candidateName,
             Long votes,
             int winnerSortOrder) {
+    }
+
+    record RegionalListWinnerRow(
+            String regionCode,
+            String partyCode,
+            String candidateKey,
+            String candidateName,
+            String resultStatus,
+            String sourceLabel,
+            String sourceUrl,
+            Instant sourceUpdatedAt,
+            int sortOrder) {
     }
 }

@@ -50,6 +50,8 @@ class ElectionResultIntegrationTest {
     @BeforeEach
     void loadSyntheticResultSnapshot() {
         reset(coalitionRateLimiter);
+        jdbc.sql("DELETE FROM election_regional_list_winners WHERE election_id = :electionId")
+                .param("electionId", ELECTION_ID).update();
         jdbc.sql("DELETE FROM election_constituency_winners WHERE election_id = :electionId")
                 .param("electionId", ELECTION_ID).update();
         jdbc.sql("DELETE FROM election_constituencies WHERE election_id = :electionId")
@@ -90,6 +92,14 @@ class ElectionResultIntegrationTest {
                 "مديونة",
                 "Médiouna");
         insertWinner("mediouna", "amine-nokta", "Amine Nokta", "RNI", 12_345);
+        insertRegionalListWinner(
+                "casablanca-settat",
+                "regional-candidate",
+                "Regional Candidate",
+                "RNI",
+                "PRELIMINARY",
+                "Synthetic newsroom",
+                "https://example.test/regional-results");
     }
 
     @Test
@@ -112,7 +122,16 @@ class ElectionResultIntegrationTest {
                         .value("مديونة"))
                 .andExpect(jsonPath("$.regions[5].parties[0].winners[0].candidateName")
                         .value("Amine Nokta"))
-                .andExpect(jsonPath("$.regions[5].parties[0].winners[0].votes").value(12_345));
+                .andExpect(jsonPath("$.regions[5].parties[0].winners[0].votes").value(12_345))
+                .andExpect(jsonPath("$.regions[5].parties[0].regionalListWinners", hasSize(1)))
+                .andExpect(jsonPath("$.regions[5].parties[0].regionalListWinners[0].candidateName")
+                        .value("Regional Candidate"))
+                .andExpect(jsonPath("$.regions[5].parties[0].regionalListWinners[0].status")
+                        .value("PRELIMINARY"))
+                .andExpect(jsonPath("$.regions[5].parties[0].regionalListWinners[0].sourceLabel")
+                        .value("Synthetic newsroom"))
+                .andExpect(jsonPath("$.regions[5].parties[0].regionalListWinners[0].sourceUrl")
+                        .value("https://example.test/regional-results"));
     }
 
     @Test
@@ -173,11 +192,11 @@ class ElectionResultIntegrationTest {
                 .andExpect(content().string(containsString("id=\"electionMapPanel\"")))
                 .andExpect(content().string(containsString("id=\"electionNationalPanel\"")))
                 .andExpect(content().string(containsString("id=\"electionCoalitionPanel\"")))
-                .andExpect(content().string(containsString("/js/election-results.js?v=20260924-14")));
+                .andExpect(content().string(containsString("/js/election-results.js?v=20260924-15")));
     }
 
     @Test
-    void preservesCompletePartyTotalsWhenTheLocalRegionalSplitIsNotPublished() throws Exception {
+    void usesVerifiedRegionalRowsWhenTheCompleteNationalSplitIsNotPublished() throws Exception {
         jdbc.sql("""
                         UPDATE election_party_results
                            SET regional_list_seats = NULL,
@@ -195,9 +214,27 @@ class ElectionResultIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.election.declaredSeats").value(217))
                 .andExpect(jsonPath("$.election.localSeats").value(156))
-                .andExpect(jsonPath("$.election.regionalListSeats").doesNotExist())
+                .andExpect(jsonPath("$.election.regionalListSeats").value(3))
                 .andExpect(jsonPath("$.parties[0].totalSeats").value(97))
                 .andExpect(jsonPath("$.parties[0].regionalListSeats").doesNotExist());
+    }
+
+    @Test
+    void combinesKnownNationalSplitsWithRegionalFallbacksPerParty() throws Exception {
+        jdbc.sql("""
+                        UPDATE election_party_results
+                           SET regional_list_seats = CASE party_code
+                               WHEN 'RNI' THEN 20
+                               ELSE NULL
+                           END
+                         WHERE election_id = :electionId
+                        """)
+                .param("electionId", ELECTION_ID)
+                .update();
+
+        mvc.perform(get("/api/catalog/elections/2026/results").param("lang", "ar"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.election.regionalListSeats").value(22));
     }
 
     @Test
@@ -375,6 +412,36 @@ class ElectionResultIntegrationTest {
                 .param("candidateName", candidateName)
                 .param("partyCode", partyCode)
                 .param("votes", votes)
+                .update();
+    }
+
+    private void insertRegionalListWinner(
+            String regionCode,
+            String candidateKey,
+            String candidateName,
+            String partyCode,
+            String status,
+            String sourceLabel,
+            String sourceUrl) {
+        jdbc.sql("""
+                        INSERT INTO election_regional_list_winners (
+                            election_id, region_code, candidate_key, candidate_name,
+                            party_code, result_status, source_label, source_url,
+                            source_updated_at, sort_order, updated_at
+                        ) VALUES (
+                            :electionId, :regionCode, :candidateKey, :candidateName,
+                            :partyCode, :status, :sourceLabel, :sourceUrl,
+                            CURRENT_TIMESTAMP, 1, CURRENT_TIMESTAMP
+                        )
+                        """)
+                .param("electionId", ELECTION_ID)
+                .param("regionCode", regionCode)
+                .param("candidateKey", candidateKey)
+                .param("candidateName", candidateName)
+                .param("partyCode", partyCode)
+                .param("status", status)
+                .param("sourceLabel", sourceLabel)
+                .param("sourceUrl", sourceUrl)
                 .update();
     }
 }

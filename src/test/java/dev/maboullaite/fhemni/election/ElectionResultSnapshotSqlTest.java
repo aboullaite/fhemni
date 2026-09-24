@@ -44,6 +44,8 @@ class ElectionResultSnapshotSqlTest {
         execute(read("src/main/resources/db/migration/V52__add_election_turnout_percent.sql"));
         execute(read("src/main/resources/db/migration/V53__add_election_constituency_winners.sql"));
         execute(read("src/main/resources/db/migration/V54__allow_unknown_national_seat_breakdown.sql"));
+        execute(read("src/main/resources/db/migration/V57__add_election_regional_list_winners.sql"));
+        execute(read("src/main/resources/db/migration/V58__link_regional_results_to_national_results.sql"));
         execute(SNAPSHOT);
     }
 
@@ -214,6 +216,134 @@ class ElectionResultSnapshotSqlTest {
                 """);
 
         assertRejected(invalid, "Constituency winners exceed a region seat allocation");
+    }
+
+    @Test
+    void rejectsNamedRegionalWinnersAboveThePublishedRegionalListSeats() {
+        String invalid = withSourceTimestamp(SNAPSHOT, "2099-09-23 18:05:00+00");
+        invalid = insertResults(invalid, """
+                INSERT INTO incoming_election_party_results
+                    (election_id, party_code, votes, local_seats, regional_list_seats, total_seats)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001', 'RNI', NULL, 0, 1, 1);
+                INSERT INTO incoming_election_region_party_results
+                    (election_id, region_code, party_code, local_seats, regional_list_seats, total_seats)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001', 'casablanca-settat', 'RNI', 0, 1, 1);
+                INSERT INTO incoming_election_regional_list_winners
+                    (election_id, region_code, candidate_key, candidate_name, party_code,
+                     result_status, source_label, source_url, source_updated_at, sort_order)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001', 'casablanca-settat',
+                     'candidate-one', 'Candidate One', 'RNI', 'PRELIMINARY', 'Source',
+                     'https://example.test/results', TIMESTAMP WITH TIME ZONE '2099-09-23 18:05:00+00', 1),
+                    ('20260000-0000-4000-8000-000000000001', 'casablanca-settat',
+                     'candidate-two', 'Candidate Two', 'RNI', 'PRELIMINARY', 'Source',
+                     'https://example.test/results', TIMESTAMP WITH TIME ZONE '2099-09-23 18:05:00+00', 2);
+                """);
+
+        assertRejected(invalid, "Named regional-list winners exceed a regional party regional-list seat total");
+    }
+
+    @Test
+    void databaseRejectsARegionalPartyResultWithoutANationalPartyResult() {
+        assertThatThrownBy(() -> execute("""
+                INSERT INTO election_region_party_results
+                    (election_id, region_code, party_code, local_seats,
+                     regional_list_seats, total_seats)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001',
+                     'casablanca-settat', 'UNKNOWN', 0, 0, 0);
+                """))
+                .isInstanceOf(SQLException.class)
+                .hasMessageContaining("election_region_party_results_national_party_fk");
+    }
+
+    @Test
+    void rejectsARegionalListWinnerWithoutARegionalPartySeat() {
+        String invalid = withSourceTimestamp(SNAPSHOT, "2099-09-23 18:05:30+00");
+        invalid = insertResults(invalid, """
+                INSERT INTO incoming_election_party_results
+                    (election_id, party_code, votes, local_seats, regional_list_seats, total_seats)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001', 'RNI', NULL, 0, 1, 1);
+                INSERT INTO incoming_election_regional_list_winners
+                    (election_id, region_code, candidate_key, candidate_name, party_code,
+                     result_status, source_label, source_url, source_updated_at, sort_order)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001', 'casablanca-settat',
+                     'candidate-one', 'Candidate One', 'RNI', 'PRELIMINARY', 'Source',
+                     'https://example.test/results', TIMESTAMP WITH TIME ZONE '2099-09-23 18:05:30+00', 1);
+                """);
+
+        assertRejected(invalid, "Every regional-list winner must belong to a declared regional party result");
+    }
+
+    @Test
+    void rejectsNamedRegionalWinnersAboveTheDerivedNationalRegionalListCeiling() {
+        String invalid = withSourceTimestamp(SNAPSHOT, "2099-09-23 18:06:00+00");
+        invalid = insertResults(invalid, """
+                INSERT INTO incoming_election_party_results
+                    (election_id, party_code, votes, local_seats, regional_list_seats, total_seats)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001', 'RNI', NULL, 8, NULL, 10);
+                INSERT INTO incoming_election_region_party_results
+                    (election_id, region_code, party_code, local_seats, regional_list_seats, total_seats)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001', 'casablanca-settat', 'RNI', 0, 3, 3);
+                INSERT INTO incoming_election_regional_list_winners
+                    (election_id, region_code, candidate_key, candidate_name, party_code,
+                     result_status, source_label, source_url, source_updated_at, sort_order)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001', 'casablanca-settat',
+                     'candidate-one', 'Candidate One', 'RNI', 'PRELIMINARY', 'Source',
+                     'https://example.test/results', TIMESTAMP WITH TIME ZONE '2099-09-23 18:06:00+00', 1),
+                    ('20260000-0000-4000-8000-000000000001', 'casablanca-settat',
+                     'candidate-two', 'Candidate Two', 'RNI', 'PRELIMINARY', 'Source',
+                     'https://example.test/results', TIMESTAMP WITH TIME ZONE '2099-09-23 18:06:00+00', 2),
+                    ('20260000-0000-4000-8000-000000000001', 'casablanca-settat',
+                     'candidate-three', 'Candidate Three', 'RNI', 'PRELIMINARY', 'Source',
+                     'https://example.test/results', TIMESTAMP WITH TIME ZONE '2099-09-23 18:06:00+00', 3);
+                """);
+
+        assertRejected(invalid, "Named regional-list winners exceed a national party regional-list seat total");
+    }
+
+    @Test
+    void rejectsTheSameCandidateForLocalAndRegionalListSeats() {
+        String invalid = withSourceTimestamp(SNAPSHOT, "2099-09-23 18:06:30+00");
+        invalid = insertResults(invalid, """
+                INSERT INTO incoming_election_party_results
+                    (election_id, party_code, votes, local_seats, regional_list_seats, total_seats)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001', 'RNI', NULL, 1, 1, 2);
+                INSERT INTO incoming_election_region_party_results
+                    (election_id, region_code, party_code, local_seats, regional_list_seats, total_seats)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001', 'casablanca-settat', 'RNI', 1, 1, 2);
+                INSERT INTO incoming_election_constituencies
+                    (election_id, code, region_code, name_ar, name_fr, name_en,
+                     allocated_seats, status, sort_order)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001', 'mediouna',
+                     'casablanca-settat', 'مديونة', 'Médiouna', 'Mediouna',
+                     1, 'PROVISIONAL', 1);
+                INSERT INTO incoming_election_constituency_winners
+                    (election_id, constituency_code, candidate_key, candidate_name,
+                     party_code, votes, sort_order)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001', 'mediouna',
+                     'candidate-one', 'Candidate One', 'RNI', NULL, 1);
+                INSERT INTO incoming_election_regional_list_winners
+                    (election_id, region_code, candidate_key, candidate_name, party_code,
+                     result_status, source_label, source_url, source_updated_at, sort_order)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001', 'casablanca-settat',
+                     'candidate-one', 'Candidate One', 'RNI', 'PRELIMINARY', 'Source',
+                     'https://example.test/results', TIMESTAMP WITH TIME ZONE '2099-09-23 18:06:30+00', 1);
+                """);
+
+        assertRejected(invalid, "A candidate cannot hold both a local and a regional-list seat");
     }
 
     private static String insertResults(String snapshot, String inserts) {

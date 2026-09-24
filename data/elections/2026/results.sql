@@ -102,6 +102,21 @@ CREATE TEMP TABLE incoming_election_constituency_winners (
     PRIMARY KEY (election_id, constituency_code, candidate_key)
 ) ON COMMIT DROP;
 
+CREATE TEMP TABLE incoming_election_regional_list_winners (
+    election_id UUID NOT NULL,
+    region_code VARCHAR(32) NOT NULL,
+    candidate_key VARCHAR(96) NOT NULL,
+    candidate_name VARCHAR(180) NOT NULL,
+    party_code VARCHAR(10) NOT NULL,
+    result_status VARCHAR(16) NOT NULL,
+    source_label VARCHAR(300) NOT NULL,
+    source_url VARCHAR(1200) NOT NULL,
+    source_updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    sort_order INTEGER NOT NULL,
+    PRIMARY KEY (election_id, region_code, candidate_key),
+    UNIQUE (election_id, candidate_key)
+) ON COMMIT DROP;
+
 -- Add the complete current snapshot to the two incoming result tables.
 -- National rows satisfy total_seats = local_seats + regional_list_seats when
 -- the source publishes that breakdown. Leave regional_list_seats NULL when a
@@ -132,6 +147,16 @@ CREATE TEMP TABLE incoming_election_constituency_winners (
 -- VALUES
 --     ('20260000-0000-4000-8000-000000000001', 'example', 'candidate',
 --      'Candidate', 'RNI', NULL, 1);
+--
+-- Regional-list winners are recorded separately because they do not belong to
+-- a local constituency. Preserve the source spelling and provenance per name.
+-- INSERT INTO incoming_election_regional_list_winners
+--     (election_id, region_code, candidate_key, candidate_name, party_code,
+--      result_status, source_label, source_url, source_updated_at, sort_order)
+-- VALUES
+--     ('20260000-0000-4000-8000-000000000001', 'casablanca-settat',
+--      'candidate', 'Candidate', 'RNI', 'PRELIMINARY', 'Source',
+--      'https://example.test/results', TIMESTAMP WITH TIME ZONE '2026-09-24 03:00:00+00', 1);
 
 DO $$
 BEGIN
@@ -240,6 +265,23 @@ BEGIN
                     SELECT constituency_code, candidate_key, candidate_name,
                            party_code, votes, sort_order
                       FROM election_constituency_winners WHERE election_id = current_snapshot.id)
+               )
+               OR EXISTS (
+                   (SELECT region_code, candidate_key, candidate_name, party_code,
+                           result_status, source_label, source_url, source_updated_at, sort_order
+                      FROM election_regional_list_winners WHERE election_id = current_snapshot.id
+                    EXCEPT
+                    SELECT region_code, candidate_key, candidate_name, party_code,
+                           result_status, source_label, source_url, source_updated_at, sort_order
+                      FROM incoming_election_regional_list_winners WHERE election_id = incoming.id)
+                   UNION ALL
+                   (SELECT region_code, candidate_key, candidate_name, party_code,
+                           result_status, source_label, source_url, source_updated_at, sort_order
+                      FROM incoming_election_regional_list_winners WHERE election_id = incoming.id
+                    EXCEPT
+                    SELECT region_code, candidate_key, candidate_name, party_code,
+                           result_status, source_label, source_url, source_updated_at, sort_order
+                      FROM election_regional_list_winners WHERE election_id = current_snapshot.id)
                )
            )
     ) THEN
@@ -355,6 +397,16 @@ WHERE election_id = '20260000-0000-4000-8000-000000000001'
          AND incoming.candidate_key = election_constituency_winners.candidate_key
   );
 
+DELETE FROM election_regional_list_winners
+WHERE election_id = '20260000-0000-4000-8000-000000000001'
+  AND NOT EXISTS (
+      SELECT 1
+        FROM incoming_election_regional_list_winners incoming
+       WHERE incoming.election_id = election_regional_list_winners.election_id
+         AND incoming.region_code = election_regional_list_winners.region_code
+         AND incoming.candidate_key = election_regional_list_winners.candidate_key
+  );
+
 DELETE FROM election_constituencies
 WHERE election_id = '20260000-0000-4000-8000-000000000001'
   AND NOT EXISTS (
@@ -455,6 +507,40 @@ WHERE ROW(
     EXCLUDED.candidate_name,
     EXCLUDED.party_code,
     EXCLUDED.votes,
+    EXCLUDED.sort_order
+);
+
+INSERT INTO election_regional_list_winners (
+    election_id, region_code, candidate_key, candidate_name, party_code,
+    result_status, source_label, source_url, source_updated_at, sort_order, updated_at
+) SELECT
+    election_id, region_code, candidate_key, candidate_name, party_code,
+    result_status, source_label, source_url, source_updated_at, sort_order, CURRENT_TIMESTAMP
+FROM incoming_election_regional_list_winners
+ON CONFLICT (election_id, region_code, candidate_key) DO UPDATE SET
+    candidate_name = EXCLUDED.candidate_name,
+    party_code = EXCLUDED.party_code,
+    result_status = EXCLUDED.result_status,
+    source_label = EXCLUDED.source_label,
+    source_url = EXCLUDED.source_url,
+    source_updated_at = EXCLUDED.source_updated_at,
+    sort_order = EXCLUDED.sort_order,
+    updated_at = EXCLUDED.updated_at
+WHERE ROW(
+    election_regional_list_winners.candidate_name,
+    election_regional_list_winners.party_code,
+    election_regional_list_winners.result_status,
+    election_regional_list_winners.source_label,
+    election_regional_list_winners.source_url,
+    election_regional_list_winners.source_updated_at,
+    election_regional_list_winners.sort_order
+) IS DISTINCT FROM ROW(
+    EXCLUDED.candidate_name,
+    EXCLUDED.party_code,
+    EXCLUDED.result_status,
+    EXCLUDED.source_label,
+    EXCLUDED.source_url,
+    EXCLUDED.source_updated_at,
     EXCLUDED.sort_order
 );
 
@@ -690,6 +776,65 @@ BEGIN
         HAVING COUNT(*) > 1
     ) THEN
         RAISE EXCEPTION 'A candidate cannot hold more than one constituency seat';
+    END IF;
+    IF EXISTS (
+        SELECT 1
+          FROM election_regional_list_winners winner
+          LEFT JOIN election_region_party_results regional
+            ON regional.election_id = winner.election_id
+           AND regional.region_code = winner.region_code
+           AND regional.party_code = winner.party_code
+         WHERE winner.election_id = '20260000-0000-4000-8000-000000000001'
+           AND regional.party_code IS NULL
+    ) THEN
+        RAISE EXCEPTION 'Every regional-list winner must belong to a declared regional party result';
+    END IF;
+    IF EXISTS (
+        SELECT 1
+          FROM election_regional_list_winners winner
+          JOIN election_region_party_results regional
+            ON regional.election_id = winner.election_id
+           AND regional.region_code = winner.region_code
+           AND regional.party_code = winner.party_code
+         WHERE winner.election_id = '20260000-0000-4000-8000-000000000001'
+         GROUP BY winner.region_code, winner.party_code, regional.regional_list_seats
+        HAVING COUNT(*) > regional.regional_list_seats
+    ) THEN
+        RAISE EXCEPTION 'Named regional-list winners exceed a regional party regional-list seat total';
+    END IF;
+    IF EXISTS (
+        SELECT 1
+          FROM election_regional_list_winners winner
+          JOIN election_party_results national
+            ON national.election_id = winner.election_id
+           AND national.party_code = winner.party_code
+         WHERE winner.election_id = '20260000-0000-4000-8000-000000000001'
+         GROUP BY winner.party_code,
+                  national.regional_list_seats,
+                  national.local_seats,
+                  national.total_seats
+        HAVING COUNT(*) > COALESCE(
+            national.regional_list_seats,
+            national.total_seats - national.local_seats
+        )
+    ) THEN
+        RAISE EXCEPTION 'Named regional-list winners exceed a national party regional-list seat total';
+    END IF;
+    IF EXISTS (
+        SELECT candidate_key
+          FROM (
+              SELECT candidate_key
+                FROM election_constituency_winners
+               WHERE election_id = '20260000-0000-4000-8000-000000000001'
+              UNION ALL
+              SELECT candidate_key
+                FROM election_regional_list_winners
+               WHERE election_id = '20260000-0000-4000-8000-000000000001'
+          ) all_winners
+         GROUP BY candidate_key
+        HAVING COUNT(*) > 1
+    ) THEN
+        RAISE EXCEPTION 'A candidate cannot hold both a local and a regional-list seat';
     END IF;
 END $$;
 
