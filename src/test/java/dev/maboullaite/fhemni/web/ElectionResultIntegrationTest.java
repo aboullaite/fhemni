@@ -61,6 +61,7 @@ class ElectionResultIntegrationTest {
                                votes_cast = 1200,
                                valid_votes = 1000,
                                vote_basis = 'OFFICIAL_AGGREGATE',
+                               turnout_percent = NULL,
                                source_url = 'https://example.test/official-results',
                                source_updated_at = CURRENT_TIMESTAMP,
                                updated_at = CURRENT_TIMESTAMP
@@ -99,6 +100,25 @@ class ElectionResultIntegrationTest {
     }
 
     @Test
+    void servesAnExplicitOfficialTurnoutWithoutInventingVoterCounts() throws Exception {
+        jdbc.sql("""
+                        UPDATE elections
+                           SET registered_voters = NULL,
+                               votes_cast = NULL,
+                               turnout_percent = 38.02
+                         WHERE id = :electionId
+                        """)
+                .param("electionId", ELECTION_ID)
+                .update();
+
+        mvc.perform(get("/api/catalog/elections/2026/results").param("lang", "ar"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.election.registeredVoters").doesNotExist())
+                .andExpect(jsonPath("$.election.votesCast").doesNotExist())
+                .andExpect(jsonPath("$.election.turnoutPercent").value(38.02));
+    }
+
+    @Test
     void exposesTheResponsiveResultPageAndItsInteractiveSurfaces() throws Exception {
         mvc.perform(get("/elections/2026"))
                 .andExpect(status().isOk())
@@ -108,7 +128,7 @@ class ElectionResultIntegrationTest {
                 .andExpect(content().string(containsString("id=\"electionMapPanel\"")))
                 .andExpect(content().string(containsString("id=\"electionNationalPanel\"")))
                 .andExpect(content().string(containsString("id=\"electionCoalitionPanel\"")))
-                .andExpect(content().string(containsString("/js/election-results.js?v=20260924-1")));
+                .andExpect(content().string(containsString("/js/election-results.js?v=20260924-2")));
     }
 
     @Test

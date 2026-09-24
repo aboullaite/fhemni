@@ -72,7 +72,9 @@ public class ElectionResultService {
                 election.votesCast(),
                 election.validVotes(),
                 election.voteBasis(),
-                percentage(election.votesCast(), election.registeredVoters()),
+                election.turnoutPercent() != null
+                        ? election.turnoutPercent()
+                        : percentage(election.votesCast(), election.registeredVoters()),
                 sourceLabel(election, language),
                 election.sourceUrl(),
                 election.sourceUpdatedAt(),

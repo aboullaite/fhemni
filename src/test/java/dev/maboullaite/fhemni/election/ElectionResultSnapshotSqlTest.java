@@ -36,9 +36,12 @@ class ElectionResultSnapshotSqlTest {
     static void createElectionSchema() throws SQLException {
         execute("""
                 CREATE TABLE political_parties (code VARCHAR(10) PRIMARY KEY);
-                INSERT INTO political_parties (code) VALUES ('RNI'), ('PAM'), ('PJD'), ('UNKNOWN');
+                INSERT INTO political_parties (code) VALUES
+                    ('RNI'), ('PAM'), ('PJD'), ('PI'), ('USFP'), ('MP'), ('UC'),
+                    ('FGD'), ('MDS'), ('PPS'), ('UNKNOWN');
                 """);
         execute(MIGRATION);
+        execute(read("src/main/resources/db/migration/V52__add_election_turnout_percent.sql"));
         execute(SNAPSHOT);
     }
 
