@@ -18,7 +18,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
-@Testcontainers(disabledWithoutDocker = true)
+@Testcontainers
 class ElectionResultSnapshotSqlTest {
 
     private static final String MARKER = "-- Add the complete current snapshot to the two incoming result tables.";
@@ -62,7 +62,7 @@ class ElectionResultSnapshotSqlTest {
 
     @Test
     void rejectsIncompletePreliminaryVoteBreakdownWhenValidVotesIsPresent() {
-        String invalid = withSourceTimestamp(SNAPSHOT, "2026-09-23 18:00:00+00")
+        String invalid = withSourceTimestamp(SNAPSHOT, "2099-09-23 18:00:00+00")
                 .replace("CAST('COUNTING' AS VARCHAR(16)) AS status",
                         "CAST('PRELIMINARY' AS VARCHAR(16)) AS status")
                 .replace("CAST(NULL AS BIGINT) AS valid_votes",
@@ -79,7 +79,7 @@ class ElectionResultSnapshotSqlTest {
 
     @Test
     void rejectsPartyVotesAboveValidVotes() {
-        String invalid = withSourceTimestamp(SNAPSHOT, "2026-09-23 18:00:30+00")
+        String invalid = withSourceTimestamp(SNAPSHOT, "2099-09-23 18:00:30+00")
                 .replace("CAST(NULL AS BIGINT) AS valid_votes",
                         "CAST(1000 AS BIGINT) AS valid_votes");
         invalid = insertResults(invalid, """
@@ -94,7 +94,7 @@ class ElectionResultSnapshotSqlTest {
 
     @Test
     void rejectsNullPartyVoteWhenValidVotesIsPresent() {
-        String invalid = withSourceTimestamp(SNAPSHOT, "2026-09-23 18:01:00+00")
+        String invalid = withSourceTimestamp(SNAPSHOT, "2099-09-23 18:01:00+00")
                 .replace("CAST(NULL AS BIGINT) AS valid_votes",
                         "CAST(1000 AS BIGINT) AS valid_votes");
         invalid = insertResults(invalid, """
@@ -110,10 +110,12 @@ class ElectionResultSnapshotSqlTest {
 
     @Test
     void rejectsCompleteRegionalAllocationBelowChamberSizeBeforeNationalFinal() {
-        String invalid = withSourceTimestamp(SNAPSHOT, "2026-09-23 18:02:00+00")
+        String invalid = withSourceTimestamp(SNAPSHOT, "2099-09-23 18:02:00+00")
                 .replace("CAST('COUNTING' AS VARCHAR(16)) AS status",
                         "CAST('PRELIMINARY' AS VARCHAR(16)) AS status")
+                .replace("'MA-01', NULL, 'PARTIAL', 1)", "'MA-01', 394, 'FINAL', 1)")
                 .replace("'MA-01', NULL, 'PENDING', 1)", "'MA-01', 394, 'FINAL', 1)")
+                .replace("NULL, 'PARTIAL'", "0, 'FINAL'")
                 .replace("NULL, 'PENDING'", "0, 'FINAL'");
         invalid = insertResults(invalid, """
                 INSERT INTO incoming_election_party_results
@@ -131,7 +133,7 @@ class ElectionResultSnapshotSqlTest {
 
     @Test
     void rejectsRegionalSeatComponentsThatExceedNationalComponents() {
-        String invalid = withSourceTimestamp(SNAPSHOT, "2026-09-23 18:03:00+00");
+        String invalid = withSourceTimestamp(SNAPSHOT, "2099-09-23 18:03:00+00");
         invalid = insertResults(invalid, """
                 INSERT INTO incoming_election_party_results
                     (election_id, party_code, votes, local_seats, regional_list_seats, total_seats)
@@ -147,13 +149,27 @@ class ElectionResultSnapshotSqlTest {
     }
 
     private static String insertResults(String snapshot, String inserts) {
-        return snapshot.replace(MARKER, inserts + System.lineSeparator() + MARKER);
+        int markerStart = snapshot.indexOf(MARKER);
+        int resultsStart = snapshot.indexOf('\n', markerStart) + 1;
+        int guardsStart = snapshot.indexOf("DO $$", resultsStart);
+        if (markerStart < 0 || resultsStart == 0 || guardsStart < 0) {
+            throw new IllegalStateException("Could not locate the snapshot result staging section");
+        }
+        return snapshot.substring(0, resultsStart)
+                + inserts
+                + System.lineSeparator()
+                + snapshot.substring(guardsStart);
     }
 
     private static String withSourceTimestamp(String snapshot, String timestamp) {
-        return snapshot.replace(
-                "CAST(NULL AS TIMESTAMP WITH TIME ZONE) AS source_updated_at",
+        String updated = snapshot.replaceFirst(
+                "(?:CAST\\(NULL AS TIMESTAMP WITH TIME ZONE\\)|TIMESTAMP WITH TIME ZONE '[^']+')"
+                        + " AS source_updated_at",
                 "TIMESTAMP WITH TIME ZONE '" + timestamp + "' AS source_updated_at");
+        if (updated.equals(snapshot)) {
+            throw new IllegalStateException("Could not replace the snapshot source timestamp");
+        }
+        return updated;
     }
 
     private static void assertRejected(String snapshot, String message) {
