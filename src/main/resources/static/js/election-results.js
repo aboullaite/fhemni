@@ -68,6 +68,7 @@
     let resultRequestInFlight = false;
     let resultAbortController;
     let pendingManualRetry = false;
+    let pendingFreshReload = false;
 
     const byId = id => document.getElementById(id);
     const format = (template, values) => Object.entries(values).reduce((text, entry) => text.replaceAll(`{${entry[0]}}`, entry[1]), template);
@@ -87,6 +88,7 @@
         byId('electionRegionSelect').addEventListener('change', event => selectRegion(event.target.value, true));
         load();
         document.addEventListener('visibilitychange', handleVisibilityChange);
+        document.addEventListener('fhemni:localechange', handleLocaleChange);
     }
 
     function applyCopy() {
@@ -108,6 +110,7 @@
         if (resultRequestInFlight) {
             if (!options.poll) {
                 pendingManualRetry = true;
+                pendingFreshReload ||= Boolean(options.fresh);
                 resultAbortController?.abort();
             }
             return;
@@ -120,6 +123,7 @@
         try {
             const response = await fetch(`${RESULT_URL}?lang=${encodeURIComponent(locale)}`, {
                 headers: { Accept: 'application/json' },
+                cache: options.fresh ? 'no-store' : 'default',
                 signal: controller.signal
             });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -144,8 +148,10 @@
             resultRequestInFlight = false;
             resultAbortController = undefined;
             if (pendingManualRetry) {
+                const fresh = pendingFreshReload;
                 pendingManualRetry = false;
-                load();
+                pendingFreshReload = false;
+                load({ fresh });
             } else {
                 schedulePoll(nextPollDelay());
             }
@@ -171,6 +177,20 @@
     function handleVisibilityChange() {
         window.clearTimeout(pollTimer);
         if (!document.hidden) load({ poll: true });
+    }
+
+    function handleLocaleChange(event) {
+        const nextLocale = event.detail?.locale || window.FhemniI18n?.locale() || 'ar';
+        if (!COPY[nextLocale] || nextLocale === locale) return;
+        locale = nextLocale;
+        copy = COPY[locale];
+        applyCopy();
+        hideTooltip();
+        window.clearTimeout(pollTimer);
+        window.clearTimeout(coalitionTimer);
+        coalitionAbortController?.abort();
+        coalitionRequest++;
+        load({ fresh: true });
     }
 
     function render() {
