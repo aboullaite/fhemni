@@ -191,6 +191,7 @@
         coalitionAbortController?.abort();
         coalitionRequest++;
         load({ fresh: true });
+        scheduleCoalitionEvaluation();
     }
 
     function render() {

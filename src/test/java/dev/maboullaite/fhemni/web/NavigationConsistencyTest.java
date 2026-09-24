@@ -102,6 +102,7 @@ class NavigationConsistencyTest {
                 .contains("minimumFractionDigits: 2, maximumFractionDigits: 2")
                 .contains("document.addEventListener('fhemni:localechange', handleLocaleChange)")
                 .contains("load({ fresh: true })")
+                .contains("load({ fresh: true });\n        scheduleCoalitionEvaluation();")
                 .contains("cache: options.fresh ? 'no-store' : 'default'")
                 .contains("element('span', 'sr-only', `${copy.winner}: `)")
                 .contains("element('span', 'sr-only', `${copy.constituency}: `)")
