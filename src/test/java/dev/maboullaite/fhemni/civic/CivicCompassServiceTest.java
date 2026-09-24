@@ -49,7 +49,7 @@ class CivicCompassServiceTest {
                 UUID.randomUUID(), editionId, UUID.randomUUID(), "q1", "P1", PartyPositionStance.MIXED,
                 new LocalizedText("مختلط", "Mixte", "Mixed"), List.of())));
         when(parties.findAll()).thenReturn(List.of(new PoliticalParty(
-                "P1", "Parti 1", "الحزب 1", "#123456", "P1", "ح1",
+                "P1", "Parti 1", "الحزب 1", "Alliance 1", "التحالف 1", "#123456", "P1", "ح1",
                 "/assets/parties/party.svg", true, "P1", true)));
     }
 
@@ -59,6 +59,7 @@ class CivicCompassServiceTest {
 
         assertThat(result.answeredCount()).isEqualTo(1);
         assertThat(result.parties()).singleElement().satisfies(match -> {
+            assertThat(match.name()).isEqualTo("Alliance 1");
             assertThat(match.compatibility()).isEqualTo(100);
             assertThat(match.answeredQuestions()).isEqualTo(1);
             assertThat(match.questions()).singleElement().satisfies(question ->

@@ -191,6 +191,7 @@
         window.clearTimeout(coalitionTimer);
         coalitionAbortController?.abort();
         coalitionRequest++;
+        byId('electionAlignment').hidden = true;
         load({ fresh: true });
         scheduleCoalitionEvaluation();
     }
@@ -401,6 +402,8 @@
             coalitionRequest++;
             return;
         }
+        byId('electionAlignment').hidden = true;
+        setText('electionAlignmentNote', copy.alignmentLoading);
         coalitionTimer = window.setTimeout(evaluateCoalition, COALITION_DEBOUNCE_MS);
     }
 
@@ -419,19 +422,30 @@
     async function evaluateCoalition() {
         const requestId = ++coalitionRequest;
         if (selectedPartyCodes.size < 2) return;
-        coalitionAbortController = new AbortController();
+        const controller = new AbortController();
+        coalitionAbortController = controller;
+        let timedOut = false;
+        const timeout = window.setTimeout(() => {
+            timedOut = true;
+            controller.abort();
+        }, REQUEST_TIMEOUT_MS);
+        byId('electionAlignment').hidden = true;
         setText('electionAlignmentNote', copy.alignmentLoading);
         try {
             const options = await window.FhemniAuth.withCsrf({ method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify({ language: locale, partyCodes: [...selectedPartyCodes] }) });
-            const response = await fetch(COALITION_URL, { ...options, signal: coalitionAbortController.signal });
+            if (requestId !== coalitionRequest || controller.signal.aborted) return;
+            const response = await fetch(COALITION_URL, { ...options, signal: controller.signal });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const evaluation = await response.json();
             if (requestId !== coalitionRequest) return;
             renderAlignment(evaluation.alignment);
         } catch (error) {
-            if (error.name === 'AbortError') return;
+            if (error.name === 'AbortError' && !timedOut) return;
             if (requestId === coalitionRequest) { byId('electionAlignment').hidden = true; setText('electionAlignmentNote', copy.alignmentMissing); }
             console.error('Coalition alignment could not be calculated.', error);
+        } finally {
+            window.clearTimeout(timeout);
+            if (coalitionAbortController === controller) coalitionAbortController = undefined;
         }
     }
 

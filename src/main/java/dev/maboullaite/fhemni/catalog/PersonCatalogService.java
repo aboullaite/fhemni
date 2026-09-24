@@ -187,7 +187,7 @@ public class PersonCatalogService {
                             .findFirst()
                             .orElse(null);
             result.add(new PartySummary(
-                    party.code(), party.nameFr(), party.nameAr(), party.color(),
+                    party.code(), party.catalogueNameFr(), party.catalogueNameAr(), party.color(),
                     party.symbolLabelFr(), party.symbolLabelAr(), party.symbolAsset(), party.symbolVerified(),
                     memberPartyCodes.stream().sorted().toList(), programmePartyCode,
                     members.size(), appearances, claims));
@@ -236,7 +236,7 @@ public class PersonCatalogService {
                         .findFirst()
                         .orElse(null);
         return new PartyProfile(
-                party.code(), party.nameFr(), party.nameAr(), party.color(),
+                party.code(), party.catalogueNameFr(), party.catalogueNameAr(), party.color(),
                 party.symbolLabelFr(), party.symbolLabelAr(), party.symbolAsset(), party.symbolVerified(),
                 memberPartyCodes.stream().sorted().toList(), programmePartyCode,
                 members.size(), appearances, claims, partyEpisodes);
@@ -536,7 +536,6 @@ public class PersonCatalogService {
 
         PersonSummary summary() {
             PoliticalParty party = parties.findByCode(currentPartyCode).orElseGet(parties::fallback);
-            PoliticalParty publicParty = parties.catalogueParty(party);
             LocalDate last = episodes.values().stream()
                     .map(EpisodeAppearance::publishedOn)
                     .filter(date -> date != null)
@@ -545,8 +544,8 @@ public class PersonCatalogService {
             return new PersonSummary(
                     identity.slug(), identity.displayName(), orEmpty(identity.displayNameAr()),
                     identity.curated(),
-                    party.code(), party.catalogueCode(), publicParty.nameFr(), publicParty.nameAr(), publicParty.color(),
-                    publicParty.symbolLabelFr(), publicParty.symbolLabelAr(), publicParty.symbolAsset(), publicParty.symbolVerified(),
+                    party.code(), party.catalogueCode(), party.nameFr(), party.nameAr(), party.color(),
+                    party.symbolLabelFr(), party.symbolLabelAr(), party.symbolAsset(), party.symbolVerified(),
                     episodes.size(), claims.size(), last, List.copyOf(topics),
                     List.copyOf(identity.spellings()));
         }
@@ -564,11 +563,10 @@ public class PersonCatalogService {
 
         SpeakerRef speakerRef() {
             PoliticalParty party = parties.findByCode(currentPartyCode).orElseGet(parties::fallback);
-            PoliticalParty publicParty = parties.catalogueParty(party);
             return new SpeakerRef(
                     identity.slug(), identity.displayName(), orEmpty(identity.displayNameAr()),
-                    party.code(), party.catalogueCode(), publicParty.nameFr(), publicParty.nameAr(), publicParty.color(),
-                    publicParty.symbolLabelFr(), publicParty.symbolLabelAr(), publicParty.symbolAsset(), publicParty.symbolVerified());
+                    party.code(), party.catalogueCode(), party.nameFr(), party.nameAr(), party.color(),
+                    party.symbolLabelFr(), party.symbolLabelAr(), party.symbolAsset(), party.symbolVerified());
         }
 
         private List<ComparisonPair> comparisons(List<PersonClaim> orderedClaims) {

@@ -154,8 +154,8 @@ class PublicPeopleIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.person.partyCode").value("PSU"))
                 .andExpect(jsonPath("$.person.partyCatalogueCode").value("FGD"))
-                .andExpect(jsonPath("$.person.partyNameAr").value("تحالف اليسار"))
-                .andExpect(jsonPath("$.person.partyNameFr").value("Alliance de la Gauche"));
+                .andExpect(jsonPath("$.person.partyNameAr").value("الحزب الاشتراكي الموحد"))
+                .andExpect(jsonPath("$.person.partyNameFr").value("Parti Socialiste Unifié"));
 
         mvc.perform(get("/api/catalog/people").param("party", "FGD"))
                 .andExpect(status().isOk())

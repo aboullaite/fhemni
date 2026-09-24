@@ -38,12 +38,17 @@ class ElectionResultRepository {
 
     List<PartyResultRow> partyResults(UUID electionId) {
         return jdbc.sql("""
-                        SELECT result.party_code, party.name_ar, party.name_fr,
+                        SELECT result.party_code,
+                               COALESCE(display.name_ar, party.name_ar) AS name_ar,
+                               COALESCE(display.name_fr, party.name_fr) AS name_fr,
                                party.color, party.symbol_asset, party.sort_order,
                                result.votes, result.local_seats,
                                result.regional_list_seats, result.total_seats
                           FROM election_party_results result
                           JOIN political_parties party ON party.code = result.party_code
+                          LEFT JOIN election_party_display_names display
+                            ON display.election_id = result.election_id
+                           AND display.party_code = result.party_code
                          WHERE result.election_id = :electionId
                            AND result.party_code <> 'UNKNOWN'
                          ORDER BY result.total_seats DESC,
@@ -71,12 +76,17 @@ class ElectionResultRepository {
     List<RegionPartyResultRow> regionPartyResults(UUID electionId) {
         return jdbc.sql("""
                         SELECT result.region_code, result.party_code,
-                               party.name_ar, party.name_fr, party.color,
+                               COALESCE(display.name_ar, party.name_ar) AS name_ar,
+                               COALESCE(display.name_fr, party.name_fr) AS name_fr,
+                               party.color,
                                party.symbol_asset, party.sort_order,
                                result.local_seats, result.regional_list_seats,
                                result.total_seats
                           FROM election_region_party_results result
                           JOIN political_parties party ON party.code = result.party_code
+                          LEFT JOIN election_party_display_names display
+                            ON display.election_id = result.election_id
+                           AND display.party_code = result.party_code
                          WHERE result.election_id = :electionId
                            AND result.party_code <> 'UNKNOWN'
                          ORDER BY result.region_code,

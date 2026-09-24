@@ -52,8 +52,10 @@ class DirectorySeedIntegrationTest {
         assertThat(byCode.get("PE").symbolVerified()).isTrue();
         assertThat(byCode.get("FGD").symbolAsset()).isEqualTo("/assets/parties/fgd-display.png");
         assertThat(byCode.get("FGD").symbolVerified()).isTrue();
-        assertThat(byCode.get("FGD").nameAr()).isEqualTo("تحالف اليسار");
-        assertThat(byCode.get("FGD").nameFr()).isEqualTo("Alliance de la Gauche");
+        assertThat(byCode.get("FGD").nameAr()).isEqualTo("فيدرالية اليسار الديمقراطي");
+        assertThat(byCode.get("FGD").nameFr()).isEqualTo("Fédération de la Gauche Démocratique");
+        assertThat(byCode.get("FGD").catalogueNameAr()).isEqualTo("تحالف اليسار");
+        assertThat(byCode.get("FGD").catalogueNameFr()).isEqualTo("Alliance de la Gauche");
         assertThat(byCode.get("FGD").catalogueCode()).isEqualTo("FGD");
         assertThat(byCode.get("PSU").catalogueCode()).isEqualTo("FGD");
         assertThat(byCode.get("ALAMAL")).satisfies(party -> {

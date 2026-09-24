@@ -20,7 +20,7 @@ public class PoliticalPartyRepository {
 
     public List<PoliticalParty> findAll() {
         return jdbc.sql("""
-                        SELECT code, name_fr, name_ar, color,
+                        SELECT code, name_fr, name_ar, catalogue_name_fr, catalogue_name_ar, color,
                                symbol_label_fr, symbol_label_ar, symbol_asset,
                                symbol_verified, catalogue_code, visible
                           FROM political_parties
@@ -30,6 +30,8 @@ public class PoliticalPartyRepository {
                         resultSet.getString("code"),
                         resultSet.getString("name_fr"),
                         resultSet.getString("name_ar"),
+                        resultSet.getString("catalogue_name_fr"),
+                        resultSet.getString("catalogue_name_ar"),
                         resultSet.getString("color"),
                         resultSet.getString("symbol_label_fr"),
                         resultSet.getString("symbol_label_ar"),
