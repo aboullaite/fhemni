@@ -116,6 +116,23 @@ class ElectionResultIntegrationTest {
     }
 
     @Test
+    void usesTheOfficialElectionAllianceNameForTheFgdCanonicalCode() throws Exception {
+        insertNational("FGD", 0, 0, 0);
+        insertRegional("casablanca-settat", "FGD", 0, 0);
+
+        mvc.perform(get("/api/catalog/elections/2026/results").param("lang", "ar"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.parties[3].code").value("FGD"))
+                .andExpect(jsonPath("$.parties[3].name").value("تحالف اليسار"))
+                .andExpect(jsonPath("$.regions[5].parties[3].name").value("تحالف اليسار"));
+
+        mvc.perform(get("/api/catalog/elections/2026/results").param("lang", "fr"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.parties[3].name").value("Alliance de la Gauche"))
+                .andExpect(jsonPath("$.regions[5].parties[3].name").value("Alliance de la Gauche"));
+    }
+
+    @Test
     void servesAnExplicitOfficialTurnoutWithoutInventingVoterCounts() throws Exception {
         jdbc.sql("""
                         UPDATE elections

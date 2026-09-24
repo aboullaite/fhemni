@@ -127,7 +127,7 @@ public class ElectionResultService {
     private PartyResult party(PartyResultRow row, String language, Long validVotes) {
         return new PartyResult(
                 row.code(),
-                partyName(row.nameAr(), row.nameFr(), language),
+                electionPartyName(row.code(), row.nameAr(), row.nameFr(), language),
                 row.color(),
                 row.symbolAsset(),
                 row.votes(),
@@ -143,7 +143,7 @@ public class ElectionResultService {
             List<ConstituencyWinner> winners) {
         return new RegionPartyResult(
                 row.code(),
-                partyName(row.nameAr(), row.nameFr(), language),
+                electionPartyName(row.code(), row.nameAr(), row.nameFr(), language),
                 row.color(),
                 row.symbolAsset(),
                 row.localSeats(),
@@ -180,6 +180,13 @@ public class ElectionResultService {
 
     private static String partyName(String arabic, String french, String language) {
         return language.equals("ar") ? arabic : french;
+    }
+
+    private static String electionPartyName(String code, String arabic, String french, String language) {
+        if ("FGD".equals(code)) {
+            return language.equals("ar") ? "تحالف اليسار" : "Alliance de la Gauche";
+        }
+        return partyName(arabic, french, language);
     }
 
     private static String regionName(RegionRow row, String language) {
