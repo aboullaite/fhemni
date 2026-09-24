@@ -343,10 +343,14 @@
         byId('electionCoalitionEmpty').hidden = hasResults;
         byId('electionCoalitionBuilder').hidden = !hasResults;
         if (!hasResults) return;
+        const previousSelection = selectedPartyCodes;
         const leaderCode = leadingPartyCode();
         const availableCodes = new Set(snapshot.parties.filter(party => party.totalSeats > 0).map(party => party.code));
         const retainedCodes = [...selectedPartyCodes].filter(code => code !== leaderCode && availableCodes.has(code));
-        selectedPartyCodes = new Set([...(leaderCode ? [leaderCode] : []), ...retainedCodes.slice(0, MAX_COALITION_PARTIES - (leaderCode ? 1 : 0))]);
+        const nextSelection = new Set([...(leaderCode ? [leaderCode] : []), ...retainedCodes.slice(0, MAX_COALITION_PARTIES - (leaderCode ? 1 : 0))]);
+        const selectionChanged = previousSelection.size !== nextSelection.size
+            || [...previousSelection].some(code => !nextSelection.has(code));
+        selectedPartyCodes = nextSelection;
         const root = clear('electionCoalitionParties');
         snapshot.parties.filter(party => party.totalSeats > 0).forEach(party => {
             const button = element('button', `election-coalition-party ${partyClass(party.code)}`);
@@ -359,6 +363,7 @@
         });
         syncCoalitionPartyButtons();
         renderCoalitionSummary();
+        if (selectionChanged) scheduleCoalitionEvaluation();
     }
 
     function toggleParty(code) {
@@ -397,9 +402,9 @@
 
     function scheduleCoalitionEvaluation() {
         window.clearTimeout(coalitionTimer);
+        coalitionRequest++;
         coalitionAbortController?.abort();
         if (selectedPartyCodes.size < 2) {
-            coalitionRequest++;
             return;
         }
         byId('electionAlignment').hidden = true;

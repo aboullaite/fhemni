@@ -92,7 +92,7 @@ class NavigationConsistencyTest {
                 .contains("id=\"electionNationalPanel\"")
                 .contains("id=\"electionCoalitionPanel\"")
                 .contains("id=\"electionRegionSelect\"")
-                .contains("/js/election-results.js?v=20260924-13")
+                .contains("/js/election-results.js?v=20260924-14")
                 .doesNotContain("style=\"");
         assertThat(html("js/election-results.js"))
                 .contains("/api/catalog/elections/2026/results")
@@ -108,6 +108,9 @@ class NavigationConsistencyTest {
                 .contains("requestId !== coalitionRequest || controller.signal.aborted")
                 .contains("signal: controller.signal")
                 .contains("}, REQUEST_TIMEOUT_MS);")
+                .contains("const previousSelection = selectedPartyCodes;")
+                .contains("if (selectionChanged) scheduleCoalitionEvaluation();")
+                .contains("coalitionRequest++;\n        coalitionAbortController?.abort();")
                 .contains("const MAX_COALITION_PARTIES = 5;")
                 .contains("function leadingPartyCode()")
                 .contains("button.classList.toggle('is-locked', locked)")

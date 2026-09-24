@@ -119,6 +119,13 @@ class ElectionResultIntegrationTest {
     void usesTheOfficialElectionAllianceNameForTheFgdCanonicalCode() throws Exception {
         insertNational("FGD", 0, 0, 0);
         insertRegional("casablanca-settat", "FGD", 0, 0);
+        jdbc.sql("""
+                        UPDATE election_party_display_names
+                           SET name_en = 'Left Alliance'
+                         WHERE election_id = :electionId AND party_code = 'FGD'
+                        """)
+                .param("electionId", ELECTION_ID)
+                .update();
 
         mvc.perform(get("/api/catalog/elections/2026/results").param("lang", "ar"))
                 .andExpect(status().isOk())
@@ -133,8 +140,8 @@ class ElectionResultIntegrationTest {
 
         mvc.perform(get("/api/catalog/elections/2026/results").param("lang", "en"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.parties[3].name").value("Alliance de la Gauche"))
-                .andExpect(jsonPath("$.regions[5].parties[3].name").value("Alliance de la Gauche"));
+                .andExpect(jsonPath("$.parties[3].name").value("Left Alliance"))
+                .andExpect(jsonPath("$.regions[5].parties[3].name").value("Left Alliance"));
     }
 
     @Test
@@ -166,7 +173,7 @@ class ElectionResultIntegrationTest {
                 .andExpect(content().string(containsString("id=\"electionMapPanel\"")))
                 .andExpect(content().string(containsString("id=\"electionNationalPanel\"")))
                 .andExpect(content().string(containsString("id=\"electionCoalitionPanel\"")))
-                .andExpect(content().string(containsString("/js/election-results.js?v=20260924-13")));
+                .andExpect(content().string(containsString("/js/election-results.js?v=20260924-14")));
     }
 
     @Test
