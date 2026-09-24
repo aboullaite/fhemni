@@ -606,7 +606,6 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 [dir="ltr"] .election-region-winner-name, [dir="ltr"] .election-region-winner-constituency { text-align: left; }
 .election-region-winner-votes { align-self: center; padding: 2px 6px; border-radius: 999px; background: rgba(19,44,43,.05); color: var(--party-accent); font: 600 9px/1.4 "Tajawal",Tahoma,Arial,sans-serif; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .election-region-winner-status { color: var(--muted); font-size: 9px; font-weight: 500; }
-.election-region-winner-source { min-width: 0; overflow: hidden; color: var(--teal-dark); font-size: 9px; font-weight: 650; text-decoration: underline; text-decoration-color: rgba(11,79,73,.28); text-underline-offset: 2px; text-overflow: ellipsis; white-space: nowrap; }
 .election-region-pending, .election-empty { display: grid; min-height: 170px; margin: 0; place-items: center; padding: 22px; border: 1px dashed rgba(19,44,43,.18); border-radius: var(--radius-panel); background: rgba(255,253,247,.55); color: var(--muted); font-size: 12px; font-weight: 600; line-height: 1.7; text-align: center; }
 .election-seat-ribbon { display: flex; width: 100%; height: 22px; overflow: hidden; margin: 8px 0 32px; border-radius: 999px; background: rgba(19,44,43,.08); }
 .election-seat-ribbon > span { display: block; height: 100%; min-width: 2px; background: var(--party-accent); }

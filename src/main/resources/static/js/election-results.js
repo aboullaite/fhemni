@@ -531,21 +531,11 @@
         const meta = element('div', 'election-region-winner-meta');
         const status = copy.winnerStatus[winner.status] || winner.status;
         if (status) meta.append(element('span', 'election-region-winner-status', status));
-        if (winner.sourceUrl) {
-            const source = document.createElement('a');
-            source.className = 'election-region-winner-source';
-            source.href = winner.sourceUrl;
-            source.target = '_blank';
-            source.rel = 'noopener noreferrer';
-            source.textContent = winner.sourceLabel || copy.sourceTitle;
-            source.setAttribute('aria-label', `${copy.sourceTitle}: ${source.textContent}`);
-            meta.append(source);
-        }
         row.append(
             element('span', 'sr-only', `${copy.winner}: `),
-            element('bdi', 'election-region-winner-name', winner.candidateName),
-            meta
+            element('bdi', 'election-region-winner-name', winner.candidateName)
         );
+        if (meta.childElementCount) row.append(meta);
         return row;
     }
 
