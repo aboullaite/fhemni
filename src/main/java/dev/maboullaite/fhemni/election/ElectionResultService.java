@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
+import dev.maboullaite.fhemni.election.ElectionResultRepository.ConstituencyWinnerRow;
 import dev.maboullaite.fhemni.election.ElectionResultRepository.ElectionRow;
 import dev.maboullaite.fhemni.election.ElectionResultRepository.PartyResultRow;
 import dev.maboullaite.fhemni.election.ElectionResultRepository.RegionPartyResultRow;
@@ -38,6 +39,7 @@ public class ElectionResultService {
         List<PartyResultRow> partyRows = repository.partyResults(election.id());
         List<RegionRow> regionRows = repository.regions(election.id());
         List<RegionPartyResultRow> regionPartyRows = repository.regionPartyResults(election.id());
+        List<ConstituencyWinnerRow> winnerRows = repository.constituencyWinners(election.id());
 
         long declaredSeats = partyRows.stream().mapToLong(PartyResultRow::totalSeats).sum();
         long localSeats = partyRows.stream().mapToLong(PartyResultRow::localSeats).sum();
@@ -50,10 +52,23 @@ public class ElectionResultService {
                 .map(row -> party(row, language, election.validVotes()))
                 .toList();
 
+        Map<RegionPartyKey, List<ConstituencyWinner>> winnersByRegionParty = new LinkedHashMap<>();
+        for (ConstituencyWinnerRow row : winnerRows) {
+            winnersByRegionParty.computeIfAbsent(
+                            new RegionPartyKey(row.regionCode(), row.partyCode()),
+                            ignored -> new java.util.ArrayList<>())
+                    .add(constituencyWinner(row, language));
+        }
+
         Map<String, List<RegionPartyResult>> partiesByRegion = new LinkedHashMap<>();
         for (RegionPartyResultRow row : regionPartyRows) {
+            List<ConstituencyWinner> winners = winnersByRegionParty.getOrDefault(
+                    new RegionPartyKey(row.regionCode(), row.code()), List.of());
+            if (winners.size() > row.localSeats()) {
+                throw new IllegalStateException("Constituency winners exceed the regional local-seat total.");
+            }
             partiesByRegion.computeIfAbsent(row.regionCode(), ignored -> new java.util.ArrayList<>())
-                    .add(regionParty(row, language));
+                    .add(regionParty(row, language, winners));
         }
         List<RegionResult> regions = regionRows.stream()
                 .map(row -> region(row, language, partiesByRegion.getOrDefault(row.code(), List.of())))
@@ -120,7 +135,10 @@ public class ElectionResultService {
                 row.totalSeats());
     }
 
-    private RegionPartyResult regionParty(RegionPartyResultRow row, String language) {
+    private RegionPartyResult regionParty(
+            RegionPartyResultRow row,
+            String language,
+            List<ConstituencyWinner> winners) {
         return new RegionPartyResult(
                 row.code(),
                 partyName(row.nameAr(), row.nameFr(), language),
@@ -128,7 +146,22 @@ public class ElectionResultService {
                 row.symbolAsset(),
                 row.localSeats(),
                 row.regionalListSeats(),
-                row.totalSeats());
+                row.totalSeats(),
+                winners);
+    }
+
+    private ConstituencyWinner constituencyWinner(ConstituencyWinnerRow row, String language) {
+        String constituencyName = switch (language) {
+            case "ar" -> row.constituencyNameAr();
+            case "fr" -> row.constituencyNameFr();
+            default -> row.constituencyNameEn();
+        };
+        return new ConstituencyWinner(
+                row.constituencyCode(),
+                constituencyName,
+                row.candidateName(),
+                row.votes(),
+                row.status());
     }
 
     private RegionResult region(RegionRow row, String language, List<RegionPartyResult> parties) {
@@ -232,6 +265,18 @@ public class ElectionResultService {
             String symbolAsset,
             int localSeats,
             int regionalListSeats,
-            int totalSeats) {
+            int totalSeats,
+            List<ConstituencyWinner> winners) {
+    }
+
+    public record ConstituencyWinner(
+            String constituencyCode,
+            String constituencyName,
+            String candidateName,
+            Long votes,
+            String status) {
+    }
+
+    private record RegionPartyKey(String regionCode, String partyCode) {
     }
 }

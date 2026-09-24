@@ -42,6 +42,7 @@ class ElectionResultSnapshotSqlTest {
                 """);
         execute(MIGRATION);
         execute(read("src/main/resources/db/migration/V52__add_election_turnout_percent.sql"));
+        execute(read("src/main/resources/db/migration/V53__add_election_constituency_winners.sql"));
         execute(SNAPSHOT);
     }
 
@@ -146,6 +147,32 @@ class ElectionResultSnapshotSqlTest {
                 """);
 
         assertRejected(invalid, "A regional party result exceeds a national seat component");
+    }
+
+    @Test
+    void rejectsAConstituencyWinnerWithoutARegionalPartySeat() {
+        String invalid = withSourceTimestamp(SNAPSHOT, "2099-09-23 18:04:00+00");
+        invalid = insertResults(invalid, """
+                INSERT INTO incoming_election_party_results
+                    (election_id, party_code, votes, local_seats, regional_list_seats, total_seats)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001', 'RNI', NULL, 1, 0, 1);
+                INSERT INTO incoming_election_constituencies
+                    (election_id, code, region_code, name_ar, name_fr, name_en,
+                     allocated_seats, status, sort_order)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001', 'mediouna',
+                     'casablanca-settat', 'مديونة', 'Médiouna', 'Mediouna',
+                     1, 'PROVISIONAL', 1);
+                INSERT INTO incoming_election_constituency_winners
+                    (election_id, constituency_code, candidate_key, candidate_name,
+                     party_code, votes, sort_order)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001', 'mediouna',
+                     'amine-nokta', 'Amine Nokta', 'RNI', NULL, 1);
+                """);
+
+        assertRejected(invalid, "Every constituency winner must belong to a declared regional party result");
     }
 
     private static String insertResults(String snapshot, String inserts) {

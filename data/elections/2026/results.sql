@@ -78,6 +78,30 @@ CREATE TEMP TABLE incoming_election_region_party_results (
     PRIMARY KEY (election_id, region_code, party_code)
 ) ON COMMIT DROP;
 
+CREATE TEMP TABLE incoming_election_constituencies (
+    election_id UUID NOT NULL,
+    code VARCHAR(64) NOT NULL,
+    region_code VARCHAR(32) NOT NULL,
+    name_ar VARCHAR(160) NOT NULL,
+    name_fr VARCHAR(160) NOT NULL,
+    name_en VARCHAR(160) NOT NULL,
+    allocated_seats INTEGER,
+    status VARCHAR(16) NOT NULL,
+    sort_order INTEGER NOT NULL,
+    PRIMARY KEY (election_id, code)
+) ON COMMIT DROP;
+
+CREATE TEMP TABLE incoming_election_constituency_winners (
+    election_id UUID NOT NULL,
+    constituency_code VARCHAR(64) NOT NULL,
+    candidate_key VARCHAR(96) NOT NULL,
+    candidate_name VARCHAR(180) NOT NULL,
+    party_code VARCHAR(10) NOT NULL,
+    votes BIGINT,
+    sort_order INTEGER NOT NULL,
+    PRIMARY KEY (election_id, constituency_code, candidate_key)
+) ON COMMIT DROP;
+
 -- Add the complete current snapshot to the two incoming result tables.
 -- National rows must satisfy total_seats = local_seats + regional_list_seats.
 -- Example shape only (do not uncomment without verified official figures):
@@ -91,6 +115,21 @@ CREATE TEMP TABLE incoming_election_region_party_results (
 --     (election_id, region_code, party_code, local_seats, regional_list_seats, total_seats)
 -- VALUES
 --     ('20260000-0000-4000-8000-000000000001', 'casablanca-settat', 'RNI', 0, 0, 0);
+--
+-- Constituency and winner rows are a complete sub-snapshot too. A winner is one
+-- identified local seat; candidate_key must remain stable across corrections.
+-- INSERT INTO incoming_election_constituencies
+--     (election_id, code, region_code, name_ar, name_fr, name_en,
+--      allocated_seats, status, sort_order)
+-- VALUES
+--     ('20260000-0000-4000-8000-000000000001', 'example', 'casablanca-settat',
+--      'Example', 'Example', 'Example', 1, 'PROVISIONAL', 1);
+-- INSERT INTO incoming_election_constituency_winners
+--     (election_id, constituency_code, candidate_key, candidate_name,
+--      party_code, votes, sort_order)
+-- VALUES
+--     ('20260000-0000-4000-8000-000000000001', 'example', 'candidate',
+--      'Candidate', 'RNI', NULL, 1);
 
 DO $$
 BEGIN
@@ -166,6 +205,40 @@ BEGIN
                     SELECT region_code, party_code, local_seats, regional_list_seats, total_seats
                       FROM election_region_party_results WHERE election_id = current_snapshot.id)
                )
+               OR EXISTS (
+                   (SELECT code, region_code, name_ar, name_fr, name_en,
+                           allocated_seats, status, sort_order
+                      FROM election_constituencies WHERE election_id = current_snapshot.id
+                    EXCEPT
+                    SELECT code, region_code, name_ar, name_fr, name_en,
+                           allocated_seats, status, sort_order
+                      FROM incoming_election_constituencies WHERE election_id = incoming.id)
+                   UNION ALL
+                   (SELECT code, region_code, name_ar, name_fr, name_en,
+                           allocated_seats, status, sort_order
+                      FROM incoming_election_constituencies WHERE election_id = incoming.id
+                    EXCEPT
+                    SELECT code, region_code, name_ar, name_fr, name_en,
+                           allocated_seats, status, sort_order
+                      FROM election_constituencies WHERE election_id = current_snapshot.id)
+               )
+               OR EXISTS (
+                   (SELECT constituency_code, candidate_key, candidate_name,
+                           party_code, votes, sort_order
+                      FROM election_constituency_winners WHERE election_id = current_snapshot.id
+                    EXCEPT
+                    SELECT constituency_code, candidate_key, candidate_name,
+                           party_code, votes, sort_order
+                      FROM incoming_election_constituency_winners WHERE election_id = incoming.id)
+                   UNION ALL
+                   (SELECT constituency_code, candidate_key, candidate_name,
+                           party_code, votes, sort_order
+                      FROM incoming_election_constituency_winners WHERE election_id = incoming.id
+                    EXCEPT
+                    SELECT constituency_code, candidate_key, candidate_name,
+                           party_code, votes, sort_order
+                      FROM election_constituency_winners WHERE election_id = current_snapshot.id)
+               )
            )
     ) THEN
         RAISE EXCEPTION 'Refusing a different election snapshot with the same source_updated_at; use a newer official revision timestamp';
@@ -236,6 +309,59 @@ WHERE ROW(
     EXCLUDED.status, EXCLUDED.sort_order
 );
 
+INSERT INTO election_constituencies (
+    election_id, code, region_code, name_ar, name_fr, name_en,
+    allocated_seats, status, sort_order, updated_at
+) SELECT
+    election_id, code, region_code, name_ar, name_fr, name_en,
+    allocated_seats, status, sort_order, CURRENT_TIMESTAMP
+FROM incoming_election_constituencies
+ON CONFLICT (election_id, code) DO UPDATE SET
+    region_code = EXCLUDED.region_code,
+    name_ar = EXCLUDED.name_ar,
+    name_fr = EXCLUDED.name_fr,
+    name_en = EXCLUDED.name_en,
+    allocated_seats = EXCLUDED.allocated_seats,
+    status = EXCLUDED.status,
+    sort_order = EXCLUDED.sort_order,
+    updated_at = EXCLUDED.updated_at
+WHERE ROW(
+    election_constituencies.region_code,
+    election_constituencies.name_ar,
+    election_constituencies.name_fr,
+    election_constituencies.name_en,
+    election_constituencies.allocated_seats,
+    election_constituencies.status,
+    election_constituencies.sort_order
+) IS DISTINCT FROM ROW(
+    EXCLUDED.region_code,
+    EXCLUDED.name_ar,
+    EXCLUDED.name_fr,
+    EXCLUDED.name_en,
+    EXCLUDED.allocated_seats,
+    EXCLUDED.status,
+    EXCLUDED.sort_order
+);
+
+DELETE FROM election_constituency_winners
+WHERE election_id = '20260000-0000-4000-8000-000000000001'
+  AND NOT EXISTS (
+      SELECT 1
+        FROM incoming_election_constituency_winners incoming
+       WHERE incoming.election_id = election_constituency_winners.election_id
+         AND incoming.constituency_code = election_constituency_winners.constituency_code
+         AND incoming.candidate_key = election_constituency_winners.candidate_key
+  );
+
+DELETE FROM election_constituencies
+WHERE election_id = '20260000-0000-4000-8000-000000000001'
+  AND NOT EXISTS (
+      SELECT 1
+        FROM incoming_election_constituencies incoming
+       WHERE incoming.election_id = election_constituencies.election_id
+         AND incoming.code = election_constituencies.code
+  );
+
 DELETE FROM election_region_party_results
 WHERE election_id = '20260000-0000-4000-8000-000000000001'
   AND NOT EXISTS (
@@ -303,6 +429,31 @@ WHERE ROW(
     election_region_party_results.total_seats
 ) IS DISTINCT FROM ROW(
     EXCLUDED.local_seats, EXCLUDED.regional_list_seats, EXCLUDED.total_seats
+);
+
+INSERT INTO election_constituency_winners (
+    election_id, constituency_code, candidate_key, candidate_name,
+    party_code, votes, sort_order, updated_at
+) SELECT
+    election_id, constituency_code, candidate_key, candidate_name,
+    party_code, votes, sort_order, CURRENT_TIMESTAMP
+FROM incoming_election_constituency_winners
+ON CONFLICT (election_id, constituency_code, candidate_key) DO UPDATE SET
+    candidate_name = EXCLUDED.candidate_name,
+    party_code = EXCLUDED.party_code,
+    votes = EXCLUDED.votes,
+    sort_order = EXCLUDED.sort_order,
+    updated_at = EXCLUDED.updated_at
+WHERE ROW(
+    election_constituency_winners.candidate_name,
+    election_constituency_winners.party_code,
+    election_constituency_winners.votes,
+    election_constituency_winners.sort_order
+) IS DISTINCT FROM ROW(
+    EXCLUDED.candidate_name,
+    EXCLUDED.party_code,
+    EXCLUDED.votes,
+    EXCLUDED.sort_order
 );
 
 DO $$
@@ -420,6 +571,77 @@ BEGIN
             OR SUM(regional.total_seats) > COALESCE(national.total_seats, -1)
     ) THEN
         RAISE EXCEPTION 'A regional party result exceeds a national seat component';
+    END IF;
+END $$;
+
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+          FROM election_constituency_winners winner
+          JOIN election_constituencies constituency
+            ON constituency.election_id = winner.election_id
+           AND constituency.code = winner.constituency_code
+          LEFT JOIN election_region_party_results regional
+            ON regional.election_id = winner.election_id
+           AND regional.region_code = constituency.region_code
+           AND regional.party_code = winner.party_code
+         WHERE winner.election_id = '20260000-0000-4000-8000-000000000001'
+           AND regional.party_code IS NULL
+    ) THEN
+        RAISE EXCEPTION 'Every constituency winner must belong to a declared regional party result';
+    END IF;
+    IF EXISTS (
+        SELECT 1
+          FROM election_constituency_winners winner
+          JOIN election_constituencies constituency
+            ON constituency.election_id = winner.election_id
+           AND constituency.code = winner.constituency_code
+          JOIN election_region_party_results regional
+            ON regional.election_id = winner.election_id
+           AND regional.region_code = constituency.region_code
+           AND regional.party_code = winner.party_code
+         WHERE winner.election_id = '20260000-0000-4000-8000-000000000001'
+         GROUP BY constituency.region_code, winner.party_code, regional.local_seats
+        HAVING COUNT(*) > regional.local_seats
+    ) THEN
+        RAISE EXCEPTION 'Constituency winners exceed a regional party local-seat total';
+    END IF;
+    IF EXISTS (
+        SELECT 1
+          FROM election_constituency_winners winner
+          JOIN election_party_results national
+            ON national.election_id = winner.election_id
+           AND national.party_code = winner.party_code
+         WHERE winner.election_id = '20260000-0000-4000-8000-000000000001'
+         GROUP BY winner.party_code, national.local_seats
+        HAVING COUNT(*) > national.local_seats
+    ) THEN
+        RAISE EXCEPTION 'Constituency winners exceed a national party local-seat total';
+    END IF;
+    IF EXISTS (
+        SELECT 1
+          FROM election_constituencies constituency
+          LEFT JOIN election_constituency_winners winner
+            ON winner.election_id = constituency.election_id
+           AND winner.constituency_code = constituency.code
+         WHERE constituency.election_id = '20260000-0000-4000-8000-000000000001'
+           AND constituency.allocated_seats IS NOT NULL
+         GROUP BY constituency.code, constituency.allocated_seats, constituency.status
+        HAVING COUNT(winner.candidate_key) > constituency.allocated_seats
+            OR (constituency.status IN ('PROVISIONAL', 'OFFICIAL')
+                AND COUNT(winner.candidate_key) <> constituency.allocated_seats)
+    ) THEN
+        RAISE EXCEPTION 'Constituency winners do not reconcile with the constituency seat allocation';
+    END IF;
+    IF EXISTS (
+        SELECT 1
+          FROM election_constituency_winners
+         WHERE election_id = '20260000-0000-4000-8000-000000000001'
+         GROUP BY candidate_key
+        HAVING COUNT(*) > 1
+    ) THEN
+        RAISE EXCEPTION 'A candidate cannot hold more than one constituency seat';
     END IF;
 END $$;
 
