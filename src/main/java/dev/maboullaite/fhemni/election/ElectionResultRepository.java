@@ -148,7 +148,7 @@ class ElectionResultRepository {
                 result.getInt("sort_order"),
                 nullableLong(result, "votes"),
                 result.getInt("local_seats"),
-                result.getInt("regional_list_seats"),
+                result.getObject("regional_list_seats", Integer.class),
                 result.getInt("total_seats"));
     }
 
@@ -238,7 +238,7 @@ class ElectionResultRepository {
             int sortOrder,
             Long votes,
             int localSeats,
-            int regionalListSeats,
+            Integer regionalListSeats,
             int totalSeats) {
     }
 

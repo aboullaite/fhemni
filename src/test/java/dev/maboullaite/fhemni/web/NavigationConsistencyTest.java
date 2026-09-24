@@ -92,7 +92,7 @@ class NavigationConsistencyTest {
                 .contains("id=\"electionNationalPanel\"")
                 .contains("id=\"electionCoalitionPanel\"")
                 .contains("id=\"electionRegionSelect\"")
-                .contains("/js/election-results.js?v=20260924-6")
+                .contains("/js/election-results.js?v=20260924-8")
                 .doesNotContain("style=\"");
         assertThat(html("js/election-results.js"))
                 .contains("/api/catalog/elections/2026/results")
@@ -100,6 +100,8 @@ class NavigationConsistencyTest {
                 .contains("/assets/maps/morocco-regions-2026.svg")
                 .contains("election.updatedAt || election.sourceUpdatedAt")
                 .contains("minimumFractionDigits: 2, maximumFractionDigits: 2")
+                .contains("element('span', 'sr-only', `${copy.winner}: `)")
+                .contains("element('span', 'sr-only', `${copy.constituency}: `)")
                 .contains("event.key === 'Enter' || event.key === ' '")
                 .doesNotContain(".style.");
         assertThat(html("assets/maps/morocco-regions-2026.svg"))

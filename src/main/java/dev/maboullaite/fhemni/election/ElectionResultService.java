@@ -43,7 +43,9 @@ public class ElectionResultService {
 
         long declaredSeats = partyRows.stream().mapToLong(PartyResultRow::totalSeats).sum();
         long localSeats = partyRows.stream().mapToLong(PartyResultRow::localSeats).sum();
-        long regionalListSeats = partyRows.stream().mapToLong(PartyResultRow::regionalListSeats).sum();
+        Long regionalListSeats = partyRows.stream().allMatch(row -> row.regionalListSeats() != null)
+                ? partyRows.stream().mapToLong(PartyResultRow::regionalListSeats).sum()
+                : null;
         if (declaredSeats > election.totalSeats()) {
             throw new IllegalStateException("Declared seats exceed the configured chamber size.");
         }
@@ -224,7 +226,7 @@ public class ElectionResultService {
             int majoritySeats,
             long declaredSeats,
             long localSeats,
-            long regionalListSeats,
+            Long regionalListSeats,
             Long registeredVoters,
             Long votesCast,
             Long validVotes,
@@ -244,7 +246,7 @@ public class ElectionResultService {
             Long votes,
             BigDecimal voteShare,
             int localSeats,
-            int regionalListSeats,
+            Integer regionalListSeats,
             int totalSeats) {
     }
 

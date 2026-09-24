@@ -17,7 +17,7 @@
             metrics: ['المقاعد المعلنة', 'المشاركة', 'مقاعد الدوائر المحلية', 'مقاعد اللوائح الجهوية'],
             tabs: ['الخريطة والجهات', 'النتائج الوطنية', 'كوّن الأغلبية ديالك'],
             mapTitle: 'النتائج حسب الجهات', mapIntro: 'دوز فوق أي جهة، ولا اختارها، باش تشوف الأحزاب والمقاعد المعلنة فيها.', mapSelect: 'اختار الجهة', mapLegend: 'لون محايد: الخريطة ما كتنسبش الجهة لحزب واحد.',
-            regionStatus: { PENDING: 'في انتظار النتائج', PARTIAL: 'نتائج جزئية', FINAL: 'نتائج نهائية' }, regionPending: 'النتائج مازال ما تعلناتش فهاد الجهة.', regionSeats: '{count} مقعد معلن', regionAllocated: '{count} مقعد مخصص', seats: 'مقاعد', seat: 'مقعد',
+            regionStatus: { PENDING: 'في انتظار النتائج', PARTIAL: 'نتائج جزئية', FINAL: 'نتائج نهائية' }, regionPending: 'النتائج مازال ما تعلناتش فهاد الجهة.', regionSeats: '{count} مقعد معلن', regionAllocated: '{count} مقعد مخصص', seats: 'مقاعد', seat: 'مقعد', winner: 'الفائز', constituency: 'الدائرة الانتخابية',
             nationalTitle: 'توزيع المقاعد على الأحزاب', nationalIntro: 'الأحزاب مرتبة حسب عدد المقاعد المعلنة. ما كنعلنوش على أغلبية هنا؛ جرّب التحالفات فالأداة.', noResults: 'مازال ما كاين حتى مقعد معلن. هاد الصفحة غادي تتحدّث مباشرة ملي تدخل النتائج الرسمية.', votes: '{count} صوت', voteShare: '{percent}% من الأصوات',
             coalitionTitle: 'كوّن الأغلبية ديالك', coalitionIntro: 'اختار الأحزاب وشوف واش وصلو لـ198 مقعد، وشنو مستوى التقارب بين برامجهم المنشورة.', coalitionChoose: 'اختار الأحزاب', coalitionSummary: 'التحالف ديالك', coalitionSeats: 'مقعد من 395', coalitionNeed: 'خاصك {count} مقعد آخر باش توصل للأغلبية.', coalitionWon: 'وصلتي للأغلبية بـ{count} مقعد زيادة.', coalitionStart: 'اختار جوج أحزاب على الأقل باش نحسبو التقارب.', coalitionNoResults: 'الأداة غادي تولّي متاحة ملي تتعلن المقاعد.',
             alignment: 'التقارب البرنامجي', alignmentStrong: 'تقارب قوي', alignmentMedium: 'تقارب متوسط', alignmentWeak: 'تقارب ضعيف', alignmentLoading: 'كنحسبو التقارب…', alignmentMissing: 'المعطيات المنشورة ما كافياش باش نعطيو نقطة عادلة.', coverage: 'التغطية {percent}% · {questions} أسئلة قابلة للمقارنة', agreements: 'أقوى نقاط الالتقاء', tensions: 'أبرز نقاط الاختلاف', none: 'ما كايناش نقطة بارزة',
@@ -32,7 +32,7 @@
             metrics: ['Sièges déclarés', 'Participation', 'Sièges locaux', 'Sièges des listes régionales'],
             tabs: ['Carte et régions', 'Résultats nationaux', 'Composez votre majorité'],
             mapTitle: 'Résultats régionaux', mapIntro: 'Survolez, ciblez ou touchez une région pour voir tous les partis et sièges déclarés.', mapSelect: 'Choisir une région', mapLegend: 'Couleur neutre : une région peut compter plusieurs partis.',
-            regionStatus: { PENDING: 'En attente', PARTIAL: 'Résultats partiels', FINAL: 'Résultats définitifs' }, regionPending: 'Aucun résultat n’a encore été publié pour cette région.', regionSeats: '{count} sièges déclarés', regionAllocated: '{count} sièges attribués', seats: 'sièges', seat: 'siège',
+            regionStatus: { PENDING: 'En attente', PARTIAL: 'Résultats partiels', FINAL: 'Résultats définitifs' }, regionPending: 'Aucun résultat n’a encore été publié pour cette région.', regionSeats: '{count} sièges déclarés', regionAllocated: '{count} sièges attribués', seats: 'sièges', seat: 'siège', winner: 'Élu', constituency: 'Circonscription',
             nationalTitle: 'Répartition des sièges par parti', nationalIntro: 'Les partis sont classés par sièges déclarés. La majorité est explorée séparément dans le simulateur.', noResults: 'Aucun siège n’a encore été déclaré. La page se mettra à jour dès l’ajout des résultats officiels.', votes: '{count} voix', voteShare: '{percent}% des voix',
             coalitionTitle: 'Composez votre majorité', coalitionIntro: 'Choisissez des partis, atteignez 198 sièges et consultez leur proximité sur la base des programmes publiés.', coalitionChoose: 'Choisissez les partis', coalitionSummary: 'Votre coalition', coalitionSeats: 'sièges sur 395', coalitionNeed: 'Il manque {count} sièges pour obtenir la majorité.', coalitionWon: 'Majorité atteinte avec {count} sièges d’avance.', coalitionStart: 'Choisissez au moins deux partis pour calculer leur proximité.', coalitionNoResults: 'Le simulateur sera disponible dès la publication des sièges.',
             alignment: 'Proximité programmatique', alignmentStrong: 'Forte proximité', alignmentMedium: 'Proximité moyenne', alignmentWeak: 'Faible proximité', alignmentLoading: 'Calcul de la proximité…', alignmentMissing: 'Les données publiées ne suffisent pas pour fournir un score honnête.', coverage: 'Couverture {percent}% · {questions} questions comparables', agreements: 'Principaux points d’accord', tensions: 'Principaux points de tension', none: 'Aucun thème saillant',
@@ -47,7 +47,7 @@
             metrics: ['Seats declared', 'Turnout', 'Local seats', 'Regional-list seats'],
             tabs: ['Map and regions', 'National results', 'Build your majority'],
             mapTitle: 'Regional results', mapIntro: 'Hover, focus or tap a region to see every party and declared seat.', mapSelect: 'Choose a region', mapLegend: 'Neutral colour: each region can contain several parties.',
-            regionStatus: { PENDING: 'Awaiting results', PARTIAL: 'Partial results', FINAL: 'Final results' }, regionPending: 'No results have been published for this region yet.', regionSeats: '{count} seats declared', regionAllocated: '{count} seats allocated', seats: 'seats', seat: 'seat',
+            regionStatus: { PENDING: 'Awaiting results', PARTIAL: 'Partial results', FINAL: 'Final results' }, regionPending: 'No results have been published for this region yet.', regionSeats: '{count} seats declared', regionAllocated: '{count} seats allocated', seats: 'seats', seat: 'seat', winner: 'Winner', constituency: 'Constituency',
             nationalTitle: 'Seats by party', nationalIntro: 'Parties are ranked by declared seats. Majority-building is explored separately in the coalition tool.', noResults: 'No seats have been declared yet. This page will update when official results are entered.', votes: '{count} votes', voteShare: '{percent}% of votes',
             coalitionTitle: 'Build your majority', coalitionIntro: 'Select parties, reach 198 seats, and see how closely their published programmes align.', coalitionChoose: 'Choose parties', coalitionSummary: 'Your coalition', coalitionSeats: 'seats out of 395', coalitionNeed: '{count} more seats needed for a majority.', coalitionWon: 'Majority reached with {count} seats to spare.', coalitionStart: 'Choose at least two parties to calculate programme alignment.', coalitionNoResults: 'The builder will be available once seats are published.',
             alignment: 'Programme alignment', alignmentStrong: 'Strong alignment', alignmentMedium: 'Medium alignment', alignmentWeak: 'Weak alignment', alignmentLoading: 'Calculating alignment…', alignmentMissing: 'The published data is not sufficient for an honest score.', coverage: '{percent}% coverage · {questions} comparable questions', agreements: 'Strongest common ground', tensions: 'Main tensions', none: 'No standout theme',
@@ -190,7 +190,7 @@
 
     function renderMetrics() {
         const election = snapshot.election;
-        const values = [null, election.turnoutPercent == null ? '—' : `${exactPercent(election.turnoutPercent)}%`, number(election.localSeats), number(election.regionalListSeats)];
+        const values = [null, election.turnoutPercent == null ? '—' : `${exactPercent(election.turnoutPercent)}%`, election.localSeats == null ? '—' : number(election.localSeats), election.regionalListSeats == null ? '—' : number(election.regionalListSeats)];
         const root = clear('electionMetrics');
         copy.metrics.forEach((label, index) => {
             const value = index === 0 ? declaredSeatMetric(election) : element('strong', '', values[index]);
@@ -430,9 +430,16 @@
     function winnerRow(winner) {
         const row = element('div', 'election-region-winner');
         const meta = element('div', 'election-region-winner-meta');
-        meta.append(element('bdi', 'election-region-winner-constituency', winner.constituencyName));
+        meta.append(
+            element('span', 'sr-only', `${copy.constituency}: `),
+            element('bdi', 'election-region-winner-constituency', winner.constituencyName)
+        );
         if (winner.votes != null) meta.append(element('span', 'election-region-winner-votes', format(copy.votes, { count: number(winner.votes) })));
-        row.append(element('bdi', 'election-region-winner-name', winner.candidateName), meta);
+        row.append(
+            element('span', 'sr-only', `${copy.winner}: `),
+            element('bdi', 'election-region-winner-name', winner.candidateName),
+            meta
+        );
         return row;
     }
 

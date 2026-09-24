@@ -144,7 +144,31 @@ class ElectionResultIntegrationTest {
                 .andExpect(content().string(containsString("id=\"electionMapPanel\"")))
                 .andExpect(content().string(containsString("id=\"electionNationalPanel\"")))
                 .andExpect(content().string(containsString("id=\"electionCoalitionPanel\"")))
-                .andExpect(content().string(containsString("/js/election-results.js?v=20260924-6")));
+                .andExpect(content().string(containsString("/js/election-results.js?v=20260924-8")));
+    }
+
+    @Test
+    void preservesCompletePartyTotalsWhenTheLocalRegionalSplitIsNotPublished() throws Exception {
+        jdbc.sql("""
+                        UPDATE election_party_results
+                           SET regional_list_seats = NULL,
+                               total_seats = CASE party_code
+                                   WHEN 'RNI' THEN 97
+                                   WHEN 'PAM' THEN 66
+                                   ELSE 54
+                               END
+                         WHERE election_id = :electionId
+                        """)
+                .param("electionId", ELECTION_ID)
+                .update();
+
+        mvc.perform(get("/api/catalog/elections/2026/results").param("lang", "ar"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.election.declaredSeats").value(217))
+                .andExpect(jsonPath("$.election.localSeats").value(156))
+                .andExpect(jsonPath("$.election.regionalListSeats").doesNotExist())
+                .andExpect(jsonPath("$.parties[0].totalSeats").value(97))
+                .andExpect(jsonPath("$.parties[0].regionalListSeats").doesNotExist());
     }
 
     @Test

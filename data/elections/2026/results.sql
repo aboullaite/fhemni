@@ -63,7 +63,7 @@ CREATE TEMP TABLE incoming_election_party_results (
     party_code VARCHAR(10) NOT NULL,
     votes BIGINT,
     local_seats INTEGER NOT NULL,
-    regional_list_seats INTEGER NOT NULL,
+    regional_list_seats INTEGER,
     total_seats INTEGER NOT NULL,
     PRIMARY KEY (election_id, party_code)
 ) ON COMMIT DROP;
@@ -103,7 +103,9 @@ CREATE TEMP TABLE incoming_election_constituency_winners (
 ) ON COMMIT DROP;
 
 -- Add the complete current snapshot to the two incoming result tables.
--- National rows must satisfy total_seats = local_seats + regional_list_seats.
+-- National rows satisfy total_seats = local_seats + regional_list_seats when
+-- the source publishes that breakdown. Leave regional_list_seats NULL when a
+-- newer national total is available but its local/regional split is not.
 -- Example shape only (do not uncomment without verified official figures):
 -- INSERT INTO incoming_election_party_results
 --     (election_id, party_code, votes, local_seats, regional_list_seats, total_seats)
@@ -606,12 +608,15 @@ BEGIN
          AND national.party_code = regional.party_code
         WHERE regional.election_id = '20260000-0000-4000-8000-000000000001'
         GROUP BY regional.party_code,
+                 national.party_code,
                  national.local_seats,
                  national.regional_list_seats,
                  national.total_seats
-        HAVING SUM(regional.local_seats) > COALESCE(national.local_seats, -1)
-            OR SUM(regional.regional_list_seats) > COALESCE(national.regional_list_seats, -1)
-            OR SUM(regional.total_seats) > COALESCE(national.total_seats, -1)
+        HAVING national.party_code IS NULL
+            OR SUM(regional.local_seats) > national.local_seats
+            OR (national.regional_list_seats IS NOT NULL
+                AND SUM(regional.regional_list_seats) > national.regional_list_seats)
+            OR SUM(regional.total_seats) > national.total_seats
     ) THEN
         RAISE EXCEPTION 'A regional party result exceeds a national seat component';
     END IF;

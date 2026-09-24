@@ -43,6 +43,7 @@ class ElectionResultSnapshotSqlTest {
         execute(MIGRATION);
         execute(read("src/main/resources/db/migration/V52__add_election_turnout_percent.sql"));
         execute(read("src/main/resources/db/migration/V53__add_election_constituency_winners.sql"));
+        execute(read("src/main/resources/db/migration/V54__allow_unknown_national_seat_breakdown.sql"));
         execute(SNAPSHOT);
     }
 
