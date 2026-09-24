@@ -175,6 +175,46 @@ class ElectionResultSnapshotSqlTest {
         assertRejected(invalid, "Every constituency winner must belong to a declared regional party result");
     }
 
+    @Test
+    void rejectsNamedWinnersAboveAPartialRegionAllocation() {
+        String invalid = withSourceTimestamp(SNAPSHOT, "2099-09-23 18:04:30+00")
+                .replace(
+                        "'casablanca-settat', 'الدار البيضاء - سطات', 'Casablanca-Settat', 'Casablanca-Settat', 'MA-06', NULL, 'PENDING', 6)",
+                        "'casablanca-settat', 'الدار البيضاء - سطات', 'Casablanca-Settat', 'Casablanca-Settat', 'MA-06', 1, 'PARTIAL', 6)");
+        invalid = insertResults(invalid, """
+                INSERT INTO incoming_election_party_results
+                    (election_id, party_code, votes, local_seats, regional_list_seats, total_seats)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001', 'RNI', NULL, 1, 0, 1),
+                    ('20260000-0000-4000-8000-000000000001', 'PAM', NULL, 1, 0, 1);
+                INSERT INTO incoming_election_region_party_results
+                    (election_id, region_code, party_code, local_seats, regional_list_seats, total_seats)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001', 'casablanca-settat', 'RNI', 1, 0, 1),
+                    ('20260000-0000-4000-8000-000000000001', 'casablanca-settat', 'PAM', 1, 0, 1);
+                INSERT INTO incoming_election_constituencies
+                    (election_id, code, region_code, name_ar, name_fr, name_en,
+                     allocated_seats, status, sort_order)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001', 'district-one',
+                     'casablanca-settat', 'الدائرة 1', 'Circonscription 1', 'District 1',
+                     1, 'PROVISIONAL', 1),
+                    ('20260000-0000-4000-8000-000000000001', 'district-two',
+                     'casablanca-settat', 'الدائرة 2', 'Circonscription 2', 'District 2',
+                     1, 'PROVISIONAL', 2);
+                INSERT INTO incoming_election_constituency_winners
+                    (election_id, constituency_code, candidate_key, candidate_name,
+                     party_code, votes, sort_order)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001', 'district-one',
+                     'candidate-one', 'Candidate One', 'RNI', NULL, 1),
+                    ('20260000-0000-4000-8000-000000000001', 'district-two',
+                     'candidate-two', 'Candidate Two', 'PAM', NULL, 1);
+                """);
+
+        assertRejected(invalid, "Constituency winners exceed a region seat allocation");
+    }
+
     private static String insertResults(String snapshot, String inserts) {
         int markerStart = snapshot.indexOf(MARKER);
         int resultsStart = snapshot.indexOf('\n', markerStart) + 1;

@@ -16,6 +16,7 @@ The durable recovery artifact is [`data/elections/2026/results.sql`](../../data/
    - when `valid_votes` is present, every party vote is populated and the party total reconciles exactly; keep `valid_votes` `NULL` until the complete party breakdown is available;
    - a `FINAL` or `CORRECTED` snapshot totals exactly 395 seats;
    - `UNKNOWN` never holds national or regional seats;
+   - for every region with a known allocation, named winners, summed constituency allocations, and summed regional party seats never exceed that allocation, including while the region is `PARTIAL`;
    - every `FINAL` region totals exactly its configured allocation;
    - once every region is marked `FINAL`, regional allocations total exactly 395 seats; a final national snapshot also requires every region to be final;
    - a party's regional local, regional-list, and total seats never exceed the corresponding national figures;

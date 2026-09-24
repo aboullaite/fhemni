@@ -532,6 +532,49 @@ BEGIN
         RAISE EXCEPTION 'Regional allocations (%) exceed chamber size (%)',
             allocated_regional_seats, chamber_seats;
     END IF;
+    IF EXISTS (
+        SELECT 1
+          FROM election_regions region
+          JOIN election_constituencies constituency
+            ON constituency.election_id = region.election_id
+           AND constituency.region_code = region.code
+          JOIN election_constituency_winners winner
+            ON winner.election_id = constituency.election_id
+           AND winner.constituency_code = constituency.code
+         WHERE region.election_id = '20260000-0000-4000-8000-000000000001'
+           AND region.allocated_seats IS NOT NULL
+         GROUP BY region.code, region.allocated_seats
+        HAVING COUNT(winner.candidate_key) > region.allocated_seats
+    ) THEN
+        RAISE EXCEPTION 'Constituency winners exceed a region seat allocation';
+    END IF;
+    IF EXISTS (
+        SELECT 1
+          FROM election_regions region
+          JOIN election_constituencies constituency
+            ON constituency.election_id = region.election_id
+           AND constituency.region_code = region.code
+         WHERE region.election_id = '20260000-0000-4000-8000-000000000001'
+           AND region.allocated_seats IS NOT NULL
+           AND constituency.allocated_seats IS NOT NULL
+         GROUP BY region.code, region.allocated_seats
+        HAVING SUM(constituency.allocated_seats) > region.allocated_seats
+    ) THEN
+        RAISE EXCEPTION 'Constituency allocations exceed a region seat allocation';
+    END IF;
+    IF EXISTS (
+        SELECT 1
+          FROM election_regions region
+          JOIN election_region_party_results result
+            ON result.election_id = region.election_id
+           AND result.region_code = region.code
+         WHERE region.election_id = '20260000-0000-4000-8000-000000000001'
+           AND region.allocated_seats IS NOT NULL
+         GROUP BY region.code, region.allocated_seats
+        HAVING SUM(result.total_seats) > region.allocated_seats
+    ) THEN
+        RAISE EXCEPTION 'Regional party seat totals exceed a region seat allocation';
+    END IF;
     IF (result_status IN ('FINAL', 'CORRECTED') OR all_regions_final)
        AND allocated_regional_seats <> chamber_seats THEN
         RAISE EXCEPTION 'Complete regional allocations (%) must equal chamber size (%)',
