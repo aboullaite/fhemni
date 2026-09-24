@@ -1,5 +1,6 @@
 package dev.maboullaite.fhemni.election;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -24,7 +25,7 @@ class ElectionResultRepository {
     Optional<ElectionRow> election(String slug) {
         return jdbc.sql("""
                         SELECT id, slug, election_date, status, total_seats,
-                               registered_voters, votes_cast, valid_votes, vote_basis,
+                               registered_voters, votes_cast, valid_votes, vote_basis, turnout_percent,
                                source_label_ar, source_label_fr, source_label_en,
                                source_url, source_updated_at, updated_at
                           FROM elections
@@ -98,6 +99,7 @@ class ElectionResultRepository {
                 nullableLong(result, "votes_cast"),
                 nullableLong(result, "valid_votes"),
                 result.getString("vote_basis"),
+                result.getBigDecimal("turnout_percent"),
                 result.getString("source_label_ar"),
                 result.getString("source_label_fr"),
                 result.getString("source_label_en"),
@@ -172,6 +174,7 @@ class ElectionResultRepository {
             Long votesCast,
             Long validVotes,
             String voteBasis,
+            BigDecimal turnoutPercent,
             String sourceLabelAr,
             String sourceLabelFr,
             String sourceLabelEn,

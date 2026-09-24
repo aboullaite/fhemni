@@ -73,6 +73,7 @@
     const format = (template, values) => Object.entries(values).reduce((text, entry) => text.replaceAll(`{${entry[0]}}`, entry[1]), template);
     const number = value => new Intl.NumberFormat(locale === 'ar' ? 'ar-MA' : locale).format(value ?? 0);
     const percent = value => value === null || value === undefined ? '—' : new Intl.NumberFormat(locale === 'ar' ? 'ar-MA' : locale, { maximumFractionDigits: 1 }).format(value);
+    const exactPercent = value => value === null || value === undefined ? '—' : new Intl.NumberFormat(locale === 'ar' ? 'ar-MA' : locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
     const widthClass = value => `priority-width-${Math.max(0, Math.min(100, Math.round(value || 0)))}`;
 
     document.addEventListener('DOMContentLoaded', init);
@@ -189,7 +190,7 @@
 
     function renderMetrics() {
         const election = snapshot.election;
-        const values = [null, election.turnoutPercent == null ? '—' : `${percent(election.turnoutPercent)}%`, number(election.localSeats), number(election.regionalListSeats)];
+        const values = [null, election.turnoutPercent == null ? '—' : `${exactPercent(election.turnoutPercent)}%`, number(election.localSeats), number(election.regionalListSeats)];
         const root = clear('electionMetrics');
         copy.metrics.forEach((label, index) => {
             const value = index === 0 ? declaredSeatMetric(election) : element('strong', '', values[index]);

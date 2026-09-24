@@ -8,6 +8,7 @@ The durable recovery artifact is [`data/elections/2026/results.sql`](../../data/
 
 1. Copy each figure from an official published source. Record its URL and publication time in `incoming_election_snapshot` at the top of the SQL file. Before adding the first national or regional result row, `source_updated_at` must be non-null; `NULL` is allowed only for the empty initial counting snapshot.
 2. Edit the `incoming_election_regions`, `incoming_election_party_results`, and `incoming_election_region_party_results` staging tables in `data/elections/2026/results.sql` with the full snapshot. Never infer missing seats or votes. An older `source_updated_at` is rejected before any result row changes. Reusing the same timestamp is accepted only when every staged value exactly matches the stored snapshot; use a newer official revision timestamp for changed figures.
+   - Set `turnout_percent` directly when the source publishes an exact turnout percentage without the underlying registered-voter and vote-cast totals. Leave those totals `NULL`; do not reverse-engineer them from the percentage. When `turnout_percent` is `NULL`, the API keeps deriving turnout from the two totals for backwards compatibility.
 3. Review these invariants before touching production:
    - every party code exists in `political_parties`;
    - `total_seats = local_seats + regional_list_seats` for every row;
