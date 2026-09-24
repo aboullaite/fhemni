@@ -130,6 +130,11 @@ class ElectionResultIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.parties[3].name").value("Alliance de la Gauche"))
                 .andExpect(jsonPath("$.regions[5].parties[3].name").value("Alliance de la Gauche"));
+
+        mvc.perform(get("/api/catalog/elections/2026/results").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.parties[3].name").value("Alliance de la Gauche"))
+                .andExpect(jsonPath("$.regions[5].parties[3].name").value("Alliance de la Gauche"));
     }
 
     @Test
