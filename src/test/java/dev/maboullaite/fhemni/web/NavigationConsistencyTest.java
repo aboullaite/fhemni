@@ -92,7 +92,7 @@ class NavigationConsistencyTest {
                 .contains("id=\"electionNationalPanel\"")
                 .contains("id=\"electionCoalitionPanel\"")
                 .contains("id=\"electionRegionSelect\"")
-                .contains("/js/election-results.js?v=20260924-16")
+                .contains("/js/election-results.js?v=20260924-17")
                 .doesNotContain("style=\"");
         assertThat(html("js/election-results.js"))
                 .contains("/api/catalog/elections/2026/results")
@@ -117,6 +117,8 @@ class NavigationConsistencyTest {
                 .contains("element('span', 'sr-only', `${copy.winner}: `)")
                 .contains("element('span', 'sr-only', `${copy.constituency}: `)")
                 .contains("event.key === 'Enter' || event.key === ' '")
+                .contains("election-seat-count-number")
+                .contains("election-seat-count-label")
                 .doesNotContain(".style.");
         assertThat(html("assets/maps/morocco-regions-2026.svg"))
                 .contains("data-region-key=\"MA-01\"")
@@ -319,7 +321,7 @@ class NavigationConsistencyTest {
             String version = switch (page) {
                 case "priorities.html" -> "20260917-9";
                 case "404.html" -> "20260917-1";
-                case "election-results.html" -> "20260924-4";
+                case "election-results.html" -> "20260924-6";
                 default -> "20260916-22";
             };
             assertThat(html(page))
