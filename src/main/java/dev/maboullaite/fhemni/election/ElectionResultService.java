@@ -237,11 +237,14 @@ public class ElectionResultService {
     private static Long publishedRegionalListSeats(
             List<PartyResultRow> nationalResults,
             List<RegionPartyResultRow> regionalResults) {
-        if (nationalResults.stream().allMatch(row -> row.regionalListSeats() != null)) {
-            return nationalResults.stream().mapToLong(PartyResultRow::regionalListSeats).sum();
-        }
-        long identifiedRegionalSeats = regionalResults.stream()
-                .mapToLong(RegionPartyResultRow::regionalListSeats)
+        Map<String, Long> regionalSeatsByParty = regionalResults.stream()
+                .collect(Collectors.groupingBy(
+                        RegionPartyResultRow::code,
+                        Collectors.summingLong(RegionPartyResultRow::regionalListSeats)));
+        long identifiedRegionalSeats = nationalResults.stream()
+                .mapToLong(row -> row.regionalListSeats() != null
+                        ? row.regionalListSeats()
+                        : regionalSeatsByParty.getOrDefault(row.code(), 0L))
                 .sum();
         return identifiedRegionalSeats > 0 ? identifiedRegionalSeats : null;
     }

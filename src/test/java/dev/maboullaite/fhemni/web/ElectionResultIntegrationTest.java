@@ -220,6 +220,24 @@ class ElectionResultIntegrationTest {
     }
 
     @Test
+    void combinesKnownNationalSplitsWithRegionalFallbacksPerParty() throws Exception {
+        jdbc.sql("""
+                        UPDATE election_party_results
+                           SET regional_list_seats = CASE party_code
+                               WHEN 'RNI' THEN 20
+                               ELSE NULL
+                           END
+                         WHERE election_id = :electionId
+                        """)
+                .param("electionId", ELECTION_ID)
+                .update();
+
+        mvc.perform(get("/api/catalog/elections/2026/results").param("lang", "ar"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.election.regionalListSeats").value(22));
+    }
+
+    @Test
     void evaluatesCoalitionSeatsAndProgrammeAlignmentWithoutAuthentication() throws Exception {
         mvc.perform(post("/api/catalog/elections/2026/coalitions/evaluate")
                         .with(csrf())
