@@ -16,6 +16,7 @@ import dev.maboullaite.fhemni.election.ElectionResultRepository.ElectionRow;
 import dev.maboullaite.fhemni.election.ElectionResultRepository.PartyResultRow;
 import dev.maboullaite.fhemni.election.ElectionResultRepository.RegionPartyResultRow;
 import dev.maboullaite.fhemni.election.ElectionResultRepository.RegionRow;
+import dev.maboullaite.fhemni.election.ElectionResultRepository.RegionalListWinnerRow;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +41,7 @@ public class ElectionResultService {
         List<RegionRow> regionRows = repository.regions(election.id());
         List<RegionPartyResultRow> regionPartyRows = repository.regionPartyResults(election.id());
         List<ConstituencyWinnerRow> winnerRows = repository.constituencyWinners(election.id());
+        List<RegionalListWinnerRow> regionalWinnerRows = repository.regionalListWinners(election.id());
 
         long declaredSeats = partyRows.stream().mapToLong(PartyResultRow::totalSeats).sum();
         long localSeats = partyRows.stream().mapToLong(PartyResultRow::localSeats).sum();
@@ -62,6 +64,14 @@ public class ElectionResultService {
                     .add(constituencyWinner(row, language));
         }
 
+        Map<RegionPartyKey, List<RegionalListWinner>> regionalWinnersByRegionParty = new LinkedHashMap<>();
+        for (RegionalListWinnerRow row : regionalWinnerRows) {
+            regionalWinnersByRegionParty.computeIfAbsent(
+                            new RegionPartyKey(row.regionCode(), row.partyCode()),
+                            ignored -> new java.util.ArrayList<>())
+                    .add(regionalListWinner(row));
+        }
+
         Map<String, List<RegionPartyResult>> partiesByRegion = new LinkedHashMap<>();
         for (RegionPartyResultRow row : regionPartyRows) {
             List<ConstituencyWinner> winners = winnersByRegionParty.getOrDefault(
@@ -69,8 +79,13 @@ public class ElectionResultService {
             if (winners.size() > row.localSeats()) {
                 throw new IllegalStateException("Constituency winners exceed the regional local-seat total.");
             }
+            List<RegionalListWinner> regionalWinners = regionalWinnersByRegionParty.getOrDefault(
+                    new RegionPartyKey(row.regionCode(), row.code()), List.of());
+            if (regionalWinners.size() > row.regionalListSeats()) {
+                throw new IllegalStateException("Named regional-list winners exceed the regional-list seat total.");
+            }
             partiesByRegion.computeIfAbsent(row.regionCode(), ignored -> new java.util.ArrayList<>())
-                    .add(regionParty(row, language, winners));
+                    .add(regionParty(row, language, winners, regionalWinners));
         }
         List<RegionResult> regions = regionRows.stream()
                 .map(row -> region(row, language, partiesByRegion.getOrDefault(row.code(), List.of())))
@@ -140,7 +155,8 @@ public class ElectionResultService {
     private RegionPartyResult regionParty(
             RegionPartyResultRow row,
             String language,
-            List<ConstituencyWinner> winners) {
+            List<ConstituencyWinner> winners,
+            List<RegionalListWinner> regionalWinners) {
         return new RegionPartyResult(
                 row.code(),
                 partyName(row.nameAr(), row.nameFr(), row.nameEn(), language),
@@ -149,7 +165,8 @@ public class ElectionResultService {
                 row.localSeats(),
                 row.regionalListSeats(),
                 row.totalSeats(),
-                winners);
+                winners,
+                regionalWinners);
     }
 
     private ConstituencyWinner constituencyWinner(ConstituencyWinnerRow row, String language) {
@@ -164,6 +181,16 @@ public class ElectionResultService {
                 row.candidateName(),
                 row.votes(),
                 row.status());
+    }
+
+    private RegionalListWinner regionalListWinner(RegionalListWinnerRow row) {
+        return new RegionalListWinner(
+                row.candidateKey(),
+                row.candidateName(),
+                row.resultStatus(),
+                row.sourceLabel(),
+                row.sourceUrl(),
+                row.sourceUpdatedAt());
     }
 
     private RegionResult region(RegionRow row, String language, List<RegionPartyResult> parties) {
@@ -272,7 +299,8 @@ public class ElectionResultService {
             int localSeats,
             int regionalListSeats,
             int totalSeats,
-            List<ConstituencyWinner> winners) {
+            List<ConstituencyWinner> winners,
+            List<RegionalListWinner> regionalListWinners) {
     }
 
     public record ConstituencyWinner(
@@ -281,6 +309,15 @@ public class ElectionResultService {
             String candidateName,
             Long votes,
             String status) {
+    }
+
+    public record RegionalListWinner(
+            String candidateKey,
+            String candidateName,
+            String status,
+            String sourceLabel,
+            String sourceUrl,
+            Instant sourceUpdatedAt) {
     }
 
     private record RegionPartyKey(String regionCode, String partyCode) {

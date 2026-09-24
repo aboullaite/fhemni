@@ -592,15 +592,21 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .election-region-party { min-height: 55px; align-items: start; padding: 11px 12px; border: 1px solid var(--line); border-inline-start: 4px solid var(--party-accent); border-radius: 12px; background: rgba(255,255,255,.72); font-size: 12px; font-weight: 400; }
 .election-region-party-name { min-width: 0; color: var(--ink); font-size: 12px; font-weight: 800; line-height: 1.45; }
 .election-region-party-seats { padding-block-start: 4px; }
-.election-region-winners { display: grid; grid-column: 1/-1; gap: 0; margin-top: 2px; padding-top: 4px; border-block-start: 1px solid rgba(19,44,43,.09); }
+.election-region-winners { display: grid; grid-column: 1/-1; gap: 8px; margin-top: 2px; padding-top: 7px; border-block-start: 1px solid rgba(19,44,43,.09); }
+.election-region-winner-group { display: grid; min-width: 0; gap: 5px; }
+.election-region-winner-group + .election-region-winner-group { padding-top: 7px; border-block-start: 1px dashed rgba(19,44,43,.1); }
+.election-region-winner-group-label { color: var(--muted); font-size: 9px; font-weight: 750; letter-spacing: .015em; line-height: 1.4; }
 .election-region-winner { display: grid; grid-template-columns: minmax(0,1fr); width: 100%; gap: 3px; padding: 8px 10px; border-radius: 8px; background: rgba(19,44,43,.035); font-family: "Tajawal",Tahoma,Arial,sans-serif; font-size: 10px; font-weight: 400; line-height: 1.45; }
-.election-region-winner + .election-region-winner { margin-top: 5px; }
+.election-region-winner-regional { background: rgba(11,79,73,.055); box-shadow: inset 2px 0 0 rgba(11,79,73,.22); }
+[dir="rtl"] .election-region-winner-regional { box-shadow: inset -2px 0 0 rgba(11,79,73,.22); }
 .election-region-winner-name { display: block; min-width: 0; overflow-wrap: anywhere; color: var(--ink); font-size: 11px; font-weight: 400 !important; line-height: 1.4; text-align: start; }
 .election-region-winner-meta { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 8px; }
 .election-region-winner-constituency { display: block; min-width: 0; overflow-wrap: anywhere; color: var(--muted); font-size: 10px; font-weight: 400 !important; line-height: 1.45; text-align: start; }
 [dir="rtl"] .election-region-winner-name, [dir="rtl"] .election-region-winner-constituency { text-align: right; }
 [dir="ltr"] .election-region-winner-name, [dir="ltr"] .election-region-winner-constituency { text-align: left; }
 .election-region-winner-votes { align-self: center; padding: 2px 6px; border-radius: 999px; background: rgba(19,44,43,.05); color: var(--party-accent); font: 600 9px/1.4 "Tajawal",Tahoma,Arial,sans-serif; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.election-region-winner-status { color: var(--muted); font-size: 9px; font-weight: 500; }
+.election-region-winner-source { min-width: 0; overflow: hidden; color: var(--teal-dark); font-size: 9px; font-weight: 650; text-decoration: underline; text-decoration-color: rgba(11,79,73,.28); text-underline-offset: 2px; text-overflow: ellipsis; white-space: nowrap; }
 .election-region-pending, .election-empty { display: grid; min-height: 170px; margin: 0; place-items: center; padding: 22px; border: 1px dashed rgba(19,44,43,.18); border-radius: var(--radius-panel); background: rgba(255,253,247,.55); color: var(--muted); font-size: 12px; font-weight: 600; line-height: 1.7; text-align: center; }
 .election-seat-ribbon { display: flex; width: 100%; height: 22px; overflow: hidden; margin: 8px 0 32px; border-radius: 999px; background: rgba(19,44,43,.08); }
 .election-seat-ribbon > span { display: block; height: 100%; min-width: 2px; background: var(--party-accent); }
