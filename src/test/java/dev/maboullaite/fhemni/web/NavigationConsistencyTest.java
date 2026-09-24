@@ -92,7 +92,7 @@ class NavigationConsistencyTest {
                 .contains("id=\"electionNationalPanel\"")
                 .contains("id=\"electionCoalitionPanel\"")
                 .contains("id=\"electionRegionSelect\"")
-                .contains("/js/election-results.js?v=20260924-9")
+                .contains("/js/election-results.js?v=20260924-11")
                 .doesNotContain("style=\"");
         assertThat(html("js/election-results.js"))
                 .contains("/api/catalog/elections/2026/results")
@@ -104,6 +104,9 @@ class NavigationConsistencyTest {
                 .contains("load({ fresh: true })")
                 .contains("load({ fresh: true });\n        scheduleCoalitionEvaluation();")
                 .contains("cache: options.fresh ? 'no-store' : 'default'")
+                .contains("const MAX_COALITION_PARTIES = 5;")
+                .contains("function leadingPartyCode()")
+                .contains("button.classList.toggle('is-locked', locked)")
                 .contains("element('span', 'sr-only', `${copy.winner}: `)")
                 .contains("element('span', 'sr-only', `${copy.constituency}: `)")
                 .contains("event.key === 'Enter' || event.key === ' '")
@@ -309,7 +312,7 @@ class NavigationConsistencyTest {
             String version = switch (page) {
                 case "priorities.html" -> "20260917-9";
                 case "404.html" -> "20260917-1";
-                case "election-results.html" -> "20260924-3";
+                case "election-results.html" -> "20260924-4";
                 default -> "20260916-22";
             };
             assertThat(html(page))

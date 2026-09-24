@@ -166,7 +166,7 @@ class ElectionResultIntegrationTest {
                 .andExpect(content().string(containsString("id=\"electionMapPanel\"")))
                 .andExpect(content().string(containsString("id=\"electionNationalPanel\"")))
                 .andExpect(content().string(containsString("id=\"electionCoalitionPanel\"")))
-                .andExpect(content().string(containsString("/js/election-results.js?v=20260924-9")));
+                .andExpect(content().string(containsString("/js/election-results.js?v=20260924-11")));
     }
 
     @Test
@@ -209,6 +209,25 @@ class ElectionResultIntegrationTest {
                 .andExpect(jsonPath("$.seatsAboveMajority").value(2))
                 .andExpect(jsonPath("$.alignment.status").exists());
         verify(coalitionRateLimiter).check(anyString());
+    }
+
+    @Test
+    void requiresTheLeadingPartyAndCapsGovernmentCoalitionsAtFiveParties() throws Exception {
+        mvc.perform(post("/api/catalog/elections/2026/coalitions/evaluate")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"language":"en","partyCodes":["PAM","PJD"]}
+                                """))
+                .andExpect(status().isBadRequest());
+
+        mvc.perform(post("/api/catalog/elections/2026/coalitions/evaluate")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"language":"en","partyCodes":["RNI","PAM","PJD","PI","MP","UC"]}
+                                """))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
