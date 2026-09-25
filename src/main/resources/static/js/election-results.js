@@ -331,7 +331,7 @@
             row.append(element('span', 'election-party-rank', number(index + 1)), logo(party), element('strong', 'election-party-name', party.name));
             const metadata = element('div', 'election-party-meta');
             const voteLabel = party.voteShare == null ? (party.votes == null ? '' : format(copy.votes, { count: number(party.votes) })) : format(copy.voteShare, { percent: percent(party.voteShare) });
-            metadata.append(element('span', '', voteLabel), element('b', '', `${number(party.totalSeats)} ${party.totalSeats === 1 ? copy.seat : copy.seats}`));
+            metadata.append(element('span', '', voteLabel), seatCount(party.totalSeats));
             const track = element('div', 'election-party-track');
             const fill = element('span', widthClass(party.totalSeats * 100 / maximumSeats));
             track.append(fill); metadata.append(track); row.append(metadata); bars.append(row);
@@ -482,14 +482,14 @@
     function partyRow(party, compact) {
         const row = element('div', `${compact ? 'election-tooltip-party' : 'election-region-party'} ${partyClass(party.code)}`);
         if (compact) {
-            row.append(logo(party), element('span', '', party.name), element('strong', '', `${number(party.totalSeats)} ${party.totalSeats === 1 ? copy.seat : copy.seats}`));
+            row.append(logo(party), element('span', '', party.name), seatCount(party.totalSeats));
             return row;
         }
 
         row.append(
             logo(party),
             element('span', 'election-region-party-name', party.name),
-            element('strong', 'election-region-party-seats', `${number(party.totalSeats)} ${party.totalSeats === 1 ? copy.seat : copy.seats}`)
+            seatCount(party.totalSeats, 'election-region-party-seats')
         );
         if (party.winners?.length || party.regionalListWinners?.length) {
             const winners = element('div', 'election-region-winners');
@@ -502,6 +502,15 @@
             row.append(winners);
         }
         return row;
+    }
+
+    function seatCount(value, modifier = '') {
+        const count = element('strong', `election-seat-count ${modifier}`.trim());
+        count.append(
+            element('bdi', 'election-seat-count-number', number(value)),
+            element('span', 'election-seat-count-label', value === 1 ? copy.seat : copy.seats)
+        );
+        return count;
     }
 
     function winnerGroup(label, rows, modifier = '') {
