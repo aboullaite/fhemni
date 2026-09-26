@@ -122,6 +122,8 @@ class NavigationConsistencyTest {
                 .contains("button.classList.toggle('is-locked', locked)")
                 .contains("element('span', 'sr-only', `${copy.winner}: `)")
                 .contains("element('span', 'sr-only', `${copy.constituency}: `)")
+                .contains("filterWinnerOne: 'منتخب'")
+                .contains("filterWinnerMany: 'منتخبين'")
                 .contains("event.key === 'Enter' || event.key === ' '")
                 .contains("election-seat-count-number")
                 .contains("election-seat-count-label")
