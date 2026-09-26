@@ -7,6 +7,9 @@
     const MAX_POLL_BACKOFF_MS = 5 * 60_000;
     const COALITION_DEBOUNCE_MS = 250;
     const MAX_COALITION_PARTIES = 5;
+    const REGION_FILTERS = window.FhemniElectionRegionFilters;
+    const SEAT_TYPES = REGION_FILTERS.SEAT_TYPES;
+    const deferredRegionRender = REGION_FILTERS.createDeferredAction(callback => window.queueMicrotask(callback));
     const PARTY_CLASSES = new Set(['rni', 'pam', 'pi', 'pjd', 'usfp', 'pps', 'mp', 'fgd', 'uc', 'ffd', 'mds', 'pud', 'psu', 'pe', 'pml', 'pvm', 'nd', 'pgv', 'pedd', 'prv', 'pdn', 'alamal', 'prd', 'umd', 'ind']);
     const COPY = {
         ar: {
@@ -18,7 +21,8 @@
             metrics: ['المقاعد المعلنة', 'المشاركة', 'مقاعد الدوائر المحلية', 'مقاعد اللوائح الجهوية'],
             tabs: ['الخريطة والجهات', 'النتائج الوطنية', 'كوّن الأغلبية ديالك'],
             mapTitle: 'النتائج حسب الجهات', mapIntro: 'دوز فوق أي جهة، ولا اختارها، باش تشوف الأحزاب والمقاعد المعلنة فيها.', mapSelect: 'اختار الجهة', mapLegend: 'لون محايد: الخريطة ما كتنسبش الجهة لحزب واحد.',
-            regionStatus: { PENDING: 'في انتظار النتائج', PARTIAL: 'نتائج جزئية', FINAL: 'نتائج نهائية' }, regionPending: 'النتائج مازال ما تعلناتش فهاد الجهة.', regionSeats: '{count} مقعد معلن', regionAllocated: '{count} مقعد مخصص', seats: 'مقاعد', seat: 'مقعد', winner: 'الفائز', constituency: 'الدائرة الانتخابية', localWinners: 'الدوائر المحلية', regionalList: 'اللائحة الجهوية', winnerStatus: { PRELIMINARY: 'مؤقت', FINAL: 'نهائي', CORRECTED: 'مصحح' },
+            regionStatus: { PENDING: 'في انتظار النتائج', PARTIAL: 'نتائج جزئية', FINAL: 'نتائج نهائية' }, regionPending: 'النتائج مازال ما تعلناتش فهاد الجهة.', regionSeats: '{count} مقعد معلن', regionAllocated: '{count} مقعد مخصص', regionPollUpdated: 'تحدثات نتائج {region}: {count} {unit} معلن.', seats: 'مقاعد', seat: 'مقعد', winner: 'الفائز', constituency: 'الدائرة الانتخابية', localWinners: 'الدوائر المحلية', regionalList: 'اللائحة الجهوية', winnerStatus: { PRELIMINARY: 'مؤقت', FINAL: 'نهائي', CORRECTED: 'مصحح' },
+            filters: 'فلتر النتائج', filtersActive: 'فلتر النتائج، {count} مفعّلين', activeFilters: 'الفلاتر المفعّلين', clearFilters: 'مسح الكل', filtersCleared: 'تم مسح الفلاتر.', seatType: 'نوع المقعد', allSeats: 'كل المقاعد', localSeats: 'المقاعد المحلية', regionalSeats: 'مقاعد اللائحة الجهوية', partyFilter: 'الحزب', allParties: 'كل الأحزاب', constituencyFilter: 'الدائرة', allConstituencies: 'كل الدوائر', constituencyUnavailable: 'ما كتطبقش على مقاعد اللائحة الجهوية.', constituencyCleared: 'تحيد فلتر الدائرة حيث ما كينطبقش على مقاعد اللائحة الجهوية.', noConstituencies: 'مازال ما تنشرات حتى دائرة.', filterSummary: '{parties} {partyUnit} · {count} {countUnit}', filterPartyOne: 'حزب', filterPartyMany: 'أحزاب', filterSeatOne: 'مقعد', filterSeatMany: 'مقاعد', noFilterResults: 'ما لقينا حتى نتيجة بهاد الفلاتر.', removeFilter: 'حيد فلتر {label}', missingWinnerName: 'اسم فائز واحد مازال ما تنشرش.', missingWinnerNames: 'أسامي {count} من الفائزين مازال ما تنشروش.', constituencyIncomplete: 'هاد الفلتر كيبين غير الفائزين المنشورين. المقاعد اللي بلا أسامي ما نقدرش ننسبوها لدائرة.',
             nationalTitle: 'توزيع المقاعد على الأحزاب', nationalIntro: 'الأحزاب مرتبة حسب عدد المقاعد المعلنة. ما كنعلنوش على أغلبية هنا؛ جرّب التحالفات فالأداة.', noResults: 'مازال ما كاين حتى مقعد معلن. هاد الصفحة غادي تتحدّث مباشرة ملي تدخل النتائج الرسمية.', votes: '{count} صوت', voteShare: '{percent}% من الأصوات',
             coalitionTitle: 'كوّن الأغلبية ديالك', coalitionIntro: 'الحزب المتصدر ثابت. زيد حتى لـ4 أحزاب وشوف واش توصل للأغلبية، وشنو مستوى التقارب بين البرامج.', coalitionLeader: 'الحزب المتصدر', coalitionSummary: 'التحالف ديالك', coalitionSeats: 'مقعد من 395', coalitionNeed: 'خاصك {count} مقعد آخر باش توصل للأغلبية.', coalitionWon: 'وصلتي للأغلبية بـ{count} مقعد زيادة.', coalitionStart: 'زيد حزب آخر على الأقل باش نحسبو التقارب.', coalitionNoResults: 'الأداة غادي تولّي متاحة ملي تتعلن المقاعد.',
             alignment: 'التقارب البرنامجي', alignmentStrong: 'تقارب قوي', alignmentMedium: 'تقارب متوسط', alignmentWeak: 'تقارب ضعيف', alignmentLoading: 'كنحسبو التقارب…', alignmentMissing: 'المعطيات المنشورة ما كافياش باش نعطيو نقطة عادلة.', coverage: 'التغطية {percent}% · {questions} أسئلة قابلة للمقارنة', agreements: 'أقوى نقاط الالتقاء', tensions: 'أبرز نقاط الاختلاف', none: 'ما كايناش نقطة بارزة',
@@ -33,7 +37,8 @@
             metrics: ['Sièges déclarés', 'Participation', 'Sièges locaux', 'Sièges des listes régionales'],
             tabs: ['Carte et régions', 'Résultats nationaux', 'Composez votre majorité'],
             mapTitle: 'Résultats régionaux', mapIntro: 'Survolez, ciblez ou touchez une région pour voir tous les partis et sièges déclarés.', mapSelect: 'Choisir une région', mapLegend: 'Couleur neutre : une région peut compter plusieurs partis.',
-            regionStatus: { PENDING: 'En attente', PARTIAL: 'Résultats partiels', FINAL: 'Résultats définitifs' }, regionPending: 'Aucun résultat n’a encore été publié pour cette région.', regionSeats: '{count} sièges déclarés', regionAllocated: '{count} sièges attribués', seats: 'sièges', seat: 'siège', winner: 'Élu', constituency: 'Circonscription', localWinners: 'Circonscriptions locales', regionalList: 'Liste régionale', winnerStatus: { PRELIMINARY: 'Provisoire', FINAL: 'Définitif', CORRECTED: 'Corrigé' },
+            regionStatus: { PENDING: 'En attente', PARTIAL: 'Résultats partiels', FINAL: 'Résultats définitifs' }, regionPending: 'Aucun résultat n’a encore été publié pour cette région.', regionSeats: '{count} sièges déclarés', regionAllocated: '{count} sièges attribués', regionPollUpdated: 'Résultats actualisés pour {region} : {count} {unit} déclarés.', seats: 'sièges', seat: 'siège', winner: 'Élu', constituency: 'Circonscription', localWinners: 'Circonscriptions locales', regionalList: 'Liste régionale', winnerStatus: { PRELIMINARY: 'Provisoire', FINAL: 'Définitif', CORRECTED: 'Corrigé' },
+            filters: 'Filtrer les résultats', filtersActive: 'Filtres, {count} actifs', activeFilters: 'Filtres actifs', clearFilters: 'Tout effacer', filtersCleared: 'Filtres effacés.', seatType: 'Type de siège', allSeats: 'Tous les sièges', localSeats: 'Sièges locaux', regionalSeats: 'Sièges de liste régionale', partyFilter: 'Parti', allParties: 'Tous les partis', constituencyFilter: 'Circonscription', allConstituencies: 'Toutes les circonscriptions', constituencyUnavailable: 'Non applicable aux sièges de liste régionale.', constituencyCleared: 'Le filtre de circonscription a été retiré car il ne s’applique pas aux sièges de liste régionale.', noConstituencies: 'Aucune circonscription publiée pour le moment.', filterSummary: '{parties} {partyUnit} · {count} {countUnit}', filterPartyOne: 'parti', filterPartyMany: 'partis', filterSeatOne: 'siège', filterSeatMany: 'sièges', noFilterResults: 'Aucun résultat ne correspond à ces filtres.', removeFilter: 'Retirer le filtre {label}', missingWinnerName: 'Le nom d’un élu n’est pas encore publié.', missingWinnerNames: '{count} noms d’élus ne sont pas encore publiés.', constituencyIncomplete: 'Ce filtre couvre uniquement les élus publiés. Les sièges sans nom ne peuvent pas encore être rattachés à une circonscription.',
             nationalTitle: 'Répartition des sièges par parti', nationalIntro: 'Les partis sont classés par sièges déclarés. La majorité est explorée séparément dans le simulateur.', noResults: 'Aucun siège n’a encore été déclaré. La page se mettra à jour dès l’ajout des résultats officiels.', votes: '{count} voix', voteShare: '{percent}% des voix',
             coalitionTitle: 'Composez votre majorité', coalitionIntro: 'Le parti arrivé en tête est fixé. Ajoutez jusqu’à 4 partis, atteignez 198 sièges et consultez la proximité de leurs programmes.', coalitionLeader: 'Parti arrivé en tête', coalitionSummary: 'Votre coalition', coalitionSeats: 'sièges sur 395', coalitionNeed: 'Il manque {count} sièges pour obtenir la majorité.', coalitionWon: 'Majorité atteinte avec {count} sièges d’avance.', coalitionStart: 'Ajoutez au moins un autre parti pour calculer leur proximité.', coalitionNoResults: 'Le simulateur sera disponible dès la publication des sièges.',
             alignment: 'Proximité programmatique', alignmentStrong: 'Forte proximité', alignmentMedium: 'Proximité moyenne', alignmentWeak: 'Faible proximité', alignmentLoading: 'Calcul de la proximité…', alignmentMissing: 'Les données publiées ne suffisent pas pour fournir un score honnête.', coverage: 'Couverture {percent}% · {questions} questions comparables', agreements: 'Principaux points d’accord', tensions: 'Principaux points de tension', none: 'Aucun thème saillant',
@@ -48,7 +53,8 @@
             metrics: ['Seats declared', 'Turnout', 'Local seats', 'Regional-list seats'],
             tabs: ['Map and regions', 'National results', 'Build your majority'],
             mapTitle: 'Regional results', mapIntro: 'Hover, focus or tap a region to see every party and declared seat.', mapSelect: 'Choose a region', mapLegend: 'Neutral colour: each region can contain several parties.',
-            regionStatus: { PENDING: 'Awaiting results', PARTIAL: 'Partial results', FINAL: 'Final results' }, regionPending: 'No results have been published for this region yet.', regionSeats: '{count} seats declared', regionAllocated: '{count} seats allocated', seats: 'seats', seat: 'seat', winner: 'Winner', constituency: 'Constituency', localWinners: 'Local constituencies', regionalList: 'Regional list', winnerStatus: { PRELIMINARY: 'Preliminary', FINAL: 'Final', CORRECTED: 'Corrected' },
+            regionStatus: { PENDING: 'Awaiting results', PARTIAL: 'Partial results', FINAL: 'Final results' }, regionPending: 'No results have been published for this region yet.', regionSeats: '{count} seats declared', regionAllocated: '{count} seats allocated', regionPollUpdated: 'Results updated for {region}: {count} {unit} declared.', seats: 'seats', seat: 'seat', winner: 'Winner', constituency: 'Constituency', localWinners: 'Local constituencies', regionalList: 'Regional list', winnerStatus: { PRELIMINARY: 'Preliminary', FINAL: 'Final', CORRECTED: 'Corrected' },
+            filters: 'Filter results', filtersActive: 'Filters, {count} active', activeFilters: 'Active filters', clearFilters: 'Clear all', filtersCleared: 'Filters cleared.', seatType: 'Seat type', allSeats: 'All seats', localSeats: 'Local seats', regionalSeats: 'Regional-list seats', partyFilter: 'Party', allParties: 'All parties', constituencyFilter: 'Constituency', allConstituencies: 'All constituencies', constituencyUnavailable: 'Not applicable to regional-list seats.', constituencyCleared: 'The constituency filter was removed because it does not apply to regional-list seats.', noConstituencies: 'No constituencies have been published yet.', filterSummary: '{parties} {partyUnit} · {count} {countUnit}', filterPartyOne: 'party', filterPartyMany: 'parties', filterSeatOne: 'seat', filterSeatMany: 'seats', noFilterResults: 'No results match these filters.', removeFilter: 'Remove {label} filter', missingWinnerName: '1 winner name has not been published yet.', missingWinnerNames: '{count} winner names have not been published yet.', constituencyIncomplete: 'This filter covers published winners only. Seats without names cannot yet be assigned to a constituency.',
             nationalTitle: 'Seats by party', nationalIntro: 'Parties are ranked by declared seats. Majority-building is explored separately in the coalition tool.', noResults: 'No seats have been declared yet. This page will update when official results are entered.', votes: '{count} votes', voteShare: '{percent}% of votes',
             coalitionTitle: 'Build your majority', coalitionIntro: 'The leading party is fixed. Add up to 4 parties, reach 198 seats, and see how closely their published programmes align.', coalitionLeader: 'Leading party', coalitionSummary: 'Your coalition', coalitionSeats: 'seats out of 395', coalitionNeed: '{count} more seats needed for a majority.', coalitionWon: 'Majority reached with {count} seats to spare.', coalitionStart: 'Add at least one other party to calculate programme alignment.', coalitionNoResults: 'The builder will be available once seats are published.',
             alignment: 'Programme alignment', alignmentStrong: 'Strong alignment', alignmentMedium: 'Medium alignment', alignmentWeak: 'Weak alignment', alignmentLoading: 'Calculating alignment…', alignmentMissing: 'The published data is not sufficient for an honest score.', coverage: '{percent}% coverage · {questions} comparable questions', agreements: 'Strongest common ground', tensions: 'Main tensions', none: 'No standout theme',
@@ -60,6 +66,10 @@
     let locale;
     let copy;
     let selectedRegionKey;
+    let renderedRegionKey;
+    let renderedRegionSignature;
+    let regionFilterState = REGION_FILTERS.normalizeState();
+    let regionFiltersExpanded = false;
     let selectedPartyCodes = new Set();
     let coalitionRequest = 0;
     let coalitionTimer;
@@ -70,6 +80,7 @@
     let resultAbortController;
     let pendingManualRetry = false;
     let pendingFreshReload = false;
+    let regionStatusAnnouncer;
 
     const byId = id => document.getElementById(id);
     const format = (template, values) => Object.entries(values).reduce((text, entry) => text.replaceAll(`{${entry[0]}}`, entry[1]), template);
@@ -83,10 +94,16 @@
     function init() {
         locale = window.FhemniI18n?.locale() || 'ar';
         copy = COPY[locale] || COPY.ar;
+        regionFiltersExpanded = REGION_FILTERS.defaultFiltersExpanded(window.innerWidth);
+        regionStatusAnnouncer = REGION_FILTERS.createLiveRegionAnnouncer(
+            byId('electionRegionFilterStatus'),
+            callback => window.queueMicrotask(callback)
+        );
         applyCopy();
         bindTabs();
         byId('electionRetry').addEventListener('click', () => load());
         byId('electionRegionSelect').addEventListener('change', event => selectRegion(event.target.value, true));
+        byId('electionRegionDetails').addEventListener('focusout', handleRegionFilterFocusOut);
         load();
         document.addEventListener('visibilitychange', handleVisibilityChange);
         document.addEventListener('fhemni:localechange', handleLocaleChange);
@@ -131,7 +148,7 @@
             snapshot = await response.json();
             pollFailureCount = 0;
             byId('electionStale').hidden = true;
-            render();
+            render({ poll: Boolean(options.poll) });
             showState('content');
             if (!options.poll) track('election_results_opened', { election_year: 2026, result_status: snapshot.election.status });
         } catch (error) {
@@ -191,13 +208,14 @@
         window.clearTimeout(coalitionTimer);
         coalitionAbortController?.abort();
         coalitionRequest++;
+        deferredRegionRender.cancel();
         byId('electionAlignment').hidden = true;
         load({ fresh: true });
         scheduleCoalitionEvaluation();
     }
 
-    function render() {
-        renderOverview(); renderMetrics(); renderRegionSelect(); renderMap(); renderNational(); renderCoalitionParties(); renderSource();
+    function render(options = {}) {
+        renderOverview(); renderMetrics(); renderRegionSelect(options); renderMap(); renderNational(); renderCoalitionParties(); renderSource();
     }
 
     function renderOverview() {
@@ -235,16 +253,28 @@
         return value;
     }
 
-    function renderRegionSelect() {
+    function renderRegionSelect(options = {}) {
         const select = clear('electionRegionSelect');
         snapshot.regions.forEach(region => {
             const option = element('option', '', region.name);
             option.value = region.mapKey;
             select.append(option);
         });
-        if (!selectedRegionKey || !snapshot.regions.some(region => region.mapKey === selectedRegionKey)) selectedRegionKey = snapshot.regions[0]?.mapKey;
+        if (!selectedRegionKey || !snapshot.regions.some(region => region.mapKey === selectedRegionKey)) {
+            const nextRegionKey = snapshot.regions[0]?.mapKey;
+            if (selectedRegionKey && nextRegionKey !== selectedRegionKey) resetRegionFilters();
+            selectedRegionKey = nextRegionKey;
+        }
         select.value = selectedRegionKey || '';
-        renderRegionDetails(regionByKey(selectedRegionKey));
+        const region = regionByKey(selectedRegionKey);
+        if (options.poll && renderedRegionKey === selectedRegionKey && renderedRegionSignature === regionSignature(region)) return;
+        const focusedFilterControl = byId('electionRegionDetails').querySelector('.election-region-filter-panel')?.contains(document.activeElement);
+        if (options.poll && renderedRegionKey === selectedRegionKey && focusedFilterControl) {
+            deferredRegionRender.defer(selectedRegionKey);
+            return;
+        }
+        renderRegionDetails(region);
+        if (options.poll) announceRegionPollUpdate(region);
     }
 
     async function renderMap() {
@@ -279,27 +309,307 @@
     }
 
     function selectRegion(mapKey, report) {
+        const filtersWereActive = mapKey !== selectedRegionKey && REGION_FILTERS.activeFilterCount(regionFilterState) > 0;
+        if (mapKey !== selectedRegionKey) {
+            deferredRegionRender.cancel();
+            resetRegionFilters();
+        }
         selectedRegionKey = mapKey;
         byId('electionRegionSelect').value = mapKey;
         renderRegionDetails(regionByKey(mapKey));
         renderMap();
+        if (filtersWereActive) announceRegionFilterStatus(copy.filtersCleared);
         if (report) track('election_region_selected', { election_year: 2026, region: mapKey });
     }
 
     function regionByKey(mapKey) { return snapshot?.regions.find(region => region.mapKey === mapKey); }
 
+    function resetRegionFilters() {
+        regionFilterState = REGION_FILTERS.normalizeState();
+        regionFiltersExpanded = REGION_FILTERS.defaultFiltersExpanded(window.innerWidth);
+    }
+
     function renderRegionDetails(region) {
-        const root = clear('electionRegionDetails');
-        if (!region) return;
+        const root = byId('electionRegionDetails');
+        const preserveUi = Boolean(region && renderedRegionKey === region.mapKey);
+        const previousScrollTop = preserveUi ? root.scrollTop : 0;
+        const focusedId = preserveUi && root.contains(document.activeElement) ? document.activeElement.id : '';
+        root.replaceChildren();
+        if (!region) { renderedRegionKey = undefined; renderedRegionSignature = undefined; return; }
         root.append(element('span', 'section-kicker', copy.regionStatus[region.status] || region.status), element('h3', '', region.name));
         const seatText = region.allocatedSeats == null
             ? format(copy.regionSeats, { count: number(region.declaredSeats) })
             : `${format(copy.regionSeats, { count: number(region.declaredSeats) })} · ${format(copy.regionAllocated, { count: number(region.allocatedSeats) })}`;
         root.append(element('p', 'election-region-seat-total', seatText));
-        if (!region.parties.length) { root.append(element('p', 'election-region-pending', copy.regionPending)); return; }
+        if (!region.parties.length) {
+            root.append(element('p', 'election-region-pending', copy.regionPending));
+            finishRegionDetailsRender(root, region, preserveUi, previousScrollTop, focusedId);
+            return;
+        }
+        const options = REGION_FILTERS.regionFilterOptions(region);
+        regionFilterState = reconcileRegionFilterState(regionFilterState, options);
+        const result = REGION_FILTERS.filterRegion(region, regionFilterState);
+        regionFilterState = result.state;
+        root.append(regionFilterControls(options, result));
         const list = element('div', 'election-region-parties');
-        region.parties.forEach(party => list.append(partyRow(party, false)));
+        if (!result.parties.length) list.append(regionFilterEmpty());
+        else result.parties.forEach(party => list.append(partyRow(party, false)));
         root.append(list);
+        finishRegionDetailsRender(root, region, preserveUi, previousScrollTop, focusedId);
+    }
+
+    function finishRegionDetailsRender(root, region, preserveUi, scrollTop, focusedId) {
+        renderedRegionKey = region.mapKey;
+        renderedRegionSignature = regionSignature(region);
+        if (!preserveUi) { root.scrollTop = 0; return; }
+        root.scrollTop = scrollTop;
+        if (focusedId) byId(focusedId)?.focus({ preventScroll: true });
+    }
+
+    function reconcileRegionFilterState(state, options) {
+        const next = { ...state };
+        if (next.partyCode && !options.parties.some(party => party.code === next.partyCode)) next.partyCode = '';
+        if (next.constituencyCode && !options.constituencies.some(constituency => constituency.code === next.constituencyCode)) next.constituencyCode = '';
+        return REGION_FILTERS.normalizeState(next);
+    }
+
+    function regionFilterControls(options, result) {
+        const panel = element('section', 'election-region-filter-panel');
+        panel.classList.toggle('is-expanded', regionFiltersExpanded);
+        panel.setAttribute('aria-label', copy.filters);
+        const activeCount = REGION_FILTERS.activeFilterCount(regionFilterState);
+        const heading = element('div', 'election-region-filter-heading');
+        const toggle = element('button', 'election-region-filter-toggle');
+        toggle.id = 'electionRegionFilterToggle';
+        toggle.type = 'button';
+        toggle.setAttribute('aria-expanded', String(regionFiltersExpanded));
+        toggle.setAttribute('aria-controls', 'electionRegionFilterFields');
+        toggle.setAttribute('aria-label', activeCount ? format(copy.filtersActive, { count: number(activeCount) }) : copy.filters);
+        toggle.append(element('span', 'election-region-filter-label', copy.filters));
+        if (activeCount) {
+            const badge = element('span', 'election-region-filter-count', number(activeCount));
+            badge.setAttribute('aria-hidden', 'true');
+            toggle.append(badge);
+        }
+        toggle.append(element('span', 'election-region-filter-chevron', '⌄'));
+        toggle.lastElementChild.setAttribute('aria-hidden', 'true');
+        toggle.addEventListener('click', () => {
+            regionFiltersExpanded = !regionFiltersExpanded;
+            renderRegionDetails(regionByKey(selectedRegionKey));
+            flushDeferredRegionRender();
+        });
+        heading.append(toggle);
+        if (activeCount) {
+            const clearButton = element('button', 'election-region-filter-clear', copy.clearFilters);
+            clearButton.id = 'electionRegionFilterClear';
+            clearButton.type = 'button';
+            clearButton.addEventListener('click', () => clearRegionFilters(true));
+            heading.append(clearButton);
+        }
+        panel.append(heading);
+
+        const fields = element('div', 'election-region-filter-fields');
+        fields.id = 'electionRegionFilterFields';
+        fields.hidden = !regionFiltersExpanded;
+        fields.append(
+            regionFilterSelect(
+                'electionRegionSeatTypeFilter',
+                copy.seatType,
+                [
+                    { value: SEAT_TYPES.ALL, label: copy.allSeats },
+                    { value: SEAT_TYPES.LOCAL, label: copy.localSeats },
+                    { value: SEAT_TYPES.REGIONAL, label: copy.regionalSeats }
+                ],
+                regionFilterState.seatType,
+                value => changeRegionFilter('seat_type', { seatType: value })
+            ),
+            regionFilterSelect(
+                'electionRegionPartyFilter',
+                copy.partyFilter,
+                [{ value: '', label: copy.allParties }, ...options.parties.map(party => ({ value: party.code, label: party.name }))],
+                regionFilterState.partyCode,
+                value => changeRegionFilter('party', { partyCode: value })
+            ),
+            regionFilterSelect(
+                'electionRegionConstituencyFilter',
+                copy.constituencyFilter,
+                [{ value: '', label: copy.allConstituencies }, ...options.constituencies.map(constituency => ({ value: constituency.code, label: constituency.name }))],
+                regionFilterState.constituencyCode,
+                value => changeRegionFilter('constituency', { constituencyCode: value }),
+                {
+                    disabled: regionFilterState.seatType === SEAT_TYPES.REGIONAL || !options.constituencies.length,
+                    helper: regionFilterState.seatType === SEAT_TYPES.REGIONAL
+                        ? copy.constituencyUnavailable
+                        : (!options.constituencies.length ? copy.noConstituencies : '')
+                }
+            )
+        );
+        panel.append(fields);
+
+        const chips = regionFilterChips(options);
+        if (chips.childElementCount) panel.append(chips);
+        panel.append(element('p', 'election-region-filter-summary', regionFilterSummary(result)));
+        if (regionFilterState.constituencyCode) panel.append(element('p', 'election-region-filter-note', copy.constituencyIncomplete));
+        return panel;
+    }
+
+    function regionFilterSelect(id, label, options, value, onChange, settings = {}) {
+        const field = element('label', 'election-region-filter-field');
+        field.htmlFor = id;
+        field.append(element('span', '', label));
+        const select = document.createElement('select');
+        select.id = id;
+        select.dir = 'auto';
+        select.disabled = Boolean(settings.disabled);
+        options.forEach(item => {
+            const option = element('option', '', item.label);
+            option.value = item.value;
+            select.append(option);
+        });
+        select.value = value;
+        select.addEventListener('change', event => onChange(event.target.value));
+        field.append(select);
+        if (settings.helper) {
+            const helper = element('small', 'election-region-filter-helper', settings.helper);
+            helper.id = `${id}Help`;
+            select.setAttribute('aria-describedby', helper.id);
+            field.append(helper);
+        }
+        return field;
+    }
+
+    function regionFilterChips(options) {
+        const chips = element('div', 'election-region-filter-chips');
+        chips.setAttribute('role', 'group');
+        chips.setAttribute('aria-label', copy.activeFilters);
+        const seatLabels = { [SEAT_TYPES.LOCAL]: copy.localSeats, [SEAT_TYPES.REGIONAL]: copy.regionalSeats };
+        if (regionFilterState.seatType !== SEAT_TYPES.ALL) {
+            chips.append(regionFilterChip(seatLabels[regionFilterState.seatType], () => changeRegionFilter('seat_type', { seatType: SEAT_TYPES.ALL })));
+        }
+        if (regionFilterState.partyCode) {
+            const party = options.parties.find(item => item.code === regionFilterState.partyCode);
+            chips.append(regionFilterChip(party?.name || regionFilterState.partyCode, () => changeRegionFilter('party', { partyCode: '' })));
+        }
+        if (regionFilterState.constituencyCode) {
+            const constituency = options.constituencies.find(item => item.code === regionFilterState.constituencyCode);
+            chips.append(regionFilterChip(constituency?.name || regionFilterState.constituencyCode, () => changeRegionFilter('constituency', { constituencyCode: '' })));
+        }
+        return chips;
+    }
+
+    function regionFilterChip(label, onRemove) {
+        const button = element('button', 'election-region-filter-chip');
+        button.type = 'button';
+        button.setAttribute('aria-label', format(copy.removeFilter, { label }));
+        button.append(element('bdi', '', label), element('span', '', '×'));
+        button.lastElementChild.setAttribute('aria-hidden', 'true');
+        button.addEventListener('click', () => {
+            onRemove();
+            byId('electionRegionFilterToggle')?.focus({ preventScroll: true });
+        });
+        return button;
+    }
+
+    function changeRegionFilter(filterType, change) {
+        const region = regionByKey(selectedRegionKey);
+        if (!region) return;
+        const previousConstituencyCode = regionFilterState.constituencyCode;
+        regionFilterState = REGION_FILTERS.normalizeState({ ...regionFilterState, ...change });
+        regionFilterState = reconcileRegionFilterState(regionFilterState, REGION_FILTERS.regionFilterOptions(region));
+        const result = REGION_FILTERS.filterRegion(region, regionFilterState);
+        regionFilterState = result.state;
+        const constituencyWasCleared = Boolean(previousConstituencyCode && !regionFilterState.constituencyCode);
+        track('election_region_filtered', {
+            election_year: 2026,
+            region: region.mapKey,
+            filter_type: filterType,
+            filter_value: change.seatType || change.partyCode || change.constituencyCode || 'all',
+            active_filter_count: REGION_FILTERS.activeFilterCount(regionFilterState),
+            result_party_count: result.parties.length
+        });
+        renderRegionDetails(region);
+        announceRegionFilterStatus(constituencyWasCleared ? copy.constituencyCleared : '', regionFilterSummary(result));
+        flushDeferredRegionRender();
+    }
+
+    function clearRegionFilters(report) {
+        const region = regionByKey(selectedRegionKey);
+        if (!region) return;
+        regionFilterState = REGION_FILTERS.normalizeState();
+        const result = REGION_FILTERS.filterRegion(region, regionFilterState);
+        if (report) track('election_region_filtered', {
+            election_year: 2026,
+            region: region.mapKey,
+            filter_type: 'clear_all',
+            filter_value: 'all',
+            active_filter_count: 0,
+            result_party_count: result.parties.length
+        });
+        renderRegionDetails(region);
+        announceRegionFilterStatus(copy.filtersCleared, regionFilterSummary(result));
+        byId('electionRegionFilterToggle')?.focus({ preventScroll: true });
+        flushDeferredRegionRender();
+    }
+
+    function regionFilterSummary(result) {
+        const partyUnit = result.parties.length === 1 ? copy.filterPartyOne : copy.filterPartyMany;
+        const countUnit = result.totalCount === 1 ? copy.filterSeatOne : copy.filterSeatMany;
+        return format(copy.filterSummary, {
+            parties: number(result.parties.length),
+            partyUnit,
+            count: number(result.totalCount),
+            countUnit
+        });
+    }
+
+    function announceRegionFilterStatus(...messages) {
+        const message = messages.filter(Boolean).join(' ');
+        regionStatusAnnouncer.announce(message);
+    }
+
+    function announceRegionPollUpdate(region) {
+        if (!region) return;
+        regionStatusAnnouncer.announce(format(copy.regionPollUpdated, {
+            region: region.name,
+            count: number(region.declaredSeats),
+            unit: region.declaredSeats === 1 ? copy.seat : copy.seats
+        }), { repeat: true });
+    }
+
+    function regionSignature(region) {
+        if (!region) return '';
+        return JSON.stringify({
+            name: region.name,
+            status: region.status,
+            declaredSeats: region.declaredSeats,
+            allocatedSeats: region.allocatedSeats,
+            parties: region.parties
+        });
+    }
+
+    function handleRegionFilterFocusOut(event) {
+        const panel = byId('electionRegionDetails').querySelector('.election-region-filter-panel');
+        if (event.relatedTarget && panel?.contains(event.relatedTarget)) return;
+        flushDeferredRegionRender();
+    }
+
+    function flushDeferredRegionRender() {
+        deferredRegionRender.flush(mapKey => {
+            if (mapKey !== selectedRegionKey) return;
+            const region = regionByKey(mapKey);
+            if (renderedRegionSignature !== regionSignature(region)) renderRegionDetails(region);
+            announceRegionPollUpdate(region);
+        });
+    }
+
+    function regionFilterEmpty() {
+        const empty = element('div', 'election-region-filter-empty');
+        empty.append(element('p', '', copy.noFilterResults));
+        const clearButton = element('button', '', copy.clearFilters);
+        clearButton.type = 'button';
+        clearButton.addEventListener('click', () => clearRegionFilters(true));
+        empty.append(clearButton);
+        return empty;
     }
 
     function showTooltip(region) {
@@ -489,26 +799,35 @@
         row.append(
             logo(party),
             element('span', 'election-region-party-name', party.name),
-            seatCount(party.totalSeats, 'election-region-party-seats')
+            seatCount(
+                party.displayCount ?? party.totalSeats,
+                'election-region-party-seats'
+            )
         );
-        if (party.winners?.length || party.regionalListWinners?.length) {
+        const localWinners = party.visibleWinners ?? party.winners ?? [];
+        const regionalListWinners = party.visibleRegionalListWinners ?? party.regionalListWinners ?? [];
+        if (localWinners.length || regionalListWinners.length || party.missingNameCount > 0) {
             const winners = element('div', 'election-region-winners');
-            if (party.winners?.length) {
-                winners.append(winnerGroup(copy.localWinners, party.winners.map(winnerRow)));
+            if (localWinners.length) {
+                winners.append(winnerGroup(copy.localWinners, localWinners.map(winnerRow)));
             }
-            if (party.regionalListWinners?.length) {
-                winners.append(winnerGroup(copy.regionalList, party.regionalListWinners.map(regionalWinnerRow), 'is-regional'));
+            if (regionalListWinners.length) {
+                winners.append(winnerGroup(copy.regionalList, regionalListWinners.map(regionalWinnerRow), 'is-regional'));
+            }
+            if (party.missingNameCount > 0) {
+                const missingNameCopy = party.missingNameCount === 1 ? copy.missingWinnerName : copy.missingWinnerNames;
+                winners.append(element('p', 'election-region-winner-missing', format(missingNameCopy, { count: number(party.missingNameCount) })));
             }
             row.append(winners);
         }
         return row;
     }
 
-    function seatCount(value, modifier = '') {
+    function seatCount(value, modifier = '', unit = null) {
         const count = element('strong', `election-seat-count ${modifier}`.trim());
         count.append(
             element('bdi', 'election-seat-count-number', number(value)),
-            element('span', 'election-seat-count-label', value === 1 ? copy.seat : copy.seats)
+            element('span', 'election-seat-count-label', unit || (value === 1 ? copy.seat : copy.seats))
         );
         return count;
     }
