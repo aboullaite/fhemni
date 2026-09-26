@@ -21,10 +21,6 @@
             + Number(normalized.seatType !== SEAT_TYPES.ALL);
     }
 
-    function defaultFiltersExpanded() {
-        return false;
-    }
-
     function createDeferredAction(scheduleTask = callback => queueMicrotask(callback)) {
         let pending = false;
         let pendingValue;
@@ -101,7 +97,7 @@
 
     function filterRegion(region, state = {}) {
         const normalized = normalizeState(state);
-        const countKind = 'seats';
+        const countKind = normalized.constituencyCode ? 'publishedWinners' : 'seats';
         const parties = (region?.parties || []).flatMap(party => {
             if (normalized.partyCode && party.code !== normalized.partyCode) return [];
             const names = visibleNames(party, normalized.seatType, normalized.constituencyCode);
@@ -124,5 +120,5 @@
         };
     }
 
-    return { SEAT_TYPES, activeFilterCount, createDeferredAction, createLiveRegionAnnouncer, defaultFiltersExpanded, filterRegion, normalizeState, regionFilterOptions };
+    return { SEAT_TYPES, activeFilterCount, createDeferredAction, createLiveRegionAnnouncer, filterRegion, normalizeState, regionFilterOptions };
 });

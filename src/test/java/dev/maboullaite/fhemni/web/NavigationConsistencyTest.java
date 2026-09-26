@@ -99,8 +99,7 @@ class NavigationConsistencyTest {
                 .doesNotContain("style=\"");
         assertThat(html("js/election-region-filters.js"))
                 .contains("function filterRegion(region, state = {})")
-                .contains("missingNameCount")
-                .contains("function defaultFiltersExpanded(viewportWidth)");
+                .contains("missingNameCount");
         assertThat(html("js/election-results.js"))
                 .contains("/api/catalog/elections/2026/results")
                 .contains("/api/catalog/elections/2026/coalitions/evaluate")

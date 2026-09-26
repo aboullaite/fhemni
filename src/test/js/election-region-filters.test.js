@@ -6,7 +6,6 @@ const {
     activeFilterCount,
     createDeferredAction,
     createLiveRegionAnnouncer,
-    defaultFiltersExpanded,
     filterRegion,
     regionFilterOptions
 } = require('../../main/resources/static/js/election-region-filters.js');
@@ -118,7 +117,7 @@ test('regional-list filtering keeps parties with numeric seats when winner names
     assert.equal(result.countKind, 'seats');
 });
 
-test('constituency filtering shows matching seats using seat terminology', () => {
+test('constituency filtering counts only named winners, not all seats', () => {
     const result = filterRegion(region, {
         constituencyCode: 'TAZA',
         seatType: SEAT_TYPES.ALL
@@ -129,7 +128,7 @@ test('constituency filtering shows matching seats using seat terminology', () =>
     assert.deepEqual(result.parties[0].visibleWinners.map(winner => winner.constituencyCode), ['TAZA']);
     assert.deepEqual(result.parties[0].visibleRegionalListWinners, []);
     assert.equal(result.totalCount, 2);
-    assert.equal(result.countKind, 'seats');
+    assert.equal(result.countKind, 'publishedWinners');
 });
 
 test('regional-list filtering clears a constituency that no longer applies', () => {
@@ -162,13 +161,4 @@ test('filter options contain each published constituency once', () => {
         { code: 'TAZA', name: 'Taza' },
         { code: 'FES-SUD', name: 'Fès-Sud' }
     ]);
-});
-
-test('advanced filters start collapsed at every viewport size', () => {
-    assert.equal(defaultFiltersExpanded(390), false);
-    assert.equal(defaultFiltersExpanded(640), false);
-    assert.equal(defaultFiltersExpanded(641), false);
-    assert.equal(defaultFiltersExpanded(900), false);
-    assert.equal(defaultFiltersExpanded(901), false);
-    assert.equal(defaultFiltersExpanded(1280), false);
 });

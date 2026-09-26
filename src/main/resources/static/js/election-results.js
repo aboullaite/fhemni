@@ -21,8 +21,8 @@
             metrics: ['المقاعد المعلنة', 'المشاركة', 'مقاعد الدوائر المحلية', 'مقاعد اللوائح الجهوية'],
             tabs: ['الخريطة والجهات', 'النتائج الوطنية', 'كوّن الأغلبية ديالك'],
             mapTitle: 'النتائج حسب الجهات', mapIntro: 'دوز فوق أي جهة، ولا اختارها، باش تشوف الأحزاب والمقاعد المعلنة فيها.', mapSelect: 'اختار الجهة', mapLegend: 'لون محايد: الخريطة ما كتنسبش الجهة لحزب واحد.',
-            regionStatus: { PENDING: 'في انتظار النتائج', PARTIAL: 'نتائج جزئية', FINAL: 'نتائج نهائية' }, regionPending: 'النتائج مازال ما تعلناتش فهاد الجهة.', regionSeats: '{count} مقعد معلن', regionAllocated: '{count} مقعد مخصص', regionPollUpdated: 'تحدثات نتائج {region}: {count} {unit} معلن.', seats: 'مقاعد', seat: 'مقعد', winner: 'الفائز', constituency: 'الدائرة الانتخابية', localWinners: 'الدوائر المحلية', regionalList: 'اللائحة الجهوية', winnerStatus: { PRELIMINARY: 'مؤقت', FINAL: 'نهائي', CORRECTED: 'مصحح' },
-            filters: 'فلتر النتائج', filtersActive: 'فلتر النتائج، {count} مفعّلين', activeFilters: 'الفلاتر المفعّلين', clearFilters: 'مسح الكل', filtersCleared: 'تم مسح الفلاتر.', seatType: 'نوع المقعد', allSeats: 'كل المقاعد', localSeats: 'المقاعد المحلية', regionalSeats: 'مقاعد اللائحة الجهوية', partyFilter: 'الحزب', allParties: 'كل الأحزاب', constituencyFilter: 'الدائرة', allConstituencies: 'كل الدوائر', constituencyUnavailable: 'ما كتطبقش على مقاعد اللائحة الجهوية.', constituencyCleared: 'تحيد فلتر الدائرة حيث ما كينطبقش على مقاعد اللائحة الجهوية.', noConstituencies: 'مازال ما تنشرات حتى دائرة.', filterSummary: '{parties} {partyUnit} · {count} {countUnit}', filterPartyOne: 'حزب', filterPartyMany: 'أحزاب', filterSeatOne: 'مقعد', filterSeatMany: 'مقاعد', noFilterResults: 'ما لقينا حتى نتيجة بهاد الفلاتر.', removeFilter: 'حيد فلتر {label}', missingWinnerName: 'اسم فائز واحد مازال ما تنشرش.', missingWinnerNames: 'أسامي {count} من الفائزين مازال ما تنشروش.', constituencyIncomplete: 'هاد الفلتر كيبين غير الفائزين المنشورين. المقاعد اللي بلا أسامي ما نقدرش ننسبوها لدائرة.',
+            regionStatus: { PENDING: 'في انتظار النتائج', PARTIAL: 'نتائج جزئية', FINAL: 'نتائج نهائية' }, regionPending: 'النتائج مازال ما تعلناتش فهاد الجهة.', regionSeats: '{count} مقعد معلن', regionAllocated: '{count} مقعد مخصص', regionPollUpdated: 'تحدثات نتائج {region}: {count} {unit} معلن.', seats: 'مقاعد', seat: 'مقعد', winner: 'منتخب', constituency: 'الدائرة الانتخابية', localWinners: 'الدوائر المحلية', regionalList: 'اللائحة الجهوية', winnerStatus: { PRELIMINARY: 'مؤقت', FINAL: 'نهائي', CORRECTED: 'مصحح' },
+            filters: 'فلتر النتائج', filtersActive: 'فلتر النتائج، {count} مفعّلين', activeFilters: 'الفلاتر المفعّلين', clearFilters: 'مسح الكل', filtersCleared: 'تم مسح الفلاتر.', seatType: 'نوع المقعد', allSeats: 'كل المقاعد', localSeats: 'المقاعد المحلية', regionalSeats: 'مقاعد اللائحة الجهوية', partyFilter: 'الحزب', allParties: 'كل الأحزاب', constituencyFilter: 'الدائرة', allConstituencies: 'كل الدوائر', constituencyUnavailable: 'ما كتطبقش على مقاعد اللائحة الجهوية.', constituencyCleared: 'تحيد فلتر الدائرة حيث ما كينطبقش على مقاعد اللائحة الجهوية.', noConstituencies: 'مازال ما تنشرات حتى دائرة.', filterSummary: '{parties} {partyUnit} · {count} {countUnit}', filterPartyOne: 'حزب', filterPartyMany: 'أحزاب', filterSeatOne: 'مقعد', filterSeatMany: 'مقاعد', filterWinnerOne: 'منتخب', filterWinnerMany: 'منتخب', noFilterResults: 'ما لقينا حتى نتيجة بهاد الفلاتر.', removeFilter: 'حيد فلتر {label}', missingWinnerName: 'اسم منتخب واحد مازال ما تنشرش.', missingWinnerNames: 'أسامي {count} من المنتخبين مازال ما تنشروش.',
             nationalTitle: 'توزيع المقاعد على الأحزاب', nationalIntro: 'الأحزاب مرتبة حسب عدد المقاعد المعلنة. ما كنعلنوش على أغلبية هنا؛ جرّب التحالفات فالأداة.', noResults: 'مازال ما كاين حتى مقعد معلن. هاد الصفحة غادي تتحدّث مباشرة ملي تدخل النتائج الرسمية.', votes: '{count} صوت', voteShare: '{percent}% من الأصوات',
             coalitionTitle: 'كوّن الأغلبية ديالك', coalitionIntro: 'الحزب المتصدر ثابت. زيد حتى لـ4 أحزاب وشوف واش توصل للأغلبية، وشنو مستوى التقارب بين البرامج.', coalitionLeader: 'الحزب المتصدر', coalitionSummary: 'التحالف ديالك', coalitionSeats: 'مقعد من 395', coalitionNeed: 'خاصك {count} مقعد آخر باش توصل للأغلبية.', coalitionWon: 'وصلتي للأغلبية بـ{count} مقعد زيادة.', coalitionStart: 'زيد حزب آخر على الأقل باش نحسبو التقارب.', coalitionNoResults: 'الأداة غادي تولّي متاحة ملي تتعلن المقاعد.',
             alignment: 'التقارب البرنامجي', alignmentStrong: 'تقارب قوي', alignmentMedium: 'تقارب متوسط', alignmentWeak: 'تقارب ضعيف', alignmentLoading: 'كنحسبو التقارب…', alignmentMissing: 'المعطيات المنشورة ما كافياش باش نعطيو نقطة عادلة.', coverage: 'التغطية {percent}% · {questions} أسئلة قابلة للمقارنة', agreements: 'أقوى نقاط الالتقاء', tensions: 'أبرز نقاط الاختلاف', none: 'ما كايناش نقطة بارزة',
@@ -38,7 +38,7 @@
             tabs: ['Carte et régions', 'Résultats nationaux', 'Composez votre majorité'],
             mapTitle: 'Résultats régionaux', mapIntro: 'Survolez, ciblez ou touchez une région pour voir tous les partis et sièges déclarés.', mapSelect: 'Choisir une région', mapLegend: 'Couleur neutre : une région peut compter plusieurs partis.',
             regionStatus: { PENDING: 'En attente', PARTIAL: 'Résultats partiels', FINAL: 'Résultats définitifs' }, regionPending: 'Aucun résultat n’a encore été publié pour cette région.', regionSeats: '{count} sièges déclarés', regionAllocated: '{count} sièges attribués', regionPollUpdated: 'Résultats actualisés pour {region} : {count} {unit} déclarés.', seats: 'sièges', seat: 'siège', winner: 'Élu', constituency: 'Circonscription', localWinners: 'Circonscriptions locales', regionalList: 'Liste régionale', winnerStatus: { PRELIMINARY: 'Provisoire', FINAL: 'Définitif', CORRECTED: 'Corrigé' },
-            filters: 'Filtrer les résultats', filtersActive: 'Filtres, {count} actifs', activeFilters: 'Filtres actifs', clearFilters: 'Tout effacer', filtersCleared: 'Filtres effacés.', seatType: 'Type de siège', allSeats: 'Tous les sièges', localSeats: 'Sièges locaux', regionalSeats: 'Sièges de liste régionale', partyFilter: 'Parti', allParties: 'Tous les partis', constituencyFilter: 'Circonscription', allConstituencies: 'Toutes les circonscriptions', constituencyUnavailable: 'Non applicable aux sièges de liste régionale.', constituencyCleared: 'Le filtre de circonscription a été retiré car il ne s’applique pas aux sièges de liste régionale.', noConstituencies: 'Aucune circonscription publiée pour le moment.', filterSummary: '{parties} {partyUnit} · {count} {countUnit}', filterPartyOne: 'parti', filterPartyMany: 'partis', filterSeatOne: 'siège', filterSeatMany: 'sièges', noFilterResults: 'Aucun résultat ne correspond à ces filtres.', removeFilter: 'Retirer le filtre {label}', missingWinnerName: 'Le nom d’un élu n’est pas encore publié.', missingWinnerNames: '{count} noms d’élus ne sont pas encore publiés.', constituencyIncomplete: 'Ce filtre couvre uniquement les élus publiés. Les sièges sans nom ne peuvent pas encore être rattachés à une circonscription.',
+            filters: 'Filtrer les résultats', filtersActive: 'Filtres, {count} actifs', activeFilters: 'Filtres actifs', clearFilters: 'Tout effacer', filtersCleared: 'Filtres effacés.', seatType: 'Type de siège', allSeats: 'Tous les sièges', localSeats: 'Sièges locaux', regionalSeats: 'Sièges de liste régionale', partyFilter: 'Parti', allParties: 'Tous les partis', constituencyFilter: 'Circonscription', allConstituencies: 'Toutes les circonscriptions', constituencyUnavailable: 'Non applicable aux sièges de liste régionale.', constituencyCleared: 'Le filtre de circonscription a été retiré car il ne s’applique pas aux sièges de liste régionale.', noConstituencies: 'Aucune circonscription publiée pour le moment.', filterSummary: '{parties} {partyUnit} · {count} {countUnit}', filterPartyOne: 'parti', filterPartyMany: 'partis', filterSeatOne: 'siège', filterSeatMany: 'sièges', filterWinnerOne: 'élu', filterWinnerMany: 'élus', noFilterResults: 'Aucun résultat ne correspond à ces filtres.', removeFilter: 'Retirer le filtre {label}', missingWinnerName: 'Le nom d’un élu n’est pas encore publié.', missingWinnerNames: '{count} noms d’élus ne sont pas encore publiés.',
             nationalTitle: 'Répartition des sièges par parti', nationalIntro: 'Les partis sont classés par sièges déclarés. La majorité est explorée séparément dans le simulateur.', noResults: 'Aucun siège n’a encore été déclaré. La page se mettra à jour dès l’ajout des résultats officiels.', votes: '{count} voix', voteShare: '{percent}% des voix',
             coalitionTitle: 'Composez votre majorité', coalitionIntro: 'Le parti arrivé en tête est fixé. Ajoutez jusqu’à 4 partis, atteignez 198 sièges et consultez la proximité de leurs programmes.', coalitionLeader: 'Parti arrivé en tête', coalitionSummary: 'Votre coalition', coalitionSeats: 'sièges sur 395', coalitionNeed: 'Il manque {count} sièges pour obtenir la majorité.', coalitionWon: 'Majorité atteinte avec {count} sièges d’avance.', coalitionStart: 'Ajoutez au moins un autre parti pour calculer leur proximité.', coalitionNoResults: 'Le simulateur sera disponible dès la publication des sièges.',
             alignment: 'Proximité programmatique', alignmentStrong: 'Forte proximité', alignmentMedium: 'Proximité moyenne', alignmentWeak: 'Faible proximité', alignmentLoading: 'Calcul de la proximité…', alignmentMissing: 'Les données publiées ne suffisent pas pour fournir un score honnête.', coverage: 'Couverture {percent}% · {questions} questions comparables', agreements: 'Principaux points d’accord', tensions: 'Principaux points de tension', none: 'Aucun thème saillant',
@@ -54,7 +54,7 @@
             tabs: ['Map and regions', 'National results', 'Build your majority'],
             mapTitle: 'Regional results', mapIntro: 'Hover, focus or tap a region to see every party and declared seat.', mapSelect: 'Choose a region', mapLegend: 'Neutral colour: each region can contain several parties.',
             regionStatus: { PENDING: 'Awaiting results', PARTIAL: 'Partial results', FINAL: 'Final results' }, regionPending: 'No results have been published for this region yet.', regionSeats: '{count} seats declared', regionAllocated: '{count} seats allocated', regionPollUpdated: 'Results updated for {region}: {count} {unit} declared.', seats: 'seats', seat: 'seat', winner: 'Winner', constituency: 'Constituency', localWinners: 'Local constituencies', regionalList: 'Regional list', winnerStatus: { PRELIMINARY: 'Preliminary', FINAL: 'Final', CORRECTED: 'Corrected' },
-            filters: 'Filter results', filtersActive: 'Filters, {count} active', activeFilters: 'Active filters', clearFilters: 'Clear all', filtersCleared: 'Filters cleared.', seatType: 'Seat type', allSeats: 'All seats', localSeats: 'Local seats', regionalSeats: 'Regional-list seats', partyFilter: 'Party', allParties: 'All parties', constituencyFilter: 'Constituency', allConstituencies: 'All constituencies', constituencyUnavailable: 'Not applicable to regional-list seats.', constituencyCleared: 'The constituency filter was removed because it does not apply to regional-list seats.', noConstituencies: 'No constituencies have been published yet.', filterSummary: '{parties} {partyUnit} · {count} {countUnit}', filterPartyOne: 'party', filterPartyMany: 'parties', filterSeatOne: 'seat', filterSeatMany: 'seats', noFilterResults: 'No results match these filters.', removeFilter: 'Remove {label} filter', missingWinnerName: '1 winner name has not been published yet.', missingWinnerNames: '{count} winner names have not been published yet.', constituencyIncomplete: 'This filter covers published winners only. Seats without names cannot yet be assigned to a constituency.',
+            filters: 'Filter results', filtersActive: 'Filters, {count} active', activeFilters: 'Active filters', clearFilters: 'Clear all', filtersCleared: 'Filters cleared.', seatType: 'Seat type', allSeats: 'All seats', localSeats: 'Local seats', regionalSeats: 'Regional-list seats', partyFilter: 'Party', allParties: 'All parties', constituencyFilter: 'Constituency', allConstituencies: 'All constituencies', constituencyUnavailable: 'Not applicable to regional-list seats.', constituencyCleared: 'The constituency filter was removed because it does not apply to regional-list seats.', noConstituencies: 'No constituencies have been published yet.', filterSummary: '{parties} {partyUnit} · {count} {countUnit}', filterPartyOne: 'party', filterPartyMany: 'parties', filterSeatOne: 'seat', filterSeatMany: 'seats', filterWinnerOne: 'winner', filterWinnerMany: 'winners', noFilterResults: 'No results match these filters.', removeFilter: 'Remove {label} filter', missingWinnerName: '1 winner name has not been published yet.', missingWinnerNames: '{count} winner names have not been published yet.',
             nationalTitle: 'Seats by party', nationalIntro: 'Parties are ranked by declared seats. Majority-building is explored separately in the coalition tool.', noResults: 'No seats have been declared yet. This page will update when official results are entered.', votes: '{count} votes', voteShare: '{percent}% of votes',
             coalitionTitle: 'Build your majority', coalitionIntro: 'The leading party is fixed. Add up to 4 parties, reach 198 seats, and see how closely their published programmes align.', coalitionLeader: 'Leading party', coalitionSummary: 'Your coalition', coalitionSeats: 'seats out of 395', coalitionNeed: '{count} more seats needed for a majority.', coalitionWon: 'Majority reached with {count} seats to spare.', coalitionStart: 'Add at least one other party to calculate programme alignment.', coalitionNoResults: 'The builder will be available once seats are published.',
             alignment: 'Programme alignment', alignmentStrong: 'Strong alignment', alignmentMedium: 'Medium alignment', alignmentWeak: 'Weak alignment', alignmentLoading: 'Calculating alignment…', alignmentMissing: 'The published data is not sufficient for an honest score.', coverage: '{percent}% coverage · {questions} comparable questions', agreements: 'Strongest common ground', tensions: 'Main tensions', none: 'No standout theme',
@@ -94,7 +94,7 @@
     function init() {
         locale = window.FhemniI18n?.locale() || 'ar';
         copy = COPY[locale] || COPY.ar;
-        regionFiltersExpanded = REGION_FILTERS.defaultFiltersExpanded(window.innerWidth);
+        regionFiltersExpanded = false;
         regionStatusAnnouncer = REGION_FILTERS.createLiveRegionAnnouncer(
             byId('electionRegionFilterStatus'),
             callback => window.queueMicrotask(callback)
@@ -326,7 +326,7 @@
 
     function resetRegionFilters() {
         regionFilterState = REGION_FILTERS.normalizeState();
-        regionFiltersExpanded = REGION_FILTERS.defaultFiltersExpanded(window.innerWidth);
+        regionFiltersExpanded = false;
     }
 
     function renderRegionDetails(region) {
@@ -353,7 +353,7 @@
         root.append(regionFilterControls(options, result));
         const list = element('div', 'election-region-parties');
         if (!result.parties.length) list.append(regionFilterEmpty());
-        else result.parties.forEach(party => list.append(partyRow(party, false)));
+        else result.parties.forEach(party => list.append(partyRow(party, false, result.countKind)));
         root.append(list);
         finishRegionDetailsRender(root, region, preserveUi, previousScrollTop, focusedId);
     }
@@ -449,7 +449,6 @@
         const chips = regionFilterChips(options);
         if (chips.childElementCount) panel.append(chips);
         panel.append(element('p', 'election-region-filter-summary', regionFilterSummary(result)));
-        if (regionFilterState.constituencyCode) panel.append(element('p', 'election-region-filter-note', copy.constituencyIncomplete));
         return panel;
     }
 
@@ -528,8 +527,8 @@
             result_party_count: result.parties.length
         });
         renderRegionDetails(region);
+        deferredRegionRender.cancel();
         announceRegionFilterStatus(constituencyWasCleared ? copy.constituencyCleared : '', regionFilterSummary(result));
-        flushDeferredRegionRender();
     }
 
     function clearRegionFilters(report) {
@@ -546,20 +545,25 @@
             result_party_count: result.parties.length
         });
         renderRegionDetails(region);
+        deferredRegionRender.cancel();
         announceRegionFilterStatus(copy.filtersCleared, regionFilterSummary(result));
         byId('electionRegionFilterToggle')?.focus({ preventScroll: true });
-        flushDeferredRegionRender();
     }
 
     function regionFilterSummary(result) {
         const partyUnit = result.parties.length === 1 ? copy.filterPartyOne : copy.filterPartyMany;
-        const countUnit = result.totalCount === 1 ? copy.filterSeatOne : copy.filterSeatMany;
+        const countUnit = filterCountUnit(result.countKind, result.totalCount);
         return format(copy.filterSummary, {
             parties: number(result.parties.length),
             partyUnit,
             count: number(result.totalCount),
             countUnit
         });
+    }
+
+    function filterCountUnit(countKind, count) {
+        if (countKind === 'publishedWinners') return count === 1 ? copy.filterWinnerOne : copy.filterWinnerMany;
+        return count === 1 ? copy.filterSeatOne : copy.filterSeatMany;
     }
 
     function announceRegionFilterStatus(...messages) {
@@ -789,7 +793,7 @@
         if (snapshot.election.sourceUrl) link.href = snapshot.election.sourceUrl;
     }
 
-    function partyRow(party, compact) {
+    function partyRow(party, compact, countKind = 'seats') {
         const row = element('div', `${compact ? 'election-tooltip-party' : 'election-region-party'} ${partyClass(party.code)}`);
         if (compact) {
             row.append(logo(party), element('span', '', party.name), seatCount(party.totalSeats));
@@ -801,7 +805,8 @@
             element('span', 'election-region-party-name', party.name),
             seatCount(
                 party.displayCount ?? party.totalSeats,
-                'election-region-party-seats'
+                'election-region-party-seats',
+                filterCountUnit(countKind, party.displayCount ?? party.totalSeats)
             )
         );
         const localWinners = party.visibleWinners ?? party.winners ?? [];
