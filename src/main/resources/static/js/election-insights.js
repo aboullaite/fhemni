@@ -418,6 +418,118 @@
         };
     }
 
+    function deriveUrbanizationRepresentation(snapshot, demographics) {
+        const matrix = buildRegionMatrix(snapshot);
+        if (!matrix.available) {
+            return { available: false, diagnostics: [...matrix.diagnostics], rows: [], national: null, source: null };
+        }
+
+        const diagnostics = [];
+        const regions = Array.isArray(demographics?.regions) ? demographics.regions : [];
+        if (regions.length !== 12) addDiagnostic(diagnostics, 'region-demographics-count');
+        if (!Number.isSafeInteger(demographics?.censusYear) || demographics.censusYear <= 0
+                || typeof demographics?.datasetVersion !== 'string' || !demographics.datasetVersion.trim()
+                || typeof demographics?.sourceUrl !== 'string' || !demographics.sourceUrl.trim()) {
+            addDiagnostic(diagnostics, 'region-demographics-source');
+        }
+
+        const byCode = new Map();
+        const hcpCodes = new Set();
+        let totalPopulation = 0;
+        let urbanPopulation = 0;
+        let ruralPopulation = 0;
+        for (const region of regions) {
+            if (!region?.regionCode || byCode.has(region.regionCode)
+                    || !region?.hcpCode || hcpCodes.has(region.hcpCode)) {
+                addDiagnostic(diagnostics, 'region-demographics-code');
+            } else {
+                byCode.set(region.regionCode, region);
+                hcpCodes.add(region.hcpCode);
+            }
+            if (![region?.totalPopulation, region?.urbanPopulation, region?.ruralPopulation].every(integer)
+                    || region.totalPopulation === 0) {
+                addDiagnostic(diagnostics, 'region-demographics-population');
+                continue;
+            }
+            if (region.urbanPopulation + region.ruralPopulation !== region.totalPopulation) {
+                addDiagnostic(diagnostics, 'region-demographics-total');
+            }
+            totalPopulation += region.totalPopulation;
+            urbanPopulation += region.urbanPopulation;
+            ruralPopulation += region.ruralPopulation;
+        }
+
+        const matrixCodes = new Set(matrix.rows.map(region => region.code));
+        if (byCode.size !== matrix.rows.length
+                || matrix.rows.some(region => !byCode.has(region.code))
+                || [...byCode.keys()].some(code => !matrixCodes.has(code))) {
+            addDiagnostic(diagnostics, 'region-demographics-coverage');
+        }
+        if (urbanPopulation + ruralPopulation !== totalPopulation || totalPopulation === 0) {
+            addDiagnostic(diagnostics, 'region-demographics-total');
+        }
+        if (diagnostics.length) {
+            return { available: false, diagnostics, rows: [], national: null, source: null };
+        }
+
+        const parties = new Map(snapshot.parties.map(party => [party.code, party]));
+        const national = {
+            totalPopulation,
+            urbanPopulation,
+            ruralPopulation,
+            urbanShare: 100 * urbanPopulation / totalPopulation,
+            ruralShare: 100 * ruralPopulation / totalPopulation
+        };
+        const rows = matrix.partyCodes.map(code => {
+            const party = parties.get(code);
+            const regionRows = matrix.rows.map(region => {
+                const census = byCode.get(region.code);
+                const partySeats = region.cells.find(cell => cell.code === code).seats;
+                return {
+                    code: region.code,
+                    name: region.name,
+                    hcpCode: census.hcpCode,
+                    totalPopulation: census.totalPopulation,
+                    urbanPopulation: census.urbanPopulation,
+                    ruralPopulation: census.ruralPopulation,
+                    urbanShare: 100 * census.urbanPopulation / census.totalPopulation,
+                    ruralShare: 100 * census.ruralPopulation / census.totalPopulation,
+                    partySeats,
+                    delegationSeats: region.totalSeats
+                };
+            });
+            const weightedUrbanShare = regionRows.reduce((sum, region) =>
+                sum + region.partySeats * region.urbanPopulation / region.totalPopulation, 0);
+            const weightedRuralShare = regionRows.reduce((sum, region) =>
+                sum + region.partySeats * region.ruralPopulation / region.totalPopulation, 0);
+            const urbanizationIndex = 100 * weightedUrbanShare / party.totalSeats;
+            const ruralityIndex = 100 * weightedRuralShare / party.totalSeats;
+            return {
+                code,
+                name: party.name,
+                color: party.color,
+                symbolAsset: party.symbolAsset,
+                totalSeats: party.totalSeats,
+                urbanizationIndex,
+                ruralityIndex,
+                differenceFromNational: urbanizationIndex - national.urbanShare,
+                regionRows
+            };
+        }).sort((left, right) => right.urbanizationIndex - left.urbanizationIndex || codeOrder(left, right));
+
+        return {
+            available: true,
+            diagnostics: [],
+            source: {
+                datasetVersion: demographics.datasetVersion,
+                censusYear: demographics.censusYear,
+                sourceUrl: demographics.sourceUrl
+            },
+            national,
+            rows
+        };
+    }
+
     function deriveConstituencyDistribution(snapshot) {
         const matrix = buildRegionMatrix(snapshot);
         if (!matrix.available) return { available: false, diagnostics: matrix.diagnostics, bins: [] };
@@ -544,6 +656,6 @@
     }
 
     return { auditSnapshot, deriveBallotComponents, deriveBallotSeatComparison, deriveConcentration,
-        buildRegionMatrix, deriveRegionDelegation, derivePartyGeography,
+        buildRegionMatrix, deriveRegionDelegation, derivePartyGeography, deriveUrbanizationRepresentation,
         deriveConstituencyDistribution, indexRepresentatives };
 });

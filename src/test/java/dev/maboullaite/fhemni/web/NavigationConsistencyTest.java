@@ -96,7 +96,9 @@ class NavigationConsistencyTest {
                 .contains("id=\"electionRegionFilterStatus\"")
                 .contains("role=\"status\" aria-live=\"polite\" aria-atomic=\"true\"")
                 .contains("/js/election-region-filters.js?v=20260925-1")
-                .contains("/js/election-results.js?v=20260927-3")
+                .contains("/data/elections/2026/urban-rural-regions.js?v=20260927-1")
+                .contains("/js/election-insights.js?v=20260927-2")
+                .contains("/js/election-results.js?v=20260927-4")
                 .doesNotContain("style=\"");
         assertThat(html("js/election-region-filters.js"))
                 .contains("function filterRegion(region, state = {})")
@@ -202,7 +204,7 @@ class NavigationConsistencyTest {
                 .contains("[dir=\"rtl\"] .election-graphs-jumps");
         assertThat(styles).containsPattern("(?s)@media \\(max-width: 640px\\).*?\\.election-tabs \\{[^}]*overflow-x: auto;[^}]*grid-template-columns: repeat\\(4,minmax\\(118px,1fr\\)\\)");
         assertThat(compiled).contains(".election-graphs-jumps").contains(".election-atlas-representative-cards");
-        assertThat(page).contains("/css/dist.css?v=20260927-2");
+        assertThat(page).contains("/css/dist.css?v=20260927-4");
     }
 
     @Test
@@ -440,7 +442,7 @@ class NavigationConsistencyTest {
                 .contains("representatives-search", "representatives-region", "representatives-constituency")
                 .contains("representatives-party", "representatives-seat-type")
                 .contains("election-atlas-representative-count", "election-atlas-representative-chips")
-                .contains("representatives-reset", "representatives-load-more")
+                .contains("representatives-reset", "representatives-previous", "representatives-next")
                 .contains("election-atlas-representative-table", "election-atlas-representative-card")
                 .contains("atlas.representativesNotPublished")
                 .contains("atlas.representativesPage");
@@ -523,15 +525,21 @@ class NavigationConsistencyTest {
                 const find = key => visit(root).find(node => node.dataset.atlasKey === key);
                 const count = className => visit(root).filter(node => node.className.split(' ').includes(className)).length;
                 assert.equal(count('election-atlas-representative-card'), 25);
-                assert.ok(visit(root).some(node => node.textContent === 'Showing 25 of 26'));
-                const more = find('representatives-load-more');
-                assert.ok(more);
-                document.activeElement = more;
-                more.listeners.click();
-                assert.equal(count('election-atlas-representative-card'), 26);
-                assert.equal(find('representatives-load-more').disabled, true);
-                assert.equal(document.activeElement, find('representatives-result-count'));
-                assert.match(status.textContent, /Showing 26 of 26/);
+                assert.ok(visit(root).some(node => node.textContent === 'Showing 1–25 of 26 · page 1 of 2'));
+                const next = find('representatives-next');
+                assert.ok(next);
+                document.activeElement = next;
+                next.listeners.click();
+                assert.equal(count('election-atlas-representative-card'), 1);
+                assert.equal(find('representatives-next').disabled, true);
+                assert.equal(document.activeElement, find('representatives-previous'));
+                assert.match(status.textContent, /Showing 26–26 of 26 · page 2 of 2/);
+                const previous = find('representatives-previous');
+                document.activeElement = previous;
+                previous.listeners.click();
+                assert.equal(count('election-atlas-representative-card'), 25);
+                assert.equal(find('representatives-previous').disabled, true);
+                assert.equal(document.activeElement, find('representatives-next'));
                 assert.ok(visit(root).some(node => node.textContent === 'Not published'));
                 assert.ok(visit(root).some(node => node.textContent === '0'));
                 sandbox.__atlasState.representatives.query = 'Candidate';
@@ -932,7 +940,7 @@ class NavigationConsistencyTest {
             String version = switch (page) {
                 case "priorities.html" -> "20260917-9";
                 case "404.html" -> "20260917-1";
-                case "election-results.html" -> "20260927-2";
+                case "election-results.html" -> "20260927-4";
                 default -> "20260916-22";
             };
             assertThat(html(page))

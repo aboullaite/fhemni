@@ -633,6 +633,25 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .election-atlas-geography-matrix-mobile { display: none; }
 .election-atlas-representative-handoff { display: flex; flex-wrap: wrap; gap: 8px; margin-block-start: 12px; }
 .election-atlas-representative-filter { padding: 8px 12px; border-radius: 999px; background: rgba(23,107,99,.1); font-size: 12px; font-weight: 800; }
+.election-atlas-urbanization { min-width: 0; }
+.election-atlas-urbanization-axis { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; direction: ltr; color: var(--muted); font-size: 11px; }
+.election-atlas-urbanization-axis strong { padding: 5px 9px; border: 1px solid var(--line); border-radius: 999px; background: var(--white); color: var(--ink); font-size: 10px; font-weight: 600; text-align: center; }
+.election-atlas-urbanization-axis > span:last-child { text-align: end; }
+.election-atlas-urbanization-chart { display: grid; gap: 7px; }
+.election-atlas-urbanization-row { display: grid; grid-template-columns: minmax(130px,.75fr) minmax(70px,auto) minmax(150px,1.5fr) minmax(66px,auto); align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 11px; background: var(--white); color: var(--ink); font: 500 12px/1.4 "Tajawal",Tahoma,Arial,sans-serif; text-align: start; cursor: pointer; }
+.election-atlas-urbanization-row[aria-pressed="true"] { border-color: var(--party-accent,var(--teal-dark)); box-shadow: 0 0 0 2px color-mix(in srgb,var(--party-accent,var(--teal-dark)) 14%,transparent); }
+.election-atlas-urbanization-identity { display: flex; align-items: baseline; gap: 7px; min-width: 0; border-inline-start: 3px solid var(--party-accent,var(--teal-dark)); padding-inline-start: 8px; }
+.election-atlas-urbanization-identity .election-atlas-party-code { font-weight: 700; }
+.election-atlas-urbanization-identity .election-atlas-party-name { color: var(--muted); font-weight: 400; }
+.election-atlas-urbanization-seats { color: var(--muted); font-size: 11px; white-space: nowrap; }
+.election-atlas-urbanization-track { display: block; position: relative; height: 14px; border-radius: 999px; background: linear-gradient(90deg,#e7d8c1 0%,#e8e5d9 45%,#cfe6dc 70%,#8fc8bb 100%); direction: ltr; }
+.election-atlas-urbanization-position { position: absolute; inset-block: 0; inset-inline-start: 0; pointer-events: none; }
+.election-atlas-urbanization-baseline { position: absolute; inset-inline-end: -1px; inset-block: -4px; width: 2px; background: var(--ink); opacity: .52; }
+.election-atlas-urbanization-marker { position: absolute; inset-inline-end: -7.5px; inset-block-start: 50%; width: 15px; height: 15px; margin-block-start: -7.5px; border: 3px solid var(--white); border-radius: 50%; background: var(--party-accent,var(--teal-dark)); box-shadow: 0 1px 5px rgba(19,44,43,.32); }
+.election-atlas-urbanization-value { font-size: 13px; font-weight: 700; white-space: nowrap; }
+.election-atlas-urbanization-source { margin: 0; color: var(--muted); font-size: 11px; }
+.election-atlas-urbanization-source a { color: var(--teal-dark); text-underline-offset: 3px; }
+.election-atlas-urbanization-regions table { min-width: 570px; }
 .election-atlas-constituency-chart { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); align-items: end; gap: 10px; }
 .election-atlas-constituency-bin { display: grid; justify-items: center; gap: 5px; min-width: 0; min-height: 44px; padding: 12px 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--white); color: var(--ink); font: inherit; cursor: pointer; text-align: center; }
 .election-atlas-constituency-bin[aria-pressed="true"] { border-color: var(--teal-dark); box-shadow: 0 0 0 2px rgba(23,107,99,.15); }
@@ -644,7 +663,8 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .election-atlas-constituency-list { display: grid; grid-template-columns: repeat(auto-fit,minmax(165px,1fr)); gap: 6px 18px; margin: 0; padding-inline-start: 20px; font-size: 12px; }
 .election-atlas-constituency-selection > button { justify-self: start; cursor: pointer; }
 .election-atlas-representatives { min-width: 0; }
-.election-atlas-representative-controls .election-atlas-field { flex: 1 1 175px; min-width: min(175px,100%); }
+.election-atlas-representative-controls .election-atlas-field { flex: 1 1 175px; min-width: 0; }
+.election-atlas-representative-controls .election-atlas-control { width: 100%; min-width: 0; }
 .election-atlas-representative-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
 .election-atlas-representative-chips strong { font-size: 11px; }
 .election-atlas-representative-chips button { min-height: 44px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 999px; background: rgba(23,107,99,.08); color: var(--ink); font: inherit; font-size: 11px; cursor: pointer; }
@@ -655,8 +675,11 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .election-atlas-representative-table tbody th { min-width: 145px; }
 .election-atlas-representative-table tbody tr:nth-child(odd) { background: rgba(23,107,99,.04); }
 .election-atlas-representative-cards { display: none; }
-.election-atlas-representative-paging { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; }
-.election-atlas-representative-paging button, #electionGraphRepresentativesContent [data-atlas-key="representatives-reset"] { cursor: pointer; }
+.election-atlas-representative-paging { display: grid; grid-template-columns: auto minmax(150px,1fr) auto; align-items: center; gap: 10px; font-size: 12px; }
+.election-atlas-representative-page-status { color: var(--muted); text-align: center; }
+.election-atlas-representative-paging button { min-width: 90px; cursor: pointer; }
+.election-atlas-representative-paging button:disabled { cursor: default; opacity: .42; }
+#electionGraphRepresentativesContent [data-atlas-key="representatives-reset"] { cursor: pointer; }
 @media (max-width: 640px) {
     .election-atlas-row { grid-template-columns: minmax(0, 1fr); }
     .election-atlas-measure, .election-atlas-comparison-measure { grid-template-columns: minmax(0,1fr); gap: 5px; }
@@ -669,6 +692,12 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
     .election-atlas-geography-facts { grid-template-columns: repeat(2,minmax(0,1fr)); }
     .election-atlas-geography-matrix-desktop { display: none; }
     .election-atlas-geography-matrix-mobile { display: block; max-width: 100%; }
+    .election-atlas-urbanization-axis { grid-template-columns: 1fr 1fr; }
+    .election-atlas-urbanization-axis strong { grid-column: 1/-1; grid-row: 2; justify-self: center; }
+    .election-atlas-urbanization-row { grid-template-columns: minmax(0,1fr) auto; gap: 7px 10px; }
+    .election-atlas-urbanization-seats { text-align: end; }
+    .election-atlas-urbanization-track { grid-column: 1/-1; grid-row: 2; }
+    .election-atlas-urbanization-value { grid-column: 1/-1; grid-row: 3; justify-self: end; }
     .election-atlas-constituency-chart { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
     .election-atlas-constituency-bin { padding: 8px 2px; }
     .election-atlas-constituency-bin svg { height: 130px; }
@@ -680,6 +709,9 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
     .election-atlas-representative-card dl { display: grid; grid-template-columns: minmax(95px,auto) minmax(0,1fr); gap: 5px 10px; margin: 0; font-size: 11px; }
     .election-atlas-representative-card dt { color: var(--muted); }
     .election-atlas-representative-card dd { margin: 0; overflow-wrap: anywhere; }
+    .election-atlas-representative-paging { grid-template-columns: 1fr 1fr; }
+    .election-atlas-representative-page-status { grid-column: 1/-1; grid-row: 1; }
+    .election-atlas-representative-paging button { width: 100%; }
 }
 .election-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 22px; }
 .election-section-heading > div { max-width: 720px; }
