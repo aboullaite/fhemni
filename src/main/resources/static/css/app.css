@@ -635,6 +635,7 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .election-region-winner-missing { margin: 0; padding: 8px 10px; border-radius: 8px; background: rgba(232,111,60,.07); color: #8f3a1d; font-size: 9px; font-weight: 650; line-height: 1.5; }
 .election-region-pending, .election-empty { display: grid; min-height: 170px; margin: 0; place-items: center; padding: 22px; border: 1px dashed rgba(19,44,43,.18); border-radius: var(--radius-panel); background: rgba(255,253,247,.55); color: var(--muted); font-size: 12px; font-weight: 600; line-height: 1.7; text-align: center; }
 .election-seat-ribbon { display: flex; width: 100%; height: 22px; overflow: hidden; margin: 8px 0 32px; border-radius: 999px; background: rgba(19,44,43,.08); }
+.election-national-vote-total { margin: 2px 0 15px; padding: 11px 13px; border-inline-start: 4px solid var(--teal-dark); border-radius: 10px; background: rgba(15,81,69,.06); color: var(--muted); font-size: 11px; font-weight: 650; line-height: 1.65; }
 .election-seat-ribbon > span { display: block; height: 100%; min-width: 2px; background: var(--party-accent); }
 .election-party-bars { display: grid; gap: 9px; }
 .election-party-bar { display: grid; grid-template-columns: 34px 46px minmax(150px,.7fr) minmax(280px,1.3fr); align-items: center; gap: 10px 13px; min-height: 68px; padding: 9px 13px; border: 1px solid var(--line); border-radius: var(--radius-control); background: rgba(255,255,255,.64); }

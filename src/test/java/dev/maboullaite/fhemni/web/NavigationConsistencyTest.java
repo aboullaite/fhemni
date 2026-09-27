@@ -90,12 +90,13 @@ class NavigationConsistencyTest {
                 .contains("role=\"tablist\"")
                 .contains("id=\"electionMapPanel\"")
                 .contains("id=\"electionNationalPanel\"")
+                .contains("id=\"electionNationalVoteTotal\"")
                 .contains("id=\"electionCoalitionPanel\"")
                 .contains("id=\"electionRegionSelect\"")
                 .contains("id=\"electionRegionFilterStatus\"")
                 .contains("role=\"status\" aria-live=\"polite\" aria-atomic=\"true\"")
                 .contains("/js/election-region-filters.js?v=20260925-1")
-                .contains("/js/election-results.js?v=20260925-1")
+                .contains("/js/election-results.js?v=20260927-1")
                 .doesNotContain("style=\"");
         assertThat(html("js/election-region-filters.js"))
                 .contains("function filterRegion(region, state = {})")
@@ -130,6 +131,9 @@ class NavigationConsistencyTest {
                 .contains("function flushDeferredRegionRender()")
                 .contains("chips.setAttribute('role', 'group')")
                 .contains("announceRegionFilterStatus(constituencyWasCleared ? copy.constituencyCleared : '', regionFilterSummary(result))")
+                .contains("voteSummary:")
+                .contains("local and regional-list ballots, not unique voters")
+                .contains("bulletSeparator")
                 .doesNotContain(".style.");
         assertThat(html("assets/maps/morocco-regions-2026.svg"))
                 .contains("data-region-key=\"MA-01\"")
@@ -332,7 +336,7 @@ class NavigationConsistencyTest {
             String version = switch (page) {
                 case "priorities.html" -> "20260917-9";
                 case "404.html" -> "20260917-1";
-                case "election-results.html" -> "20260925-1";
+                case "election-results.html" -> "20260927-1";
                 default -> "20260916-22";
             };
             assertThat(html(page))
