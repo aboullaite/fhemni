@@ -178,6 +178,7 @@ public class ElectionResultService {
         return new ConstituencyWinner(
                 row.constituencyCode(),
                 constituencyName,
+                row.candidateKey(),
                 row.candidateName(),
                 row.votes(),
                 row.allocatedSeats(),
@@ -324,6 +325,7 @@ public class ElectionResultService {
     public record ConstituencyWinner(
             String constituencyCode,
             String constituencyName,
+            String candidateKey,
             String candidateName,
             Long votes,
             Integer allocatedSeats,

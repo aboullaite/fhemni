@@ -6,6 +6,8 @@
     const LOCAL_TOTAL = 4900377;
     const REGIONAL_TOTAL = 4838149;
     const COMBINED_TOTAL = 9738526;
+    const LOCAL_SEAT_TOTAL = 305;
+    const REGIONAL_SEAT_TOTAL = 90;
     const SEAT_TOTAL = 395;
     const CANONICAL_CODES = new Set([
         'PAM', 'PI', 'PJD', 'RNI', 'MP', 'USFP', 'PPS', 'UC', 'MDS', 'FGD',
@@ -148,6 +150,8 @@
         const diagnostics = [...audit.diagnostics];
         if (!audit.available) return diagnostics;
         let total = 0;
+        let localTotal = 0;
+        let regionalTotal = 0;
         for (const party of snapshot.parties) {
             const values = [party.localSeats, party.regionalListSeats, party.totalSeats];
             if (values.some(value => value == null)) {
@@ -161,8 +165,12 @@
             if (party.totalSeats !== party.localSeats + party.regionalListSeats) {
                 addDiagnostic(diagnostics, 'seat-row-total');
             }
+            localTotal += party.localSeats;
+            regionalTotal += party.regionalListSeats;
             total += party.totalSeats;
         }
+        if (localTotal !== LOCAL_SEAT_TOTAL) addDiagnostic(diagnostics, 'local-seat-total');
+        if (regionalTotal !== REGIONAL_SEAT_TOTAL) addDiagnostic(diagnostics, 'regional-seat-total');
         if (total !== SEAT_TOTAL || snapshot.election.totalSeats !== SEAT_TOTAL
                 || snapshot.election.declaredSeats !== SEAT_TOTAL) {
             addDiagnostic(diagnostics, 'seat-total');
@@ -252,6 +260,8 @@
         if (parties.length !== 28) addDiagnostic(diagnostics, 'party-count');
         const codes = new Set();
         let seats = 0;
+        let localSeats = 0;
+        let regionalSeats = 0;
         for (const party of parties) {
             if (!party || !CANONICAL_CODES.has(party.code) || codes.has(party.code)) {
                 addDiagnostic(diagnostics, 'canonical-code');
@@ -263,9 +273,13 @@
                 addDiagnostic(diagnostics, 'seat-row-total');
                 continue;
             }
+            localSeats += party.localSeats;
+            regionalSeats += party.regionalListSeats;
             seats += party.totalSeats;
         }
         if (codes.size !== 28) addDiagnostic(diagnostics, 'canonical-code');
+        if (localSeats !== LOCAL_SEAT_TOTAL) addDiagnostic(diagnostics, 'local-seat-total');
+        if (regionalSeats !== REGIONAL_SEAT_TOTAL) addDiagnostic(diagnostics, 'regional-seat-total');
         if (seats !== SEAT_TOTAL || snapshot?.election?.totalSeats !== SEAT_TOTAL
                 || snapshot?.election?.declaredSeats !== SEAT_TOTAL) addDiagnostic(diagnostics, 'seat-total');
         return diagnostics;

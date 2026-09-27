@@ -85,6 +85,7 @@ function completeAtlasSnapshot() {
             group.localSeats++;
             group.totalSeats++;
             group.winners.push({ constituencyCode, constituencyName: constituencyCode,
+                candidateKey: `local-${localIndex + 1}`,
                 candidateName: `Local Candidate ${localIndex + 1}`,
                 votes: localIndex === 0 ? null : localIndex === 1 ? 0 : localIndex + 100,
                 allocatedSeats, status: 'FINAL' });
@@ -310,6 +311,21 @@ test('expanded comparison includes every zero-seat entry', () => {
     assert.equal(result.rows.at(-1).code, 'IND');
 });
 
+test('seat projections reject a 304/91 aggregate split even when all row and chamber totals reconcile', () => {
+    const input = snapshot();
+    input.parties[0].localSeats--;
+    input.parties[0].regionalListSeats++;
+
+    const comparison = deriveBallotSeatComparison(input);
+    const concentration = deriveConcentration(input);
+    assert.equal(comparison.available, false);
+    assert.ok(comparison.diagnostics.includes('local-seat-total'));
+    assert.ok(comparison.diagnostics.includes('regional-seat-total'));
+    assert.equal(concentration.available, false);
+    assert.ok(concentration.diagnostics.includes('local-seat-total'));
+    assert.ok(concentration.diagnostics.includes('regional-seat-total'));
+});
+
 test('concentration groups keep ballot-order membership for ballots and seats', () => {
     const result = deriveConcentration(snapshot());
     assert.equal(result.available, true);
@@ -381,6 +397,23 @@ test('regional projections fail closed when the 395-seat matrix is incomplete', 
     pamRegion.localSeats++;
     pamRegion.regionalListSeats--;
     assert.equal(buildRegionMatrix(mismatchedComponents).available, false);
+});
+
+test('regional matrix rejects a reconciled 304/91 aggregate split', () => {
+    const input = completeAtlasSnapshot();
+    const nationalPam = input.parties.find(party => party.code === 'PAM');
+    const regionalPam = input.regions
+        .flatMap(region => region.parties)
+        .find(party => party.code === 'PAM' && party.localSeats > 0);
+    nationalPam.localSeats--;
+    nationalPam.regionalListSeats++;
+    regionalPam.localSeats--;
+    regionalPam.regionalListSeats++;
+
+    const result = buildRegionMatrix(input);
+    assert.equal(result.available, false);
+    assert.ok(result.diagnostics.includes('local-seat-total'));
+    assert.ok(result.diagnostics.includes('regional-seat-total'));
 });
 
 test('party geography is unavailable if local constituency winners are incomplete', () => {
@@ -502,6 +535,18 @@ test('duplicate candidate identities make the representative index unavailable',
     const secondRegional = input.regions[1].parties.find(party => party.regionalListWinners.length)
         .regionalListWinners[0];
     secondRegional.candidateKey = firstRegional.candidateKey;
+    const result = indexRepresentatives(input);
+    assert.equal(result.available, false);
+    assert.ok(result.diagnostics.includes('duplicate-candidate'));
+});
+
+test('duplicate local candidate keys across constituencies make the representative index unavailable', () => {
+    const input = completeAtlasSnapshot();
+    const localWinners = input.regions.flatMap(region => region.parties.flatMap(party => party.winners));
+    const first = localWinners[0];
+    const second = localWinners.find(winner => winner.constituencyCode !== first.constituencyCode);
+    second.candidateKey = first.candidateKey;
+
     const result = indexRepresentatives(input);
     assert.equal(result.available, false);
     assert.ok(result.diagnostics.includes('duplicate-candidate'));

@@ -128,6 +128,8 @@ class ElectionResultIntegrationTest {
                         .value("مديونة"))
                 .andExpect(jsonPath("$.regions[5].parties[0].winners[0].candidateName")
                         .value("Amine Nokta"))
+                .andExpect(jsonPath("$.regions[5].parties[0].winners[0].candidateKey")
+                        .value("amine-nokta"))
                 .andExpect(jsonPath("$.regions[5].parties[0].winners[0].votes").value(12_345))
                 .andExpect(jsonPath("$.regions[5].parties[0].winners[0].allocatedSeats").value(2))
                 .andExpect(jsonPath("$.regions[5].parties[0].regionalListWinners", hasSize(1)))

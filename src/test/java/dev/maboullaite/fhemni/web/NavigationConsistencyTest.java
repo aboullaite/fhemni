@@ -374,7 +374,10 @@ class NavigationConsistencyTest {
                 .contains("widthClass(")
                 .contains("element('label'")
                 .contains("function announceAtlasControls(")
-                .contains("setText('electionAtlasStatus'")
+                .contains("function announceAtlasStatus(")
+                .contains("atlasStatusAnnouncer.announce(message, { repeat: true })")
+                .contains("if (options.poll && changed) announceAtlasPollUpdate();")
+                .doesNotContain("setText('electionAtlasStatus'")
                 .contains("controlChange: action")
                 .containsPattern("ballotsDenominator: '[^']*ماشي عدد المصوتين[^']*'")
                 .containsPattern("ballotsDenominator: '[^']*pas des électeurs uniques[^']*'")
@@ -492,7 +495,8 @@ class NavigationConsistencyTest {
                     queueMicrotask(callback) { callback(); },
                     FhemniElectionInsights: insights,
                     FhemniElectionRegionFilters: { SEAT_TYPES: {}, normalizeState() { return {}; },
-                        createDeferredAction() { return {}; } }
+                        createDeferredAction() { return {}; },
+                        createLiveRegionAnnouncer(target) { return { announce(message) { target.textContent = message; } }; } }
                 } };
                 vm.runInNewContext(script, sandbox);
                 sandbox.__renderConstituencies();
@@ -599,7 +603,8 @@ class NavigationConsistencyTest {
                 };
                 const sandbox = { document, window: { queueMicrotask(callback) { callback(); },
                     FhemniElectionRegionFilters: { SEAT_TYPES: {}, normalizeState() { return {}; },
-                        createDeferredAction() { return {}; } } } };
+                        createDeferredAction() { return {}; },
+                        createLiveRegionAnnouncer(target) { return { announce(message) { target.textContent = message; } }; } } } };
                 vm.runInNewContext(script, sandbox);
                 const { geographyRepresentativesAction, atlasCopy, atlasState } = sandbox.__test;
                 atlasState.constituencySeats = 2;

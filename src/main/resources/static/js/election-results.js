@@ -67,18 +67,18 @@
     const ATLAS_COPY = {
         ar: {
             title: 'النتيجة النهائية بالأرقام', intro: 'اكتشف كيفاش توزعات الأصوات والمقاعد بين الأحزاب والجهات والدوائر والمنتخبين.', jumpLabel: 'أقسام الأرقام', jumpBallots: 'الأصوات والمقاعد', jumpGeography: 'الجهات', jumpConstituencies: 'الدوائر', jumpRepresentatives: 'المنتخبون',
-            ballotsTitle: 'جوج لوائح، نتائج مختلفة', ballotsIntro: 'مقارنة الأصوات فالدواير المحلية واللوائح الجهوية لكل حزب أو لائحة.', ballotsDenominator: 'النسب المحلية من مجموع {local} صوت محلي؛ النسب الجهوية من مجموع {regional} صوت جهوي. هادو مجموع الأصوات فالجوج لوائح، ماشي عدد المصوتين الأفراد.', ballotsLocalRni: 'تقدم RNI محلياً على PJD بـ{localLead} صوت', ballotsLocalPjd: 'تقدم PJD محلياً على RNI بـ{localLead} صوت', ballotsLocalTie: 'RNI وPJD عندهم تعادل محلياً', ballotsRegionalPjd: 'تقدم PJD جهوياً على RNI بـ{regionalLead} صوت', ballotsRegionalRni: 'تقدم RNI جهوياً على PJD بـ{regionalLead} صوت', ballotsRegionalTie: 'RNI وPJD عندهم تعادل جهوياً', ballotsCombinedPjd: 'تقدم PJD فالمجموع على RNI بـ{combinedLead} صوت', ballotsCombinedRni: 'تقدم RNI فالمجموع على PJD بـ{combinedLead} صوت', ballotsCombinedTie: 'RNI وPJD عندهم تعادل فالمجموع', ballotsTakeaway: '{localComparison}؛ {regionalComparison}؛ {combinedComparison}.',
-            searchAnnouncement: '{count} لائحة مطابقة للبحث عن {query}.', sortAnnouncement: '{count} لائحة مرتبة حسب {order}.', shownAnnouncement: '{count} لائحة معروضة.',
-            representationTitle: 'الأصوات والتمثيل البرلماني', representationIntro: 'قارن حصة كل لائحة من مجموع الأصوات مع حصتها من 395 مقعد.', representationDenominator: 'حصة الأصوات من {ballots} صوت محلي وجهوي؛ حصة المقاعد من {seats} مقعد.', representationTakeaway: 'أول أربعة فترتيب الأصوات: {topFourBallots} صوت ({topFourBallotShare}%) و{topFourSeats} مقعد ({topFourSeatShare}%)؛ أول عشرة: {topTenBallots} صوت ({topTenBallotShare}%) و{topTenSeats} مقعد ({topTenSeatShare}%). الباقي: {remainingBallots} صوت ({remainingBallotShare}%) و{remainingSeats} مقاعد ({remainingSeatShare}%)؛ اللوائح بلا مقاعد: {zeroSeatBallots} صوت ({zeroSeatBallotShare}%) و0 مقعد ({zeroSeatSeatShare}%).',
-            geographyTitle: 'فين كاين التمثيل الحزبي؟', geographyIntro: 'شوف وفود الجهات أو انتشار حزب عبر الجهات الاثنتي عشرة.', geographyByRegion: 'حسب الجهة', geographyByParty: 'حسب الحزب', geographyAllFigures: 'جميع الأرقام', geographyRegionDenominator: 'النسب من مجموع {seats} مقعد مخصص لهاد الجهة.', geographyPartyDenominator: 'النسب من {seats} مقعد وطني لهاد الحزب.', geographyTakeaway: '{party} ممثل فـ{regions} جهة ومنتخب فـ{constituencies} دائرة محلية.', geographyRegionTakeaway: 'أكبر وفد فـ{region}: {parties}، لكل واحد {seats} من {total} مقعد.', geographyLargest: 'أكبر وفد', geographyRepresented: 'الأحزاب الممثلة', geographyMatrixCaption: 'مقاعد الأحزاب الممثلة فكل جهة', geographyRegionCaption: 'مقاعد الأحزاب فـ{region} من مجموع {seats} مقعد', geographyPartyCaption: 'مقاعد {party} فالجهات من مجموع {seats} مقعد وطني', geographySelectRegion: 'اختار الجهة', geographySelectParty: 'اختار الحزب', geographySeeRepresentatives: 'شوف المنتخبين', geographyDelegation: 'وفد الجهة', geographyRegionsRepresented: 'الجهات الممثلة من 12', geographyConstituencies: 'الدوائر المحلية', geographyRegionSeats: 'مقاعد الجهة', geographyShare: 'النسبة', geographyView: 'عرض التوزيع', geographySelectionAnnouncement: 'عرض {selection}.', geographyRepresentativesFilter: '{label}: {value}', geographyRepresentativesAnnouncement: 'المنتخبون حسب {filter}.', geographyNoSeats: 'ما كاين حتى مقعد مخصص لهاد الجهة.',
-            constituenciesTitle: 'شحال من مقعد فكل دائرة محلية؟', constituenciesIntro: 'توزيع 92 دائرة محلية على خمسة أحجام، بمجموع 305 مقاعد.', constituenciesDenominator: 'ارتفاع الأعمدة كيمثل عدد الدوائر، ماشي عدد المقاعد.', constituenciesTakeaway: 'كاينين {count} دوائر فيها {seats} مقاعد، وهو الحجم الأكثر انتشاراً.', constituencyBin: 'دوائر بـ{seats} مقاعد', constituencyCount: '{count} دوائر', constituencyList: 'الدوائر فهاد المجموعة', constituencyRepresentatives: 'شوف منتخبي هاد الدوائر', constituencyCaption: 'عدد الدوائر حسب المقاعد المخصصة',
-            representativesTitle: 'شكون كيمثلني؟', representativesIntro: 'قلب فالأسماء والجهات والدوائر والأحزاب ديال 395 منتخب.', representativesDenominator: '{total} منتخب: {local} محلي و{regional} من اللوائح الجهوية.', representativesSearch: 'قلب بالاسم أو الدائرة', representativesRegion: 'الجهة', representativesConstituency: 'الدائرة', representativesParty: 'الحزب أو اللائحة', representativesSeatType: 'نوع المقعد', representativesAllRegions: 'جميع الجهات', representativesAllConstituencies: 'جميع الدوائر', representativesAllParties: 'جميع الأحزاب', representativesAllSeatTypes: 'كل المقاعد', representativesLocalSeat: 'محلي', representativesRegionalSeat: 'لائحة جهوية', representativesResultCount: '{count} منتخب مطابق', representativesReset: 'مسح الفلاتر', representativesActiveFilters: 'الفلاتر المفعلة', representativesRemoveFilter: 'حيد فلتر {label}', representativesLoadMore: 'بيّن المزيد', representativesPage: 'باينين {shown} من أصل {total}', representativesNoMatches: 'ما لقينا حتى منتخب بهاد الفلاتر.', representativesName: 'الاسم', representativesVotes: 'الأصوات المنشورة', representativesNotPublished: 'ما تنشراتش', representativesCaption: 'لائحة المنتخبين حسب الفلاتر',
-            searchParty: 'قلب على حزب أو لائحة', orderBy: 'رتب حسب', orderCombined: 'مجموع الأصوات', orderLocal: 'الأصوات المحلية', orderRegional: 'الأصوات الجهوية', orderSeats: 'مجموع المقاعد', localBallots: 'أصوات محلية', regionalBallots: 'أصوات جهوية', combinedBallots: 'مجموع الأصوات', ballotShare: 'حصة الأصوات', seatShare: 'حصة المقاعد', seatDifference: 'الفرق بالنقاط المئوية', localSeatCount: 'مقاعد محلية', regionalSeatCount: 'مقاعد جهوية', total: 'المجموع', exactFigures: 'شوف الأرقام كاملة', showAll: 'بيّن 28 كاملة', showLess: 'بيّن أول 10', ballotCaption: 'الأصوات المحلية والجهوية ومجموعها لكل لائحة', representationCaption: 'الأصوات والمقاعد لكل لائحة', unavailable: 'المعطيات الكاملة لهاد الرسم مازال ما متوفراش.', ballotsUnavailable: 'تقسيم الأصوات المحلية والجهوية الكامل مازال ما متوفرش.', geographyUnavailable: 'التوزيع الكامل لمقاعد الجهات مازال ما متوفرش.', constituenciesUnavailable: 'توزيع الدوائر 92/305 مازال ما تأكدش.', representativesUnavailable: 'لائحة المنتخبين الكاملة مازال ما متوفراش.', filtersUpdated: '{count} نتائج بعد تغيير الفلاتر.', noPartyMatches: 'ما لقينا حتى حزب بهاد البحث.', allRegions: 'جميع الجهات', allParties: 'جميع الأحزاب'
+            ballotsTitle: 'جوج لوائح، نتائج مختلفة', ballotsIntro: 'مقارنة الأصوات فالدواير المحلية واللوائح الجهوية لكل حزب أو لائحة.', ballotsDenominator: 'النسب المحلية من مجموع {localBallotCount} محلي؛ النسب الجهوية من مجموع {regionalBallotCount} جهوي. هادو مجموع الأصوات فالجوج لوائح، ماشي عدد المصوتين الأفراد.', ballotsLocalRni: 'تقدم RNI محلياً على PJD {localLeadPhrase}', ballotsLocalPjd: 'تقدم PJD محلياً على RNI {localLeadPhrase}', ballotsLocalTie: 'RNI وPJD عندهم تعادل محلياً', ballotsRegionalPjd: 'تقدم PJD جهوياً على RNI {regionalLeadPhrase}', ballotsRegionalRni: 'تقدم RNI جهوياً على PJD {regionalLeadPhrase}', ballotsRegionalTie: 'RNI وPJD عندهم تعادل جهوياً', ballotsCombinedPjd: 'تقدم PJD فالمجموع على RNI {combinedLeadPhrase}', ballotsCombinedRni: 'تقدم RNI فالمجموع على PJD {combinedLeadPhrase}', ballotsCombinedTie: 'RNI وPJD عندهم تعادل فالمجموع', ballotsTakeaway: '{localComparison}؛ {regionalComparison}؛ {combinedComparison}.',
+            searchAnnouncement: 'نتائج البحث عن {query}: {listCount}.', sortAnnouncement: 'تم ترتيب {listCount} حسب {order}.', shownAnnouncement: '{listCount} معروضة.', atlasPollUpdated: 'تحدثات أرقام أطلس الانتخابات بآخر المعطيات المنشورة.',
+            representationTitle: 'الأصوات والتمثيل البرلماني', representationIntro: 'قارن حصة كل لائحة من مجموع الأصوات مع حصتها من 395 مقعد.', representationDenominator: 'حصة الأصوات من {ballotCount} محلي وجهوي؛ حصة المقاعد من {seats} مقعد.', representationTakeaway: 'أول أربعة فترتيب الأصوات: {topFourBallotCount} ({topFourBallotShare}%) و{topFourSeats} مقعد ({topFourSeatShare}%)؛ أول عشرة: {topTenBallotCount} ({topTenBallotShare}%) و{topTenSeats} مقعد ({topTenSeatShare}%). الباقي: {remainingBallotCount} ({remainingBallotShare}%) و{remainingSeats} مقاعد ({remainingSeatShare}%)؛ اللوائح بلا مقاعد: {zeroSeatBallotCount} ({zeroSeatBallotShare}%) و0 مقعد ({zeroSeatSeatShare}%).',
+            geographyTitle: 'فين كاين التمثيل الحزبي؟', geographyIntro: 'شوف وفود الجهات أو انتشار حزب عبر الجهات الاثنتي عشرة.', geographyByRegion: 'حسب الجهة', geographyByParty: 'حسب الحزب', geographyAllFigures: 'جميع الأرقام', geographyRegionDenominator: 'النسب من مجموع {seats} مقعد مخصص لهاد الجهة.', geographyPartyDenominator: 'النسب من {seats} مقعد وطني لهاد الحزب.', geographyTakeaway: '{party} ممثل فـ{regions} جهة ومنتخب فـ{constituencyCount} محلية.', geographyRegionTakeaway: 'أكبر وفد فـ{region}: {parties}، لكل واحد {seats} من {total} مقعد.', geographyLargest: 'أكبر وفد', geographyRepresented: 'الأحزاب الممثلة', geographyMatrixCaption: 'مقاعد الأحزاب الممثلة فكل جهة', geographyRegionCaption: 'مقاعد الأحزاب فـ{region} من مجموع {seats} مقعد', geographyPartyCaption: 'مقاعد {party} فالجهات من مجموع {seats} مقعد وطني', geographySelectRegion: 'اختار الجهة', geographySelectParty: 'اختار الحزب', geographySeeRepresentatives: 'شوف المنتخبين', geographyDelegation: 'وفد الجهة', geographyRegionsRepresented: 'الجهات الممثلة من 12', geographyConstituencies: 'الدوائر المحلية', geographyRegionSeats: 'مقاعد الجهة', geographyShare: 'النسبة', geographyView: 'عرض التوزيع', geographySelectionAnnouncement: 'عرض {selection}.', geographyRepresentativesFilter: '{label}: {value}', geographyRepresentativesAnnouncement: 'المنتخبون حسب {filter}.', geographyNoSeats: 'ما كاين حتى مقعد مخصص لهاد الجهة.',
+            constituenciesTitle: 'شحال من مقعد فكل دائرة محلية؟', constituenciesIntro: 'توزيع 92 دائرة محلية على خمسة أحجام، بمجموع 305 مقاعد.', constituenciesDenominator: 'ارتفاع الأعمدة كيمثل عدد الدوائر، ماشي عدد المقاعد.', constituenciesTakeaway: 'الحجم الأكثر انتشاراً هو {seats} مقاعد: {constituencyCount}.', constituencyBin: 'دوائر بـ{seats} مقاعد', constituencyCount: '{constituencyCount}', constituencyList: 'الدوائر فهاد المجموعة', constituencyRepresentatives: 'شوف منتخبي هاد الدوائر', constituencyCaption: 'عدد الدوائر حسب المقاعد المخصصة',
+            representativesTitle: 'شكون كيمثلني؟', representativesIntro: 'قلب فالأسماء والجهات والدوائر والأحزاب ديال 395 منتخب.', representativesDenominator: 'المجموع {representativeTotal}: {local} محلي و{regional} من اللوائح الجهوية.', representativesSearch: 'قلب بالاسم أو الدائرة', representativesRegion: 'الجهة', representativesConstituency: 'الدائرة', representativesParty: 'الحزب أو اللائحة', representativesSeatType: 'نوع المقعد', representativesAllRegions: 'جميع الجهات', representativesAllConstituencies: 'جميع الدوائر', representativesAllParties: 'جميع الأحزاب', representativesAllSeatTypes: 'كل المقاعد', representativesLocalSeat: 'محلي', representativesRegionalSeat: 'لائحة جهوية', representativesResultCount: 'النتيجة: {representativeCount}.', representativesReset: 'مسح الفلاتر', representativesActiveFilters: 'الفلاتر المفعلة', representativesRemoveFilter: 'حيد فلتر {label}', representativesLoadMore: 'بيّن المزيد', representativesPage: 'باينين {shown} من أصل {total}', representativesNoMatches: 'ما لقينا حتى منتخب بهاد الفلاتر.', representativesName: 'الاسم', representativesVotes: 'الأصوات المنشورة', representativesNotPublished: 'ما تنشراتش', representativesCaption: 'لائحة المنتخبين حسب الفلاتر',
+            searchParty: 'قلب على حزب أو لائحة', orderBy: 'رتب حسب', orderCombined: 'مجموع الأصوات', orderLocal: 'الأصوات المحلية', orderRegional: 'الأصوات الجهوية', orderSeats: 'مجموع المقاعد', localBallots: 'أصوات محلية', regionalBallots: 'أصوات جهوية', combinedBallots: 'مجموع الأصوات', ballotShare: 'حصة الأصوات', seatShare: 'حصة المقاعد', seatDifference: 'الفرق بالنقاط المئوية', localSeatCount: 'مقاعد محلية', regionalSeatCount: 'مقاعد جهوية', total: 'المجموع', exactFigures: 'شوف الأرقام كاملة', showAll: 'بيّن 28 كاملة', showLess: 'بيّن أول 10', ballotCaption: 'الأصوات المحلية والجهوية ومجموعها لكل لائحة', representationCaption: 'الأصوات والمقاعد لكل لائحة', unavailable: 'المعطيات الكاملة لهاد الرسم مازال ما متوفراش.', ballotsUnavailable: 'تقسيم الأصوات المحلية والجهوية الكامل مازال ما متوفرش.', geographyUnavailable: 'التوزيع الكامل لمقاعد الجهات مازال ما متوفرش.', constituenciesUnavailable: 'توزيع الدوائر 92/305 مازال ما تأكدش.', representativesUnavailable: 'لائحة المنتخبين الكاملة مازال ما متوفراش.', filtersUpdated: 'النتيجة بعد تغيير الفلاتر: {representativeCount}.', noPartyMatches: 'ما لقينا حتى حزب بهاد البحث.', allRegions: 'جميع الجهات', allParties: 'جميع الأحزاب'
         },
         fr: {
             title: 'Le résultat final, expliqué', intro: 'Explorez les liens entre les voix, les sièges, les régions, les circonscriptions et les élus.', jumpLabel: 'Sections des graphiques', jumpBallots: 'Voix et sièges', jumpGeography: 'Géographie', jumpConstituencies: 'Circonscriptions', jumpRepresentatives: 'Élus',
             ballotsTitle: 'Deux bulletins, des résultats différents', ballotsIntro: 'Comparez les voix des circonscriptions locales et des listes régionales pour chaque parti ou liste.', ballotsDenominator: 'Parts locales sur un total de {local} bulletins locaux ; parts régionales sur un total de {regional} bulletins régionaux. Ce sont des totaux de bulletins, pas des électeurs uniques.', ballotsLocalRni: 'Le RNI devance le PJD de {localLead} voix locales', ballotsLocalPjd: 'Le PJD devance le RNI de {localLead} voix locales', ballotsLocalTie: 'Le RNI et le PJD sont à égalité localement', ballotsRegionalPjd: 'Le PJD devance le RNI de {regionalLead} voix régionales', ballotsRegionalRni: 'Le RNI devance le PJD de {regionalLead} voix régionales', ballotsRegionalTie: 'Le RNI et le PJD sont à égalité régionalement', ballotsCombinedPjd: 'Le PJD devance le RNI de {combinedLead} voix au total', ballotsCombinedRni: 'Le RNI devance le PJD de {combinedLead} voix au total', ballotsCombinedTie: 'Le RNI et le PJD sont à égalité au total', ballotsTakeaway: '{localComparison} ; {regionalComparison} ; {combinedComparison}.',
-            searchAnnouncement: '{count} listes correspondent à la recherche {query}.', sortAnnouncement: '{count} listes triées par {order}.', shownAnnouncement: '{count} listes affichées.',
+            searchAnnouncement: '{count} listes correspondent à la recherche {query}.', sortAnnouncement: '{count} listes triées par {order}.', shownAnnouncement: '{count} listes affichées.', atlasPollUpdated: 'Les chiffres de l’Atlas électoral ont été actualisés.',
             representationTitle: 'Voix et représentation parlementaire', representationIntro: 'Comparez la part de chaque liste dans les suffrages cumulés avec sa part des 395 sièges.', representationDenominator: 'Parts des voix sur {ballots} bulletins locaux et régionaux ; parts des sièges sur {seats} sièges.', representationTakeaway: 'Les quatre premières listes selon les voix : {topFourBallots} voix ({topFourBallotShare}%) et {topFourSeats} sièges ({topFourSeatShare}%) ; les dix premières : {topTenBallots} voix ({topTenBallotShare}%) et {topTenSeats} sièges ({topTenSeatShare}%). Les autres : {remainingBallots} voix ({remainingBallotShare}%) et {remainingSeats} sièges ({remainingSeatShare}%) ; les listes sans siège : {zeroSeatBallots} voix ({zeroSeatBallotShare}%) et 0 siège ({zeroSeatSeatShare}%).',
             geographyTitle: 'Où les partis sont-ils représentés ?', geographyIntro: 'Explorez les délégations régionales ou la présence d’un parti dans les douze régions.', geographyByRegion: 'Par région', geographyByParty: 'Par parti', geographyAllFigures: 'Tous les chiffres', geographyRegionDenominator: 'Parts sur les {seats} sièges de cette région.', geographyPartyDenominator: 'Parts sur les {seats} sièges nationaux de ce parti.', geographyTakeaway: '{party} est représenté dans {regions} régions et dans {constituencies} circonscriptions locales.', geographyRegionTakeaway: 'Plus grande délégation en {region} : {parties}, avec {seats} sièges chacun sur {total}.', geographyLargest: 'Plus grande délégation', geographyRepresented: 'Partis représentés', geographyMatrixCaption: 'Sièges des partis représentés par région', geographyRegionCaption: 'Sièges des partis en {region} sur {seats} sièges', geographyPartyCaption: 'Sièges de {party} par région sur {seats} sièges nationaux', geographySelectRegion: 'Choisir une région', geographySelectParty: 'Choisir un parti', geographySeeRepresentatives: 'Voir les élus', geographyDelegation: 'Délégation régionale', geographyRegionsRepresented: 'Régions représentées sur 12', geographyConstituencies: 'Circonscriptions locales', geographyRegionSeats: 'Sièges de la région', geographyShare: 'Part', geographyView: 'Vue géographique', geographySelectionAnnouncement: 'Affichage de {selection}.', geographyRepresentativesFilter: '{label} : {value}', geographyRepresentativesAnnouncement: 'Élus filtrés par {filter}.', geographyNoSeats: 'Aucun siège n’est attribué à cette région.',
             constituenciesTitle: 'Quelle taille ont les circonscriptions locales ?', constituenciesIntro: 'Répartition de 92 circonscriptions locales en cinq tailles, pour 305 sièges.', constituenciesDenominator: 'La hauteur des barres compte les circonscriptions, pas les sièges.', constituenciesTakeaway: 'Les circonscriptions à {seats} sièges sont les plus fréquentes : {count} au total.', constituencyBin: 'Circonscriptions à {seats} sièges', constituencyCount: '{count} circonscriptions', constituencyList: 'Circonscriptions de ce groupe', constituencyRepresentatives: 'Voir les élus de ces circonscriptions', constituencyCaption: 'Nombre de circonscriptions selon leurs sièges attribués',
@@ -88,7 +88,7 @@
         en: {
             title: 'The final result, explained', intro: 'Explore how ballots, seats, regions, constituencies, and representatives relate.', jumpLabel: 'Election Atlas sections', jumpBallots: 'Ballots and seats', jumpGeography: 'Geography', jumpConstituencies: 'Constituencies', jumpRepresentatives: 'Representatives',
             ballotsTitle: 'Two ballots, different results', ballotsIntro: 'Compare local constituency and regional-list ballots for each party or list.', ballotsDenominator: 'Local shares use a total of {local} local ballots; regional shares use a total of {regional} regional ballots. These are ballot totals, not unique voters.', ballotsLocalRni: 'RNI leads PJD by {localLead} local ballots', ballotsLocalPjd: 'PJD leads RNI by {localLead} local ballots', ballotsLocalTie: 'RNI and PJD are tied locally', ballotsRegionalPjd: 'PJD leads RNI by {regionalLead} regional ballots', ballotsRegionalRni: 'RNI leads PJD by {regionalLead} regional ballots', ballotsRegionalTie: 'RNI and PJD are tied regionally', ballotsCombinedPjd: 'PJD leads RNI by {combinedLead} combined ballots', ballotsCombinedRni: 'RNI leads PJD by {combinedLead} combined ballots', ballotsCombinedTie: 'RNI and PJD are tied overall', ballotsTakeaway: '{localComparison}; {regionalComparison}; {combinedComparison}.',
-            searchAnnouncement: '{count} lists match {query}.', sortAnnouncement: '{count} lists ordered by {order}.', shownAnnouncement: '{count} lists shown.',
+            searchAnnouncement: '{count} lists match {query}.', sortAnnouncement: '{count} lists ordered by {order}.', shownAnnouncement: '{count} lists shown.', atlasPollUpdated: 'Election Atlas figures updated with the latest published data.',
             representationTitle: 'Ballots and parliamentary representation', representationIntro: 'Compare each list’s share of combined ballots with its share of 395 chamber seats.', representationDenominator: 'Ballot shares use {ballots} local and regional ballots; seat shares use {seats} chamber seats.', representationTakeaway: 'The top four by ballots have {topFourBallots} ballots ({topFourBallotShare}%) and {topFourSeats} seats ({topFourSeatShare}%); the top ten have {topTenBallots} ballots ({topTenBallotShare}%) and {topTenSeats} seats ({topTenSeatShare}%). The remaining lists have {remainingBallots} ballots ({remainingBallotShare}%) and {remainingSeats} seats ({remainingSeatShare}%); zero-seat lists have {zeroSeatBallots} ballots ({zeroSeatBallotShare}%) and 0 seats ({zeroSeatSeatShare}%).',
             geographyTitle: 'Where are parties represented?', geographyIntro: 'Explore regional delegations or a party’s presence across all twelve regions.', geographyByRegion: 'By region', geographyByParty: 'By party', geographyAllFigures: 'All figures', geographyRegionDenominator: 'Shares use this region’s full {seats}-seat delegation.', geographyPartyDenominator: 'Shares use this party’s {seats} national seats.', geographyTakeaway: '{party} has seats in {regions} regions and local winners in {constituencies} constituencies.', geographyRegionTakeaway: 'Largest delegation in {region}: {parties}, each with {seats} of {total} seats.', geographyLargest: 'Largest delegation', geographyRepresented: 'Represented parties', geographyMatrixCaption: 'Represented party seats by region', geographyRegionCaption: 'Party seats in {region} out of {seats} seats', geographyPartyCaption: '{party} seats by region out of {seats} national seats', geographySelectRegion: 'Choose a region', geographySelectParty: 'Choose a party', geographySeeRepresentatives: 'See representatives', geographyDelegation: 'Regional delegation', geographyRegionsRepresented: 'Regions represented out of 12', geographyConstituencies: 'Local constituencies', geographyRegionSeats: 'Region seats', geographyShare: 'Share', geographyView: 'Geography view', geographySelectionAnnouncement: 'Showing {selection}.', geographyRepresentativesFilter: '{label}: {value}', geographyRepresentativesAnnouncement: 'Showing representatives filtered by {filter}.', geographyNoSeats: 'No seats are allocated in this region.',
             constituenciesTitle: 'How large are local constituencies?', constituenciesIntro: 'The 92 local constituencies span five sizes and allocate 305 seats.', constituenciesDenominator: 'Bar height counts constituencies, not seats.', constituenciesTakeaway: '{seats}-seat constituencies are the most common, with {count} constituencies.', constituencyBin: '{seats}-seat constituencies', constituencyCount: '{count} constituencies', constituencyList: 'Constituencies in this group', constituencyRepresentatives: 'See their representatives', constituencyCaption: 'Constituency count by allocated local seats',
@@ -123,6 +123,8 @@
     let pendingManualRetry = false;
     let pendingFreshReload = false;
     let regionStatusAnnouncer;
+    let atlasStatusAnnouncer;
+    let renderedAtlasSignature;
     let pendingAtlasSectionLink;
     const atlasState = {
         ballots: { expanded: false, query: '', order: 'combined' },
@@ -146,6 +148,27 @@
     const widthClass = value => `priority-width-${Number.isFinite(value) && value > 0
         ? Math.max(1, Math.min(100, Math.round(value))) : 0}`;
 
+    const ARABIC_COUNT_FORMS = {
+        ballot: { zero: 'لا أصوات', one: 'صوت واحد', two: 'صوتان', few: '{count} أصوات', many: '{count} صوتاً', other: '{count} صوت' },
+        constituency: { zero: 'لا دوائر', one: 'دائرة واحدة', two: 'دائرتان', few: '{count} دوائر', many: '{count} دائرةً', other: '{count} دائرة' },
+        representative: { zero: 'لا منتخبين', one: 'منتخب واحد', two: 'منتخبان', few: '{count} منتخبين', many: '{count} منتخباً', other: '{count} منتخب' },
+        list: { zero: 'لا لوائح', one: 'لائحة واحدة', two: 'لائحتان', few: '{count} لوائح', many: '{count} لائحةً', other: '{count} لائحة' }
+    };
+
+    function arabicCountPhrase(value, noun, options = {}) {
+        const count = Number(value);
+        const category = new Intl.PluralRules('ar').select(count);
+        const phrase = format(ARABIC_COUNT_FORMS[noun][category], { count: number(count) });
+        if (!options.withPreposition) return phrase;
+        if (noun === 'ballot' && category === 'one') return 'بصوت واحد';
+        if (noun === 'ballot' && category === 'two') return 'بصوتين';
+        return `بـ${phrase}`;
+    }
+
+    function localizedCountPhrase(value, noun) {
+        return locale === 'ar' ? arabicCountPhrase(value, noun) : number(value);
+    }
+
     document.addEventListener('DOMContentLoaded', init);
 
     function init() {
@@ -154,6 +177,10 @@
         regionFiltersExpanded = false;
         regionStatusAnnouncer = REGION_FILTERS.createLiveRegionAnnouncer(
             byId('electionRegionFilterStatus'),
+            callback => window.queueMicrotask(callback)
+        );
+        atlasStatusAnnouncer = REGION_FILTERS.createLiveRegionAnnouncer(
+            byId('electionAtlasStatus'),
             callback => window.queueMicrotask(callback)
         );
         applyCopy();
@@ -291,11 +318,31 @@
 
     function renderAtlas(options = {}) {
         if (!snapshot) return;
+        const signature = atlasDataSignature(snapshot);
+        const changed = renderedAtlasSignature !== undefined && renderedAtlasSignature !== signature;
         renderBallotComponents(options);
         renderBallotSeatComparison(options);
         renderGeography(options);
         renderConstituencies(options);
         renderRepresentativeHandoff(options);
+        renderedAtlasSignature = signature;
+        if (options.poll && changed) announceAtlasPollUpdate();
+    }
+
+    function atlasDataSignature(result) {
+        const election = result?.election || {};
+        return JSON.stringify({
+            election: {
+                status: election.status,
+                totalSeats: election.totalSeats,
+                declaredSeats: election.declaredSeats,
+                localSeats: election.localSeats,
+                regionalListSeats: election.regionalListSeats,
+                validVotes: election.validVotes
+            },
+            parties: result?.parties || [],
+            regions: result?.regions || []
+        }, (key, value) => key === 'updatedAt' || key === 'sourceUpdatedAt' ? undefined : value);
     }
 
     function atlasCopy() { return ATLAS_COPY[locale] || ATLAS_COPY.ar; }
@@ -390,10 +437,25 @@
     function announceAtlasControls(options, count, state) {
         if (!options.controlChange) return;
         const atlas = atlasCopy();
-        const values = { count: number(count), query: state.query || atlas.allParties, order: options.controlLabel || atlas.orderBy };
+        const values = { count: number(count), listCount: localizedCountPhrase(count, 'list'),
+            query: state.query || atlas.allParties, order: options.controlLabel || atlas.orderBy };
         const template = options.controlChange === 'search' ? atlas.searchAnnouncement
             : options.controlChange === 'sort' ? atlas.sortAnnouncement : atlas.shownAnnouncement;
-        setText('electionAtlasStatus', format(template, values));
+        announceAtlasStatus(format(template, values));
+    }
+
+    function announceAtlasStatus(message) {
+        if (!atlasStatusAnnouncer) {
+            atlasStatusAnnouncer = REGION_FILTERS.createLiveRegionAnnouncer(
+                byId('electionAtlasStatus'),
+                callback => window.queueMicrotask(callback)
+            );
+        }
+        atlasStatusAnnouncer.announce(message, { repeat: true });
+    }
+
+    function announceAtlasPollUpdate() {
+        announceAtlasStatus(atlasCopy().atlasPollUpdated);
     }
 
     function atlasPartyIdentity(row) {
@@ -463,7 +525,9 @@
         const content = element('div', 'election-atlas-content');
         content.append(element('p', 'election-atlas-intro', atlas.ballotsIntro));
         content.append(element('p', 'election-atlas-denominator', format(atlas.ballotsDenominator, {
-            local: number(data.localTotal), regional: number(data.regionalTotal)
+            local: number(data.localTotal), regional: number(data.regionalTotal),
+            localBallotCount: localizedCountPhrase(data.localTotal, 'ballot'),
+            regionalBallotCount: localizedCountPhrase(data.regionalTotal, 'ballot')
         })));
         content.append(atlasControlGroup('ballots', state, [
             ['combined', atlas.orderCombined], ['local', atlas.orderLocal], ['regional', atlas.orderRegional]
@@ -488,15 +552,18 @@
         const localLead = data.reversal.rniLocalLead;
         const localComparison = format(localLead > 0 ? atlas.ballotsLocalRni
             : localLead < 0 ? atlas.ballotsLocalPjd : atlas.ballotsLocalTie,
-        { localLead: number(Math.abs(localLead)) });
+        { localLead: number(Math.abs(localLead)),
+            localLeadPhrase: arabicCountPhrase(Math.abs(localLead), 'ballot', { withPreposition: true }) });
         const regionalLead = data.reversal.pjdRegionalLead;
         const regionalComparison = format(regionalLead > 0 ? atlas.ballotsRegionalPjd
             : regionalLead < 0 ? atlas.ballotsRegionalRni : atlas.ballotsRegionalTie,
-        { regionalLead: number(Math.abs(regionalLead)) });
+        { regionalLead: number(Math.abs(regionalLead)),
+            regionalLeadPhrase: arabicCountPhrase(Math.abs(regionalLead), 'ballot', { withPreposition: true }) });
         const combinedLead = data.reversal.pjdCombinedLead;
         const combinedComparison = format(combinedLead > 0 ? atlas.ballotsCombinedPjd
             : combinedLead < 0 ? atlas.ballotsCombinedRni : atlas.ballotsCombinedTie,
-        { combinedLead: number(Math.abs(combinedLead)) });
+        { combinedLead: number(Math.abs(combinedLead)),
+            combinedLeadPhrase: arabicCountPhrase(Math.abs(combinedLead), 'ballot', { withPreposition: true }) });
         content.append(element('p', 'election-atlas-takeaway', format(atlas.ballotsTakeaway, {
             localComparison, regionalComparison, combinedComparison
         })));
@@ -536,7 +603,8 @@
         const content = element('div', 'election-atlas-content');
         content.append(element('p', 'election-atlas-intro', atlas.representationIntro));
         content.append(element('p', 'election-atlas-denominator', format(atlas.representationDenominator, {
-            ballots: number(data.combinedTotal), seats: number(data.seatTotal)
+            ballots: number(data.combinedTotal), seats: number(data.seatTotal),
+            ballotCount: localizedCountPhrase(data.combinedTotal, 'ballot')
         })));
         content.append(atlasControlGroup('representation', state,
             [['ballots', atlas.orderCombined], ['seats', atlas.orderSeats]],
@@ -565,7 +633,11 @@
             remainingBallots: number(concentration.remaining.counts.ballots), remainingSeats: number(concentration.remaining.counts.seats),
             remainingBallotShare: exactPercent(concentration.remaining.ballotShare), remainingSeatShare: exactPercent(concentration.remaining.seatShare),
             zeroSeatBallots: number(concentration.zeroSeat.counts.ballots),
-            zeroSeatBallotShare: exactPercent(concentration.zeroSeat.ballotShare), zeroSeatSeatShare: exactPercent(concentration.zeroSeat.seatShare)
+            zeroSeatBallotShare: exactPercent(concentration.zeroSeat.ballotShare), zeroSeatSeatShare: exactPercent(concentration.zeroSeat.seatShare),
+            topFourBallotCount: localizedCountPhrase(concentration.topFour.counts.ballots, 'ballot'),
+            topTenBallotCount: localizedCountPhrase(concentration.topTen.counts.ballots, 'ballot'),
+            remainingBallotCount: localizedCountPhrase(concentration.remaining.counts.ballots, 'ballot'),
+            zeroSeatBallotCount: localizedCountPhrase(concentration.zeroSeat.counts.ballots, 'ballot')
         })));
         const all = window.FhemniElectionInsights.deriveBallotSeatComparison(snapshot, { order: state.order, expanded: true });
         content.append(atlasFigures(atlas.representationCaption,
@@ -656,7 +728,7 @@
                 label: regionCode ? atlas.representativesRegion : atlas.representativesParty,
                 value: selected?.name || regionCode || partyCode
             });
-            setText('electionAtlasStatus', format(atlas.geographyRepresentativesAnnouncement, { filter }));
+            announceAtlasStatus(format(atlas.geographyRepresentativesAnnouncement, { filter }));
             const heading = byId('electionGraphRepresentativesTitle');
             heading.tabIndex = -1;
             heading.scrollIntoView({ block: 'start' });
@@ -702,7 +774,7 @@
     }
 
     function announceGeographySelection(options, atlas) {
-        if (options.controlChange) setText('electionAtlasStatus', format(atlas.geographySelectionAnnouncement,
+        if (options.controlChange) announceAtlasStatus(format(atlas.geographySelectionAnnouncement,
             { selection: options.controlLabel || atlas.geographyAllFigures }));
     }
 
@@ -765,7 +837,8 @@
                 const party = snapshot.parties.find(row => row.code === state.partyCode);
                 const name = party.name || party.code;
                 content.append(element('p', 'election-atlas-takeaway', format(atlas.geographyTakeaway, {
-                    party: name, regions: number(data.representedRegionCount), constituencies: number(data.constituencyBreadth)
+                    party: name, regions: number(data.representedRegionCount), constituencies: number(data.constituencyBreadth),
+                    constituencyCount: localizedCountPhrase(data.constituencyBreadth, 'constituency')
                 })));
                 content.append(element('p', 'election-atlas-denominator', format(atlas.geographyPartyDenominator, { seats: number(data.totalSeats) })));
                 const controls = element('div', 'election-atlas-controls');
@@ -827,7 +900,9 @@
     function selectConstituencyBin(bin, atlas) {
         atlasState.constituencySelection = bin.seats;
         renderConstituencies({ controlChange: true });
-        setText('electionAtlasStatus', `${format(atlas.constituencyBin, { seats: number(bin.seats) })}: ${format(atlas.constituencyCount, { count: number(bin.constituencies) })}`);
+        announceAtlasStatus(`${format(atlas.constituencyBin, { seats: number(bin.seats) })}: ${format(atlas.constituencyCount, {
+            count: number(bin.constituencies), constituencyCount: localizedCountPhrase(bin.constituencies, 'constituency')
+        })}`);
     }
 
     function renderConstituencies(options = {}) {
@@ -840,7 +915,8 @@
         const content = element('div', 'election-atlas-content election-atlas-constituencies');
         const largest = data.bins.reduce((winner, bin) => bin.constituencies > winner.constituencies ? bin : winner, data.bins[0]);
         content.append(element('p', 'election-atlas-takeaway', format(atlas.constituenciesTakeaway,
-            { seats: number(largest.seats), count: number(largest.constituencies) })));
+            { seats: number(largest.seats), count: number(largest.constituencies),
+                constituencyCount: localizedCountPhrase(largest.constituencies, 'constituency') })));
         content.append(element('p', 'election-atlas-denominator', atlas.constituenciesIntro));
         content.append(element('p', 'election-atlas-intro', atlas.constituenciesDenominator));
         const chart = element('div', 'election-atlas-constituency-chart');
@@ -848,7 +924,8 @@
         chart.setAttribute('aria-label', atlas.constituencyCaption);
         data.bins.forEach(bin => {
             const label = format(atlas.constituencyBin, { seats: number(bin.seats) });
-            const count = format(atlas.constituencyCount, { count: number(bin.constituencies) });
+            const count = format(atlas.constituencyCount, { count: number(bin.constituencies),
+                constituencyCount: localizedCountPhrase(bin.constituencies, 'constituency') });
             const button = atlasControl('button', 'button', `constituency-bin-${bin.seats}`, `${label}: ${count}`);
             button.classList.add('election-atlas-constituency-bin');
             button.setAttribute('aria-pressed', String(atlasState.constituencySelection === bin.seats));
@@ -872,7 +949,7 @@
                 Object.assign(atlasState.representatives, { query: '', regionCode: '', constituencyCode: '',
                     partyCode: '', seatType: 'LOCAL', page: 1 });
                 renderRepresentativeHandoff({ controlChange: true });
-                setText('electionAtlasStatus', format(atlas.geographyRepresentativesAnnouncement,
+                announceAtlasStatus(format(atlas.geographyRepresentativesAnnouncement,
                     { filter: format(atlas.constituencyBin, { seats: number(selected.seats) }) }));
                 const heading = byId('electionGraphRepresentativesTitle');
                 heading.tabIndex = -1;
@@ -1041,7 +1118,8 @@
         }
         const content = element('div', 'election-atlas-content election-atlas-representatives');
         content.append(element('p', 'election-atlas-takeaway', format(atlas.representativesDenominator,
-            { total: number(data.totalRecords), local: number(data.localCount), regional: number(data.regionalCount) })));
+            { total: number(data.totalRecords), local: number(data.localCount), regional: number(data.regionalCount),
+                representativeTotal: localizedCountPhrase(data.totalRecords, 'representative') })));
         content.append(representativeFilters(atlas, distribution));
         const chips = representativeFilterChips(atlas, distribution);
         content.append(chips);
@@ -1057,7 +1135,8 @@
         });
         content.append(reset);
         const resultCount = element('p', 'election-atlas-representative-count',
-            format(atlas.representativesResultCount, { count: number(data.filteredCount) }));
+            format(atlas.representativesResultCount, { count: number(data.filteredCount),
+                representativeCount: localizedCountPhrase(data.filteredCount, 'representative') }));
         resultCount.tabIndex = -1;
         resultCount.dataset.atlasKey = 'representatives-result-count';
         resultCount.setAttribute('data-atlas-key', 'representatives-result-count');
@@ -1082,9 +1161,10 @@
         paging.append(more);
         content.append(paging);
         replaceAtlasSection('electionGraphRepresentativesContent', content, options);
-        if (options.controlChange) setText('electionAtlasStatus', options.controlChange === 'page'
+        if (options.controlChange) announceAtlasStatus(options.controlChange === 'page'
             ? format(atlas.representativesPage, { shown: number(visible.length), total: number(data.filteredCount) })
-            : format(atlas.filtersUpdated, { count: number(data.filteredCount) }));
+            : format(atlas.filtersUpdated, { count: number(data.filteredCount),
+                representativeCount: localizedCountPhrase(data.filteredCount, 'representative') }));
     }
 
     function renderOverview() {

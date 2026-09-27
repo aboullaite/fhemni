@@ -100,10 +100,10 @@ for (const [locale, expected] of Object.entries({
         ['Le PJD devance le RNI de 10 voix régionales', 'Le PJD devance le RNI de 5 voix au total']
     ],
     ar: [
-        ['تقدم RNI جهوياً على PJD بـ7 صوت', 'تقدم RNI فالمجموع على PJD بـ12 صوت'],
-        ['RNI وPJD عندهم تعادل جهوياً', 'تقدم RNI فالمجموع على PJD بـ5 صوت'],
-        ['تقدم PJD جهوياً على RNI بـ5 صوت', 'RNI وPJD عندهم تعادل فالمجموع'],
-        ['تقدم PJD جهوياً على RNI بـ10 صوت', 'تقدم PJD فالمجموع على RNI بـ5 صوت']
+        ['تقدم RNI جهوياً على PJD بـ7 أصوات', 'تقدم RNI فالمجموع على PJD بـ12 صوتاً'],
+        ['RNI وPJD عندهم تعادل جهوياً', 'تقدم RNI فالمجموع على PJD بـ5 أصوات'],
+        ['تقدم PJD جهوياً على RNI بـ5 أصوات', 'RNI وPJD عندهم تعادل فالمجموع'],
+        ['تقدم PJD جهوياً على RNI بـ10 أصوات', 'تقدم PJD فالمجموع على RNI بـ5 أصوات']
     ]
 })) {
     test(`${locale} corrected ballot snapshot follows regional and combined reversals or ties`, () => {
@@ -118,6 +118,89 @@ for (const [locale, expected] of Object.entries({
         }
     });
 }
+
+test('Arabic count phrases cover all six plural categories for Atlas nouns', () => {
+    const script = source.replace("document.addEventListener('DOMContentLoaded', init);",
+        "locale = 'ar'; globalThis.__countPhrase = arabicCountPhrase;");
+    const sandbox = { document: { addEventListener() {} }, window: {
+        queueMicrotask(callback) { callback(); },
+        FhemniElectionRegionFilters: { SEAT_TYPES: {}, normalizeState() { return {}; }, createDeferredAction() { return {}; } }
+    } };
+    vm.runInNewContext(script, sandbox);
+    const phrase = sandbox.__countPhrase;
+    assert.deepEqual([0, 1, 2, 7, 12, 100].map(value => phrase(value, 'ballot')),
+        ['لا أصوات', 'صوت واحد', 'صوتان', '7 أصوات', '12 صوتاً', '100 صوت']);
+    assert.deepEqual([0, 1, 2, 7, 12, 100].map(value => phrase(value, 'constituency')),
+        ['لا دوائر', 'دائرة واحدة', 'دائرتان', '7 دوائر', '12 دائرةً', '100 دائرة']);
+    assert.deepEqual([0, 1, 2, 7, 12, 100].map(value => phrase(value, 'representative')),
+        ['لا منتخبين', 'منتخب واحد', 'منتخبان', '7 منتخبين', '12 منتخباً', '100 منتخب']);
+    assert.deepEqual([0, 1, 2, 7, 12, 100].map(value => phrase(value, 'list')),
+        ['لا لوائح', 'لائحة واحدة', 'لائحتان', '7 لوائح', '12 لائحةً', '100 لائحة']);
+});
+
+test('Atlas status repeats identical actions and announces poll updates through the live-region announcer', () => {
+    const script = source.replace("document.addEventListener('DOMContentLoaded', init);",
+        "locale = 'en'; globalThis.__announce = announceAtlasStatus; globalThis.__announcePoll = announceAtlasPollUpdate;");
+    const history = [];
+    const scheduled = [];
+    const status = {
+        value: '',
+        get textContent() { return this.value; },
+        set textContent(value) { this.value = value; history.push(value); }
+    };
+    const sandbox = { document: { addEventListener() {}, getElementById() { return status; } }, window: {
+        queueMicrotask(callback) { scheduled.push(callback); },
+        FhemniElectionRegionFilters: {
+            SEAT_TYPES: {}, normalizeState() { return {}; }, createDeferredAction() { return {}; },
+            createLiveRegionAnnouncer(target, scheduleTask) {
+                let version = 0;
+                return { announce(message, options = {}) {
+                    const current = ++version;
+                    if (options.repeat && target.textContent === message) {
+                        target.textContent = '';
+                        scheduleTask(() => { if (current === version) target.textContent = message; });
+                    } else target.textContent = message;
+                } };
+            }
+        }
+    } };
+    vm.runInNewContext(script, sandbox);
+
+    sandbox.__announce('Showing 10 lists.');
+    sandbox.__announce('Showing 10 lists.');
+    assert.deepEqual(history, ['Showing 10 lists.', '']);
+    scheduled.shift()();
+    assert.deepEqual(history, ['Showing 10 lists.', '', 'Showing 10 lists.']);
+
+    sandbox.__announcePoll();
+    assert.match(status.textContent, /updated/i);
+});
+
+test('Atlas poll signatures ignore freshness-only timestamps but detect changed figures', () => {
+    const script = source.replace("document.addEventListener('DOMContentLoaded', init);",
+        "globalThis.__signature = atlasDataSignature;");
+    const sandbox = { document: { addEventListener() {} }, window: {
+        queueMicrotask(callback) { callback(); },
+        FhemniElectionRegionFilters: { SEAT_TYPES: {}, normalizeState() { return {}; }, createDeferredAction() { return {}; } }
+    } };
+    vm.runInNewContext(script, sandbox);
+    const baseline = {
+        election: { status: 'FINAL', totalSeats: 395, declaredSeats: 395, updatedAt: 'first' },
+        parties: [{ code: 'PAM', votes: 100, totalSeats: 97 }],
+        regions: [{
+            code: 'R01',
+            declaredSeats: 20,
+            regionalListWinners: [{ candidateKey: 'candidate-1', sourceUpdatedAt: 'first' }]
+        }]
+    };
+    const freshnessOnly = structuredClone(baseline);
+    freshnessOnly.election.updatedAt = 'second';
+    freshnessOnly.regions[0].regionalListWinners[0].sourceUpdatedAt = 'second';
+    const changed = structuredClone(freshnessOnly);
+    changed.parties[0].votes++;
+    assert.equal(sandbox.__signature(baseline), sandbox.__signature(freshnessOnly));
+    assert.notEqual(sandbox.__signature(baseline), sandbox.__signature(changed));
+});
 
 for (const [locale, values] of Object.entries({
     en: ['25.25%', '30.50%', '60.10%', '75.75%', '39.90%', '24.25%', '2.50%', '0.00%'],
