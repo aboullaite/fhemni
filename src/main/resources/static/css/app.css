@@ -585,7 +585,8 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .election-atlas-ballot-bar { display: block; position: relative; height: 11px; border-radius: 99px; background: rgba(19,44,43,.09); overflow: hidden; }
 .election-atlas-ballot-fill { display: block; position: absolute; inset-inline-start: 0; inset-block: 0; background: var(--party-accent, var(--teal-dark)); border-radius: inherit; }
 .election-atlas-ballot-bar.is-regional .election-atlas-ballot-fill { opacity: .58; background-image: repeating-linear-gradient(135deg, transparent 0 3px, rgba(255,255,255,.4) 3px 5px); }
-.election-atlas-exact-value { font-size: 11px; font-weight: 800; white-space: nowrap; }
+.election-atlas-exact-value { display: inline-flex; align-items: baseline; gap: 5px; font-size: 11px; font-weight: 400; white-space: nowrap; }
+.election-atlas-value-separator { color: var(--muted); font-size: 14px; line-height: 1; }
 .election-atlas-comparison-values { display: grid; gap: 8px; }
 .election-atlas-comparison-measure { display: grid; grid-template-columns: minmax(70px, 90px) minmax(80px, 1fr) minmax(90px, auto); align-items: center; gap: 8px; }
 .election-atlas-comparison-bar { display: block; position: relative; height: 11px; border-radius: 99px; background: rgba(19,44,43,.09); }

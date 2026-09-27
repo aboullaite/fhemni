@@ -45,7 +45,10 @@ function controller(locale, localLead, concentration, ballotSnapshot) {
     function takeaway(id) {
         return visit(roots.get(id)).find(node => node.className === 'election-atlas-takeaway')?.textContent;
     }
-    return { sandbox, takeaway };
+    function nodes(id, className) {
+        return visit(roots.get(id)).filter(node => node.className.split(' ').includes(className));
+    }
+    return { sandbox, takeaway, nodes };
 }
 
 function correctedSnapshot(pjdRegional) {
@@ -69,6 +72,46 @@ const groups = { available: true,
     topTen: { counts: { ballots: 200, seats: 35 }, ballotShare: 60.1, seatShare: 75.75 },
     remaining: { counts: { ballots: 50, seats: 5 }, ballotShare: 39.9, seatShare: 24.25 },
     zeroSeat: { counts: { ballots: 10, seats: 0 }, ballotShare: 2.5, seatShare: 0 } };
+
+test('Arabic chart introductions carry the totals without separate denominator paragraphs', () => {
+    const view = controller('ar', 5, groups);
+
+    view.sandbox.__renderBallots();
+    assert.deepEqual(view.nodes('electionGraphBallotsContent', 'election-atlas-intro').map(node => node.textContent), [
+        'مقارنة الأصوات لدوائر المحلية واللوائح الجهوية لكل حزب أو لائحة، من مجموع 9.738.526 صوت محلي وجهوي.'
+    ]);
+    assert.equal(view.nodes('electionGraphBallotsContent', 'election-atlas-denominator').length, 0);
+
+    view.sandbox.__renderRepresentation();
+    assert.deepEqual(view.nodes('electionGraphRepresentationContent', 'election-atlas-intro').map(node => node.textContent), [
+        'حصة الأصوات من 9.738.526 صوت محلي وجهوي؛ حصة المقاعد من 395 مقعد.'
+    ]);
+    assert.equal(view.nodes('electionGraphRepresentationContent', 'election-atlas-denominator').length, 0);
+});
+
+test('Atlas exact values use a horizontal separator with an independent style hook', () => {
+    const script = source.replace("document.addEventListener('DOMContentLoaded', init);",
+        "locale = 'ar'; globalThis.__exactValue = atlasExactValue;");
+    function makeNode(tag) {
+        return {
+            tag, className: '', children: [], textContent: '',
+            append(...children) { this.children.push(...children); }
+        };
+    }
+    const sandbox = { document: { addEventListener() {}, createElement: makeNode }, window: {
+        queueMicrotask(callback) { callback(); },
+        FhemniElectionRegionFilters: { SEAT_TYPES: {}, normalizeState() { return {}; }, createDeferredAction() { return {}; } }
+    } };
+    vm.runInNewContext(script, sandbox);
+
+    const value = sandbox.__exactValue(1043781, 21.3);
+    assert.equal(value.className, 'election-atlas-exact-value');
+    assert.deepEqual(value.children.map(child => [child.className, child.textContent]), [
+        ['election-atlas-exact-count', '1.043.781'],
+        ['election-atlas-value-separator', '—'],
+        ['election-atlas-exact-share', '21,30%']
+    ]);
+});
 
 for (const [locale, expected] of Object.entries({
     en: [/RNI leads PJD by 5 local ballots/, /PJD leads RNI by 7 local ballots/, /RNI and PJD are tied locally/],
