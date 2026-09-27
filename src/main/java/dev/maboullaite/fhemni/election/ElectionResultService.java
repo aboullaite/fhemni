@@ -144,6 +144,8 @@ public class ElectionResultService {
                 row.color(),
                 row.symbolAsset(),
                 row.votes(),
+                row.localVotes(),
+                row.regionalVotes(),
                 percentage(row.votes(), validVotes),
                 row.localSeats(),
                 row.regionalListSeats(),
@@ -178,6 +180,7 @@ public class ElectionResultService {
                 constituencyName,
                 row.candidateName(),
                 row.votes(),
+                row.allocatedSeats(),
                 row.status());
     }
 
@@ -288,6 +291,8 @@ public class ElectionResultService {
             String color,
             String symbolAsset,
             Long votes,
+            Long localVotes,
+            Long regionalVotes,
             BigDecimal voteShare,
             int localSeats,
             Integer regionalListSeats,
@@ -321,6 +326,7 @@ public class ElectionResultService {
             String constituencyName,
             String candidateName,
             Long votes,
+            Integer allocatedSeats,
             String status) {
     }
 

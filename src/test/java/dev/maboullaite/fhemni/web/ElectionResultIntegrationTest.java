@@ -74,9 +74,9 @@ class ElectionResultIntegrationTest {
                          WHERE id = :electionId
                         """)
                 .param("electionId", ELECTION_ID).update();
-        insertNational("RNI", 420, 70, 20);
-        insertNational("PAM", 330, 55, 15);
-        insertNational("PJD", 250, 31, 9);
+        insertNational("RNI", 420, 220L, 200L, 70, 20);
+        insertNational("PAM", 330, null, null, 55, 15);
+        insertNational("PJD", 250, 130L, 120L, 31, 9);
 
         jdbc.sql("""
                         UPDATE election_regions
@@ -90,7 +90,8 @@ class ElectionResultIntegrationTest {
                 "mediouna",
                 "casablanca-settat",
                 "مديونة",
-                "Médiouna");
+                "Médiouna",
+                2);
         insertWinner("mediouna", "amine-nokta", "Amine Nokta", "RNI", 12_345);
         insertRegionalListWinner(
                 "casablanca-settat",
@@ -114,6 +115,11 @@ class ElectionResultIntegrationTest {
                 .andExpect(jsonPath("$.election.turnoutPercent").value(60.0))
                 .andExpect(jsonPath("$.parties", hasSize(3)))
                 .andExpect(jsonPath("$.parties[0].code").value("RNI"))
+                .andExpect(jsonPath("$.parties[0].votes").value(420))
+                .andExpect(jsonPath("$.parties[0].localVotes").value(220))
+                .andExpect(jsonPath("$.parties[0].regionalVotes").value(200))
+                .andExpect(jsonPath("$.parties[1].localVotes").doesNotExist())
+                .andExpect(jsonPath("$.parties[1].regionalVotes").doesNotExist())
                 .andExpect(jsonPath("$.regions", hasSize(12)))
                 .andExpect(jsonPath("$.regions[5].mapKey").value("MA-06"))
                 .andExpect(jsonPath("$.regions[5].parties", hasSize(3)))
@@ -123,6 +129,7 @@ class ElectionResultIntegrationTest {
                 .andExpect(jsonPath("$.regions[5].parties[0].winners[0].candidateName")
                         .value("Amine Nokta"))
                 .andExpect(jsonPath("$.regions[5].parties[0].winners[0].votes").value(12_345))
+                .andExpect(jsonPath("$.regions[5].parties[0].winners[0].allocatedSeats").value(2))
                 .andExpect(jsonPath("$.regions[5].parties[0].regionalListWinners", hasSize(1)))
                 .andExpect(jsonPath("$.regions[5].parties[0].regionalListWinners[0].candidateName")
                         .value("Regional Candidate"))
@@ -136,7 +143,7 @@ class ElectionResultIntegrationTest {
 
     @Test
     void usesTheOfficialElectionAllianceNameForTheFgdCanonicalCode() throws Exception {
-        insertNational("FGD", 0, 0, 0);
+        insertNational("FGD", 0, null, null, 0, 0);
         insertRegional("casablanca-settat", "FGD", 0, 0);
         jdbc.sql("""
                         UPDATE election_party_display_names
@@ -335,19 +342,23 @@ class ElectionResultIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
-    private void insertNational(String partyCode, long votes, int localSeats, int regionalSeats) {
+    private void insertNational(
+            String partyCode, long votes, Long localVotes, Long regionalVotes,
+            int localSeats, int regionalSeats) {
         jdbc.sql("""
                         INSERT INTO election_party_results (
-                            election_id, party_code, votes, local_seats,
+                            election_id, party_code, votes, local_votes, regional_votes, local_seats,
                             regional_list_seats, total_seats, updated_at
                         ) VALUES (
-                            :electionId, :partyCode, :votes, :localSeats,
+                            :electionId, :partyCode, :votes, :localVotes, :regionalVotes, :localSeats,
                             :regionalSeats, :totalSeats, CURRENT_TIMESTAMP
                         )
                         """)
                 .param("electionId", ELECTION_ID)
                 .param("partyCode", partyCode)
                 .param("votes", votes)
+                .param("localVotes", localVotes)
+                .param("regionalVotes", regionalVotes)
                 .param("localSeats", localSeats)
                 .param("regionalSeats", regionalSeats)
                 .param("totalSeats", localSeats + regionalSeats)
@@ -373,14 +384,15 @@ class ElectionResultIntegrationTest {
                 .update();
     }
 
-    private void insertConstituency(String code, String regionCode, String nameAr, String nameFr) {
+    private void insertConstituency(
+            String code, String regionCode, String nameAr, String nameFr, int allocatedSeats) {
         jdbc.sql("""
                         INSERT INTO election_constituencies (
                             election_id, code, region_code, name_ar, name_fr, name_en,
                             allocated_seats, status, sort_order, updated_at
                         ) VALUES (
                             :electionId, :code, :regionCode, :nameAr, :nameFr, :nameFr,
-                            1, 'PROVISIONAL', 1, CURRENT_TIMESTAMP
+                            :allocatedSeats, 'PROVISIONAL', 1, CURRENT_TIMESTAMP
                         )
                         """)
                 .param("electionId", ELECTION_ID)
@@ -388,6 +400,7 @@ class ElectionResultIntegrationTest {
                 .param("regionCode", regionCode)
                 .param("nameAr", nameAr)
                 .param("nameFr", nameFr)
+                .param("allocatedSeats", allocatedSeats)
                 .update();
     }
 

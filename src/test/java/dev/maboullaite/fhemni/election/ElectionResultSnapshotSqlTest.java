@@ -46,6 +46,7 @@ class ElectionResultSnapshotSqlTest {
         execute(read("src/main/resources/db/migration/V54__allow_unknown_national_seat_breakdown.sql"));
         execute(read("src/main/resources/db/migration/V57__add_election_regional_list_winners.sql"));
         execute(read("src/main/resources/db/migration/V58__link_regional_results_to_national_results.sql"));
+        execute(read("src/main/resources/db/migration/V59__add_election_party_ballot_components.sql"));
         execute(SNAPSHOT);
     }
 
@@ -257,6 +258,49 @@ class ElectionResultSnapshotSqlTest {
                 """))
                 .isInstanceOf(SQLException.class)
                 .hasMessageContaining("election_region_party_results_national_party_fk");
+    }
+
+    @Test
+    void databaseRejectsNationalBallotComponentsThatDoNotReconcile() {
+        assertThatThrownBy(() -> execute("""
+                INSERT INTO election_party_results
+                    (election_id, party_code, votes, local_votes, regional_votes,
+                     local_seats, regional_list_seats, total_seats)
+                VALUES
+                    ('20260000-0000-4000-8000-000000000001',
+                     'UNKNOWN', 420, 220, 201, 0, 0, 0);
+                """))
+                .isInstanceOf(SQLException.class)
+                .hasMessageContaining("election_party_results_vote_components_check");
+    }
+
+    @Test
+    void databaseAcceptsUnknownBallotComponentsInAnOlderSnapshot() throws SQLException {
+        try (Connection connection = connection();
+             Statement statement = connection.createStatement()) {
+            connection.setAutoCommit(false);
+            statement.execute("""
+                    INSERT INTO election_party_results
+                        (election_id, party_code, votes, local_votes, regional_votes,
+                         local_seats, regional_list_seats, total_seats)
+                    VALUES
+                        ('20260000-0000-4000-8000-000000000001',
+                         'UNKNOWN', 420, NULL, NULL, 0, 0, 0);
+                    """);
+            try (var result = statement.executeQuery("""
+                    SELECT votes, local_votes, regional_votes
+                      FROM election_party_results
+                     WHERE election_id = '20260000-0000-4000-8000-000000000001'
+                       AND party_code = 'UNKNOWN'
+                    """)) {
+                assertThat(result.next()).isTrue();
+                assertThat(result.getLong("votes")).isEqualTo(420);
+                assertThat(result.getObject("local_votes")).isNull();
+                assertThat(result.getObject("regional_votes")).isNull();
+            } finally {
+                connection.rollback();
+            }
+        }
     }
 
     @Test

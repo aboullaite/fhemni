@@ -43,7 +43,8 @@ class ElectionResultRepository {
                                COALESCE(display.name_fr, party.name_fr) AS name_fr,
                                COALESCE(display.name_en, party.name_fr) AS name_en,
                                party.color, party.symbol_asset, party.sort_order,
-                               result.votes, result.local_seats,
+                               result.votes, result.local_votes, result.regional_votes,
+                               result.local_seats,
                                result.regional_list_seats, result.total_seats
                           FROM election_party_results result
                           JOIN political_parties party ON party.code = result.party_code
@@ -109,6 +110,7 @@ class ElectionResultRepository {
                                constituency.name_fr,
                                constituency.name_en,
                                constituency.status,
+                               constituency.allocated_seats,
                                constituency.sort_order AS constituency_sort_order,
                                winner.candidate_key,
                                winner.candidate_name,
@@ -175,6 +177,8 @@ class ElectionResultRepository {
                 result.getString("symbol_asset"),
                 result.getInt("sort_order"),
                 nullableLong(result, "votes"),
+                nullableLong(result, "local_votes"),
+                nullableLong(result, "regional_votes"),
                 result.getInt("local_seats"),
                 result.getObject("regional_list_seats", Integer.class),
                 result.getInt("total_seats"));
@@ -217,6 +221,7 @@ class ElectionResultRepository {
                 result.getString("name_fr"),
                 result.getString("name_en"),
                 result.getString("status"),
+                nullableInteger(result, "allocated_seats"),
                 result.getInt("constituency_sort_order"),
                 result.getString("candidate_key"),
                 result.getString("candidate_name"),
@@ -280,6 +285,8 @@ class ElectionResultRepository {
             String symbolAsset,
             int sortOrder,
             Long votes,
+            Long localVotes,
+            Long regionalVotes,
             int localSeats,
             Integer regionalListSeats,
             int totalSeats) {
@@ -319,6 +326,7 @@ class ElectionResultRepository {
             String constituencyNameFr,
             String constituencyNameEn,
             String status,
+            Integer allocatedSeats,
             int constituencySortOrder,
             String candidateKey,
             String candidateName,
