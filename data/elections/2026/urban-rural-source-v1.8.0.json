@@ -10,7 +10,6 @@
   "localSeatTotal": 305,
   "excludedRegionalSeatTotal": 90,
   "license": "CC BY 4.0",
-  "sourceDatasetSha256": "7e9d3d402cc2fd0d9c4fc941c4f23c6a5e5ddcbefbba80b7540267f8e2728dca",
   "partitionParentCodes": {
     "03.531": [
       "03.531.01.05",
@@ -261,6 +260,55 @@
       "09.541.07.25",
       "09.541.07.21",
       "09.541.07.11"
+    ]
+  },
+  "explicitParentComponentCodes": {
+    "03.231": [
+      "arrondissements:03.231.01.01",
+      "arrondissements:03.231.01.05",
+      "arrondissements:03.231.01.07",
+      "arrondissements:03.231.01.09",
+      "arrondissements:03.231.01.11",
+      "arrondissements:03.231.01.13",
+      "communes:03.231.01.03",
+      "communes:03.231.01.15",
+      "communes:03.231.81.03",
+      "communes:03.231.81.05"
+    ],
+    "04.441": [
+      "arrondissements:04.441.01.03",
+      "arrondissements:04.441.01.05",
+      "arrondissements:04.441.01.06",
+      "arrondissements:04.441.01.07",
+      "arrondissements:04.441.01.09",
+      "communes:04.441.01.08",
+      "communes:04.441.01.11",
+      "communes:04.441.01.13"
+    ],
+    "07.351": [
+      "arrondissements:07.351.01.03",
+      "arrondissements:07.351.01.05",
+      "arrondissements:07.351.01.07",
+      "arrondissements:07.351.01.09",
+      "arrondissements:07.351.01.11",
+      "communes:07.351.01.01",
+      "communes:07.351.01.13",
+      "communes:07.351.02.01",
+      "communes:07.351.02.07",
+      "communes:07.351.02.09",
+      "communes:07.351.03.03",
+      "communes:07.351.03.05",
+      "communes:07.351.03.11",
+      "communes:07.351.05.01",
+      "communes:07.351.05.03",
+      "communes:07.351.05.05",
+      "communes:07.351.05.09",
+      "communes:07.351.07.07",
+      "communes:07.351.07.11"
+    ],
+    "06.141.01.10": [
+      "provinces:06.141.01.10",
+      "communes:06.141.01.81"
     ]
   },
   "constituencies": [

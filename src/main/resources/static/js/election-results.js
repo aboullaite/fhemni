@@ -122,7 +122,7 @@
         urbanizationAllocatedSeats: 'مقاعد الدائرة',
         urbanizationSource: 'معطيات السكان الأصلية على مستوى الجماعات: إحصاء HCP 2024 عبر Morocco Communes، النسخة {version}.',
         urbanizationDecree: 'التقسيم الانتخابي: المرسوم 2.11.603.',
-        urbanizationMethod: 'هاد مؤشر مشتق ففهمني من مطابقة الجماعات مع حدود الدوائر فالمرسوم. {exactCount} دائرة عندها أعداد سكان قابلة للجمع، و{shareOnlyCount} فالرباط عندهم غير نسبة 100% حضرية بلا أعداد سكان قابلة للتقسيم بين الملحقات. المؤشر هو متوسط المقاعد المحلية ديال الحزب، والمقاعد الجهوية الـ90 مستثناة.',
+        urbanizationMethod: 'هاد مؤشر مشتق ففهمني من مطابقة الجماعات مع حدود الدوائر فالمرسوم. {exactCount} عندها أعداد سكان قابلة للجمع، و{shareOnlyCount} فالرباط عندهم غير نسبة 100% حضرية بلا أعداد سكان قابلة للتقسيم بين الملحقات. المؤشر هو متوسط المقاعد المحلية ديال الحزب، والمقاعد الجهوية الـ90 مستثناة.',
         urbanizationUnavailable: 'المعطيات الكاملة ديال 305 مقعد محلي والسكان حسب الدوائر مازال ما متوفراش.'
     });
     Object.assign(ATLAS_COPY.fr, {
@@ -1180,7 +1180,7 @@
             content.append(urbanizationRegionTable(selected, atlas));
         }
         content.append(element('p', 'election-atlas-denominator', format(atlas.urbanizationMethod, {
-            exactCount: number(data.source.exactConstituencyCount),
+            exactCount: localizedCountPhrase(data.source.exactConstituencyCount, 'constituency'),
             shareOnlyCount: localizedCountPhrase(data.source.shareOnlyConstituencyCount, 'constituency', { oblique: true })
         })));
         const source = element('p', 'election-atlas-urbanization-source');

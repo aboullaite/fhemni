@@ -8,6 +8,18 @@ const { pathToFileURL } = require('node:url');
 
 const validatorUrl = pathToFileURL(path.join(__dirname,
     '../../../scripts/elections/urban-rural-crosswalk.mjs')).href;
+const generatorPath = path.join(__dirname,
+    '../../../scripts/elections/generate-urban-rural-constituencies.mjs');
+const generatorUrl = pathToFileURL(generatorPath).href;
+const pinnedSourcePath = path.join(__dirname,
+    '../../../data/elections/2026/urban-rural-source-v1.8.0.json');
+
+function runGenerator(output, source = pinnedSourcePath) {
+    return spawnSync(process.execPath, [generatorPath, output, source], {
+        cwd: path.join(__dirname, '../../..'),
+        encoding: 'utf8'
+    });
+}
 
 test('split coverage rejects omitted, injected, overlapping, and duplicate administrative codes', async () => {
     const validator = await import(validatorUrl).catch(() => null);
@@ -44,14 +56,44 @@ test('the pinned crosswalk rejects drift in any explicit constituency component 
     assert.throws(() => validator.validatePinnedCrosswalk(injected, pinned), /crosswalk mismatch/i);
 });
 
+test('every explicit split rejects drift from its independent parent inventory', async () => {
+    const generator = await import(generatorUrl);
+    assert.equal(typeof generator.buildCrosswalk, 'function',
+        'the generator must expose the crosswalk path used by generation');
+    const source = JSON.parse(fs.readFileSync(pinnedSourcePath, 'utf8'));
+    for (const parentCode of ['03.231', '04.441', '07.351', '06.141.01.10']) {
+        assert.ok(Array.isArray(source.explicitParentComponentCodes?.[parentCode]),
+            `missing independent parent inventory for ${parentCode}`);
+        const tampered = structuredClone(source);
+        tampered.explicitParentComponentCodes[parentCode].pop();
+        assert.throws(() => generator.buildCrosswalk(tampered), /coverage mismatch/i,
+            `${parentCode} must reject an omitted parent component`);
+    }
+});
+
+test('generation rejects changed vendored bytes under the pinned digest', () => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fhemni-urban-rural-integrity-'));
+    const output = path.join(directory, 'urban-rural-constituencies.js');
+    const tamperedSource = path.join(directory, 'urban-rural-source-v1.8.0.json');
+    const source = JSON.parse(fs.readFileSync(pinnedSourcePath, 'utf8'));
+    const fesNord = source.constituencies.find(row => row.constituencyCode === 'fes-nord');
+    fesNord.totalPopulation += 1;
+    fesNord.urbanPopulation += 1;
+    fesNord.urbanShare = 100 * fesNord.urbanPopulation / fesNord.totalPopulation;
+    fs.writeFileSync(tamperedSource, `${JSON.stringify(source, null, 2)}\n`);
+
+    const generated = runGenerator(output, tamperedSource);
+    assert.notEqual(generated.status, 0, 'tampered vendored bytes must fail generation');
+    assert.match(generated.stderr || generated.stdout, /sha-?256|digest|integrity/i);
+});
+
 test('the committed constituency snapshot regenerates byte-identically with network access disabled', () => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'fhemni-urban-rural-'));
     const output = path.join(directory, 'urban-rural-constituencies.js');
     const disableNetwork = path.join(directory, 'disable-network.mjs');
     fs.writeFileSync(disableNetwork,
         "globalThis.fetch = async () => { throw new Error('network access is disabled by the test'); };\n");
-    const generator = path.join(__dirname, '../../../scripts/elections/generate-urban-rural-constituencies.mjs');
-    const generated = spawnSync(process.execPath, [generator, output], {
+    const generated = spawnSync(process.execPath, [generatorPath, output, pinnedSourcePath], {
         cwd: path.join(__dirname, '../../..'),
         env: { ...process.env, NODE_OPTIONS: `--import=${pathToFileURL(disableNetwork).href}` },
         encoding: 'utf8'

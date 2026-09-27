@@ -1,10 +1,12 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const { createHash } = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 
 const demographics = require('../../main/resources/static/data/elections/2026/urban-rural-constituencies.js');
-const pinnedSource = require('../../../data/elections/2026/urban-rural-source-v1.8.0.json');
+const pinnedSourcePath = path.join(__dirname, '../../../data/elections/2026/urban-rural-source-v1.8.0.json');
+const pinnedSource = require(pinnedSourcePath);
 const electionFixturePath = path.join(__dirname, '../fixtures/elections/2026-constituencies.json');
 
 test('the bundled HCP 2024 constituency snapshot is complete and internally consistent', () => {
@@ -24,8 +26,8 @@ test('the bundled HCP 2024 constituency snapshot is complete and internally cons
 test('the constituency snapshot carries both population and legal-boundary provenance', () => {
     assert.equal(demographics.sourceUrl, 'https://communes.pages.dev/data/v1/sources.json');
     assert.equal(pinnedSource.datasetVersion, demographics.datasetVersion);
-    assert.equal(pinnedSource.sourceDatasetSha256,
-        '7e9d3d402cc2fd0d9c4fc941c4f23c6a5e5ddcbefbba80b7540267f8e2728dca');
+    assert.equal(createHash('sha256').update(fs.readFileSync(pinnedSourcePath)).digest('hex'),
+        'a4d912f11c843cca34dff418bb740091392c66c75c9fcc39fb89387fd864d025');
     assert.equal(demographics.decreeUrl, 'https://www.sgg.gov.ma/BO/bo_ar/2011/BO_5988_Ar.pdf');
     assert.match(demographics.revisedAt, /^\d{4}-\d{2}-\d{2}$/);
     assert.ok(demographics.constituencies.every(row => row.componentCodes.length > 0));

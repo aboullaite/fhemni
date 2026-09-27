@@ -90,9 +90,9 @@ test('the graphs page exposes a dedicated urban and rural context section', () =
 });
 
 for (const [locale, expected] of Object.entries({
-    ar: { disclaimer: 'المقاعد الجهوية الـ90 ما داخلاش', derived: 'مشتق', shareOnly: 'دائرتين فالرباط', point: '+3,50 نقطة' },
-    fr: { disclaimer: 'ne mesure pas les votes urbains ou ruraux', derived: 'dérivé', shareOnly: '2 circonscriptions de Rabat', point: '+3,50 points' },
-    en: { disclaimer: '90 regional-list seats are excluded', derived: 'derived', shareOnly: '2 Rabat constituencies', point: '+3.50 points' }
+    ar: { disclaimer: 'المقاعد الجهوية الـ90 ما داخلاش', derived: 'مشتق', exact: '90 دائرةً عندها', shareOnly: 'دائرتين فالرباط', point: '+3,50 نقطة' },
+    fr: { disclaimer: 'ne mesure pas les votes urbains ou ruraux', derived: 'dérivé', exact: '90 circonscriptions', shareOnly: '2 circonscriptions de Rabat', point: '+3,50 points' },
+    en: { disclaimer: '90 regional-list seats are excluded', derived: 'derived', exact: '90 constituencies', shareOnly: '2 Rabat constituencies', point: '+3.50 points' }
 })) {
     test(`${locale} urbanization graph labels the measure and its vote limitation`, () => {
         const rendered = view(locale);
@@ -101,6 +101,7 @@ for (const [locale, expected] of Object.entries({
         assert.equal(rendered.nodes('election-atlas-urbanization-baseline').length, 2);
         assert.match(rendered.nodes('election-atlas-intro')[0].textContent, new RegExp(expected.disclaimer, 'i'));
         assert.match(rendered.nodes('election-atlas-denominator')[0].textContent, new RegExp(expected.derived, 'i'));
+        assert.match(rendered.nodes('election-atlas-denominator')[0].textContent, new RegExp(expected.exact, 'i'));
         assert.match(rendered.nodes('election-atlas-denominator')[0].textContent, new RegExp(expected.shareOnly, 'i'));
         assert.match(rendered.nodes('election-atlas-takeaway')[0].textContent, new RegExp(expected.point.replace('+', '\\+'), 'i'));
         assert.equal(rendered.nodes('election-atlas-urbanization-source')[0].children[0].href,

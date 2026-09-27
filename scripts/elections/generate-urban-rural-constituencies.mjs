@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateExactPartition, validatePinnedCrosswalk } from './urban-rural-crosswalk.mjs';
 
 const OUTPUT = resolve(process.argv[2]
     || 'src/main/resources/static/data/elections/2026/urban-rural-constituencies.js');
-const PINNED_SOURCE = resolve(dirname(fileURLToPath(import.meta.url)),
-    '../../data/elections/2026/urban-rural-source-v1.8.0.json');
+const PINNED_SOURCE = resolve(process.argv[3] || resolve(dirname(fileURLToPath(import.meta.url)),
+    '../../data/elections/2026/urban-rural-source-v1.8.0.json'));
+const PINNED_SOURCE_SHA256 = 'a4d912f11c843cca34dff418bb740091392c66c75c9fcc39fb89387fd864d025';
 
 const SOURCE = {
     datasetVersion: '1.8.0',
@@ -170,21 +172,41 @@ const PARTITIONS = [
     }
 ];
 
-const EXPLICIT = [
-    ['fes-nord', 4, [a('03.231.01.13'), a('03.231.01.11'), a('03.231.01.07'), c('03.231.01.03')]],
-    ['fes-sud', 4, [a('03.231.01.01'), a('03.231.01.05'), a('03.231.01.09'),
-        c('03.231.01.15'), c('03.231.81.05'), c('03.231.81.03')]],
-    ['sale-medina', 4, [a('04.441.01.09'), a('04.441.01.05'), a('04.441.01.03')]],
-    ['sale-nouvelle', 3, [a('04.441.01.06'), a('04.441.01.07'),
-        c('04.441.01.08'), c('04.441.01.11'), c('04.441.01.13')]],
-    ['gueliz', 3, [a('07.351.01.05'), a('07.351.01.03'), c('07.351.03.11'),
-        c('07.351.03.03'), c('07.351.03.05'), c('07.351.02.07'),
-        c('07.351.02.09'), c('07.351.02.01')]],
-    ['menara', 3, [a('07.351.01.09'), c('07.351.05.05'), c('07.351.05.03'),
-        c('07.351.05.01'), c('07.351.05.09'), c('07.351.07.11'), c('07.351.07.07')]],
-    ['sidi-youssef-ben-ali', 3, [a('07.351.01.07'), a('07.351.01.11'),
-        c('07.351.01.01'), c('07.351.01.13')]],
-    ['al-fida-mers-sultan', 3, [p('06.141.01.10'), c('06.141.01.81')]]
+const EXPLICIT_PARTITIONS = [
+    {
+        parentCode: '03.231',
+        constituencies: [
+            ['fes-nord', 4, [a('03.231.01.13'), a('03.231.01.11'), a('03.231.01.07'), c('03.231.01.03')]],
+            ['fes-sud', 4, [a('03.231.01.01'), a('03.231.01.05'), a('03.231.01.09'),
+                c('03.231.01.15'), c('03.231.81.05'), c('03.231.81.03')]]
+        ]
+    },
+    {
+        parentCode: '04.441',
+        constituencies: [
+            ['sale-medina', 4, [a('04.441.01.09'), a('04.441.01.05'), a('04.441.01.03')]],
+            ['sale-nouvelle', 3, [a('04.441.01.06'), a('04.441.01.07'),
+                c('04.441.01.08'), c('04.441.01.11'), c('04.441.01.13')]]
+        ]
+    },
+    {
+        parentCode: '07.351',
+        constituencies: [
+            ['gueliz', 3, [a('07.351.01.05'), a('07.351.01.03'), c('07.351.03.11'),
+                c('07.351.03.03'), c('07.351.03.05'), c('07.351.02.07'),
+                c('07.351.02.09'), c('07.351.02.01')]],
+            ['menara', 3, [a('07.351.01.09'), c('07.351.05.05'), c('07.351.05.03'),
+                c('07.351.05.01'), c('07.351.05.09'), c('07.351.07.11'), c('07.351.07.07')]],
+            ['sidi-youssef-ben-ali', 3, [a('07.351.01.07'), a('07.351.01.11'),
+                c('07.351.01.01'), c('07.351.01.13')]]
+        ]
+    },
+    {
+        parentCode: '06.141.01.10',
+        constituencies: [
+            ['al-fida-mers-sultan', 3, [p('06.141.01.10'), c('06.141.01.81')]]
+        ]
+    }
 ];
 
 const SHARE_ONLY = [
@@ -202,9 +224,15 @@ function buildCrosswalk(source) {
     const rows = FULL.map(([constituencyCode, allocatedSeats, provinceCode]) => ({
         constituencyCode, allocatedSeats, componentCodes: [p(provinceCode)], populationCoverage: 'exact'
     }));
-    rows.push(...EXPLICIT.map(([constituencyCode, allocatedSeats, componentCodes]) => ({
-        constituencyCode, allocatedSeats, componentCodes, populationCoverage: 'exact'
-    })));
+    for (const partition of EXPLICIT_PARTITIONS) {
+        validateExactPartition(partition.parentCode,
+            source.explicitParentComponentCodes?.[partition.parentCode],
+            partition.constituencies.map(([constituencyCode, , componentCodes]) =>
+                [constituencyCode, componentCodes]));
+        rows.push(...partition.constituencies.map(([constituencyCode, allocatedSeats, componentCodes]) => ({
+            constituencyCode, allocatedSeats, componentCodes, populationCoverage: 'exact'
+        })));
+    }
     for (const partition of PARTITIONS) {
         const all = source.partitionParentCodes?.[partition.provinceCode];
         const [explicitCode, explicitSeats, explicitCodes] = partition.explicit;
@@ -234,8 +262,7 @@ function validatePinnedSource(source, rows) {
             || source.decreeLabel !== SOURCE.decreeLabel || source.revisedAt !== SOURCE.revisedAt
             || source.localSeatTotal !== SOURCE.localSeatTotal
             || source.excludedRegionalSeatTotal !== SOURCE.excludedRegionalSeatTotal
-            || source.license !== 'CC BY 4.0'
-            || !/^[a-f0-9]{64}$/.test(source.sourceDatasetSha256 || '')) {
+            || source.license !== 'CC BY 4.0') {
         throw new Error('Pinned demographic source metadata does not match the declared source revision');
     }
     if (!Array.isArray(source.constituencies) || source.constituencies.length !== rows.length) {
@@ -273,7 +300,12 @@ function serialize(data) {
 }
 
 async function main() {
-    const source = JSON.parse(await readFile(PINNED_SOURCE, 'utf8'));
+    const sourceBytes = await readFile(PINNED_SOURCE);
+    const sourceSha256 = createHash('sha256').update(sourceBytes).digest('hex');
+    if (sourceSha256 !== PINNED_SOURCE_SHA256) {
+        throw new Error(`Pinned demographic source SHA-256 integrity mismatch: ${sourceSha256}`);
+    }
+    const source = JSON.parse(sourceBytes.toString('utf8'));
     const rows = buildCrosswalk(source);
     validatePinnedSource(source, rows);
     const constituencies = source.constituencies;
@@ -283,4 +315,8 @@ async function main() {
     process.stdout.write(`Wrote ${constituencies.length} constituencies to ${OUTPUT}\n`);
 }
 
-await main();
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+    await main();
+}
+
+export { buildCrosswalk };
