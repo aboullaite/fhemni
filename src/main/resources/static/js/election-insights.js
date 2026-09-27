@@ -418,6 +418,153 @@
         };
     }
 
+    function deriveUrbanizationRepresentation(snapshot, demographics) {
+        const representatives = indexRepresentatives(snapshot);
+        if (!representatives.available) {
+            return { available: false, diagnostics: [...representatives.diagnostics], rows: [], national: null, source: null };
+        }
+
+        const diagnostics = [];
+        const censusRows = Array.isArray(demographics?.constituencies) ? demographics.constituencies : [];
+        if (censusRows.length !== 92) addDiagnostic(diagnostics, 'constituency-demographics-count');
+        if (!Number.isSafeInteger(demographics?.censusYear) || demographics.censusYear <= 0
+                || typeof demographics?.datasetVersion !== 'string' || !demographics.datasetVersion.trim()
+                || typeof demographics?.sourceUrl !== 'string' || !demographics.sourceUrl.trim()
+                || typeof demographics?.decreeUrl !== 'string' || !demographics.decreeUrl.trim()
+                || typeof demographics?.revisedAt !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(demographics.revisedAt)) {
+            addDiagnostic(diagnostics, 'constituency-demographics-source');
+        }
+        if (demographics?.localSeatTotal !== LOCAL_SEAT_TOTAL
+                || demographics?.excludedRegionalSeatTotal !== REGIONAL_SEAT_TOTAL) {
+            addDiagnostic(diagnostics, 'constituency-demographics-seat-totals');
+        }
+
+        const byCode = new Map();
+        for (const row of censusRows) {
+            if (typeof row?.constituencyCode !== 'string' || !row.constituencyCode.trim()
+                    || byCode.has(row.constituencyCode)) {
+                addDiagnostic(diagnostics, 'constituency-demographics-code');
+            } else byCode.set(row.constituencyCode, row);
+            if (!integer(row?.allocatedSeats) || row.allocatedSeats < 2 || row.allocatedSeats > 6) {
+                addDiagnostic(diagnostics, 'constituency-demographics-seat-totals');
+            }
+            if (!Array.isArray(row?.componentCodes) || !row.componentCodes.length
+                    || row.componentCodes.some(code => typeof code !== 'string' || !code.trim())) {
+                addDiagnostic(diagnostics, 'constituency-demographics-components');
+            }
+            if (typeof row?.urbanShare !== 'number' || !Number.isFinite(row.urbanShare)
+                    || row.urbanShare < 0 || row.urbanShare > 100) {
+                addDiagnostic(diagnostics, 'constituency-demographics-population');
+                continue;
+            }
+            if (row.populationCoverage === 'exact') {
+                if (![row.totalPopulation, row.urbanPopulation, row.ruralPopulation].every(integer)
+                        || row.totalPopulation === 0) {
+                    addDiagnostic(diagnostics, 'constituency-demographics-population');
+                    continue;
+                }
+                if (row.urbanPopulation + row.ruralPopulation !== row.totalPopulation
+                        || Math.abs(row.urbanShare - 100 * row.urbanPopulation / row.totalPopulation) > 1e-9) {
+                    addDiagnostic(diagnostics, 'constituency-demographics-total');
+                }
+            } else if (row.populationCoverage !== 'share-only' || row.urbanShare !== 100
+                    || row.totalPopulation !== undefined || row.urbanPopulation !== undefined
+                    || row.ruralPopulation !== undefined) {
+                addDiagnostic(diagnostics, 'constituency-demographics-population');
+            }
+        }
+
+        const localRecords = representatives.records.filter(row => row.seatType === 'LOCAL');
+        const electionConstituencies = new Map();
+        for (const record of localRecords) {
+            const previous = electionConstituencies.get(record.constituencyCode);
+            if (previous && (previous.allocatedSeats !== record.allocatedSeats
+                    || previous.name !== record.constituencyName)) {
+                addDiagnostic(diagnostics, 'constituency-demographics-coverage');
+            } else if (!previous) electionConstituencies.set(record.constituencyCode, {
+                name: record.constituencyName,
+                allocatedSeats: record.allocatedSeats
+            });
+        }
+        if (byCode.size !== electionConstituencies.size
+                || [...electionConstituencies].some(([code, row]) => !byCode.has(code)
+                    || byCode.get(code).allocatedSeats !== row.allocatedSeats)
+                || [...byCode.keys()].some(code => !electionConstituencies.has(code))) {
+            addDiagnostic(diagnostics, 'constituency-demographics-coverage');
+        }
+        if (censusRows.reduce((sum, row) => sum + (integer(row?.allocatedSeats) ? row.allocatedSeats : 0), 0)
+                !== LOCAL_SEAT_TOTAL) {
+            addDiagnostic(diagnostics, 'constituency-demographics-seat-totals');
+        }
+        if (diagnostics.length) {
+            return { available: false, diagnostics, rows: [], national: null, source: null };
+        }
+
+        const nationalUrbanizationIndex = censusRows.reduce((sum, row) =>
+            sum + row.allocatedSeats * row.urbanShare, 0) / LOCAL_SEAT_TOTAL;
+        const national = {
+            constituencyCount: censusRows.length,
+            localSeatTotal: LOCAL_SEAT_TOTAL,
+            excludedRegionalSeatTotal: REGIONAL_SEAT_TOTAL,
+            urbanizationIndex: nationalUrbanizationIndex,
+            ruralityIndex: 100 - nationalUrbanizationIndex
+        };
+        const rows = snapshot.parties.filter(party => party.localSeats > 0).map(party => {
+            const partyRecords = localRecords.filter(record => record.partyCode === party.code);
+            const partyConstituencies = new Map();
+            for (const record of partyRecords) {
+                if (!partyConstituencies.has(record.constituencyCode)) partyConstituencies.set(record.constituencyCode, {
+                    code: record.constituencyCode,
+                    name: record.constituencyName,
+                    allocatedSeats: record.allocatedSeats,
+                    partyLocalSeats: 0
+                });
+                partyConstituencies.get(record.constituencyCode).partyLocalSeats++;
+            }
+            const constituencyRows = [...partyConstituencies.values()].map(row => {
+                const census = byCode.get(row.code);
+                return {
+                    ...row,
+                    totalPopulation: census.totalPopulation ?? null,
+                    urbanPopulation: census.urbanPopulation ?? null,
+                    ruralPopulation: census.ruralPopulation ?? null,
+                    populationCoverage: census.populationCoverage,
+                    urbanShare: census.urbanShare,
+                    ruralShare: 100 - census.urbanShare
+                };
+            });
+            const urbanizationIndex = constituencyRows.reduce((sum, row) =>
+                sum + row.partyLocalSeats * row.urbanShare, 0) / party.localSeats;
+            return {
+                code: party.code,
+                name: party.name,
+                color: party.color,
+                symbolAsset: party.symbolAsset,
+                localSeats: party.localSeats,
+                urbanizationIndex,
+                ruralityIndex: 100 - urbanizationIndex,
+                differenceFromNational: urbanizationIndex - national.urbanizationIndex,
+                constituencyRows
+            };
+        }).sort((left, right) => right.urbanizationIndex - left.urbanizationIndex || codeOrder(left, right));
+
+        return {
+            available: true,
+            diagnostics: [],
+            source: {
+                datasetVersion: demographics.datasetVersion,
+                censusYear: demographics.censusYear,
+                sourceUrl: demographics.sourceUrl,
+                decreeUrl: demographics.decreeUrl,
+                revisedAt: demographics.revisedAt,
+                exactConstituencyCount: censusRows.filter(row => row.populationCoverage === 'exact').length,
+                shareOnlyConstituencyCount: censusRows.filter(row => row.populationCoverage === 'share-only').length
+            },
+            national,
+            rows
+        };
+    }
+
     function deriveConstituencyDistribution(snapshot) {
         const matrix = buildRegionMatrix(snapshot);
         if (!matrix.available) return { available: false, diagnostics: matrix.diagnostics, bins: [] };
@@ -544,6 +691,6 @@
     }
 
     return { auditSnapshot, deriveBallotComponents, deriveBallotSeatComparison, deriveConcentration,
-        buildRegionMatrix, deriveRegionDelegation, derivePartyGeography,
+        buildRegionMatrix, deriveRegionDelegation, derivePartyGeography, deriveUrbanizationRepresentation,
         deriveConstituencyDistribution, indexRepresentatives };
 });

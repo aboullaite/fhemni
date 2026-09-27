@@ -16,6 +16,7 @@ data/elections/*
 !data/elections/2026/
 data/elections/2026/*
 !data/elections/2026/results.sql
+!data/elections/2026/urban-rural-source-v1.8.0.json
 !/src/main/resources/data/
 !/src/main/resources/data/civic-party-positions-2026-v1.json
 .tailwind/

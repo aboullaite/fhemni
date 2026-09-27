@@ -6,7 +6,50 @@ const path = require('node:path');
 const actualInsights = require('../../main/resources/static/js/election-insights.js');
 
 const controllerPath = path.join(__dirname, '../../main/resources/static/js/election-results.js');
+const pagePath = path.join(__dirname, '../../main/resources/static/election-results.html');
 const source = fs.readFileSync(controllerPath, 'utf8');
+const page = fs.readFileSync(pagePath, 'utf8');
+
+test('representative pagination returns one page at a time and clamps boundary pages', () => {
+    const script = source.replace("document.addEventListener('DOMContentLoaded', init);",
+        'globalThis.__representativePage = representativePage;');
+    const sandbox = { document: { addEventListener() {} }, window: {
+        queueMicrotask(callback) { callback(); },
+        FhemniElectionRegionFilters: {
+            SEAT_TYPES: {}, normalizeState() { return {}; }, createDeferredAction() { return {}; }
+        }
+    } };
+    vm.runInNewContext(script, sandbox);
+    const records = Array.from({ length: 55 }, (_, index) => index + 1);
+
+    const second = sandbox.__representativePage(records, 2, 25);
+    assert.deepEqual(Array.from(second.records), Array.from({ length: 25 }, (_, index) => index + 26));
+    assert.deepEqual({ page: second.page, pages: second.pages, start: second.start, end: second.end },
+        { page: 2, pages: 3, start: 26, end: 50 });
+
+    const last = sandbox.__representativePage(records, 99, 25);
+    assert.deepEqual(Array.from(last.records), [51, 52, 53, 54, 55]);
+    assert.deepEqual({ page: last.page, pages: last.pages, start: last.start, end: last.end },
+        { page: 3, pages: 3, start: 51, end: 55 });
+});
+
+test('Who represents me keeps its recognizable title in every language', () => {
+    const script = source.replace("document.addEventListener('DOMContentLoaded', init);",
+        'globalThis.__atlasCopy = ATLAS_COPY;');
+    const sandbox = { document: { addEventListener() {} }, window: {
+        queueMicrotask(callback) { callback(); },
+        FhemniElectionRegionFilters: {
+            SEAT_TYPES: {}, normalizeState() { return {}; }, createDeferredAction() { return {}; }
+        }
+    } };
+    vm.runInNewContext(script, sandbox);
+
+    for (const locale of ['ar', 'fr', 'en']) {
+        assert.equal(sandbox.__atlasCopy[locale].jumpRepresentatives,
+            sandbox.__atlasCopy[locale].representativesTitle);
+    }
+    assert.ok(page.indexOf('id="electionGraphConstituencies"') < page.indexOf('id="electionGraphRepresentatives"'));
+});
 
 function controller(locale, localLead, concentration, ballotSnapshot) {
     const roots = new Map();
