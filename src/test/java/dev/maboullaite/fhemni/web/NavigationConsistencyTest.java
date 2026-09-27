@@ -177,12 +177,98 @@ class NavigationConsistencyTest {
                 .contains("title: 'The final result, explained'")
                 .contains("constituencySeats: null")
                 .contains("seatType: 'all', page: 1")
-                .contains("requested.startsWith('electionGraph')")
+                .contains("ATLAS_SECTION_IDS.has(requested)")
                 .doesNotContain("setInterval(");
         assertThat(page.split("id=\"electionAtlasStatus\"", -1)).hasSize(2);
         assertThat(controller.split("/api/catalog/elections/2026/results", -1)).hasSize(2);
         assertThat(controller.split("function schedulePoll\\(", -1)).hasSize(2);
         assertThat(controller.split("\\['map', 'national', 'graphs', 'coalition'\\]", -1)).hasSize(3);
+    }
+
+    @Test
+    void electionAtlasSectionDeepLinksScrollOnceAfterContentBecomesVisible() throws Exception {
+        String controllerPath = new ClassPathResource("static/js/election-results.js").getFile().getAbsolutePath();
+        String harness = """
+                const assert = require('node:assert/strict');
+                const fs = require('node:fs');
+                const vm = require('node:vm');
+                const script = fs.readFileSync(process.argv[1], 'utf8').replace(
+                    "document.addEventListener('DOMContentLoaded', init);",
+                    "globalThis.__test = { bindTabs, showState };"
+                );
+                function visit(hash) {
+                    const scrolled = [];
+                    const elements = new Map();
+                    const node = id => {
+                        if (!elements.has(id)) elements.set(id, {
+                            id, hidden: true, attrs: {}, listeners: {},
+                            setAttribute(key, value) { this.attrs[key] = value; },
+                            addEventListener(type, listener) { this.listeners[type] = listener; },
+                            scrollIntoView() { scrolled.push(id); }
+                        });
+                        return elements.get(id);
+                    };
+                    const tabs = ['map', 'national', 'graphs', 'coalition'].map(name => {
+                        const button = node(`election${name[0].toUpperCase()}${name.slice(1)}Tab`);
+                        button.dataset = { electionTab: name };
+                        return button;
+                    });
+                    node('electionTabs').querySelectorAll = () => tabs;
+                    const location = { hash, pathname: '/elections/2026', search: '' };
+                    const sandbox = {
+                        window: {
+                            location,
+                            history: { replaceState(_state, _title, url) { location.hash = url.slice(url.indexOf('#')); } },
+                            queueMicrotask(callback) { callback(); },
+                            FhemniElectionRegionFilters: { SEAT_TYPES: {}, normalizeState() { return {}; }, createDeferredAction() { return {}; } }
+                        },
+                        document: {
+                            documentElement: { dir: 'ltr' },
+                            addEventListener() {},
+                            getElementById: node
+                        }
+                    };
+                    vm.runInNewContext(script, sandbox);
+                    sandbox.__test.bindTabs();
+                    return { node, location, scrolled, show: sandbox.__test.showState };
+                }
+                for (const id of [
+                    'electionGraphBallots', 'electionGraphRepresentation', 'electionGraphGeography',
+                    'electionGraphConstituencies', 'electionGraphRepresentatives'
+                ]) {
+                    const page = visit(`#${id}`);
+                    assert.equal(page.node('electionGraphsPanel').hidden, false);
+                    assert.equal(page.node('electionContent').hidden, true);
+                    assert.deepEqual(page.scrolled, []);
+                    page.show('content');
+                    assert.deepEqual(page.scrolled, [id], `must scroll to ${id} after reveal`);
+                    page.show('content');
+                    assert.deepEqual(page.scrolled, [id], `must not scroll twice to ${id}`);
+                    assert.equal(page.location.hash, `#${id}`);
+                }
+                const invalid = visit('#electionGraphWhatever');
+                invalid.show('content');
+                assert.equal(invalid.node('electionMapPanel').hidden, false);
+                assert.equal(invalid.node('electionGraphsPanel').hidden, true);
+                assert.equal(invalid.location.hash, '#map');
+                assert.deepEqual(invalid.scrolled, []);
+                const graphs = visit('#graphs');
+                graphs.show('content');
+                assert.equal(graphs.node('electionGraphsPanel').hidden, false);
+                assert.equal(graphs.location.hash, '#graphs');
+                assert.deepEqual(graphs.scrolled, []);
+                const switched = visit('#electionGraphBallots');
+                switched.node('electionNationalTab').listeners.click();
+                switched.show('content');
+                assert.deepEqual(switched.scrolled, []);
+                switched.node('electionGraphsTab').listeners.click();
+                switched.show('content');
+                assert.deepEqual(switched.scrolled, [], 'a user tab change cancels the old deep-link scroll');
+                """;
+        Process process = new ProcessBuilder("node", "-e", harness, controllerPath)
+                .redirectErrorStream(true).start();
+        String output = new String(process.getInputStream().readAllBytes(), UTF_8);
+        assertThat(process.waitFor()).as(output).isZero();
     }
 
     @Test

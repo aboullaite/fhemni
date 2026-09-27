@@ -11,6 +11,7 @@
     const SEAT_TYPES = REGION_FILTERS.SEAT_TYPES;
     const deferredRegionRender = REGION_FILTERS.createDeferredAction(callback => window.queueMicrotask(callback));
     const PARTY_CLASSES = new Set(['rni', 'pam', 'pi', 'pjd', 'usfp', 'pps', 'mp', 'fgd', 'uc', 'ffd', 'mds', 'pud', 'psu', 'pe', 'pml', 'pvm', 'nd', 'pgv', 'pedd', 'prv', 'pdn', 'alamal', 'prd', 'umd', 'ind']);
+    const ATLAS_SECTION_IDS = new Set(['electionGraphBallots', 'electionGraphRepresentation', 'electionGraphGeography', 'electionGraphConstituencies', 'electionGraphRepresentatives']);
     const COPY = {
         ar: {
             title: 'نتائج الانتخابات التشريعية 2026', description: 'تابع توزيع المقاعد وطنياً وحسب الجهات، وجرّب تبني أغلبية برلمانية.', eyebrow: 'تشريعيات 2026',
@@ -111,6 +112,7 @@
     let pendingManualRetry = false;
     let pendingFreshReload = false;
     let regionStatusAnnouncer;
+    let pendingAtlasSectionLink;
     const atlasState = {
         ballots: { expanded: false, query: '', order: 'combined' },
         representation: { expanded: false, query: '', order: 'ballots' },
@@ -228,6 +230,11 @@
         byId('electionLoading').hidden = state !== 'loading';
         byId('electionError').hidden = state !== 'error';
         byId('electionContent').hidden = state !== 'content';
+        if (state === 'content' && pendingAtlasSectionLink && !byId('electionGraphsPanel').hidden) {
+            const section = byId(pendingAtlasSectionLink);
+            pendingAtlasSectionLink = undefined;
+            section.scrollIntoView({ block: 'start' });
+        }
     }
 
     function schedulePoll(delay = POLL_INTERVAL_MS) {
@@ -965,11 +972,14 @@
             next.focus();
         });
         const requested = window.location.hash.replace('#', '');
-        const target = requested.startsWith('electionGraph') ? 'graphs' : requested;
-        activateTab(['map', 'national', 'graphs', 'coalition'].includes(target) ? target : 'map', false, requested.startsWith('electionGraph'));
+        const sectionLink = ATLAS_SECTION_IDS.has(requested);
+        pendingAtlasSectionLink = sectionLink ? requested : undefined;
+        const target = sectionLink ? 'graphs' : requested;
+        activateTab(['map', 'national', 'graphs', 'coalition'].includes(target) ? target : 'map', false, sectionLink);
     }
 
     function activateTab(name, report, preserveHash = false) {
+        if (report) pendingAtlasSectionLink = undefined;
         const names = ['map', 'national', 'graphs', 'coalition'];
         names.forEach(value => {
             const selected = value === name;
