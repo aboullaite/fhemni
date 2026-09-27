@@ -337,6 +337,7 @@
         const expand = atlasControl('button', 'button', `${section}-expand`, state.expanded ? atlas.showLess : atlas.showAll);
         expand.textContent = state.expanded ? atlas.showLess : atlas.showAll;
         expand.setAttribute('aria-expanded', String(state.expanded));
+        expand.setAttribute('aria-controls', `election-atlas-${section}-rows`);
         expand.addEventListener('click', () => {
             state.expanded = !state.expanded;
             onChange('expand');
@@ -402,6 +403,7 @@
 
     function atlasBar(value, kind) {
         const track = element('span', `election-atlas-ballot-bar ${kind}`);
+        track.setAttribute('aria-hidden', 'true');
         track.append(element('span', `election-atlas-ballot-fill ${widthClass(value)}`));
         return track;
     }
@@ -466,6 +468,7 @@
             ['combined', atlas.orderCombined], ['local', atlas.orderLocal], ['regional', atlas.orderRegional]
         ], (action, label) => renderBallotComponents({ controlChange: action, controlLabel: label })));
         const rows = element('div', 'election-atlas-rows');
+        rows.id = 'election-atlas-ballots-rows';
         if (!data.rows.length) rows.append(atlasUnavailable(atlas.noPartyMatches));
         data.rows.forEach(row => {
             const item = element('article', `election-atlas-row ${partyClass(row.code)}`);
@@ -501,6 +504,7 @@
     function atlasComparisonMeasure(label, count, share, shape) {
         const measure = element('span', `election-atlas-comparison-measure ${shape}`);
         const track = element('span', 'election-atlas-comparison-bar');
+        track.setAttribute('aria-hidden', 'true');
         const fill = element('span', `election-atlas-comparison-fill ${widthClass(share)}`);
         fill.append(element('span', `election-atlas-compare-marker ${shape}`));
         track.append(fill);
@@ -527,6 +531,7 @@
             [['ballots', atlas.orderCombined], ['seats', atlas.orderSeats]],
             (action, label) => renderBallotSeatComparison({ controlChange: action, controlLabel: label })));
         const rows = element('div', 'election-atlas-rows');
+        rows.id = 'election-atlas-representation-rows';
         if (!data.rows.length) rows.append(atlasUnavailable(atlas.noPartyMatches));
         data.rows.forEach(row => {
             const item = element('article', `election-atlas-row election-atlas-comparison-row ${partyClass(row.code)}`);
@@ -594,13 +599,16 @@
 
     function geographyFact(value, label) {
         const fact = element('div', 'election-atlas-geography-fact');
-        fact.append(element('strong', '', value), element('span', '', label));
+        const figure = element('strong');
+        figure.append(element('bdi', '', value));
+        fact.append(figure, element('span', '', label));
         return fact;
     }
 
     function geographyListRow(label, seats, share, supplementary = '') {
         const row = element('div', 'election-atlas-geography-row');
         const bar = element('span', 'election-atlas-geography-bar');
+        bar.setAttribute('aria-hidden', 'true');
         bar.append(element('span', `election-atlas-geography-fill ${widthClass(share)}`));
         row.append(element('bdi', 'election-atlas-geography-name', label), bar,
             element('bdi', 'election-atlas-geography-value', `${number(seats)} · ${exactPercent(share)}%`));
@@ -657,7 +665,8 @@
         regionHeading.scope = 'col';
         headings.append(regionHeading);
         matrix.partyCodes.forEach(code => {
-            const heading = element('th', '', code);
+            const heading = element('th');
+            heading.append(element('bdi', '', code));
             heading.scope = 'col';
             heading.title = partyNames.get(code);
             headings.append(heading);
@@ -987,10 +996,14 @@
             atlas.representativesRegion, atlas.representativesConstituency, atlas.representativesVotes];
         records.forEach(record => {
             const card = element('article', 'election-atlas-representative-card');
-            card.append(element('h4', '', record.candidateName));
+            const heading = element('h4');
+            heading.append(element('bdi', '', record.candidateName));
+            card.append(heading);
             const details = element('dl');
             representativeCells(record, atlas).slice(1).forEach((value, index) => {
-                details.append(element('dt', '', labels[index]), element('dd', '', value));
+                const detail = element('dd');
+                detail.append(element('bdi', '', value));
+                details.append(element('dt', '', labels[index]), detail);
             });
             card.append(details);
             cards.append(card);

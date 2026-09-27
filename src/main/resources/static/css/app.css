@@ -554,18 +554,24 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .election-metric span { color: var(--muted); font-size: 10px; font-weight: 750; }
 .election-metric strong { font: 850 22px/1.1 "Tajawal Heading Numerals", "Tajawal", sans-serif; }
 .election-metric .election-metric-separator { padding-inline: 4px; color: var(--muted); font-family: "Tajawal", Tahoma, Arial, sans-serif; font-size: 10px; font-weight: 700; }
-.election-tabs { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; width: min(620px,100%); margin: 0 auto 16px; padding: 4px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,253,247,.72); }
-.election-tabs button { min-height: 38px; padding: 8px 13px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); cursor: pointer; font-family: inherit; font-size: 11px; font-weight: 850; line-height: 1.25; transition: background .16s ease,color .16s ease,box-shadow .16s ease; }
+.election-tabs { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 4px; width: min(720px,100%); margin: 0 auto 16px; padding: 4px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,253,247,.72); }
+.election-tabs button { min-height: 44px; padding: 8px 13px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); cursor: pointer; font-family: inherit; font-size: 11px; font-weight: 850; line-height: 1.25; transition: background .16s ease,color .16s ease,box-shadow .16s ease; }
 .election-tabs button[aria-selected="true"] { background: var(--teal-dark); color: white; box-shadow: 0 6px 16px rgba(19,44,43,.14); }
-.election-panel { padding: clamp(20px,3vw,32px); border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--surface); box-shadow: 0 14px 45px rgba(31,57,53,.06); }
+.election-panel { min-width: 0; padding: clamp(20px,3vw,32px); border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--surface); box-shadow: 0 14px 45px rgba(31,57,53,.06); }
+.election-graphs-panel, .election-graph-section { min-width: 0; width: 100%; }
+.election-graphs-jumps { display: flex; flex-wrap: wrap; gap: 8px; margin-block-end: 16px; }
+.election-graphs-jumps a { display: inline-flex; min-height: 44px; align-items: center; padding: 9px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--white); color: var(--teal-dark); font-size: 12px; font-weight: 800; text-decoration: none; }
+[dir="rtl"] .election-graphs-jumps { direction: rtl; }
+[dir="ltr"] .election-graphs-jumps { direction: ltr; }
 .election-graph-section { scroll-margin-block-start: 20px; margin-block-start: 26px; padding-block-start: 20px; border-block-start: 1px solid var(--line); }
 .election-graph-section h3 { margin: 0; font-size: clamp(20px, 2.4vw, 28px); }
-.election-atlas-content { display: grid; gap: 14px; margin-block-start: 12px; }
+.election-atlas-content { display: grid; min-width: 0; gap: 14px; margin-block-start: 12px; }
 .election-atlas-intro, .election-atlas-denominator { margin: 0; color: var(--muted); line-height: 1.6; }
 .election-atlas-denominator { font-weight: 800; color: var(--ink); }
 .election-atlas-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; }
 .election-atlas-field { display: grid; gap: 5px; min-width: min(190px, 100%); font-size: 12px; font-weight: 800; }
-.election-atlas-control { min-height: 42px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--white); color: var(--ink); font: inherit; }
+.election-atlas-control { min-height: 44px; max-width: 100%; padding: 9px 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--white); color: var(--ink); font: inherit; }
+.election-tabs button:focus-visible, .election-graphs-jumps a:focus-visible, .election-atlas-control:focus-visible, .election-atlas-figures summary:focus-visible, .election-atlas-constituency-bin:focus-visible, .election-atlas-representative-chips button:focus-visible { outline: 3px solid var(--teal-dark); outline-offset: 3px; }
 .election-atlas-controls button { align-self: end; cursor: pointer; }
 .election-atlas-rows { display: grid; gap: 8px; }
 .election-atlas-row { display: grid; grid-template-columns: minmax(155px, .65fr) minmax(0, 1.35fr); align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--white); }
@@ -591,9 +597,9 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .election-atlas-seat-components, .election-atlas-difference { font-size: 11px; }
 .election-atlas-takeaway { margin: 0; padding: 14px; border-inline-start: 4px solid var(--teal-dark); border-radius: 8px; background: rgba(23,107,99,.07); line-height: 1.6; }
 .election-atlas-unavailable { margin: 0; padding: 18px; border: 1px dashed var(--line); border-radius: 10px; color: var(--muted); }
-.election-atlas-figures { border: 1px solid var(--line); border-radius: 10px; background: var(--white); }
-.election-atlas-figures summary { padding: 12px; cursor: pointer; font-weight: 800; }
-.election-atlas-table-scroll { max-width: 100%; overflow-x: auto; }
+.election-atlas-figures { min-width: 0; max-width: 100%; border: 1px solid var(--line); border-radius: 10px; background: var(--white); }
+.election-atlas-figures summary { min-height: 44px; padding: 12px; cursor: pointer; font-weight: 800; }
+.election-atlas-table-scroll { min-width: 0; max-width: 100%; overflow-x: auto; }
 .election-atlas-figures table { width: 100%; border-collapse: collapse; font-size: 11px; }
 .election-atlas-figures caption { padding: 10px; text-align: start; font-weight: 800; }
 .election-atlas-figures th, .election-atlas-figures td { padding: 9px; border-block-start: 1px solid var(--line); text-align: start; white-space: nowrap; }
@@ -627,7 +633,7 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .election-atlas-representative-handoff { display: flex; flex-wrap: wrap; gap: 8px; margin-block-start: 12px; }
 .election-atlas-representative-filter { padding: 8px 12px; border-radius: 999px; background: rgba(23,107,99,.1); font-size: 12px; font-weight: 800; }
 .election-atlas-constituency-chart { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); align-items: end; gap: 10px; }
-.election-atlas-constituency-bin { display: grid; justify-items: center; gap: 5px; min-width: 0; padding: 12px 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--white); color: var(--ink); font: inherit; cursor: pointer; text-align: center; }
+.election-atlas-constituency-bin { display: grid; justify-items: center; gap: 5px; min-width: 0; min-height: 44px; padding: 12px 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--white); color: var(--ink); font: inherit; cursor: pointer; text-align: center; }
 .election-atlas-constituency-bin[aria-pressed="true"] { border-color: var(--teal-dark); box-shadow: 0 0 0 2px rgba(23,107,99,.15); }
 .election-atlas-constituency-bin svg { display: block; width: min(70px,100%); height: 170px; fill: var(--teal-dark); }
 .election-atlas-constituency-bin strong { font-size: 12px; }
@@ -640,7 +646,7 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .election-atlas-representative-controls .election-atlas-field { flex: 1 1 175px; min-width: min(175px,100%); }
 .election-atlas-representative-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
 .election-atlas-representative-chips strong { font-size: 11px; }
-.election-atlas-representative-chips button { padding: 7px 10px; border: 1px solid var(--line); border-radius: 999px; background: rgba(23,107,99,.08); color: var(--ink); font: inherit; font-size: 11px; cursor: pointer; }
+.election-atlas-representative-chips button { min-height: 44px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 999px; background: rgba(23,107,99,.08); color: var(--ink); font: inherit; font-size: 11px; cursor: pointer; }
 .election-atlas-representative-count { margin: 0; font-weight: 800; }
 .election-atlas-representative-table table { width: 100%; border-collapse: collapse; font-size: 11px; }
 .election-atlas-representative-table caption { padding: 10px; text-align: start; font-weight: 800; }
@@ -652,18 +658,17 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .election-atlas-representative-paging button, #electionGraphRepresentativesContent [data-atlas-key="representatives-reset"] { cursor: pointer; }
 @media (max-width: 640px) {
     .election-atlas-row { grid-template-columns: minmax(0, 1fr); }
-    .election-atlas-measure { grid-template-columns: minmax(70px, 85px) minmax(45px, 1fr); }
-    .election-atlas-measure .election-atlas-exact-value { grid-column: 2; }
-    .election-atlas-comparison-measure { grid-template-columns: minmax(70px, 85px) minmax(45px, 1fr); }
-    .election-atlas-comparison-measure .election-atlas-exact-value { grid-column: 2; }
+    .election-atlas-measure, .election-atlas-comparison-measure { grid-template-columns: minmax(0,1fr); gap: 5px; }
+    .election-atlas-measure .election-atlas-exact-value, .election-atlas-comparison-measure .election-atlas-exact-value { grid-column: 1; white-space: normal; overflow-wrap: anywhere; }
     .election-atlas-field { flex: 1 1 100%; }
     .election-atlas-geography-modes button { flex: 1 1 auto; }
-    .election-atlas-geography-row { grid-template-columns: minmax(0,1fr) auto; }
-    .election-atlas-geography-bar { grid-column: 1/-1; grid-row: 2; }
+    .election-atlas-geography-row { grid-template-columns: minmax(0,1fr); }
+    .election-atlas-geography-bar { grid-column: 1; grid-row: 2; }
+    .election-atlas-geography-value { grid-column: 1; grid-row: 3; white-space: normal; }
     .election-atlas-geography-facts { grid-template-columns: repeat(2,minmax(0,1fr)); }
     .election-atlas-geography-matrix-desktop { display: none; }
     .election-atlas-geography-matrix-mobile { display: block; max-width: 100%; }
-    .election-atlas-constituency-chart { gap: 4px; }
+    .election-atlas-constituency-chart { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
     .election-atlas-constituency-bin { padding: 8px 2px; }
     .election-atlas-constituency-bin svg { height: 130px; }
     .election-atlas-constituency-bin strong, .election-atlas-constituency-bin span { font-size: 10px; overflow-wrap: anywhere; }
@@ -826,7 +831,7 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
     .election-metrics { gap: 8px; }
     .election-metric { min-height: 82px; padding: 13px; }
     .election-metric strong { font-size: 19px; }
-    .election-tabs { overflow-x: auto; grid-template-columns: repeat(3,minmax(118px,1fr)); border-radius: var(--radius-panel); }
+    .election-tabs { overflow-x: auto; grid-template-columns: repeat(4,minmax(118px,1fr)); max-width: 100%; border-radius: var(--radius-panel); scrollbar-width: thin; }
     .election-tabs button { font-size: 11px; }
     .election-panel { padding: 20px 14px; border-radius: var(--radius-panel); }
     .election-section-heading { display: grid; gap: 16px; }

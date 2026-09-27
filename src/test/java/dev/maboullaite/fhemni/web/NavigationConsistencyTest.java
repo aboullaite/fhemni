@@ -186,6 +186,48 @@ class NavigationConsistencyTest {
     }
 
     @Test
+    void electionAtlasFitsFourTabsAndKeepsMobileFiguresReachable() throws IOException {
+        String styles = html("css/app.css");
+        String compiled = html("css/dist.css");
+        String page = html("election-results.html");
+
+        assertThat(styles)
+                .contains(".election-tabs { display: grid; grid-template-columns: repeat(4,minmax(0,1fr))")
+                .contains(".election-graphs-jumps")
+                .contains(".election-graphs-panel, .election-graph-section")
+                .contains(".election-atlas-table-scroll { min-width: 0; max-width: 100%; overflow-x: auto;")
+                .contains(".election-atlas-representative-cards { display: grid;")
+                .contains(".election-atlas-control:focus-visible")
+                .contains("@media (prefers-reduced-motion: reduce)")
+                .contains("[dir=\"rtl\"] .election-graphs-jumps");
+        assertThat(styles).containsPattern("(?s)@media \\(max-width: 640px\\).*?\\.election-tabs \\{[^}]*overflow-x: auto;[^}]*grid-template-columns: repeat\\(4,minmax\\(118px,1fr\\)\\)");
+        assertThat(compiled).contains(".election-graphs-jumps").contains(".election-atlas-representative-cards");
+        assertThat(page).contains("/css/dist.css?v=20260927-2");
+    }
+
+    @Test
+    void electionAtlasKeepsExactTextAndDecorativeChartsAccessible() throws IOException {
+        String page = html("election-results.html");
+        String controller = html("js/election-results.js");
+
+        assertThat(page)
+                .contains("id=\"electionAtlasStatus\" class=\"sr-only\" role=\"status\"")
+                .contains("class=\"election-source-note\"")
+                .doesNotContain("style=\"", " onclick=", " onkeydown=", " onchange=")
+                .doesNotContain("https://cdn", "<script src=\"http");
+        assertThat(controller)
+                .contains("track.setAttribute('aria-hidden', 'true')")
+                .contains("bar.setAttribute('aria-hidden', 'true')")
+                .contains("element('bdi', '', record.candidateName)")
+                .contains("element('bdi', '', value)")
+                .contains("element('bdi', '', code)")
+                .contains("const atlasState = {")
+                .contains("renderNational(); renderAtlas(options); renderCoalitionParties()")
+                .contains("load({ fresh: true })")
+                .doesNotContain("setInterval(");
+    }
+
+    @Test
     void electionAtlasSectionDeepLinksScrollOnceAfterContentBecomesVisible() throws Exception {
         String controllerPath = new ClassPathResource("static/js/election-results.js").getFile().getAbsolutePath();
         String harness = """
@@ -835,7 +877,7 @@ class NavigationConsistencyTest {
             String version = switch (page) {
                 case "priorities.html" -> "20260917-9";
                 case "404.html" -> "20260917-1";
-                case "election-results.html" -> "20260927-1";
+                case "election-results.html" -> "20260927-2";
                 default -> "20260916-22";
             };
             assertThat(html(page))
