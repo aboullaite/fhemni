@@ -165,8 +165,8 @@ class NavigationConsistencyTest {
                 .doesNotContain(" onclick=", " onkeydown=", " onchange=");
         assertThat(controller)
                 .contains("['map', 'national', 'graphs', 'coalition']")
-                .contains("function renderAtlas()")
-                .contains("renderNational(); renderAtlas(); renderCoalitionParties()")
+                .contains("function renderAtlas(options = {})")
+                .contains("renderNational(); renderAtlas(options); renderCoalitionParties()")
                 .contains("const atlasState = {")
                 .contains("event.key === 'ArrowLeft'", "event.key === 'ArrowRight'", "event.key === 'Home'", "event.key === 'End'")
                 .contains("tabindex', selected ? '0' : '-1'")
@@ -269,6 +269,33 @@ class NavigationConsistencyTest {
                 .redirectErrorStream(true).start();
         String output = new String(process.getInputStream().readAllBytes(), UTF_8);
         assertThat(process.waitFor()).as(output).isZero();
+    }
+
+    @Test
+    void electionAtlasBallotSectionsExposeLabeledControlsAndExactFigures() throws IOException {
+        String controller = html("js/election-results.js");
+        String css = html("css/app.css");
+        assertThat(controller)
+                .contains("function renderBallotComponents(")
+                .contains("function renderBallotSeatComparison(")
+                .contains("FhemniElectionInsights.deriveBallotComponents(")
+                .contains("FhemniElectionInsights.deriveBallotSeatComparison(")
+                .contains("FhemniElectionInsights.deriveConcentration(")
+                .contains("data-atlas-key")
+                .contains("atlas.ballotsDenominator", "atlas.representationDenominator")
+                .contains("atlas.ballotCaption", "atlas.representationCaption")
+                .contains("election-atlas-comparison-bar")
+                .contains("element('tfoot'")
+                .contains("widthClass(")
+                .contains("element('label'")
+                .doesNotContain(".style.width =");
+        assertThat(css)
+                .contains(".election-atlas-ballot-bar")
+                .contains(".election-atlas-compare-marker")
+                .contains(".election-atlas-comparison-bar")
+                .contains(".election-atlas-figures")
+                .contains("inset-inline-start")
+                .doesNotContain(".election-atlas-ballot-bar { width:");
     }
 
     @Test
