@@ -389,6 +389,18 @@ test('party geography is unavailable if local constituency winners are incomplet
     assert.equal(derivePartyGeography(input, 'PAM').available, false);
 });
 
+test('party geography rejects a winner moved to another party while seat totals stay balanced', () => {
+    const input = completeAtlasSnapshot();
+    const region = input.regions[0];
+    const donor = region.parties.find(party => party.winners.length > 0);
+    const receiver = region.parties.find(party => party !== donor && party.winners.length > 0);
+    receiver.winners.push(donor.winners.pop());
+    assert.equal(buildRegionMatrix(input).available, true);
+    const result = derivePartyGeography(input, donor.code);
+    assert.equal(result.available, false);
+    assert.ok(result.diagnostics.includes('winner-seat-total'));
+});
+
 test('constituency distribution counts each identifier once across 305 local winners', () => {
     const result = deriveConstituencyDistribution(completeAtlasSnapshot());
     assert.equal(result.available, true);
@@ -413,6 +425,20 @@ test('constituency distribution rejects missing and contradictory allocations', 
     const contradictory = completeAtlasSnapshot();
     contradictory.regions[0].parties.find(party => party.winners.length).winners[0].allocatedSeats = 3;
     assert.equal(deriveConstituencyDistribution(contradictory).available, false);
+});
+
+test('constituency distribution rejects balanced but incorrect seat-size bins', () => {
+    const input = completeAtlasSnapshot();
+    const winners = input.regions.flatMap(region => region.parties.flatMap(party => party.winners));
+    const twoSeat = winners.filter(winner => winner.constituencyCode === 'C001');
+    const fourSeat = winners.filter(winner => winner.constituencyCode === 'C061');
+    assert.equal(twoSeat.length, 2);
+    assert.equal(fourSeat.length, 4);
+    fourSeat[0].constituencyCode = 'C001';
+    [...twoSeat, ...fourSeat].forEach(winner => { winner.allocatedSeats = 3; });
+    const result = deriveConstituencyDistribution(input);
+    assert.equal(result.available, false);
+    assert.ok(result.diagnostics.includes('constituency-bin-count'));
 });
 
 test('representative index retains 305 local and 90 regional identities and vote unknowns', () => {

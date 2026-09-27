@@ -368,8 +368,8 @@
     function derivePartyGeography(snapshot, partyCode) {
         const matrix = buildRegionMatrix(snapshot);
         if (!matrix.available) return { available: false, diagnostics: matrix.diagnostics, rows: [] };
-        const constituencies = deriveConstituencyDistribution(snapshot);
-        if (!constituencies.available) return { available: false, diagnostics: constituencies.diagnostics, rows: [] };
+        const representatives = indexRepresentatives(snapshot);
+        if (!representatives.available) return { available: false, diagnostics: representatives.diagnostics, rows: [] };
         const party = snapshot.parties.find(row => row.code === partyCode && row.totalSeats > 0);
         if (!party) return { available: false, diagnostics: ['unknown-party'], rows: [] };
         const rows = matrix.rows.map(region => {
@@ -445,6 +445,9 @@
             constituencies: [...constituencies.values()].filter(row => row.allocatedSeats === seats).length,
             items: [...constituencies.values()].filter(row => row.allocatedSeats === seats)
         }));
+        if (bins.some((bin, index) => bin.constituencies !== [21, 38, 22, 5, 6][index])) {
+            return { available: false, diagnostics: ['constituency-bin-count'], bins: [] };
+        }
         return { available: true, diagnostics: [], constituencyCount: 92, localSeats: 305, bins };
     }
 

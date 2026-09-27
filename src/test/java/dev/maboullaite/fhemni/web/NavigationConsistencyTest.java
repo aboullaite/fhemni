@@ -513,6 +513,7 @@ class NavigationConsistencyTest {
                 const find = key => visit(root).find(node => node.dataset.atlasKey === key);
                 const count = className => visit(root).filter(node => node.className.split(' ').includes(className)).length;
                 assert.equal(count('election-atlas-representative-card'), 25);
+                assert.ok(visit(root).some(node => node.textContent === 'Showing 25 of 26'));
                 const more = find('representatives-load-more');
                 assert.ok(more);
                 document.activeElement = more;
@@ -520,7 +521,7 @@ class NavigationConsistencyTest {
                 assert.equal(count('election-atlas-representative-card'), 26);
                 assert.equal(find('representatives-load-more').disabled, true);
                 assert.equal(document.activeElement, find('representatives-result-count'));
-                assert.match(status.textContent, /Page 2 of 2/);
+                assert.match(status.textContent, /Showing 26 of 26/);
                 assert.ok(visit(root).some(node => node.textContent === 'Not published'));
                 assert.ok(visit(root).some(node => node.textContent === '0'));
                 sandbox.__atlasState.representatives.query = 'Candidate';
