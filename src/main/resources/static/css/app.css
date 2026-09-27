@@ -597,6 +597,35 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .election-atlas-figures table { width: 100%; border-collapse: collapse; font-size: 11px; }
 .election-atlas-figures caption { padding: 10px; text-align: start; font-weight: 800; }
 .election-atlas-figures th, .election-atlas-figures td { padding: 9px; border-block-start: 1px solid var(--line); text-align: start; white-space: nowrap; }
+.election-atlas-geography { min-width: 0; }
+.election-atlas-geography-modes { display: flex; flex-wrap: wrap; gap: 8px; }
+.election-atlas-geography-modes button { min-height: 44px; padding: 9px 15px; border: 1px solid var(--line); border-radius: 999px; background: var(--white); color: var(--ink); font: 800 12px/1.3 "Tajawal",Tahoma,Arial,sans-serif; cursor: pointer; }
+.election-atlas-geography-modes button[aria-pressed="true"] { border-color: var(--teal-dark); background: var(--teal-dark); color: white; }
+.election-atlas-geography-action { padding-inline: 18px; background: var(--teal-dark); color: white; font-weight: 800; }
+.election-atlas-geography-facts { display: grid; grid-template-columns: repeat(auto-fit,minmax(145px,1fr)); gap: 9px; }
+.election-atlas-geography-fact { min-width: 0; padding: 12px; border-radius: 10px; background: rgba(23,107,99,.07); }
+.election-atlas-geography-fact strong { display: block; font-size: 18px; overflow-wrap: anywhere; }
+.election-atlas-geography-fact span { display: block; color: var(--muted); font-size: 11px; }
+.election-atlas-geography-list { display: grid; gap: 8px; }
+.election-atlas-geography-row { display: grid; grid-template-columns: minmax(145px,1fr) minmax(80px,2fr) minmax(90px,auto); align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--white); font-size: 12px; }
+.election-atlas-geography-name { min-width: 0; overflow-wrap: anywhere; }
+.election-atlas-geography-bar { display: block; position: relative; height: 12px; border-radius: 99px; background: rgba(19,44,43,.09); overflow: hidden; }
+.election-atlas-geography-fill { position: absolute; inset-inline-start: 0; inset-block: 0; border-radius: inherit; background: var(--teal-dark); }
+.election-atlas-geography-value { font-weight: 800; white-space: nowrap; }
+.election-atlas-geography-supplement { grid-column: 1/-1; color: var(--muted); font-size: 11px; }
+.election-atlas-geography-figure-denominator { margin: 0; padding: 0 12px 10px; color: var(--muted); font-size: 11px; }
+.election-atlas-geography-matrix { min-width: 840px; width: 100%; border-collapse: collapse; font-size: 11px; }
+.election-atlas-geography-matrix caption { padding: 12px; text-align: start; font-weight: 800; }
+.election-atlas-geography-matrix th, .election-atlas-geography-matrix td { padding: 9px 7px; border: 1px solid var(--line); text-align: center; font-variant-numeric: tabular-nums; }
+.election-atlas-geography-matrix tbody th { min-width: 150px; text-align: start; }
+.election-atlas-matrix-level-0 { background: var(--white); color: var(--ink); }
+.election-atlas-matrix-level-1 { background: #e5f1ed; color: var(--ink); }
+.election-atlas-matrix-level-2 { background: #bfddd5; color: var(--ink); }
+.election-atlas-matrix-level-3 { background: #77b6a8; color: #102b28; }
+.election-atlas-matrix-level-4 { background: #176b63; color: white; font-weight: 800; }
+.election-atlas-geography-matrix-mobile { display: none; }
+.election-atlas-representative-handoff { display: flex; flex-wrap: wrap; gap: 8px; margin-block-start: 12px; }
+.election-atlas-representative-filter { padding: 8px 12px; border-radius: 999px; background: rgba(23,107,99,.1); font-size: 12px; font-weight: 800; }
 @media (max-width: 640px) {
     .election-atlas-row { grid-template-columns: minmax(0, 1fr); }
     .election-atlas-measure { grid-template-columns: minmax(70px, 85px) minmax(45px, 1fr); }
@@ -604,6 +633,12 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
     .election-atlas-comparison-measure { grid-template-columns: minmax(70px, 85px) minmax(45px, 1fr); }
     .election-atlas-comparison-measure .election-atlas-exact-value { grid-column: 2; }
     .election-atlas-field { flex: 1 1 100%; }
+    .election-atlas-geography-modes button { flex: 1 1 auto; }
+    .election-atlas-geography-row { grid-template-columns: minmax(0,1fr) auto; }
+    .election-atlas-geography-bar { grid-column: 1/-1; grid-row: 2; }
+    .election-atlas-geography-facts { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .election-atlas-geography-matrix-desktop { display: none; }
+    .election-atlas-geography-matrix-mobile { display: block; max-width: 100%; }
 }
 .election-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 22px; }
 .election-section-heading > div { max-width: 720px; }

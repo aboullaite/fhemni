@@ -305,6 +305,63 @@ class NavigationConsistencyTest {
     }
 
     @Test
+    void electionAtlasGeographyOffersCompleteLabeledViewsAndRepresentativeHandoff() throws IOException {
+        String controller = html("js/election-results.js");
+        String css = html("css/app.css");
+        assertThat(controller)
+                .contains("function renderGeography(")
+                .contains("FhemniElectionInsights.deriveRegionDelegation(")
+                .contains("FhemniElectionInsights.derivePartyGeography(")
+                .contains("FhemniElectionInsights.buildRegionMatrix(")
+                .contains("geographyByRegion", "geographyByParty", "geographyAllFigures")
+                .contains("atlas.geographySelectRegion", "atlas.geographySelectParty")
+                .contains("data-atlas-key", "geography-region", "geography-party")
+                .contains("atlas.geographyRegionDenominator", "atlas.geographyPartyDenominator")
+                .contains("atlas.geographyMatrixCaption")
+                .contains("atlas.geographySeeRepresentatives")
+                .contains("atlasState.representatives.regionCode", "atlasState.representatives.partyCode")
+                .contains("atlasState.representatives.page = 1")
+                .contains("electionGraphRepresentativesTitle")
+                .contains("scope = 'col'", "scope = 'row'")
+                .contains("election-atlas-matrix-level-")
+                .doesNotContain(".style.backgroundColor =");
+        assertThat(css)
+                .contains(".election-atlas-geography")
+                .contains(".election-atlas-matrix-level-0")
+                .contains(".election-atlas-matrix-level-4")
+                .contains("overflow-x: auto");
+    }
+
+    @Test
+    void electionAtlasGeographyMatrixUsesOneGlobalIntensityScale() throws Exception {
+        String controllerPath = new ClassPathResource("static/js/election-results.js").getFile().getAbsolutePath();
+        String harness = """
+                const assert = require('node:assert/strict');
+                const fs = require('node:fs');
+                const vm = require('node:vm');
+                const script = fs.readFileSync(process.argv[1], 'utf8').replace(
+                    "document.addEventListener('DOMContentLoaded', init);",
+                    "globalThis.__level = geographyMatrixLevel;"
+                );
+                const sandbox = {
+                    document: { addEventListener() {} },
+                    window: { queueMicrotask(callback) { callback(); },
+                        FhemniElectionRegionFilters: { SEAT_TYPES: {}, normalizeState() { return {}; },
+                            createDeferredAction() { return {}; } } }
+                };
+                vm.runInNewContext(script, sandbox);
+                const level = sandbox.__level;
+                assert.deepEqual([0, 1, 3, 6, 9, 12].map(seats => level(seats, 12)),
+                    [0, 1, 1, 2, 3, 4]);
+                assert.equal(level(1, 24), 1, 'tiny positive cells stay visible');
+                """;
+        Process process = new ProcessBuilder("node", "-e", harness, controllerPath)
+                .redirectErrorStream(true).start();
+        String output = new String(process.getInputStream().readAllBytes(), UTF_8);
+        assertThat(process.waitFor()).as(output).isZero();
+    }
+
+    @Test
     void electionAtlasAppliesLatestDeferredPollAfterFocusLeavesAndShowsTinyPositiveShares() throws Exception {
         String controllerPath = new ClassPathResource("static/js/election-results.js").getFile().getAbsolutePath();
         String harness = """
