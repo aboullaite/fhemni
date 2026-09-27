@@ -7,6 +7,7 @@
     const MAX_POLL_BACKOFF_MS = 5 * 60_000;
     const COALITION_DEBOUNCE_MS = 250;
     const MAX_COALITION_PARTIES = 5;
+    const REPRESENTATIVE_PAGE_SIZE = 25;
     const REGION_FILTERS = window.FhemniElectionRegionFilters;
     const SEAT_TYPES = REGION_FILTERS.SEAT_TYPES;
     const deferredRegionRender = REGION_FILTERS.createDeferredAction(callback => window.queueMicrotask(callback));
@@ -96,6 +97,13 @@
         }
     };
 
+    ATLAS_COPY.ar.constituencyFigureSeats = 'المقاعد المحلية المخصصة';
+    ATLAS_COPY.ar.constituencyFigureCount = 'عدد الدوائر';
+    ATLAS_COPY.fr.constituencyFigureSeats = 'Sièges locaux attribués';
+    ATLAS_COPY.fr.constituencyFigureCount = 'Nombre de circonscriptions';
+    ATLAS_COPY.en.constituencyFigureSeats = 'Allocated local seats';
+    ATLAS_COPY.en.constituencyFigureCount = 'Number of constituencies';
+
     let snapshot;
     let locale;
     let copy;
@@ -120,6 +128,7 @@
         ballots: { expanded: false, query: '', order: 'combined' },
         representation: { expanded: false, query: '', order: 'ballots' },
         geography: { mode: 'region', regionCode: '', partyCode: '' },
+        constituencySelection: null,
         constituencySeats: null,
         representatives: {
             query: '', regionCode: '', constituencyCode: '', partyCode: '',
@@ -284,6 +293,7 @@
         renderBallotComponents(options);
         renderBallotSeatComparison(options);
         renderGeography(options);
+        renderConstituencies(options);
         renderRepresentativeHandoff(options);
     }
 
@@ -606,9 +616,12 @@
         button.classList.add('election-atlas-geography-action');
         button.textContent = atlas.geographySeeRepresentatives;
         button.addEventListener('click', () => {
+            atlasState.constituencySeats = null;
+            Object.assign(atlasState.representatives, { query: '', constituencyCode: '', seatType: 'all' });
             atlasState.representatives.regionCode = regionCode;
             atlasState.representatives.partyCode = partyCode;
             atlasState.representatives.page = 1;
+            renderConstituencies({ handoff: true });
             renderRepresentativeHandoff();
             const selected = regionCode
                 ? snapshot.regions.find(row => row.code === regionCode)
@@ -768,24 +781,269 @@
         announceGeographySelection(options, atlas);
     }
 
-    function renderRepresentativeHandoff(options = {}) {
-        const state = atlasState.representatives;
-        if (!state.regionCode && !state.partyCode) return;
+    function constituencySvg(bin, maximum) {
+        const height = Math.round(160 * bin.constituencies / maximum);
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 70 170');
+        svg.setAttribute('aria-hidden', 'true');
+        svg.setAttribute('focusable', 'false');
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', '11');
+        rect.setAttribute('y', String(160 - height));
+        rect.setAttribute('width', '48');
+        rect.setAttribute('height', String(height));
+        rect.setAttribute('rx', '5');
+        svg.append(rect);
+        return svg;
+    }
+
+    function selectConstituencyBin(bin, atlas) {
+        atlasState.constituencySelection = bin.seats;
+        renderConstituencies({ controlChange: true });
+        setText('electionAtlasStatus', `${format(atlas.constituencyBin, { seats: number(bin.seats) })}: ${format(atlas.constituencyCount, { count: number(bin.constituencies) })}`);
+    }
+
+    function renderConstituencies(options = {}) {
         const atlas = atlasCopy();
-        const content = element('div', 'election-atlas-representative-handoff');
-        const selected = [];
-        if (state.regionCode) {
-            const region = snapshot.regions.find(row => row.code === state.regionCode);
-            selected.push(format(atlas.geographyRepresentativesFilter,
-                { label: atlas.representativesRegion, value: region?.name || state.regionCode }));
+        const data = window.FhemniElectionInsights.deriveConstituencyDistribution(snapshot);
+        if (!data.available || data.constituencyCount !== 92 || data.localSeats !== 305) {
+            replaceAtlasSection('electionGraphConstituenciesContent', atlasUnavailable(atlas.constituenciesUnavailable), options);
+            return;
         }
-        if (state.partyCode) {
-            const party = snapshot.parties.find(row => row.code === state.partyCode);
-            selected.push(format(atlas.geographyRepresentativesFilter,
-                { label: atlas.representativesParty, value: party?.name || state.partyCode }));
+        const content = element('div', 'election-atlas-content election-atlas-constituencies');
+        const largest = data.bins.reduce((winner, bin) => bin.constituencies > winner.constituencies ? bin : winner, data.bins[0]);
+        content.append(element('p', 'election-atlas-takeaway', format(atlas.constituenciesTakeaway,
+            { seats: number(largest.seats), count: number(largest.constituencies) })));
+        content.append(element('p', 'election-atlas-denominator', atlas.constituenciesIntro));
+        content.append(element('p', 'election-atlas-intro', atlas.constituenciesDenominator));
+        const chart = element('div', 'election-atlas-constituency-chart');
+        chart.setAttribute('role', 'group');
+        chart.setAttribute('aria-label', atlas.constituencyCaption);
+        data.bins.forEach(bin => {
+            const label = format(atlas.constituencyBin, { seats: number(bin.seats) });
+            const count = format(atlas.constituencyCount, { count: number(bin.constituencies) });
+            const button = atlasControl('button', 'button', `constituency-bin-${bin.seats}`, `${label}: ${count}`);
+            button.classList.add('election-atlas-constituency-bin');
+            button.setAttribute('aria-pressed', String(atlasState.constituencySelection === bin.seats));
+            button.append(constituencySvg(bin, largest.constituencies),
+                element('strong', '', label), element('span', '', count));
+            button.addEventListener('click', () => selectConstituencyBin(bin, atlas));
+            chart.append(button);
+        });
+        content.append(chart);
+        const selected = data.bins.find(bin => bin.seats === atlasState.constituencySelection);
+        if (selected) {
+            const panel = element('div', 'election-atlas-constituency-selection');
+            panel.append(element('h4', '', `${atlas.constituencyList}: ${format(atlas.constituencyBin, { seats: number(selected.seats) })}`));
+            const list = element('ul', 'election-atlas-constituency-list');
+            selected.items.forEach(item => list.append(element('li', '', item.name || item.code)));
+            panel.append(list);
+            const action = atlasControl('button', 'button', 'constituency-representatives', atlas.constituencyRepresentatives);
+            action.textContent = atlas.constituencyRepresentatives;
+            action.addEventListener('click', () => {
+                atlasState.constituencySeats = selected.seats;
+                Object.assign(atlasState.representatives, { query: '', regionCode: '', constituencyCode: '',
+                    partyCode: '', seatType: 'LOCAL', page: 1 });
+                renderRepresentativeHandoff({ controlChange: true });
+                setText('electionAtlasStatus', format(atlas.geographyRepresentativesAnnouncement,
+                    { filter: format(atlas.constituencyBin, { seats: number(selected.seats) }) }));
+                const heading = byId('electionGraphRepresentativesTitle');
+                heading.tabIndex = -1;
+                heading.scrollIntoView({ block: 'start' });
+                heading.focus({ preventScroll: true });
+            });
+            panel.append(action);
+            content.append(panel);
         }
-        selected.forEach(value => content.append(element('span', 'election-atlas-representative-filter', value)));
+        const figures = atlasFigures(atlas.constituencyCaption,
+            [atlas.constituencyFigureSeats, atlas.constituencyFigureCount],
+            data.bins.map(bin => [format(atlas.constituencyBin, { seats: number(bin.seats) }), number(bin.constituencies)]));
+        figures.classList.add('election-atlas-constituency-figures');
+        content.append(figures);
+        replaceAtlasSection('electionGraphConstituenciesContent', content, options);
+    }
+
+    function representativeFilters(atlas, distribution) {
+        const state = atlasState.representatives;
+        const controls = element('div', 'election-atlas-controls election-atlas-representative-controls');
+        const searchField = element('label', 'election-atlas-field');
+        searchField.append(element('span', '', atlas.representativesSearch));
+        const search = atlasControl('input', 'search', 'representatives-search', atlas.representativesSearch);
+        search.value = state.query;
+        search.addEventListener('input', event => {
+            state.query = event.target.value;
+            state.page = 1;
+            renderRepresentativeHandoff({ controlChange: true });
+        });
+        searchField.append(search);
+        controls.append(searchField);
+        const change = (field, value) => {
+            state[field] = value;
+            state.page = 1;
+            renderRepresentativeHandoff({ controlChange: true });
+        };
+        controls.append(geographySelectionLabel(atlas.representativesRegion, 'representatives-region',
+            [['', atlas.representativesAllRegions], ...snapshot.regions.map(region => [region.code, region.name])],
+            state.regionCode, value => change('regionCode', value)));
+        const constituencies = distribution.bins.flatMap(bin => bin.items)
+            .sort((a, b) => (a.name || a.code).localeCompare(b.name || b.code, locale));
+        controls.append(geographySelectionLabel(atlas.representativesConstituency, 'representatives-constituency',
+            [['', atlas.representativesAllConstituencies], ...constituencies.map(row => [row.code, row.name || row.code])],
+            state.constituencyCode, value => change('constituencyCode', value)));
+        controls.append(geographySelectionLabel(atlas.representativesParty, 'representatives-party',
+            [['', atlas.representativesAllParties], ...snapshot.parties.filter(party => party.totalSeats > 0)
+                .map(party => [party.code, `${party.code} · ${party.name || party.code}`])],
+            state.partyCode, value => change('partyCode', value)));
+        controls.append(geographySelectionLabel(atlas.representativesSeatType, 'representatives-seat-type',
+            [['all', atlas.representativesAllSeatTypes], ['LOCAL', atlas.representativesLocalSeat],
+                ['REGIONAL', atlas.representativesRegionalSeat]], state.seatType,
+            value => change('seatType', value)));
+        return controls;
+    }
+
+    function representativeFilterChips(atlas, distribution) {
+        const state = atlasState.representatives;
+        const chips = element('div', 'election-atlas-representative-chips');
+        const regions = new Map(snapshot.regions.map(row => [row.code, row.name]));
+        const parties = new Map(snapshot.parties.map(row => [row.code, row.name || row.code]));
+        const constituencies = new Map(distribution.bins.flatMap(bin => bin.items)
+            .map(row => [row.code, row.name || row.code]));
+        const active = [
+            ['query', state.query, atlas.representativesSearch, state.query],
+            ['regionCode', state.regionCode, atlas.representativesRegion, regions.get(state.regionCode)],
+            ['constituencyCode', state.constituencyCode, atlas.representativesConstituency, constituencies.get(state.constituencyCode)],
+            ['partyCode', state.partyCode, atlas.representativesParty, parties.get(state.partyCode)],
+            ['seatType', state.seatType !== 'all' ? state.seatType : '', atlas.representativesSeatType,
+                state.seatType === 'LOCAL' ? atlas.representativesLocalSeat : atlas.representativesRegionalSeat],
+            ['constituencySeats', atlasState.constituencySeats, atlas.representativesConstituency,
+                atlasState.constituencySeats ? format(atlas.constituencyBin, { seats: number(atlasState.constituencySeats) }) : '']
+        ];
+        const present = active.filter(([, value]) => value !== '' && value !== null);
+        if (!present.length) return chips;
+        chips.append(element('strong', '', atlas.representativesActiveFilters));
+        present.forEach(([field, , label, value]) => {
+            const button = atlasControl('button', 'button', `representatives-chip-${field}`,
+                format(atlas.representativesRemoveFilter, { label: `${label}: ${value}` }));
+            button.textContent = `${label}: ${value} ×`;
+            button.addEventListener('click', () => {
+                if (field === 'constituencySeats') atlasState.constituencySeats = null;
+                else state[field] = field === 'seatType' ? 'all' : '';
+                state.page = 1;
+                renderRepresentativeHandoff({ controlChange: true });
+                if (field === 'constituencySeats') renderConstituencies();
+            });
+            chips.append(button);
+        });
+        return chips;
+    }
+
+    function representativeCells(record, atlas) {
+        return [record.candidateName, `${record.partyCode} · ${record.partyName || record.partyCode}`,
+            record.seatType === 'LOCAL' ? atlas.representativesLocalSeat : atlas.representativesRegionalSeat,
+            record.regionName, record.constituencyName || '—',
+            record.votes === null ? atlas.representativesNotPublished : number(record.votes)];
+    }
+
+    function representativeTable(records, atlas) {
+        const scroll = element('div', 'election-atlas-representative-table election-atlas-table-scroll');
+        const table = element('table');
+        table.append(element('caption', '', atlas.representativesCaption));
+        const head = element('thead');
+        const heading = element('tr');
+        [atlas.representativesName, atlas.representativesParty, atlas.representativesSeatType,
+            atlas.representativesRegion, atlas.representativesConstituency, atlas.representativesVotes].forEach(label => {
+            const cell = element('th', '', label);
+            cell.scope = 'col';
+            heading.append(cell);
+        });
+        head.append(heading);
+        const body = element('tbody');
+        records.forEach(record => {
+            const row = element('tr');
+            representativeCells(record, atlas).forEach((value, index) => {
+                const cell = element(index === 0 ? 'th' : 'td');
+                if (index === 0) cell.scope = 'row';
+                cell.append(element('bdi', '', value));
+                row.append(cell);
+            });
+            body.append(row);
+        });
+        table.append(head, body);
+        scroll.append(table);
+        return scroll;
+    }
+
+    function representativeCards(records, atlas) {
+        const cards = element('div', 'election-atlas-representative-cards');
+        const labels = [atlas.representativesParty, atlas.representativesSeatType,
+            atlas.representativesRegion, atlas.representativesConstituency, atlas.representativesVotes];
+        records.forEach(record => {
+            const card = element('article', 'election-atlas-representative-card');
+            card.append(element('h4', '', record.candidateName));
+            const details = element('dl');
+            representativeCells(record, atlas).slice(1).forEach((value, index) => {
+                details.append(element('dt', '', labels[index]), element('dd', '', value));
+            });
+            card.append(details);
+            cards.append(card);
+        });
+        return cards;
+    }
+
+    function renderRepresentativeHandoff(options = {}) {
+        const atlas = atlasCopy();
+        const state = atlasState.representatives;
+        const data = window.FhemniElectionInsights.indexRepresentatives(snapshot, {
+            query: state.query, regionCode: state.regionCode, constituencyCode: state.constituencyCode,
+            partyCode: state.partyCode, seatType: state.seatType === 'all' ? 'ALL' : state.seatType,
+            constituencySeats: atlasState.constituencySeats
+        });
+        const distribution = window.FhemniElectionInsights.deriveConstituencyDistribution(snapshot);
+        if (!data.available || !distribution.available) {
+            replaceAtlasSection('electionGraphRepresentativesContent', atlasUnavailable(atlas.representativesUnavailable), options);
+            return;
+        }
+        const content = element('div', 'election-atlas-content election-atlas-representatives');
+        content.append(element('p', 'election-atlas-takeaway', format(atlas.representativesDenominator,
+            { total: number(data.totalRecords), local: number(data.localCount), regional: number(data.regionalCount) })));
+        content.append(representativeFilters(atlas, distribution));
+        const chips = representativeFilterChips(atlas, distribution);
+        content.append(chips);
+        const reset = atlasControl('button', 'button', 'representatives-reset', atlas.representativesReset);
+        reset.textContent = atlas.representativesReset;
+        reset.disabled = !chips.children.length;
+        reset.addEventListener('click', () => {
+            if (!chips.children.length) return;
+            Object.assign(state, { query: '', regionCode: '', constituencyCode: '', partyCode: '', seatType: 'all', page: 1 });
+            atlasState.constituencySeats = null;
+            renderConstituencies();
+            renderRepresentativeHandoff({ controlChange: true });
+        });
+        content.append(reset);
+        content.append(element('p', 'election-atlas-representative-count',
+            format(atlas.representativesResultCount, { count: number(data.filteredCount) })));
+        const pages = Math.max(1, Math.ceil(data.filteredCount / REPRESENTATIVE_PAGE_SIZE));
+        state.page = Math.min(state.page, pages);
+        const visible = data.records.slice(0, state.page * REPRESENTATIVE_PAGE_SIZE);
+        if (!visible.length) content.append(atlasUnavailable(atlas.representativesNoMatches));
+        else content.append(representativeTable(visible, atlas), representativeCards(visible, atlas));
+        const paging = element('div', 'election-atlas-representative-paging');
+        paging.append(element('span', '', format(atlas.representativesPage,
+            { page: number(state.page), pages: number(pages) })));
+        const more = atlasControl('button', 'button', 'representatives-load-more', atlas.representativesLoadMore);
+        more.textContent = atlas.representativesLoadMore;
+        more.disabled = state.page >= pages;
+        more.addEventListener('click', () => {
+            if (state.page >= pages) return;
+            state.page++;
+            renderRepresentativeHandoff({ controlChange: 'page' });
+        });
+        paging.append(more);
+        content.append(paging);
         replaceAtlasSection('electionGraphRepresentativesContent', content, options);
+        if (options.controlChange) setText('electionAtlasStatus', options.controlChange === 'page'
+            ? format(atlas.representativesPage, { page: number(state.page), pages: number(pages) })
+            : format(atlas.filtersUpdated, { count: number(data.filteredCount) }));
     }
 
     function renderOverview() {

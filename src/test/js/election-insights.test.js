@@ -419,6 +419,8 @@ test('representative index retains 305 local and 90 regional identities and vote
     const result = indexRepresentatives(completeAtlasSnapshot());
     assert.equal(result.available, true);
     assert.equal(result.totalRecords, 395);
+    assert.equal(result.localCount, 305);
+    assert.equal(result.regionalCount, 90);
     assert.equal(result.records.filter(row => row.seatType === 'LOCAL').length, 305);
     assert.equal(result.records.filter(row => row.seatType === 'REGIONAL').length, 90);
     const local = result.records.find(row => row.candidateName === 'Local Candidate 1');
@@ -443,6 +445,22 @@ test('representative filters compose across text, geography, party, and seat typ
         seatType: 'REGIONAL' }).records.length, 0);
     assert.ok(indexRepresentatives(input, { query: 'c001' }).records.length >= 2);
     assert.equal(indexRepresentatives(input, { seatType: 'ALL' }).records.length, 395);
+});
+
+test('constituency-size filter composes and retains explicit size on local records', () => {
+    const input = completeAtlasSnapshot();
+    const twoSeat = indexRepresentatives(input, { constituencySeats: 2 });
+    assert.equal(twoSeat.available, true);
+    assert.equal(twoSeat.totalRecords, 395);
+    assert.equal(twoSeat.filteredCount, 42);
+    assert.ok(twoSeat.records.every(row => row.seatType === 'LOCAL' && row.allocatedSeats === 2));
+    assert.equal(indexRepresentatives(input, { constituencySeats: 3 }).filteredCount, 114);
+    const combined = indexRepresentatives(input, { constituencySeats: 2, regionCode: 'R01',
+        constituencyCode: 'C001', partyCode: 'PAM', seatType: 'LOCAL', query: 'candidate 1' });
+    assert.deepEqual(combined.records.map(row => row.candidateName), ['Local Candidate 1']);
+    assert.equal(indexRepresentatives(input, { constituencySeats: 2, seatType: 'REGIONAL' }).filteredCount, 0);
+    assert.equal(indexRepresentatives(input, { constituencySeats: 7 }).available, false);
+    assert.equal(indexRepresentatives(input).records.find(row => row.seatType === 'REGIONAL').allocatedSeats, null);
 });
 
 test('representative index rejects contradictory local allocation metadata', () => {

@@ -482,7 +482,7 @@
                     records.push({ candidateKey: winner.candidateKey ?? null, candidateName: winner.candidateName,
                         partyCode: party.code, partyName: party.name, regionCode: region.code, regionName: region.name,
                         constituencyCode: winner.constituencyCode, constituencyName: winner.constituencyName,
-                        seatType: 'LOCAL', votes: winner.votes ?? null });
+                        allocatedSeats: winner.allocatedSeats, seatType: 'LOCAL', votes: winner.votes ?? null });
                 }
                 for (const winner of regionalWinners) {
                     regionalCount++;
@@ -493,7 +493,8 @@
                     if (!winner.candidateName) addDiagnostic(diagnostics, 'winner-identity');
                     records.push({ candidateKey: winner.candidateKey ?? null, candidateName: winner.candidateName,
                         partyCode: party.code, partyName: party.name, regionCode: region.code, regionName: region.name,
-                        constituencyCode: null, constituencyName: null, seatType: 'REGIONAL', votes: null });
+                        constituencyCode: null, constituencyName: null, allocatedSeats: null,
+                        seatType: 'REGIONAL', votes: null });
                 }
             }
         }
@@ -501,15 +502,23 @@
             addDiagnostic(diagnostics, 'representative-count');
         }
         if (diagnostics.length) return { available: false, diagnostics, records: [], totalRecords: null };
+        if (filters.constituencySeats !== null && filters.constituencySeats !== undefined
+                && (!integer(filters.constituencySeats) || filters.constituencySeats < 2
+                    || filters.constituencySeats > 6)) {
+            return { available: false, diagnostics: ['constituency-size-filter'], records: [], totalRecords: null };
+        }
         const query = normalized(filters.query);
         const filtered = records.filter(row =>
             (!query || [row.candidateName, row.constituencyName, row.constituencyCode]
                 .some(value => normalized(value).includes(query)))
             && (!filters.regionCode || row.regionCode === filters.regionCode)
             && (!filters.constituencyCode || row.constituencyCode === filters.constituencyCode)
+            && (filters.constituencySeats === null || filters.constituencySeats === undefined
+                || row.allocatedSeats === filters.constituencySeats)
             && (!filters.partyCode || row.partyCode === filters.partyCode)
             && (!filters.seatType || filters.seatType === 'ALL' || row.seatType === filters.seatType));
-        return { available: true, diagnostics: [], totalRecords: 395, filteredCount: filtered.length, records: filtered };
+        return { available: true, diagnostics: [], totalRecords: 395, localCount, regionalCount,
+            filteredCount: filtered.length, records: filtered };
     }
 
     return { auditSnapshot, deriveBallotComponents, deriveBallotSeatComparison, deriveConcentration,

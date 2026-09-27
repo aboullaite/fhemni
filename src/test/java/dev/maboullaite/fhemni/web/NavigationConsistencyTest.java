@@ -333,6 +333,128 @@ class NavigationConsistencyTest {
     }
 
     @Test
+    void electionAtlasOffersExactConstituencyFiguresAndACompleteRepresentativeDirectory() throws IOException {
+        String controller = html("js/election-results.js");
+        assertThat(controller)
+                .contains("FhemniElectionInsights.deriveConstituencyDistribution(snapshot)")
+                .contains("FhemniElectionInsights.indexRepresentatives(snapshot")
+                .contains("function renderConstituencies(")
+                .contains("function renderRepresentativeHandoff(")
+                .contains("election-atlas-constituency-figures")
+                .contains("election-atlas-constituency-bin")
+                .contains("atlas.constituencyFigureSeats", "atlas.constituencyFigureCount")
+                .contains("representatives-search", "representatives-region", "representatives-constituency")
+                .contains("representatives-party", "representatives-seat-type")
+                .contains("election-atlas-representative-count", "election-atlas-representative-chips")
+                .contains("representatives-reset", "representatives-load-more")
+                .contains("election-atlas-representative-table", "election-atlas-representative-card")
+                .contains("atlas.representativesNotPublished")
+                .contains("atlas.representativesPage");
+    }
+
+    @Test
+    void electionAtlasDirectoryLoadsEveryRecordAndKeepsKeyboardFocusOnThePagingControl() throws Exception {
+        String controllerPath = new ClassPathResource("static/js/election-results.js").getFile().getAbsolutePath();
+        String harness = """
+                const assert = require('node:assert/strict');
+                const fs = require('node:fs');
+                const vm = require('node:vm');
+                const script = fs.readFileSync(process.argv[1], 'utf8').replace(
+                    "document.addEventListener('DOMContentLoaded', init);",
+                    "locale = 'en'; snapshot = { regions: [{ code: 'R01', name: 'Region' }], parties: [{ code: 'PAM', name: 'Party', totalSeats: 26 }] }; globalThis.__renderDirectory = renderRepresentativeHandoff; globalThis.__renderConstituencies = renderConstituencies; globalThis.__atlasState = atlasState;"
+                );
+                let document;
+                function visit(node) { return [node, ...node.children.flatMap(visit)]; }
+                function makeNode(tag) {
+                    const node = { tag, className: '', dataset: {}, children: [], listeners: {}, textContent: '',
+                        classList: { add(...names) { node.className += ` ${names.join(' ')}`; } },
+                        append(...children) { this.children.push(...children); },
+                        replaceChildren(...children) { this.children = children; },
+                        contains(target) { return visit(this).includes(target); },
+                        querySelector(selector) { return visit(this).find(item => item.className.includes(selector.slice(1))) || null; },
+                        querySelectorAll(selector) { return visit(this).filter(item => item.dataset.atlasKey && selector === '[data-atlas-key]'); },
+                        setAttribute(name, value) { if (name === 'data-atlas-key') this.dataset.atlasKey = value; },
+                        addEventListener(name, callback) { this.listeners[name] = callback; },
+                        focus() { document.activeElement = this; }
+                    };
+                    return node;
+                }
+                const root = makeNode('div');
+                const status = makeNode('p');
+                const constituencyRoot = makeNode('div');
+                const heading = makeNode('h3');
+                heading.scrollIntoView = () => {};
+                document = { activeElement: null, addEventListener() {}, createElement: makeNode,
+                    createElementNS(namespace, tag) { return makeNode(tag); },
+                    getElementById(id) { return id === 'electionAtlasStatus' ? status
+                        : id === 'electionGraphConstituenciesContent' ? constituencyRoot
+                        : id === 'electionGraphRepresentativesTitle' ? heading : root; } };
+                const records = Array.from({ length: 26 }, (_, index) => ({
+                    candidateName: `Candidate ${index + 1}`, partyCode: 'PAM', partyName: 'Party',
+                    seatType: 'LOCAL', regionName: 'Region', constituencyName: 'Constituency',
+                    votes: index === 0 ? null : index === 1 ? 0 : index + 100
+                }));
+                const insights = {
+                    indexRepresentatives() { return { available: true, totalRecords: 395, localCount: 305,
+                        regionalCount: 90, filteredCount: records.length, records }; },
+                    deriveConstituencyDistribution() { return { available: true, constituencyCount: 92,
+                        localSeats: 305, bins: [21, 38, 22, 5, 6].map((count, index) => ({
+                            seats: index + 2, constituencies: count,
+                            items: Array.from({ length: count }, (_, item) => ({ code: `C${index}-${item}`, name: `Place ${index}-${item}` }))
+                        })) }; }
+                };
+                const sandbox = { document, HTMLInputElement: class {}, window: {
+                    queueMicrotask(callback) { callback(); },
+                    FhemniElectionInsights: insights,
+                    FhemniElectionRegionFilters: { SEAT_TYPES: {}, normalizeState() { return {}; },
+                        createDeferredAction() { return {}; } }
+                } };
+                vm.runInNewContext(script, sandbox);
+                sandbox.__renderConstituencies();
+                const bin = visit(constituencyRoot).find(node => node.dataset.atlasKey === 'constituency-bin-3');
+                assert.ok(bin);
+                bin.listeners.click();
+                assert.equal(sandbox.__atlasState.constituencySeats, null, 'previewing a bin does not prefilter the directory');
+                assert.equal(visit(constituencyRoot).filter(node => node.tag === 'li').length, 38);
+                const applyBin = visit(constituencyRoot).find(node => node.dataset.atlasKey === 'constituency-representatives');
+                applyBin.listeners.click();
+                assert.equal(sandbox.__atlasState.constituencySeats, 3);
+                assert.equal(sandbox.__atlasState.representatives.seatType, 'LOCAL');
+                assert.equal(document.activeElement, heading);
+                sandbox.__atlasState.constituencySeats = null;
+                sandbox.__atlasState.representatives.seatType = 'all';
+                sandbox.__atlasState.representatives.page = 1;
+                sandbox.__renderDirectory();
+                const find = key => visit(root).find(node => node.dataset.atlasKey === key);
+                const count = className => visit(root).filter(node => node.className.split(' ').includes(className)).length;
+                assert.equal(count('election-atlas-representative-card'), 25);
+                const more = find('representatives-load-more');
+                assert.ok(more);
+                document.activeElement = more;
+                more.listeners.click();
+                assert.equal(count('election-atlas-representative-card'), 26);
+                assert.equal(find('representatives-load-more').disabled, true);
+                assert.equal(document.activeElement, find('representatives-load-more'));
+                assert.match(status.textContent, /Page 2 of 2/);
+                assert.ok(visit(root).some(node => node.textContent === 'Not published'));
+                assert.ok(visit(root).some(node => node.textContent === '0'));
+                sandbox.__atlasState.representatives.query = 'Candidate';
+                sandbox.__renderDirectory();
+                assert.match(find('representatives-chip-query').textContent, /Candidate/);
+                const reset = find('representatives-reset');
+                document.activeElement = reset;
+                reset.listeners.click();
+                assert.equal(sandbox.__atlasState.representatives.query, '');
+                assert.equal(find('representatives-reset').disabled, true);
+                assert.equal(document.activeElement, find('representatives-reset'));
+                """;
+        Process process = new ProcessBuilder("node", "-e", harness, controllerPath)
+                .redirectErrorStream(true).start();
+        String output = new String(process.getInputStream().readAllBytes(), UTF_8);
+        assertThat(process.waitFor()).as(output).isZero();
+    }
+
+    @Test
     void electionAtlasGeographyMatrixUsesOneGlobalIntensityScale() throws Exception {
         String controllerPath = new ClassPathResource("static/js/election-results.js").getFile().getAbsolutePath();
         String harness = """
@@ -371,6 +493,7 @@ class NavigationConsistencyTest {
                 const script = fs.readFileSync(process.argv[1], 'utf8')
                     .replace("document.addEventListener('DOMContentLoaded', init);",
                         "locale = 'en'; snapshot = { regions: [{ code: 'MA-01', name: 'Tanger-Tétouan-Al Hoceïma' }], parties: [] }; globalThis.__test = { geographyRepresentativesAction, atlasCopy, atlasState };")
+                    .replace('renderConstituencies({ handoff: true });', 'globalThis.__constituenciesRendered = true;')
                     .replace('renderRepresentativeHandoff();', 'globalThis.__handoffRendered = true;');
                 const heading = { tabIndex: 0, scrolled: false, focused: false,
                     scrollIntoView() { this.scrolled = true; }, focus() { this.focused = true; } };
@@ -386,11 +509,14 @@ class NavigationConsistencyTest {
                         createDeferredAction() { return {}; } } } };
                 vm.runInNewContext(script, sandbox);
                 const { geographyRepresentativesAction, atlasCopy, atlasState } = sandbox.__test;
+                atlasState.constituencySeats = 2;
                 const action = geographyRepresentativesAction(atlasCopy(), 'MA-01', '');
                 action.click();
                 assert.equal(atlasState.representatives.regionCode, 'MA-01');
                 assert.equal(atlasState.representatives.partyCode, '');
                 assert.equal(atlasState.representatives.page, 1);
+                assert.equal(atlasState.constituencySeats, null);
+                assert.equal(sandbox.__constituenciesRendered, true);
                 assert.match(status.textContent, /Tanger-Tétouan-Al Hoceïma/);
                 assert.match(status.textContent, /representatives/i);
                 assert.equal(sandbox.__handoffRendered, true);
