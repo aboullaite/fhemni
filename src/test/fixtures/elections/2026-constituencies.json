@@ -1,0 +1,378 @@
+{
+  "source": {
+    "apiPath": "/api/catalog/elections/2026/results?lang=ar",
+    "sourceUrl": "https://www.maroc.ma/fr/elections-legislatives-marocaines-2026",
+    "sourceUpdatedAt": "2026-09-26T19:03:00Z"
+  },
+  "localSeatTotal": 305,
+  "constituencies": [
+    {
+      "code": "agadir-ida-outanane",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "ain-chock",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "ain-sebaa-hay-mohammadi",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "al-fida-mers-sultan",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "al-haouz",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "al-hoceima",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "aousserd",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "assa-zag",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "azilal-demnate",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "ben-msik",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "ben-slimane",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "beni-mellal",
+      "allocatedSeats": 6
+    },
+    {
+      "code": "berkane",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "berrechid",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "boujdour",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "boulemane",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "bzou-ouaouizeght",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "casablanca-anfa",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "chefchaouen",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "chichaoua",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "chtouka-ait-baha",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "driouch",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "el-hajeb",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "el-jadida",
+      "allocatedSeats": 6
+    },
+    {
+      "code": "el-karia-ghafsai",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "el-kelaa-des-sraghna",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "errachidia",
+      "allocatedSeats": 5
+    },
+    {
+      "code": "es-semara",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "essaouira",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "fahs-anjra",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "fes-nord",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "fes-sud",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "figuig",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "fquih-ben-salah",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "gueliz",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "guelmim",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "guercif",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "hay-hassani",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "ifrane",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "inezgane-ait-melloul",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "jerada",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "kenitra",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "kenitra-el-gharb",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "khemisset-oulmes",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "khenifra",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "khouribga",
+      "allocatedSeats": 6
+    },
+    {
+      "code": "laayoune",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "larache",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "mdiq-fnideq",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "mediouna",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "meknes",
+      "allocatedSeats": 6
+    },
+    {
+      "code": "menara",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "midelt",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "mohammedia",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "moulay-yaacoub",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "nador",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "nouaceur",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "ouarzazate",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "oued-ed-dahab",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "ouezzane",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "oujda-angad",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "rabat-chellah",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "rabat-ocean",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "rehamna",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "safi",
+      "allocatedSeats": 6
+    },
+    {
+      "code": "sale-medina",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "sale-nouvelle",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "sefrou",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "settat",
+      "allocatedSeats": 6
+    },
+    {
+      "code": "sidi-bennour",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "sidi-bernoussi",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "sidi-ifni",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "sidi-kacem",
+      "allocatedSeats": 5
+    },
+    {
+      "code": "sidi-othmane-moulay-rachid",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "sidi-slimane",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "sidi-youssef-ben-ali",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "skhirate-temara",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "tan-tan",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "tanger-assilah",
+      "allocatedSeats": 5
+    },
+    {
+      "code": "taounate-tissa",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "taourirt",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "tarfaya",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "taroudant-nord",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "taroudant-sud",
+      "allocatedSeats": 4
+    },
+    {
+      "code": "tata",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "taza",
+      "allocatedSeats": 5
+    },
+    {
+      "code": "tetouan",
+      "allocatedSeats": 5
+    },
+    {
+      "code": "tiflet-rommani",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "tinghir",
+      "allocatedSeats": 3
+    },
+    {
+      "code": "tiznit",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "youssoufia",
+      "allocatedSeats": 2
+    },
+    {
+      "code": "zagora",
+      "allocatedSeats": 3
+    }
+  ]
+}

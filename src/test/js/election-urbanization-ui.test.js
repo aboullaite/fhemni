@@ -40,7 +40,8 @@ function view(locale) {
         diagnostics: [],
         source: { datasetVersion: '1.8.0', censusYear: 2024,
             sourceUrl: 'https://communes.pages.dev/data/v1/sources.json',
-            decreeUrl: 'https://www.sgg.gov.ma/BO/bo_ar/2011/BO_5988_Ar.pdf', revisedAt: '2026-09-27' },
+            decreeUrl: 'https://www.sgg.gov.ma/BO/bo_ar/2011/BO_5988_Ar.pdf', revisedAt: '2026-09-27',
+            exactConstituencyCount: 90, shareOnlyConstituencyCount: 2 },
         national: { constituencyCount: 92, localSeatTotal: 305, excludedRegionalSeatTotal: 90,
             urbanizationIndex: 62.75, ruralityIndex: 37.25 },
         rows: [
@@ -88,17 +89,20 @@ test('the graphs page exposes a dedicated urban and rural context section', () =
     assert.match(page, /urban-rural-constituencies\.js\?v=/);
 });
 
-for (const [locale, disclaimer] of Object.entries({
-    ar: 'المقاعد الجهوية الـ90 ما داخلاش',
-    fr: 'ne mesure pas les votes urbains ou ruraux',
-    en: '90 regional-list seats are excluded'
+for (const [locale, expected] of Object.entries({
+    ar: { disclaimer: 'المقاعد الجهوية الـ90 ما داخلاش', derived: 'مشتق', shareOnly: 'دائرتين فالرباط', point: '+3,50 نقطة' },
+    fr: { disclaimer: 'ne mesure pas les votes urbains ou ruraux', derived: 'dérivé', shareOnly: '2 circonscriptions de Rabat', point: '+3,50 points' },
+    en: { disclaimer: '90 regional-list seats are excluded', derived: 'derived', shareOnly: '2 Rabat constituencies', point: '+3.50 points' }
 })) {
     test(`${locale} urbanization graph labels the measure and its vote limitation`, () => {
         const rendered = view(locale);
         assert.equal(rendered.nodes('election-atlas-urbanization-row').length, 2);
         assert.equal(rendered.nodes('election-atlas-urbanization-marker').length, 2);
         assert.equal(rendered.nodes('election-atlas-urbanization-baseline').length, 2);
-        assert.match(rendered.nodes('election-atlas-intro')[0].textContent, new RegExp(disclaimer, 'i'));
+        assert.match(rendered.nodes('election-atlas-intro')[0].textContent, new RegExp(expected.disclaimer, 'i'));
+        assert.match(rendered.nodes('election-atlas-denominator')[0].textContent, new RegExp(expected.derived, 'i'));
+        assert.match(rendered.nodes('election-atlas-denominator')[0].textContent, new RegExp(expected.shareOnly, 'i'));
+        assert.match(rendered.nodes('election-atlas-takeaway')[0].textContent, new RegExp(expected.point.replace('+', '\\+'), 'i'));
         assert.equal(rendered.nodes('election-atlas-urbanization-source')[0].children[0].href,
             'https://communes.pages.dev/data/v1/sources.json');
         assert.equal(rendered.nodes('election-atlas-urbanization-source')[0].children[1].href,

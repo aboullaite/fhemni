@@ -1,0 +1,1632 @@
+{
+  "schemaVersion": 1,
+  "datasetVersion": "1.8.0",
+  "censusYear": 2024,
+  "sourceUrl": "https://communes.pages.dev/data/v1/sources.json",
+  "sourceLabel": "HCP RGPH 2024 via Morocco Communes",
+  "decreeUrl": "https://www.sgg.gov.ma/BO/bo_ar/2011/BO_5988_Ar.pdf",
+  "decreeLabel": "Decree 2.11.603, Official Bulletin 5988",
+  "revisedAt": "2026-09-27",
+  "localSeatTotal": 305,
+  "excludedRegionalSeatTotal": 90,
+  "license": "CC BY 4.0",
+  "sourceDatasetSha256": "7e9d3d402cc2fd0d9c4fc941c4f23c6a5e5ddcbefbba80b7540267f8e2728dca",
+  "partitionParentCodes": {
+    "03.531": [
+      "03.531.01.05",
+      "03.531.01.07",
+      "03.531.01.09",
+      "03.531.07.19",
+      "03.531.07.05",
+      "03.531.07.11",
+      "03.531.07.03",
+      "03.531.07.09",
+      "03.531.07.21",
+      "03.531.07.13",
+      "03.531.07.17",
+      "03.531.07.15",
+      "03.531.07.07",
+      "03.531.07.01",
+      "03.531.09.01",
+      "03.531.09.05",
+      "03.531.09.17",
+      "03.531.09.07",
+      "03.531.09.21",
+      "03.531.09.03",
+      "03.531.09.15",
+      "03.531.09.11",
+      "03.531.09.19",
+      "03.531.09.13",
+      "03.531.09.09",
+      "03.531.09.23",
+      "03.531.01.03",
+      "03.531.01.01",
+      "03.531.05.03",
+      "03.531.05.07",
+      "03.531.05.17",
+      "03.531.05.09",
+      "03.531.05.13",
+      "03.531.05.01",
+      "03.531.05.15",
+      "03.531.05.11",
+      "03.531.05.05",
+      "03.531.03.09",
+      "03.531.03.03",
+      "03.531.03.13",
+      "03.531.03.17",
+      "03.531.03.07",
+      "03.531.03.11",
+      "03.531.03.01",
+      "03.531.03.15",
+      "03.531.03.23",
+      "03.531.03.05",
+      "03.531.03.19",
+      "03.531.03.21"
+    ],
+    "04.281": [
+      "04.281.01.01",
+      "04.281.01.05",
+      "04.281.01.13",
+      "04.281.03.11",
+      "04.281.03.05",
+      "04.281.05.09",
+      "04.281.05.07",
+      "04.281.05.03",
+      "04.281.05.11",
+      "04.281.03.01",
+      "04.281.01.11",
+      "04.281.07.01",
+      "04.281.07.07",
+      "04.281.07.05",
+      "04.281.07.03",
+      "04.281.09.09",
+      "04.281.09.15",
+      "04.281.09.01",
+      "04.281.09.13",
+      "04.281.11.07",
+      "04.281.11.05",
+      "04.281.11.03",
+      "04.281.11.11"
+    ],
+    "04.291": [
+      "04.291.01.05",
+      "04.291.01.03",
+      "04.291.01.17",
+      "04.291.07.05",
+      "04.291.07.15",
+      "04.291.07.09",
+      "04.291.07.11",
+      "04.291.07.13",
+      "04.291.07.01",
+      "04.291.07.07",
+      "04.291.09.11",
+      "04.291.09.13",
+      "04.291.09.07",
+      "04.291.09.19",
+      "04.291.09.02",
+      "04.291.09.03",
+      "04.291.09.09",
+      "04.291.09.05",
+      "04.291.03.15",
+      "04.291.05.07",
+      "04.291.01.01",
+      "04.291.03.01",
+      "04.291.03.03",
+      "04.291.03.11",
+      "04.291.03.09",
+      "04.291.03.07",
+      "04.291.03.13",
+      "04.291.03.05",
+      "04.291.03.17",
+      "04.291.05.09",
+      "04.291.05.03",
+      "04.291.05.05",
+      "04.291.05.01",
+      "04.291.05.11",
+      "04.291.05.13"
+    ],
+    "05.081": [
+      "05.081.01.01",
+      "05.081.05.07",
+      "05.081.05.09",
+      "05.081.05.17",
+      "05.081.05.01",
+      "05.081.05.15",
+      "05.081.05.05",
+      "05.081.05.13",
+      "05.081.05.21",
+      "05.081.05.11",
+      "05.081.05.19",
+      "05.081.11.03",
+      "05.081.11.01",
+      "05.081.11.25",
+      "05.081.09.07",
+      "05.081.09.13",
+      "05.081.09.19",
+      "05.081.09.15",
+      "05.081.09.11",
+      "05.081.11.05",
+      "05.081.09.17",
+      "05.081.09.21",
+      "05.081.09.03",
+      "05.081.09.23",
+      "05.081.09.09",
+      "05.081.03.01",
+      "05.081.03.13",
+      "05.081.01.03",
+      "05.081.03.07",
+      "05.081.03.03",
+      "05.081.03.09",
+      "05.081.03.05",
+      "05.081.03.11",
+      "05.081.15.13",
+      "05.081.15.03",
+      "05.081.15.21",
+      "05.081.15.11",
+      "05.081.15.15",
+      "05.081.15.01",
+      "05.081.13.05",
+      "05.081.13.07",
+      "05.081.13.09",
+      "05.081.13.19",
+      "05.081.13.17"
+    ],
+    "09.541": [
+      "09.541.01.13",
+      "09.541.01.01",
+      "09.541.01.09",
+      "09.541.01.03",
+      "09.541.05.23",
+      "09.541.09.15",
+      "09.541.09.43",
+      "09.541.11.01",
+      "09.541.09.55",
+      "09.541.09.27",
+      "09.541.09.05",
+      "09.541.09.51",
+      "09.541.11.31",
+      "09.541.09.45",
+      "09.541.09.03",
+      "09.541.09.57",
+      "09.541.09.11",
+      "09.541.09.63",
+      "09.541.09.41",
+      "09.541.05.25",
+      "09.541.11.15",
+      "09.541.11.29",
+      "09.541.11.19",
+      "09.541.11.71",
+      "09.541.11.09",
+      "09.541.11.03",
+      "09.541.11.07",
+      "09.541.11.33",
+      "09.541.11.13",
+      "09.541.05.01",
+      "09.541.05.17",
+      "09.541.05.27",
+      "09.541.05.11",
+      "09.541.05.21",
+      "09.541.05.19",
+      "09.541.05.05",
+      "09.541.05.33",
+      "09.541.01.05",
+      "09.541.01.07",
+      "09.541.01.11",
+      "09.541.01.02",
+      "09.541.03.19",
+      "09.541.03.03",
+      "09.541.03.29",
+      "09.541.03.21",
+      "09.541.03.31",
+      "09.541.03.09",
+      "09.541.03.25",
+      "09.541.03.17",
+      "09.541.03.05",
+      "09.541.03.23",
+      "09.541.03.07",
+      "09.541.03.01",
+      "09.541.03.11",
+      "09.541.03.27",
+      "09.541.03.13",
+      "09.541.03.15",
+      "09.541.04.25",
+      "09.541.04.61",
+      "09.541.04.29",
+      "09.541.04.23",
+      "09.541.04.33",
+      "09.541.04.17",
+      "09.541.04.39",
+      "09.541.04.53",
+      "09.541.04.67",
+      "09.541.04.35",
+      "09.541.04.49",
+      "09.541.04.47",
+      "09.541.04.59",
+      "09.541.04.21",
+      "09.541.04.13",
+      "09.541.04.09",
+      "09.541.04.69",
+      "09.541.07.65",
+      "09.541.07.37",
+      "09.541.07.23",
+      "09.541.07.03",
+      "09.541.07.13",
+      "09.541.07.17",
+      "09.541.07.05",
+      "09.541.07.19",
+      "09.541.07.15",
+      "09.541.07.07",
+      "09.541.07.01",
+      "09.541.07.09",
+      "09.541.07.25",
+      "09.541.07.21",
+      "09.541.07.11"
+    ]
+  },
+  "constituencies": [
+    {
+      "constituencyCode": "agadir-ida-outanane",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "provinces:09.001"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 721431,
+      "urbanPopulation": 628004,
+      "ruralPopulation": 93427,
+      "urbanShare": 87.04976636712313
+    },
+    {
+      "constituencyCode": "ain-chock",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:06.141.01.40"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 374707,
+      "urbanPopulation": 374707,
+      "ruralPopulation": 0,
+      "urbanShare": 100
+    },
+    {
+      "constituencyCode": "ain-sebaa-hay-mohammadi",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "provinces:06.141.01.20"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 364835,
+      "urbanPopulation": 364835,
+      "ruralPopulation": 0,
+      "urbanShare": 100
+    },
+    {
+      "constituencyCode": "al-fida-mers-sultan",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:06.141.01.10",
+        "communes:06.141.01.81"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 226173,
+      "urbanPopulation": 226173,
+      "ruralPopulation": 0,
+      "urbanShare": 100
+    },
+    {
+      "constituencyCode": "al-haouz",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "provinces:07.041"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 642815,
+      "urbanPopulation": 132875,
+      "ruralPopulation": 509940,
+      "urbanShare": 20.670799530191424
+    },
+    {
+      "constituencyCode": "al-hoceima",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "provinces:01.051"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 371527,
+      "urbanPopulation": 138977,
+      "ruralPopulation": 232550,
+      "urbanShare": 37.40697176786613
+    },
+    {
+      "constituencyCode": "aousserd",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:12.066"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 24498,
+      "urbanPopulation": 11373,
+      "ruralPopulation": 13125,
+      "urbanShare": 46.42419789370561
+    },
+    {
+      "constituencyCode": "assa-zag",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:10.071"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 53298,
+      "urbanPopulation": 20357,
+      "ruralPopulation": 32941,
+      "urbanShare": 38.19467897482082
+    },
+    {
+      "constituencyCode": "azilal-demnate",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "communes:05.081.01.03",
+        "communes:05.081.03.07",
+        "communes:05.081.03.03",
+        "communes:05.081.03.09",
+        "communes:05.081.03.05",
+        "communes:05.081.03.11",
+        "communes:05.081.15.13",
+        "communes:05.081.15.03",
+        "communes:05.081.15.21",
+        "communes:05.081.15.11",
+        "communes:05.081.15.15",
+        "communes:05.081.15.01",
+        "communes:05.081.13.05",
+        "communes:05.081.13.07",
+        "communes:05.081.13.09",
+        "communes:05.081.13.19",
+        "communes:05.081.13.17"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 284246,
+      "urbanPopulation": 33635,
+      "ruralPopulation": 250611,
+      "urbanShare": 11.833060095832483
+    },
+    {
+      "constituencyCode": "ben-msik",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:06.141.01.60"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 207252,
+      "urbanPopulation": 207252,
+      "ruralPopulation": 0,
+      "urbanShare": 100
+    },
+    {
+      "constituencyCode": "ben-slimane",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:06.111"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 279517,
+      "urbanPopulation": 152178,
+      "ruralPopulation": 127339,
+      "urbanShare": 54.44320023469056
+    },
+    {
+      "constituencyCode": "beni-mellal",
+      "allocatedSeats": 6,
+      "componentCodes": [
+        "provinces:05.091"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 580327,
+      "urbanPopulation": 350703,
+      "ruralPopulation": 229624,
+      "urbanShare": 60.43196335858921
+    },
+    {
+      "constituencyCode": "berkane",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:02.113"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 284061,
+      "urbanPopulation": 175510,
+      "ruralPopulation": 108551,
+      "urbanShare": 61.78602483269439
+    },
+    {
+      "constituencyCode": "berrechid",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "provinces:06.117"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 640657,
+      "urbanPopulation": 405860,
+      "ruralPopulation": 234797,
+      "urbanShare": 63.35059165825083
+    },
+    {
+      "constituencyCode": "boujdour",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:11.121"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 65381,
+      "urbanPopulation": 57360,
+      "ruralPopulation": 8021,
+      "urbanShare": 87.73190988207583
+    },
+    {
+      "constituencyCode": "boulemane",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:03.131"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 205411,
+      "urbanPopulation": 76063,
+      "ruralPopulation": 129348,
+      "urbanShare": 37.02966248156136
+    },
+    {
+      "constituencyCode": "bzou-ouaouizeght",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "communes:05.081.01.01",
+        "communes:05.081.05.07",
+        "communes:05.081.05.09",
+        "communes:05.081.05.17",
+        "communes:05.081.05.01",
+        "communes:05.081.05.15",
+        "communes:05.081.05.05",
+        "communes:05.081.05.13",
+        "communes:05.081.05.21",
+        "communes:05.081.05.11",
+        "communes:05.081.05.19",
+        "communes:05.081.11.03",
+        "communes:05.081.11.01",
+        "communes:05.081.11.25",
+        "communes:05.081.09.07",
+        "communes:05.081.09.13",
+        "communes:05.081.09.19",
+        "communes:05.081.09.15",
+        "communes:05.081.09.11",
+        "communes:05.081.11.05",
+        "communes:05.081.09.17",
+        "communes:05.081.09.21",
+        "communes:05.081.09.03",
+        "communes:05.081.09.23",
+        "communes:05.081.09.09",
+        "communes:05.081.03.01",
+        "communes:05.081.03.13"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 289866,
+      "urbanPopulation": 79576,
+      "ruralPopulation": 210290,
+      "urbanShare": 27.452685033774227
+    },
+    {
+      "constituencyCode": "casablanca-anfa",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "provinces:06.141.01.00"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 344165,
+      "urbanPopulation": 344165,
+      "ruralPopulation": 0,
+      "urbanShare": 100
+    },
+    {
+      "constituencyCode": "chefchaouen",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "provinces:01.151"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 412713,
+      "urbanPopulation": 62632,
+      "ruralPopulation": 350081,
+      "urbanShare": 15.175678982731341
+    },
+    {
+      "constituencyCode": "chichaoua",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "provinces:07.161"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 379079,
+      "urbanPopulation": 84361,
+      "ruralPopulation": 294718,
+      "urbanShare": 22.254200311808358
+    },
+    {
+      "constituencyCode": "chtouka-ait-baha",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:09.163"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 493623,
+      "urbanPopulation": 172143,
+      "ruralPopulation": 321480,
+      "urbanShare": 34.87337502506974
+    },
+    {
+      "constituencyCode": "driouch",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:02.167"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 188191,
+      "urbanPopulation": 58347,
+      "ruralPopulation": 129844,
+      "urbanShare": 31.004139411555283
+    },
+    {
+      "constituencyCode": "el-hajeb",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:03.171"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 267156,
+      "urbanPopulation": 142035,
+      "ruralPopulation": 125121,
+      "urbanShare": 53.1655661860486
+    },
+    {
+      "constituencyCode": "el-jadida",
+      "allocatedSeats": 6,
+      "componentCodes": [
+        "provinces:06.181"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 914367,
+      "urbanPopulation": 376148,
+      "ruralPopulation": 538219,
+      "urbanShare": 41.13753011646308
+    },
+    {
+      "constituencyCode": "el-karia-ghafsai",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "communes:03.531.01.03",
+        "communes:03.531.01.01",
+        "communes:03.531.05.03",
+        "communes:03.531.05.07",
+        "communes:03.531.05.17",
+        "communes:03.531.05.09",
+        "communes:03.531.05.13",
+        "communes:03.531.05.01",
+        "communes:03.531.05.15",
+        "communes:03.531.05.11",
+        "communes:03.531.05.05",
+        "communes:03.531.03.09",
+        "communes:03.531.03.03",
+        "communes:03.531.03.13",
+        "communes:03.531.03.17",
+        "communes:03.531.03.07",
+        "communes:03.531.03.11",
+        "communes:03.531.03.01",
+        "communes:03.531.03.15",
+        "communes:03.531.03.23",
+        "communes:03.531.03.05",
+        "communes:03.531.03.19",
+        "communes:03.531.03.21"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 290770,
+      "urbanPopulation": 30051,
+      "ruralPopulation": 260719,
+      "urbanShare": 10.33497265880249
+    },
+    {
+      "constituencyCode": "el-kelaa-des-sraghna",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "provinces:07.191"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 560273,
+      "urbanPopulation": 177696,
+      "ruralPopulation": 382577,
+      "urbanShare": 31.71596703749779
+    },
+    {
+      "constituencyCode": "errachidia",
+      "allocatedSeats": 5,
+      "componentCodes": [
+        "provinces:08.201"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 427572,
+      "urbanPopulation": 199190,
+      "ruralPopulation": 228382,
+      "urbanShare": 46.58630593210032
+    },
+    {
+      "constituencyCode": "es-semara",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:11.221"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 73864,
+      "urbanPopulation": 56607,
+      "ruralPopulation": 17257,
+      "urbanShare": 76.63679194194737
+    },
+    {
+      "constituencyCode": "essaouira",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "provinces:07.211"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 426719,
+      "urbanPopulation": 115467,
+      "ruralPopulation": 311252,
+      "urbanShare": 27.059259137746384
+    },
+    {
+      "constituencyCode": "fahs-anjra",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:01.227"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 100789,
+      "urbanPopulation": 3763,
+      "ruralPopulation": 97026,
+      "urbanShare": 3.7335423508517795
+    },
+    {
+      "constituencyCode": "fes-nord",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "arrondissements:03.231.01.13",
+        "arrondissements:03.231.01.11",
+        "arrondissements:03.231.01.07",
+        "communes:03.231.01.03"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 629954,
+      "urbanPopulation": 629954,
+      "ruralPopulation": 0,
+      "urbanShare": 100
+    },
+    {
+      "constituencyCode": "fes-sud",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "arrondissements:03.231.01.01",
+        "arrondissements:03.231.01.05",
+        "arrondissements:03.231.01.09",
+        "communes:03.231.01.15",
+        "communes:03.231.81.05",
+        "communes:03.231.81.03"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 626218,
+      "urbanPopulation": 601069,
+      "ruralPopulation": 25149,
+      "urbanShare": 95.98398640728948
+    },
+    {
+      "constituencyCode": "figuig",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:02.251"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 144451,
+      "urbanPopulation": 76403,
+      "ruralPopulation": 68048,
+      "urbanShare": 52.89198413302781
+    },
+    {
+      "constituencyCode": "fquih-ben-salah",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "provinces:05.255"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 475977,
+      "urbanPopulation": 202338,
+      "ruralPopulation": 273639,
+      "urbanShare": 42.51003724969904
+    },
+    {
+      "constituencyCode": "gueliz",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "arrondissements:07.351.01.05",
+        "arrondissements:07.351.01.03",
+        "communes:07.351.03.11",
+        "communes:07.351.03.03",
+        "communes:07.351.03.05",
+        "communes:07.351.02.07",
+        "communes:07.351.02.09",
+        "communes:07.351.02.01"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 526449,
+      "urbanPopulation": 380096,
+      "ruralPopulation": 146353,
+      "urbanShare": 72.19996618855768
+    },
+    {
+      "constituencyCode": "guelmim",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:10.261"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 196267,
+      "urbanPopulation": 153238,
+      "ruralPopulation": 43029,
+      "urbanShare": 78.07629402803325
+    },
+    {
+      "constituencyCode": "guercif",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:02.265"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 215837,
+      "urbanPopulation": 80703,
+      "ruralPopulation": 135134,
+      "urbanShare": 37.39071614227403
+    },
+    {
+      "constituencyCode": "hay-hassani",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:06.141.01.30"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 537509,
+      "urbanPopulation": 537509,
+      "ruralPopulation": 0,
+      "urbanShare": 100
+    },
+    {
+      "constituencyCode": "ifrane",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:03.271"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 160904,
+      "urbanPopulation": 88895,
+      "ruralPopulation": 72009,
+      "urbanShare": 55.24722816089096
+    },
+    {
+      "constituencyCode": "inezgane-ait-melloul",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:09.273"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 636916,
+      "urbanPopulation": 605684,
+      "ruralPopulation": 31232,
+      "urbanShare": 95.09637063600223
+    },
+    {
+      "constituencyCode": "jerada",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:02.275"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 103527,
+      "urbanPopulation": 62722,
+      "ruralPopulation": 40805,
+      "urbanShare": 60.58516135887256
+    },
+    {
+      "constituencyCode": "kenitra",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "communes:04.281.01.01",
+        "communes:04.281.01.05",
+        "communes:04.281.01.13",
+        "communes:04.281.03.11",
+        "communes:04.281.03.05",
+        "communes:04.281.05.09",
+        "communes:04.281.05.07",
+        "communes:04.281.05.03",
+        "communes:04.281.05.11",
+        "communes:04.281.03.01"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 883090,
+      "urbanPopulation": 633549,
+      "ruralPopulation": 249541,
+      "urbanShare": 71.74229127269021
+    },
+    {
+      "constituencyCode": "kenitra-el-gharb",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "communes:04.281.01.11",
+        "communes:04.281.07.01",
+        "communes:04.281.07.07",
+        "communes:04.281.07.05",
+        "communes:04.281.07.03",
+        "communes:04.281.09.09",
+        "communes:04.281.09.15",
+        "communes:04.281.09.01",
+        "communes:04.281.09.13",
+        "communes:04.281.11.07",
+        "communes:04.281.11.05",
+        "communes:04.281.11.03",
+        "communes:04.281.11.11"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 401157,
+      "urbanPopulation": 110550,
+      "ruralPopulation": 290607,
+      "urbanShare": 27.55778909504259
+    },
+    {
+      "constituencyCode": "khemisset-oulmes",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "communes:04.291.01.01",
+        "communes:04.291.03.01",
+        "communes:04.291.03.03",
+        "communes:04.291.03.11",
+        "communes:04.291.03.09",
+        "communes:04.291.03.07",
+        "communes:04.291.03.13",
+        "communes:04.291.03.05",
+        "communes:04.291.03.17",
+        "communes:04.291.05.09",
+        "communes:04.291.05.03",
+        "communes:04.291.05.05",
+        "communes:04.291.05.01",
+        "communes:04.291.05.11",
+        "communes:04.291.05.13"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 263825,
+      "urbanPopulation": 159397,
+      "ruralPopulation": 104428,
+      "urbanShare": 60.41770112764143
+    },
+    {
+      "constituencyCode": "khenifra",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:05.301"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 370240,
+      "urbanPopulation": 244643,
+      "ruralPopulation": 125597,
+      "urbanShare": 66.07686905790838
+    },
+    {
+      "constituencyCode": "khouribga",
+      "allocatedSeats": 6,
+      "componentCodes": [
+        "provinces:05.311"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 525145,
+      "urbanPopulation": 372597,
+      "ruralPopulation": 152548,
+      "urbanShare": 70.95126108027307
+    },
+    {
+      "constituencyCode": "laayoune",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:11.321"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 295555,
+      "urbanPopulation": 291639,
+      "ruralPopulation": 3916,
+      "urbanShare": 98.67503510344945
+    },
+    {
+      "constituencyCode": "larache",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "provinces:01.331"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 510211,
+      "urbanPopulation": 275450,
+      "ruralPopulation": 234761,
+      "urbanShare": 53.98746792993487
+    },
+    {
+      "constituencyCode": "mdiq-fnideq",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:01.573"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 254064,
+      "urbanPopulation": 240745,
+      "ruralPopulation": 13319,
+      "urbanShare": 94.75762012721204
+    },
+    {
+      "constituencyCode": "mediouna",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:06.355"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 345787,
+      "urbanPopulation": 173968,
+      "ruralPopulation": 171819,
+      "urbanShare": 50.31074042691021
+    },
+    {
+      "constituencyCode": "meknes",
+      "allocatedSeats": 6,
+      "componentCodes": [
+        "provinces:03.061"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 942945,
+      "urbanPopulation": 780290,
+      "ruralPopulation": 162655,
+      "urbanShare": 82.75031947780623
+    },
+    {
+      "constituencyCode": "menara",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "arrondissements:07.351.01.09",
+        "communes:07.351.05.05",
+        "communes:07.351.05.03",
+        "communes:07.351.05.01",
+        "communes:07.351.05.09",
+        "communes:07.351.07.11",
+        "communes:07.351.07.07"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 737933,
+      "urbanPopulation": 553192,
+      "ruralPopulation": 184741,
+      "urbanShare": 74.96507135471649
+    },
+    {
+      "constituencyCode": "midelt",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:08.363"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 313769,
+      "urbanPopulation": 145700,
+      "ruralPopulation": 168069,
+      "urbanShare": 46.435434985610435
+    },
+    {
+      "constituencyCode": "mohammedia",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:06.371"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 514057,
+      "urbanPopulation": 397315,
+      "ruralPopulation": 116742,
+      "urbanShare": 77.29006705482077
+    },
+    {
+      "constituencyCode": "moulay-yaacoub",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:03.591"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 216954,
+      "urbanPopulation": 53378,
+      "ruralPopulation": 163576,
+      "urbanShare": 24.60337214340367
+    },
+    {
+      "constituencyCode": "nador",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "provinces:02.381"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 565987,
+      "urbanPopulation": 388378,
+      "ruralPopulation": 177609,
+      "urbanShare": 68.61959726990196
+    },
+    {
+      "constituencyCode": "nouaceur",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:06.385"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 672324,
+      "urbanPopulation": 572840,
+      "ruralPopulation": 99484,
+      "urbanShare": 85.2029676168038
+    },
+    {
+      "constituencyCode": "ouarzazate",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:08.401"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 304932,
+      "urbanPopulation": 129527,
+      "ruralPopulation": 175405,
+      "urbanShare": 42.47733921005339
+    },
+    {
+      "constituencyCode": "oued-ed-dahab",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:12.391"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 195467,
+      "urbanPopulation": 165463,
+      "ruralPopulation": 30004,
+      "urbanShare": 84.65009438933426
+    },
+    {
+      "constituencyCode": "ouezzane",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:01.405"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 274577,
+      "urbanPopulation": 74526,
+      "ruralPopulation": 200051,
+      "urbanShare": 27.142113141304623
+    },
+    {
+      "constituencyCode": "oujda-angad",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "provinces:02.411"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 572454,
+      "urbanPopulation": 518150,
+      "ruralPopulation": 54304,
+      "urbanShare": 90.51382294472569
+    },
+    {
+      "constituencyCode": "rabat-chellah",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "arrondissements:04.421.01.03",
+        "arrondissements:04.421.01.06",
+        "communes:04.421.01.07",
+        "legal:04.421.01.05-annexes-1-2-22"
+      ],
+      "populationCoverage": "share-only",
+      "urbanShare": 100
+    },
+    {
+      "constituencyCode": "rabat-ocean",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "arrondissements:04.421.01.09",
+        "arrondissements:04.421.01.01",
+        "legal:04.421.01.05-annexes-3-4"
+      ],
+      "populationCoverage": "share-only",
+      "urbanShare": 100
+    },
+    {
+      "constituencyCode": "rehamna",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:07.427"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 346108,
+      "urbanPopulation": 133645,
+      "ruralPopulation": 212463,
+      "urbanShare": 38.613669721589794
+    },
+    {
+      "constituencyCode": "safi",
+      "allocatedSeats": 6,
+      "componentCodes": [
+        "provinces:07.431"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 719671,
+      "urbanPopulation": 369861,
+      "ruralPopulation": 349810,
+      "urbanShare": 51.39306710983213
+    },
+    {
+      "constituencyCode": "sale-medina",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "arrondissements:04.441.01.09",
+        "arrondissements:04.441.01.05",
+        "arrondissements:04.441.01.03"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 480937,
+      "urbanPopulation": 480937,
+      "ruralPopulation": 0,
+      "urbanShare": 100
+    },
+    {
+      "constituencyCode": "sale-nouvelle",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "arrondissements:04.441.01.06",
+        "arrondissements:04.441.01.07",
+        "communes:04.441.01.08",
+        "communes:04.441.01.11",
+        "communes:04.441.01.13"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 608617,
+      "urbanPopulation": 531733,
+      "ruralPopulation": 76884,
+      "urbanShare": 87.36742483368029
+    },
+    {
+      "constituencyCode": "sefrou",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:03.451"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 304748,
+      "urbanPopulation": 172891,
+      "ruralPopulation": 131857,
+      "urbanShare": 56.73244779293055
+    },
+    {
+      "constituencyCode": "settat",
+      "allocatedSeats": 6,
+      "componentCodes": [
+        "provinces:06.461"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 652292,
+      "urbanPopulation": 247089,
+      "ruralPopulation": 405203,
+      "urbanShare": 37.88012117272633
+    },
+    {
+      "constituencyCode": "sidi-bennour",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "provinces:06.467"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 451930,
+      "urbanPopulation": 90314,
+      "ruralPopulation": 361616,
+      "urbanShare": 19.98406832916602
+    },
+    {
+      "constituencyCode": "sidi-bernoussi",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:06.141.01.50"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 706362,
+      "urbanPopulation": 706362,
+      "ruralPopulation": 0,
+      "urbanShare": 100
+    },
+    {
+      "constituencyCode": "sidi-ifni",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:10.473"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 104601,
+      "urbanPopulation": 35556,
+      "ruralPopulation": 69045,
+      "urbanShare": 33.99202684486764
+    },
+    {
+      "constituencyCode": "sidi-kacem",
+      "allocatedSeats": 5,
+      "componentCodes": [
+        "provinces:04.481"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 545509,
+      "urbanPopulation": 176091,
+      "ruralPopulation": 369418,
+      "urbanShare": 32.2801273672845
+    },
+    {
+      "constituencyCode": "sidi-othmane-moulay-rachid",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:06.141.01.70"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 457033,
+      "urbanPopulation": 457033,
+      "ruralPopulation": 0,
+      "urbanShare": 100
+    },
+    {
+      "constituencyCode": "sidi-slimane",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:04.491"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 351199,
+      "urbanPopulation": 135060,
+      "ruralPopulation": 216139,
+      "urbanShare": 38.45682931899009
+    },
+    {
+      "constituencyCode": "sidi-youssef-ben-ali",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "arrondissements:07.351.01.07",
+        "arrondissements:07.351.01.11",
+        "communes:07.351.01.01",
+        "communes:07.351.01.13"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 307198,
+      "urbanPopulation": 201185,
+      "ruralPopulation": 106013,
+      "urbanShare": 65.49033522353662
+    },
+    {
+      "constituencyCode": "skhirate-temara",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "provinces:04.501"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 783475,
+      "urbanPopulation": 735707,
+      "ruralPopulation": 47768,
+      "urbanShare": 93.90306008487826
+    },
+    {
+      "constituencyCode": "tan-tan",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:10.521"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 94519,
+      "urbanPopulation": 90392,
+      "ruralPopulation": 4127,
+      "urbanShare": 95.63368211682307
+    },
+    {
+      "constituencyCode": "tanger-assilah",
+      "allocatedSeats": 5,
+      "componentCodes": [
+        "provinces:01.511"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 1494413,
+      "urbanPopulation": 1402668,
+      "ruralPopulation": 91745,
+      "urbanShare": 93.86080019378846
+    },
+    {
+      "constituencyCode": "taounate-tissa",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "communes:03.531.01.05",
+        "communes:03.531.01.07",
+        "communes:03.531.01.09",
+        "communes:03.531.07.19",
+        "communes:03.531.07.05",
+        "communes:03.531.07.11",
+        "communes:03.531.07.03",
+        "communes:03.531.07.09",
+        "communes:03.531.07.21",
+        "communes:03.531.07.13",
+        "communes:03.531.07.17",
+        "communes:03.531.07.15",
+        "communes:03.531.07.07",
+        "communes:03.531.07.01",
+        "communes:03.531.09.01",
+        "communes:03.531.09.05",
+        "communes:03.531.09.17",
+        "communes:03.531.09.07",
+        "communes:03.531.09.21",
+        "communes:03.531.09.03",
+        "communes:03.531.09.15",
+        "communes:03.531.09.11",
+        "communes:03.531.09.19",
+        "communes:03.531.09.13",
+        "communes:03.531.09.09",
+        "communes:03.531.09.23"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 321880,
+      "urbanPopulation": 68027,
+      "ruralPopulation": 253853,
+      "urbanShare": 21.134273642351186
+    },
+    {
+      "constituencyCode": "taourirt",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:02.533"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 220157,
+      "urbanPopulation": 145501,
+      "ruralPopulation": 74656,
+      "urbanShare": 66.08965420131997
+    },
+    {
+      "constituencyCode": "tarfaya",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:11.537"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 16228,
+      "urbanPopulation": 11030,
+      "ruralPopulation": 5198,
+      "urbanShare": 67.9689425684003
+    },
+    {
+      "constituencyCode": "taroudant-nord",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "communes:09.541.01.05",
+        "communes:09.541.01.07",
+        "communes:09.541.01.11",
+        "communes:09.541.01.02",
+        "communes:09.541.03.19",
+        "communes:09.541.03.03",
+        "communes:09.541.03.29",
+        "communes:09.541.03.21",
+        "communes:09.541.03.31",
+        "communes:09.541.03.09",
+        "communes:09.541.03.25",
+        "communes:09.541.03.17",
+        "communes:09.541.03.05",
+        "communes:09.541.03.23",
+        "communes:09.541.03.07",
+        "communes:09.541.03.01",
+        "communes:09.541.03.11",
+        "communes:09.541.03.27",
+        "communes:09.541.03.13",
+        "communes:09.541.03.15",
+        "communes:09.541.04.25",
+        "communes:09.541.04.61",
+        "communes:09.541.04.29",
+        "communes:09.541.04.23",
+        "communes:09.541.04.33",
+        "communes:09.541.04.17",
+        "communes:09.541.04.39",
+        "communes:09.541.04.53",
+        "communes:09.541.04.67",
+        "communes:09.541.04.35",
+        "communes:09.541.04.49",
+        "communes:09.541.04.47",
+        "communes:09.541.04.59",
+        "communes:09.541.04.21",
+        "communes:09.541.04.13",
+        "communes:09.541.04.09",
+        "communes:09.541.04.69",
+        "communes:09.541.07.65",
+        "communes:09.541.07.37",
+        "communes:09.541.07.23",
+        "communes:09.541.07.03",
+        "communes:09.541.07.13",
+        "communes:09.541.07.17",
+        "communes:09.541.07.05",
+        "communes:09.541.07.19",
+        "communes:09.541.07.15",
+        "communes:09.541.07.07",
+        "communes:09.541.07.01",
+        "communes:09.541.07.09",
+        "communes:09.541.07.25",
+        "communes:09.541.07.21",
+        "communes:09.541.07.11"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 322826,
+      "urbanPopulation": 62999,
+      "ruralPopulation": 259827,
+      "urbanShare": 19.514847007366196
+    },
+    {
+      "constituencyCode": "taroudant-sud",
+      "allocatedSeats": 4,
+      "componentCodes": [
+        "communes:09.541.01.13",
+        "communes:09.541.01.01",
+        "communes:09.541.01.09",
+        "communes:09.541.01.03",
+        "communes:09.541.05.23",
+        "communes:09.541.09.15",
+        "communes:09.541.09.43",
+        "communes:09.541.11.01",
+        "communes:09.541.09.55",
+        "communes:09.541.09.27",
+        "communes:09.541.09.05",
+        "communes:09.541.09.51",
+        "communes:09.541.11.31",
+        "communes:09.541.09.45",
+        "communes:09.541.09.03",
+        "communes:09.541.09.57",
+        "communes:09.541.09.11",
+        "communes:09.541.09.63",
+        "communes:09.541.09.41",
+        "communes:09.541.05.25",
+        "communes:09.541.11.15",
+        "communes:09.541.11.29",
+        "communes:09.541.11.19",
+        "communes:09.541.11.71",
+        "communes:09.541.11.09",
+        "communes:09.541.11.03",
+        "communes:09.541.11.07",
+        "communes:09.541.11.33",
+        "communes:09.541.11.13",
+        "communes:09.541.05.01",
+        "communes:09.541.05.17",
+        "communes:09.541.05.27",
+        "communes:09.541.05.11",
+        "communes:09.541.05.21",
+        "communes:09.541.05.19",
+        "communes:09.541.05.05",
+        "communes:09.541.05.33"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 535336,
+      "urbanPopulation": 214866,
+      "ruralPopulation": 320470,
+      "urbanShare": 40.13666183481029
+    },
+    {
+      "constituencyCode": "tata",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:09.551"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 111757,
+      "urbanPopulation": 39687,
+      "ruralPopulation": 72070,
+      "urbanShare": 35.5118695025815
+    },
+    {
+      "constituencyCode": "taza",
+      "allocatedSeats": 5,
+      "componentCodes": [
+        "provinces:03.561"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 500971,
+      "urbanPopulation": 212713,
+      "ruralPopulation": 288258,
+      "urbanShare": 42.460142403452494
+    },
+    {
+      "constituencyCode": "tetouan",
+      "allocatedSeats": 5,
+      "componentCodes": [
+        "provinces:01.571"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 611928,
+      "urbanPopulation": 440054,
+      "ruralPopulation": 171874,
+      "urbanShare": 71.91270868468186
+    },
+    {
+      "constituencyCode": "tiflet-rommani",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "communes:04.291.01.05",
+        "communes:04.291.01.03",
+        "communes:04.291.01.17",
+        "communes:04.291.07.05",
+        "communes:04.291.07.15",
+        "communes:04.291.07.09",
+        "communes:04.291.07.11",
+        "communes:04.291.07.13",
+        "communes:04.291.07.01",
+        "communes:04.291.07.07",
+        "communes:04.291.09.11",
+        "communes:04.291.09.13",
+        "communes:04.291.09.07",
+        "communes:04.291.09.19",
+        "communes:04.291.09.02",
+        "communes:04.291.09.03",
+        "communes:04.291.09.09",
+        "communes:04.291.09.05",
+        "communes:04.291.03.15",
+        "communes:04.291.05.07"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 299211,
+      "urbanPopulation": 148535,
+      "ruralPopulation": 150676,
+      "urbanShare": 49.64222572031108
+    },
+    {
+      "constituencyCode": "tinghir",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:08.577"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 323805,
+      "urbanPopulation": 79824,
+      "ruralPopulation": 243981,
+      "urbanShare": 24.651873812942974
+    },
+    {
+      "constituencyCode": "tiznit",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:09.581"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 198542,
+      "urbanPopulation": 92719,
+      "ruralPopulation": 105823,
+      "urbanShare": 46.69994258141854
+    },
+    {
+      "constituencyCode": "youssoufia",
+      "allocatedSeats": 2,
+      "componentCodes": [
+        "provinces:07.585"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 246148,
+      "urbanPopulation": 100576,
+      "ruralPopulation": 145572,
+      "urbanShare": 40.85997042429758
+    },
+    {
+      "constituencyCode": "zagora",
+      "allocatedSeats": 3,
+      "componentCodes": [
+        "provinces:08.587"
+      ],
+      "populationCoverage": "exact",
+      "totalPopulation": 285545,
+      "urbanPopulation": 53483,
+      "ruralPopulation": 232062,
+      "urbanShare": 18.73014761246038
+    }
+  ]
+}

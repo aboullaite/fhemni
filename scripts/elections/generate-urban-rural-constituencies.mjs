@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { validateExactPartition, validatePinnedCrosswalk } from './urban-rural-crosswalk.mjs';
 
-const API = 'https://communes.pages.dev';
 const OUTPUT = resolve(process.argv[2]
     || 'src/main/resources/static/data/elections/2026/urban-rural-constituencies.js');
+const PINNED_SOURCE = resolve(dirname(fileURLToPath(import.meta.url)),
+    '../../data/elections/2026/urban-rural-source-v1.8.0.json');
 
 const SOURCE = {
     datasetVersion: '1.8.0',
@@ -61,9 +64,9 @@ const a = code => `arrondissements:${code}`;
 const p = code => `provinces:${code}`;
 
 // Explicit component lists are transcribed from Decree 2.11.603. For five
-// two-way province splits, one side is listed and the other is the validated
-// complement of the same HCP province. That makes later administrative-code
-// changes fail during generation instead of silently dropping territory.
+// two-way province splits, both sides are listed and their exact union is
+// validated against the pinned HCP parent inventory. Omissions, overlaps, and
+// upstream additions therefore fail generation instead of moving territory.
 const PARTITIONS = [
     {
         provinceCode: '03.531',
@@ -76,7 +79,14 @@ const PARTITIONS = [
             '03.531.09.21', '03.531.09.03', '03.531.09.15', '03.531.09.11',
             '03.531.09.19', '03.531.09.13', '03.531.09.09', '03.531.09.23'
         ]],
-        complement: ['el-karia-ghafsai', 3]
+        complement: ['el-karia-ghafsai', 3, [
+            '03.531.01.03', '03.531.01.01', '03.531.05.03', '03.531.05.07',
+            '03.531.05.17', '03.531.05.09', '03.531.05.13', '03.531.05.01',
+            '03.531.05.15', '03.531.05.11', '03.531.05.05', '03.531.03.09',
+            '03.531.03.03', '03.531.03.13', '03.531.03.17', '03.531.03.07',
+            '03.531.03.11', '03.531.03.01', '03.531.03.15', '03.531.03.23',
+            '03.531.03.05', '03.531.03.19', '03.531.03.21'
+        ]]
     },
     {
         provinceCode: '04.281',
@@ -85,7 +95,12 @@ const PARTITIONS = [
             '04.281.03.05', '04.281.05.09', '04.281.05.07', '04.281.05.03',
             '04.281.05.11', '04.281.03.01'
         ]],
-        complement: ['kenitra-el-gharb', 3]
+        complement: ['kenitra-el-gharb', 3, [
+            '04.281.01.11', '04.281.07.01', '04.281.07.07', '04.281.07.05',
+            '04.281.07.03', '04.281.09.09', '04.281.09.15', '04.281.09.01',
+            '04.281.09.13', '04.281.11.07', '04.281.11.05', '04.281.11.03',
+            '04.281.11.11'
+        ]]
     },
     {
         provinceCode: '04.291',
@@ -97,7 +112,12 @@ const PARTITIONS = [
             '04.291.09.02', '04.291.09.03', '04.291.09.09', '04.291.09.05',
             '04.291.03.15', '04.291.05.07'
         ]],
-        complement: ['khemisset-oulmes', 3]
+        complement: ['khemisset-oulmes', 3, [
+            '04.291.01.01', '04.291.03.01', '04.291.03.03', '04.291.03.11',
+            '04.291.03.09', '04.291.03.07', '04.291.03.13', '04.291.03.05',
+            '04.291.03.17', '04.291.05.09', '04.291.05.03', '04.291.05.05',
+            '04.291.05.01', '04.291.05.11', '04.291.05.13'
+        ]]
     },
     {
         provinceCode: '05.081',
@@ -110,7 +130,13 @@ const PARTITIONS = [
             '05.081.11.05', '05.081.09.17', '05.081.09.21', '05.081.09.03',
             '05.081.09.23', '05.081.09.09', '05.081.03.01', '05.081.03.13'
         ]],
-        complement: ['azilal-demnate', 3]
+        complement: ['azilal-demnate', 3, [
+            '05.081.01.03', '05.081.03.07', '05.081.03.03', '05.081.03.09',
+            '05.081.03.05', '05.081.03.11', '05.081.15.13', '05.081.15.03',
+            '05.081.15.21', '05.081.15.11', '05.081.15.15', '05.081.15.01',
+            '05.081.13.05', '05.081.13.07', '05.081.13.09', '05.081.13.19',
+            '05.081.13.17'
+        ]]
     },
     {
         provinceCode: '09.541',
@@ -126,7 +152,21 @@ const PARTITIONS = [
             '09.541.05.11', '09.541.05.21', '09.541.05.19', '09.541.05.05',
             '09.541.05.33'
         ]],
-        complement: ['taroudant-nord', 3]
+        complement: ['taroudant-nord', 3, [
+            '09.541.01.05', '09.541.01.07', '09.541.01.11', '09.541.01.02',
+            '09.541.03.19', '09.541.03.03', '09.541.03.29', '09.541.03.21',
+            '09.541.03.31', '09.541.03.09', '09.541.03.25', '09.541.03.17',
+            '09.541.03.05', '09.541.03.23', '09.541.03.07', '09.541.03.01',
+            '09.541.03.11', '09.541.03.27', '09.541.03.13', '09.541.03.15',
+            '09.541.04.25', '09.541.04.61', '09.541.04.29', '09.541.04.23',
+            '09.541.04.33', '09.541.04.17', '09.541.04.39', '09.541.04.53',
+            '09.541.04.67', '09.541.04.35', '09.541.04.49', '09.541.04.47',
+            '09.541.04.59', '09.541.04.21', '09.541.04.13', '09.541.04.09',
+            '09.541.04.69', '09.541.07.65', '09.541.07.37', '09.541.07.23',
+            '09.541.07.03', '09.541.07.13', '09.541.07.17', '09.541.07.05',
+            '09.541.07.19', '09.541.07.15', '09.541.07.07', '09.541.07.01',
+            '09.541.07.09', '09.541.07.25', '09.541.07.21', '09.541.07.11'
+        ]]
     }
 ];
 
@@ -158,67 +198,7 @@ const SHARE_ONLY = [
     ]]
 ];
 
-function sleep(milliseconds) {
-    return new Promise(resolvePromise => setTimeout(resolvePromise, milliseconds));
-}
-
-async function getJson(path, attempts = 4) {
-    let error;
-    for (let attempt = 1; attempt <= attempts; attempt++) {
-        try {
-            const response = await fetch(`${API}${path}`, { headers: { accept: 'application/json' } });
-            if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-            return await response.json();
-        } catch (caught) {
-            error = caught;
-            if (attempt < attempts) await sleep(250 * attempt);
-        }
-    }
-    throw new Error(`Could not fetch ${path}: ${error?.message || error}`);
-}
-
-async function provinceCommuneCodes(provinceCode) {
-    const first = await getJson(`/api/communes?province=${encodeURIComponent(provinceCode)}&page=1`);
-    const rows = [...first.data];
-    for (let page = 2; page <= first.meta.totalPages; page++) {
-        const response = await getJson(`/api/communes?province=${encodeURIComponent(provinceCode)}&page=${page}`);
-        rows.push(...response.data);
-    }
-    if (rows.length !== first.meta.total) throw new Error(`Incomplete commune list for ${provinceCode}`);
-    return rows.map(row => row.code);
-}
-
-function legalPopulation(part) {
-    return part?.all?.population?.legal;
-}
-
-async function demographic(component) {
-    const [collection, code] = component.split(':');
-    const response = await getJson(`/api/${collection}/${code}/indicators`);
-    const data = response.data;
-    const total = legalPopulation(data.people?.total);
-    const urban = legalPopulation(data.people?.urban) ?? 0;
-    const rural = legalPopulation(data.people?.rural) ?? 0;
-    if (![total, urban, rural].every(Number.isSafeInteger) || total <= 0 || urban + rural !== total) {
-        throw new Error(`Invalid urban/rural population for ${component}: ${total}/${urban}/${rural}`);
-    }
-    return { total, urban, rural };
-}
-
-async function concurrentMap(values, concurrency, mapper) {
-    const output = new Array(values.length);
-    let next = 0;
-    async function worker() {
-        while (next < values.length) {
-            const index = next++;
-            output[index] = await mapper(values[index], index);
-        }
-    }
-    await Promise.all(Array.from({ length: Math.min(concurrency, values.length) }, worker));
-    return output;
-}
-
-async function buildCrosswalk() {
+function buildCrosswalk(source) {
     const rows = FULL.map(([constituencyCode, allocatedSeats, provinceCode]) => ({
         constituencyCode, allocatedSeats, componentCodes: [p(provinceCode)], populationCoverage: 'exact'
     }));
@@ -226,19 +206,14 @@ async function buildCrosswalk() {
         constituencyCode, allocatedSeats, componentCodes, populationCoverage: 'exact'
     })));
     for (const partition of PARTITIONS) {
-        const all = await provinceCommuneCodes(partition.provinceCode);
+        const all = source.partitionParentCodes?.[partition.provinceCode];
         const [explicitCode, explicitSeats, explicitCodes] = partition.explicit;
-        const explicitSet = new Set(explicitCodes);
-        if (explicitSet.size !== explicitCodes.length || explicitCodes.some(code => !all.includes(code))) {
-            throw new Error(`Invalid explicit partition for ${partition.provinceCode}`);
-        }
-        const complementCodes = all.filter(code => !explicitSet.has(code));
-        if (explicitCodes.length + complementCodes.length !== all.length || !complementCodes.length) {
-            throw new Error(`Invalid complement partition for ${partition.provinceCode}`);
-        }
+        const [complementCode, complementSeats, complementCodes] = partition.complement;
+        validateExactPartition(partition.provinceCode, all,
+            [[explicitCode, explicitCodes], [complementCode, complementCodes]]);
         rows.push({ constituencyCode: explicitCode, allocatedSeats: explicitSeats,
             componentCodes: explicitCodes.map(c), populationCoverage: 'exact' });
-        rows.push({ constituencyCode: partition.complement[0], allocatedSeats: partition.complement[1],
+        rows.push({ constituencyCode: complementCode, allocatedSeats: complementSeats,
             componentCodes: complementCodes.map(c), populationCoverage: 'exact' });
     }
     rows.push(...SHARE_ONLY.map(([constituencyCode, allocatedSeats, componentCodes]) => ({
@@ -250,6 +225,38 @@ async function buildCrosswalk() {
         throw new Error('Crosswalk must contain exactly 92 constituencies and 305 local seats');
     }
     return rows;
+}
+
+function validatePinnedSource(source, rows) {
+    if (source?.schemaVersion !== 1 || source.datasetVersion !== SOURCE.datasetVersion
+            || source.censusYear !== SOURCE.censusYear || source.sourceUrl !== SOURCE.sourceUrl
+            || source.sourceLabel !== SOURCE.sourceLabel || source.decreeUrl !== SOURCE.decreeUrl
+            || source.decreeLabel !== SOURCE.decreeLabel || source.revisedAt !== SOURCE.revisedAt
+            || source.localSeatTotal !== SOURCE.localSeatTotal
+            || source.excludedRegionalSeatTotal !== SOURCE.excludedRegionalSeatTotal
+            || source.license !== 'CC BY 4.0'
+            || !/^[a-f0-9]{64}$/.test(source.sourceDatasetSha256 || '')) {
+        throw new Error('Pinned demographic source metadata does not match the declared source revision');
+    }
+    if (!Array.isArray(source.constituencies) || source.constituencies.length !== rows.length) {
+        throw new Error('Pinned demographic source must contain all 92 constituencies');
+    }
+    validatePinnedCrosswalk(rows, source.constituencies);
+    const pinnedByCode = new Map(source.constituencies.map(row => [row.constituencyCode, row]));
+    for (const row of rows) {
+        const pinned = pinnedByCode.get(row.constituencyCode);
+        if (row.populationCoverage === 'exact') {
+            if (![pinned.totalPopulation, pinned.urbanPopulation, pinned.ruralPopulation]
+                    .every(Number.isSafeInteger) || pinned.totalPopulation <= 0
+                    || pinned.urbanPopulation + pinned.ruralPopulation !== pinned.totalPopulation
+                    || Math.abs(pinned.urbanShare - 100 * pinned.urbanPopulation / pinned.totalPopulation) > 1e-9) {
+                throw new Error(`Invalid pinned population for ${row.constituencyCode}`);
+            }
+        } else if (pinned.urbanShare !== 100 || pinned.totalPopulation !== undefined
+                || pinned.urbanPopulation !== undefined || pinned.ruralPopulation !== undefined) {
+            throw new Error(`Invalid share-only population for ${row.constituencyCode}`);
+        }
+    }
 }
 
 function serialize(data) {
@@ -266,23 +273,10 @@ function serialize(data) {
 }
 
 async function main() {
-    const rows = await buildCrosswalk();
-    const components = [...new Set(rows.filter(row => row.populationCoverage === 'exact')
-        .flatMap(row => row.componentCodes))].sort();
-    const values = await concurrentMap(components, 12, demographic);
-    const populationByComponent = new Map(components.map((code, index) => [code, values[index]]));
-    const constituencies = rows.map(row => {
-        if (row.populationCoverage === 'share-only') return row;
-        const totals = row.componentCodes.reduce((sum, code) => {
-            const population = populationByComponent.get(code);
-            return {
-                totalPopulation: sum.totalPopulation + population.total,
-                urbanPopulation: sum.urbanPopulation + population.urban,
-                ruralPopulation: sum.ruralPopulation + population.rural
-            };
-        }, { totalPopulation: 0, urbanPopulation: 0, ruralPopulation: 0 });
-        return { ...row, ...totals, urbanShare: 100 * totals.urbanPopulation / totals.totalPopulation };
-    });
+    const source = JSON.parse(await readFile(PINNED_SOURCE, 'utf8'));
+    const rows = buildCrosswalk(source);
+    validatePinnedSource(source, rows);
+    const constituencies = source.constituencies;
     const result = { ...SOURCE, license: 'CC BY 4.0', constituencies };
     await mkdir(dirname(OUTPUT), { recursive: true });
     await writeFile(OUTPUT, serialize(result), 'utf8');

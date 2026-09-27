@@ -425,7 +425,9 @@ test('urbanization representation weights local seats by their actual constituen
         censusYear: 2024,
         sourceUrl: 'https://communes.pages.dev/data/v1/sources.json',
         decreeUrl: 'https://www.sgg.gov.ma/BO/bo_ar/2011/BO_5988_Ar.pdf',
-        revisedAt: '2026-09-27'
+        revisedAt: '2026-09-27',
+        exactConstituencyCount: 92,
+        shareOnlyConstituencyCount: 0
     });
     assert.deepEqual(result.national, {
         constituencyCount: 92,
@@ -446,8 +448,22 @@ test('urbanization representation weights local seats by their actual constituen
     assert.equal(pud.localSeats, 1);
     assert.equal(pud.urbanizationIndex, 80);
     assert.equal(pud.ruralityIndex, 20);
-    assert.equal(pud.differenceFromNational, pud.urbanizationIndex - result.national.urbanizationIndex);
+    assert.equal(pud.differenceFromNational, 80 - (299 * 25 + 6 * 80) / 305);
     assert.deepEqual(pud.constituencyRows.map(row => [row.code, row.partyLocalSeats]), [['C092', 1]]);
+});
+
+test('a chamber-neutral local-seat footprint has exactly zero difference from the national baseline', () => {
+    const input = completeAtlasSnapshot();
+    const demographics = constituencyDemographics(input);
+    for (const row of demographics.constituencies) {
+        row.urbanPopulation = 40;
+        row.ruralPopulation = 60;
+        row.urbanShare = 40;
+    }
+    const result = deriveUrbanizationRepresentation(input, demographics);
+    assert.equal(result.available, true);
+    assert.equal(result.national.urbanizationIndex, 40);
+    assert.ok(result.rows.every(row => row.differenceFromNational === 0));
 });
 
 test('urbanization representation fails closed on incomplete or inconsistent demographics', () => {
@@ -476,6 +492,16 @@ test('urbanization representation fails closed on incomplete or inconsistent dem
     const regionalLeakResult = deriveUrbanizationRepresentation(input, regionalLeak);
     assert.equal(regionalLeakResult.available, false);
     assert.ok(regionalLeakResult.diagnostics.includes('constituency-demographics-seat-totals'));
+
+    const staleShareOnly = constituencyDemographics(input);
+    staleShareOnly.constituencies[0] = {
+        ...staleShareOnly.constituencies[0],
+        populationCoverage: 'share-only',
+        urbanShare: 100
+    };
+    const staleShareOnlyResult = deriveUrbanizationRepresentation(input, staleShareOnly);
+    assert.equal(staleShareOnlyResult.available, false);
+    assert.ok(staleShareOnlyResult.diagnostics.includes('constituency-demographics-population'));
 });
 
 test('urbanization representation leaves election and census inputs untouched', () => {

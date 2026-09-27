@@ -467,7 +467,9 @@
                         || Math.abs(row.urbanShare - 100 * row.urbanPopulation / row.totalPopulation) > 1e-9) {
                     addDiagnostic(diagnostics, 'constituency-demographics-total');
                 }
-            } else if (row.populationCoverage !== 'share-only' || row.urbanShare !== 100) {
+            } else if (row.populationCoverage !== 'share-only' || row.urbanShare !== 100
+                    || row.totalPopulation !== undefined || row.urbanPopulation !== undefined
+                    || row.ruralPopulation !== undefined) {
                 addDiagnostic(diagnostics, 'constituency-demographics-population');
             }
         }
@@ -554,7 +556,9 @@
                 censusYear: demographics.censusYear,
                 sourceUrl: demographics.sourceUrl,
                 decreeUrl: demographics.decreeUrl,
-                revisedAt: demographics.revisedAt
+                revisedAt: demographics.revisedAt,
+                exactConstituencyCount: censusRows.filter(row => row.populationCoverage === 'exact').length,
+                shareOnlyConstituencyCount: censusRows.filter(row => row.populationCoverage === 'share-only').length
             },
             national,
             rows

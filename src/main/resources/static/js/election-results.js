@@ -120,9 +120,9 @@
         urbanizationUrbanShare: 'نسبة السكان الحضريين',
         urbanizationPartySeats: 'مقاعد الحزب المحلية',
         urbanizationAllocatedSeats: 'مقاعد الدائرة',
-        urbanizationSource: 'السكان: إحصاء HCP 2024 عبر Morocco Communes، النسخة {version}.',
+        urbanizationSource: 'معطيات السكان الأصلية على مستوى الجماعات: إحصاء HCP 2024 عبر Morocco Communes، النسخة {version}.',
         urbanizationDecree: 'التقسيم الانتخابي: المرسوم 2.11.603.',
-        urbanizationMethod: 'كل مقعد محلي كياخذ نسبة السكان الحضريين فالدائرة ديالو. المؤشر هو متوسط المقاعد المحلية ديال الحزب، والمقاعد الجهوية الـ90 مستثناة.',
+        urbanizationMethod: 'هاد مؤشر مشتق ففهمني من مطابقة الجماعات مع حدود الدوائر فالمرسوم. {exactCount} دائرة عندها أعداد سكان قابلة للجمع، و{shareOnlyCount} فالرباط عندهم غير نسبة 100% حضرية بلا أعداد سكان قابلة للتقسيم بين الملحقات. المؤشر هو متوسط المقاعد المحلية ديال الحزب، والمقاعد الجهوية الـ90 مستثناة.',
         urbanizationUnavailable: 'المعطيات الكاملة ديال 305 مقعد محلي والسكان حسب الدوائر مازال ما متوفراش.'
     });
     Object.assign(ATLAS_COPY.fr, {
@@ -141,9 +141,9 @@
         urbanizationUrbanShare: 'Part de population urbaine',
         urbanizationPartySeats: 'Sièges locaux du parti',
         urbanizationAllocatedSeats: 'Sièges de la circonscription',
-        urbanizationSource: 'Population : RGPH 2024 du HCP via Morocco Communes, version {version}.',
+        urbanizationSource: 'Données démographiques communales : RGPH 2024 du HCP via Morocco Communes, version {version}.',
         urbanizationDecree: 'Découpage électoral : décret 2.11.603.',
-        urbanizationMethod: 'Chaque siège local reçoit la part urbaine de sa circonscription ; l’indice est la moyenne des sièges locaux du parti. Les 90 sièges régionaux sont exclus.',
+        urbanizationMethod: 'Indice dérivé par Fhemni en faisant correspondre les communes aux limites du décret. {exactCount} circonscriptions ont des populations additionnables ; les {shareOnlyCount} circonscriptions de Rabat n’ont qu’une part urbaine de 100 %, sans population répartissable entre leurs annexes. L’indice est la moyenne des sièges locaux du parti ; les 90 sièges régionaux sont exclus.',
         urbanizationUnavailable: 'Les données complètes des 305 sièges locaux et de leurs circonscriptions ne sont pas disponibles.'
     });
     Object.assign(ATLAS_COPY.en, {
@@ -162,9 +162,9 @@
         urbanizationUrbanShare: 'Urban population share',
         urbanizationPartySeats: 'Party local seats',
         urbanizationAllocatedSeats: 'Constituency seats',
-        urbanizationSource: 'Population: HCP RGPH 2024 via Morocco Communes, version {version}.',
+        urbanizationSource: 'Original commune-level population data: HCP RGPH 2024 via Morocco Communes, version {version}.',
         urbanizationDecree: 'Electoral boundaries: Decree 2.11.603.',
-        urbanizationMethod: 'Each local seat takes its constituency’s urban population share; the index averages those values across a party’s local seats. The 90 regional-list seats are excluded.',
+        urbanizationMethod: 'This is a Fhemni-derived index built by matching communes to the decree’s constituency boundaries. {exactCount} constituencies have additive population totals; the {shareOnlyCount} Rabat constituencies carry only a 100% urban share because their annex populations cannot be split. The index averages those values across a party’s local seats; the 90 regional-list seats are excluded.',
         urbanizationUnavailable: 'Complete data for the 305 local seats and their constituencies are not available.'
     });
 
@@ -249,7 +249,12 @@
     }
 
     function localizedCountPhrase(value, noun, options = {}) {
-        return locale === 'ar' ? arabicCountPhrase(value, noun, options) : number(value);
+        if (locale === 'ar') return arabicCountPhrase(value, noun, options);
+        const count = Number(value);
+        const formatted = number(count);
+        if (!options.includeNoun) return formatted;
+        if (noun === 'seat') return `${formatted} ${count === 1 ? copy.seat : copy.seats}`;
+        return formatted;
     }
 
     function constituencyBinLabel(atlas, seats) {
@@ -1088,11 +1093,8 @@
         const identity = element('span', 'election-atlas-urbanization-identity');
         identity.append(element('bdi', 'election-atlas-party-code', row.code),
             element('bdi', 'election-atlas-party-name', row.name || row.code));
-        const localizedSeats = locale === 'ar'
-            ? localizedCountPhrase(row.localSeats, 'seat')
-            : `${number(row.localSeats)} ${row.localSeats === 1 ? copy.seat : copy.seats}`;
+        const localizedSeats = localizedCountPhrase(row.localSeats, 'seat', { includeNoun: true });
         const seatCount = format(atlas.urbanizationSeatCount, {
-            seats: number(row.localSeats),
             seatCount: localizedSeats
         });
         item.append(identity, element('span', 'election-atlas-urbanization-seats', seatCount),
@@ -1177,7 +1179,10 @@
             })));
             content.append(urbanizationRegionTable(selected, atlas));
         }
-        content.append(element('p', 'election-atlas-denominator', atlas.urbanizationMethod));
+        content.append(element('p', 'election-atlas-denominator', format(atlas.urbanizationMethod, {
+            exactCount: number(data.source.exactConstituencyCount),
+            shareOnlyCount: localizedCountPhrase(data.source.shareOnlyConstituencyCount, 'constituency', { oblique: true })
+        })));
         const source = element('p', 'election-atlas-urbanization-source');
         const link = element('a', '', format(atlas.urbanizationSource, { version: data.source.datasetVersion }));
         link.href = data.source.sourceUrl;
