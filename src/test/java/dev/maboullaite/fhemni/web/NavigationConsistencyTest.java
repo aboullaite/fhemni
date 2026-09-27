@@ -96,7 +96,7 @@ class NavigationConsistencyTest {
                 .contains("id=\"electionRegionFilterStatus\"")
                 .contains("role=\"status\" aria-live=\"polite\" aria-atomic=\"true\"")
                 .contains("/js/election-region-filters.js?v=20260925-1")
-                .contains("/js/election-results.js?v=20260927-2")
+                .contains("/js/election-results.js?v=20260927-3")
                 .doesNotContain("style=\"");
         assertThat(html("js/election-region-filters.js"))
                 .contains("function filterRegion(region, state = {})")
@@ -225,6 +225,49 @@ class NavigationConsistencyTest {
                 .contains("renderNational(); renderAtlas(options); renderCoalitionParties()")
                 .contains("load({ fresh: true })")
                 .doesNotContain("setInterval(");
+    }
+
+    @Test
+    void electionResultTabGroupUsesSelectedLanguage() throws Exception {
+        String controllerPath = new ClassPathResource("static/js/election-results.js").getFile().getAbsolutePath();
+        String harness = """
+                const assert = require('node:assert/strict');
+                const fs = require('node:fs');
+                const vm = require('node:vm');
+                const script = fs.readFileSync(process.argv[1], 'utf8').replace(
+                    "document.addEventListener('DOMContentLoaded', init);",
+                    "globalThis.__test = { applyCopy, use(next) { locale = next; copy = COPY[next]; } };"
+                );
+                const nodes = new Map();
+                const node = id => {
+                    if (!nodes.has(id)) nodes.set(id, {
+                        attrs: {}, setAttribute(name, value) { this.attrs[name] = value; }
+                    });
+                    return nodes.get(id);
+                };
+                const document = { documentElement: {}, getElementById: node, addEventListener() {} };
+                const window = { FhemniElectionRegionFilters: {
+                    SEAT_TYPES: {}, normalizeState() { return {}; }, createDeferredAction() { return {}; }
+                } };
+                const sandbox = { document, window };
+                vm.runInNewContext(script, sandbox);
+                for (const [locale, expected, direction] of [
+                    ['ar', 'طرق عرض نتائج الانتخابات', 'rtl'],
+                    ['fr', 'Vues des résultats électoraux', 'ltr'],
+                    ['en', 'Election result views', 'ltr']
+                ]) {
+                    sandbox.__test.use(locale);
+                    sandbox.__test.applyCopy();
+                    assert.equal(node('electionTabs').attrs['aria-label'], expected);
+                    assert.equal(document.documentElement.dir, direction);
+                }
+                """;
+        Process process = new ProcessBuilder("node", "-e", harness, controllerPath)
+                .redirectErrorStream(true).start();
+        String output = new String(process.getInputStream().readAllBytes(), UTF_8);
+        assertThat(process.waitFor()).as(output).isZero();
+        assertThat(html("election-results.html"))
+                .contains("class=\"election-tabs\" role=\"tablist\" aria-label=\"طرق عرض نتائج الانتخابات\"");
     }
 
     @Test
