@@ -369,11 +369,14 @@
         const figuresOpen = root.querySelector('.election-atlas-figures')?.open;
         if (figuresOpen) content.querySelector('.election-atlas-figures')?.setAttribute('open', '');
         root.replaceChildren(content);
-        if (key && !options.poll) {
-            const replacement = [...root.querySelectorAll('[data-atlas-key]')].find(node => node.dataset.atlasKey === key);
+        const focusKey = options.focusKey || key;
+        if (focusKey && !options.poll) {
+            const replacement = [...root.querySelectorAll('[data-atlas-key]')]
+                .find(node => node.dataset.atlasKey === focusKey && !node.disabled);
             if (replacement) {
                 replacement.focus({ preventScroll: true });
-                if (selection && replacement instanceof HTMLInputElement && selection.every(value => value !== null)) {
+                if (focusKey === key && selection && replacement instanceof HTMLInputElement
+                        && selection.every(value => value !== null)) {
                     replacement.setSelectionRange(...selection);
                 }
             }
@@ -929,7 +932,12 @@
                 if (field === 'constituencySeats') atlasState.constituencySeats = null;
                 else state[field] = field === 'seatType' ? 'all' : '';
                 state.page = 1;
-                renderRepresentativeHandoff({ controlChange: true });
+                const focusKey = {
+                    query: 'representatives-search', regionCode: 'representatives-region',
+                    constituencyCode: 'representatives-constituency', partyCode: 'representatives-party',
+                    seatType: 'representatives-seat-type', constituencySeats: 'representatives-search'
+                }[field];
+                renderRepresentativeHandoff({ controlChange: true, focusKey });
                 if (field === 'constituencySeats') renderConstituencies();
             });
             chips.append(button);
@@ -1017,11 +1025,15 @@
             Object.assign(state, { query: '', regionCode: '', constituencyCode: '', partyCode: '', seatType: 'all', page: 1 });
             atlasState.constituencySeats = null;
             renderConstituencies();
-            renderRepresentativeHandoff({ controlChange: true });
+            renderRepresentativeHandoff({ controlChange: true, focusKey: 'representatives-search' });
         });
         content.append(reset);
-        content.append(element('p', 'election-atlas-representative-count',
-            format(atlas.representativesResultCount, { count: number(data.filteredCount) })));
+        const resultCount = element('p', 'election-atlas-representative-count',
+            format(atlas.representativesResultCount, { count: number(data.filteredCount) }));
+        resultCount.tabIndex = -1;
+        resultCount.dataset.atlasKey = 'representatives-result-count';
+        resultCount.setAttribute('data-atlas-key', 'representatives-result-count');
+        content.append(resultCount);
         const pages = Math.max(1, Math.ceil(data.filteredCount / REPRESENTATIVE_PAGE_SIZE));
         state.page = Math.min(state.page, pages);
         const visible = data.records.slice(0, state.page * REPRESENTATIVE_PAGE_SIZE);
@@ -1036,7 +1048,8 @@
         more.addEventListener('click', () => {
             if (state.page >= pages) return;
             state.page++;
-            renderRepresentativeHandoff({ controlChange: 'page' });
+            renderRepresentativeHandoff({ controlChange: 'page', focusKey: state.page >= pages
+                ? 'representatives-result-count' : 'representatives-load-more' });
         });
         paging.append(more);
         content.append(paging);

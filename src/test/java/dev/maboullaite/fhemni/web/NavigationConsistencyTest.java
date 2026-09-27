@@ -353,7 +353,7 @@ class NavigationConsistencyTest {
     }
 
     @Test
-    void electionAtlasDirectoryLoadsEveryRecordAndKeepsKeyboardFocusOnThePagingControl() throws Exception {
+    void electionAtlasDirectoryKeepsFocusAfterChipResetAndFinalPageActions() throws Exception {
         String controllerPath = new ClassPathResource("static/js/election-results.js").getFile().getAbsolutePath();
         String harness = """
                 const assert = require('node:assert/strict');
@@ -375,7 +375,7 @@ class NavigationConsistencyTest {
                         querySelectorAll(selector) { return visit(this).filter(item => item.dataset.atlasKey && selector === '[data-atlas-key]'); },
                         setAttribute(name, value) { if (name === 'data-atlas-key') this.dataset.atlasKey = value; },
                         addEventListener(name, callback) { this.listeners[name] = callback; },
-                        focus() { document.activeElement = this; }
+                        focus() { if (!this.disabled) document.activeElement = this; }
                     };
                     return node;
                 }
@@ -434,19 +434,26 @@ class NavigationConsistencyTest {
                 more.listeners.click();
                 assert.equal(count('election-atlas-representative-card'), 26);
                 assert.equal(find('representatives-load-more').disabled, true);
-                assert.equal(document.activeElement, find('representatives-load-more'));
+                assert.equal(document.activeElement, find('representatives-result-count'));
                 assert.match(status.textContent, /Page 2 of 2/);
                 assert.ok(visit(root).some(node => node.textContent === 'Not published'));
                 assert.ok(visit(root).some(node => node.textContent === '0'));
                 sandbox.__atlasState.representatives.query = 'Candidate';
                 sandbox.__renderDirectory();
                 assert.match(find('representatives-chip-query').textContent, /Candidate/);
+                const onlyChip = find('representatives-chip-query');
+                document.activeElement = onlyChip;
+                onlyChip.listeners.click();
+                assert.equal(sandbox.__atlasState.representatives.query, '');
+                assert.equal(document.activeElement, find('representatives-search'));
+                sandbox.__atlasState.representatives.query = 'Candidate';
+                sandbox.__renderDirectory();
                 const reset = find('representatives-reset');
                 document.activeElement = reset;
                 reset.listeners.click();
                 assert.equal(sandbox.__atlasState.representatives.query, '');
                 assert.equal(find('representatives-reset').disabled, true);
-                assert.equal(document.activeElement, find('representatives-reset'));
+                assert.equal(document.activeElement, find('representatives-search'));
                 """;
         Process process = new ProcessBuilder("node", "-e", harness, controllerPath)
                 .redirectErrorStream(true).start();
