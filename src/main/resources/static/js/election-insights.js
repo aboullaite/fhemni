@@ -245,5 +245,274 @@
         };
     }
 
-    return { auditSnapshot, deriveBallotComponents, deriveBallotSeatComparison, deriveConcentration };
+    function seatDiagnostics(snapshot) {
+        const diagnostics = [];
+        const parties = Array.isArray(snapshot?.parties) ? snapshot.parties : [];
+        if (!['FINAL', 'CORRECTED'].includes(snapshot?.election?.status)) addDiagnostic(diagnostics, 'election-status');
+        if (parties.length !== 28) addDiagnostic(diagnostics, 'party-count');
+        const codes = new Set();
+        let seats = 0;
+        for (const party of parties) {
+            if (!party || !CANONICAL_CODES.has(party.code) || codes.has(party.code)) {
+                addDiagnostic(diagnostics, 'canonical-code');
+                continue;
+            }
+            codes.add(party.code);
+            if (![party.localSeats, party.regionalListSeats, party.totalSeats].every(integer)
+                    || party.localSeats + party.regionalListSeats !== party.totalSeats) {
+                addDiagnostic(diagnostics, 'seat-row-total');
+                continue;
+            }
+            seats += party.totalSeats;
+        }
+        if (codes.size !== 28) addDiagnostic(diagnostics, 'canonical-code');
+        if (seats !== SEAT_TOTAL || snapshot?.election?.totalSeats !== SEAT_TOTAL
+                || snapshot?.election?.declaredSeats !== SEAT_TOTAL) addDiagnostic(diagnostics, 'seat-total');
+        return diagnostics;
+    }
+
+    function buildRegionMatrix(snapshot) {
+        const diagnostics = seatDiagnostics(snapshot);
+        const regions = Array.isArray(snapshot?.regions) ? snapshot.regions : [];
+        if (regions.length !== 12) addDiagnostic(diagnostics, 'region-count');
+        const regionCodes = new Set();
+        const represented = (snapshot?.parties || []).filter(party => integer(party?.totalSeats) && party.totalSeats > 0);
+        const partyCodes = represented.map(party => party.code);
+        if (represented.length !== 14) addDiagnostic(diagnostics, 'represented-party-count');
+        const partyTotals = new Map(partyCodes.map(code => [code, 0]));
+        const localPartyTotals = new Map(partyCodes.map(code => [code, 0]));
+        const regionalPartyTotals = new Map(partyCodes.map(code => [code, 0]));
+        let totalSeats = 0;
+        let maxSeats = 0;
+        const rows = [];
+        for (const region of regions) {
+            if (!region?.code || regionCodes.has(region.code)) addDiagnostic(diagnostics, 'region-code');
+            else regionCodes.add(region.code);
+            if (region?.status !== 'FINAL') addDiagnostic(diagnostics, 'region-status');
+            if (!integer(region?.allocatedSeats) || !integer(region?.declaredSeats)) {
+                addDiagnostic(diagnostics, 'region-allocation');
+            }
+            const entries = Array.isArray(region?.parties) ? region.parties : [];
+            if (!Array.isArray(region?.parties)) addDiagnostic(diagnostics, 'region-party-rows');
+            const byCode = new Map();
+            let rowSeats = 0;
+            for (const party of entries) {
+                if (!partyCodes.includes(party?.code) || byCode.has(party.code)) {
+                    addDiagnostic(diagnostics, 'region-party-code');
+                    continue;
+                }
+                byCode.set(party.code, party);
+                if (![party.localSeats, party.regionalListSeats, party.totalSeats].every(integer)
+                        || party.localSeats + party.regionalListSeats !== party.totalSeats) {
+                    addDiagnostic(diagnostics, 'region-party-seats');
+                    continue;
+                }
+                rowSeats += party.totalSeats;
+                partyTotals.set(party.code, partyTotals.get(party.code) + party.totalSeats);
+                localPartyTotals.set(party.code, localPartyTotals.get(party.code) + party.localSeats);
+                regionalPartyTotals.set(party.code, regionalPartyTotals.get(party.code) + party.regionalListSeats);
+            }
+            if (rowSeats !== region?.allocatedSeats || rowSeats !== region?.declaredSeats) {
+                addDiagnostic(diagnostics, 'region-allocation');
+            }
+            const cells = partyCodes.map(code => {
+                const seats = byCode.get(code)?.totalSeats ?? 0;
+                if (integer(seats)) maxSeats = Math.max(maxSeats, seats);
+                return { code, seats };
+            });
+            rows.push({ code: region?.code, name: region?.name, totalSeats: rowSeats, cells });
+            totalSeats += rowSeats;
+        }
+        for (const party of represented) {
+            if (partyTotals.get(party.code) !== party.totalSeats
+                    || localPartyTotals.get(party.code) !== party.localSeats
+                    || regionalPartyTotals.get(party.code) !== party.regionalListSeats) {
+                addDiagnostic(diagnostics, 'party-region-total');
+            }
+        }
+        if (totalSeats !== SEAT_TOTAL) addDiagnostic(diagnostics, 'region-total');
+        if (diagnostics.length) return { available: false, diagnostics, rows: [], partyCodes: [], totalSeats: null, maxSeats: null };
+        return {
+            available: true,
+            diagnostics: [],
+            rows: rows.map(row => ({ ...row, cells: row.cells.map(cell => ({ ...cell, maxSeats })) })),
+            partyCodes,
+            totalSeats,
+            maxSeats
+        };
+    }
+
+    function deriveRegionDelegation(snapshot, regionCode) {
+        const matrix = buildRegionMatrix(snapshot);
+        if (!matrix.available) return { available: false, diagnostics: matrix.diagnostics, rows: [] };
+        const region = matrix.rows.find(row => row.code === regionCode);
+        if (!region) return { available: false, diagnostics: ['unknown-region'], rows: [] };
+        const parties = new Map(snapshot.parties.map(party => [party.code, party]));
+        const rows = region.cells.filter(cell => cell.seats > 0).map(cell => ({
+            code: cell.code,
+            name: parties.get(cell.code).name,
+            seats: cell.seats,
+            share: 100 * cell.seats / region.totalSeats
+        })).sort((left, right) => right.seats - left.seats || codeOrder(left, right));
+        return {
+            available: true,
+            diagnostics: [],
+            regionCode,
+            delegationSeats: region.totalSeats,
+            representedPartyCount: rows.length,
+            largestPartyCodes: rows.filter(row => row.seats === rows[0]?.seats).map(row => row.code),
+            rows
+        };
+    }
+
+    function derivePartyGeography(snapshot, partyCode) {
+        const matrix = buildRegionMatrix(snapshot);
+        if (!matrix.available) return { available: false, diagnostics: matrix.diagnostics, rows: [] };
+        const constituencies = deriveConstituencyDistribution(snapshot);
+        if (!constituencies.available) return { available: false, diagnostics: constituencies.diagnostics, rows: [] };
+        const party = snapshot.parties.find(row => row.code === partyCode && row.totalSeats > 0);
+        if (!party) return { available: false, diagnostics: ['unknown-party'], rows: [] };
+        const rows = matrix.rows.map(region => {
+            const seats = region.cells.find(cell => cell.code === partyCode).seats;
+            return {
+                code: region.code,
+                name: region.name,
+                seats,
+                delegationSeats: region.totalSeats,
+                share: 100 * seats / party.totalSeats
+            };
+        });
+        const constituencyCodes = new Set();
+        for (const region of snapshot.regions) {
+            for (const regionalParty of region.parties) {
+                if (regionalParty.code !== partyCode) continue;
+                for (const winner of regionalParty.winners || []) {
+                    if (winner.constituencyCode) constituencyCodes.add(winner.constituencyCode);
+                }
+            }
+        }
+        return {
+            available: true,
+            diagnostics: [],
+            partyCode,
+            totalSeats: party.totalSeats,
+            localSeats: party.localSeats,
+            regionalListSeats: party.regionalListSeats,
+            representedRegionCount: rows.filter(row => row.seats > 0).length,
+            constituencyBreadth: constituencyCodes.size,
+            rows
+        };
+    }
+
+    function deriveConstituencyDistribution(snapshot) {
+        const matrix = buildRegionMatrix(snapshot);
+        if (!matrix.available) return { available: false, diagnostics: matrix.diagnostics, bins: [] };
+        const diagnostics = [];
+        const constituencies = new Map();
+        let winnerCount = 0;
+        for (const region of snapshot.regions) {
+            for (const party of region.parties) {
+                for (const winner of party.winners || []) {
+                    winnerCount++;
+                    if (!winner.constituencyCode || !integer(winner.allocatedSeats)
+                            || winner.allocatedSeats < 2 || winner.allocatedSeats > 6) {
+                        addDiagnostic(diagnostics, 'constituency-allocation');
+                        continue;
+                    }
+                    const previous = constituencies.get(winner.constituencyCode);
+                    if (previous && (previous.allocatedSeats !== winner.allocatedSeats
+                            || previous.regionCode !== region.code)) {
+                        addDiagnostic(diagnostics, 'constituency-allocation');
+                    } else if (previous) previous.winnerCount++;
+                    else constituencies.set(winner.constituencyCode, {
+                        code: winner.constituencyCode,
+                        name: winner.constituencyName,
+                        regionCode: region.code,
+                        allocatedSeats: winner.allocatedSeats,
+                        winnerCount: 1
+                    });
+                }
+            }
+        }
+        if (winnerCount !== 305 || constituencies.size !== 92) addDiagnostic(diagnostics, 'constituency-count');
+        const allocatedTotal = [...constituencies.values()].reduce((sum, row) => sum + row.allocatedSeats, 0);
+        if (allocatedTotal !== 305 || [...constituencies.values()].some(row => row.winnerCount !== row.allocatedSeats)) {
+            addDiagnostic(diagnostics, 'constituency-allocation');
+        }
+        if (diagnostics.length) return { available: false, diagnostics, bins: [] };
+        const bins = [2, 3, 4, 5, 6].map(seats => ({
+            seats,
+            constituencies: [...constituencies.values()].filter(row => row.allocatedSeats === seats).length,
+            items: [...constituencies.values()].filter(row => row.allocatedSeats === seats)
+        }));
+        return { available: true, diagnostics: [], constituencyCount: 92, localSeats: 305, bins };
+    }
+
+    function normalized(value) {
+        return String(value ?? '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim();
+    }
+
+    function indexRepresentatives(snapshot, filters = {}) {
+        const matrix = buildRegionMatrix(snapshot);
+        if (!matrix.available) return { available: false, diagnostics: matrix.diagnostics, records: [] };
+        const constituencies = deriveConstituencyDistribution(snapshot);
+        if (!constituencies.available) return { available: false, diagnostics: constituencies.diagnostics, records: [] };
+        const diagnostics = [];
+        const identities = new Set();
+        const records = [];
+        let localCount = 0;
+        let regionalCount = 0;
+        for (const region of snapshot.regions) {
+            for (const party of region.parties) {
+                const localWinners = Array.isArray(party.winners) ? party.winners : [];
+                const regionalWinners = Array.isArray(party.regionalListWinners) ? party.regionalListWinners : [];
+                if (localWinners.length !== party.localSeats || regionalWinners.length !== party.regionalListSeats) {
+                    addDiagnostic(diagnostics, 'winner-seat-total');
+                }
+                for (const winner of localWinners) {
+                    localCount++;
+                    const identity = winner.candidateKey
+                        ? `key:${winner.candidateKey}`
+                        : `local:${region.code}:${winner.constituencyCode}:${normalized(winner.candidateName)}`;
+                    if (identities.has(identity)) addDiagnostic(diagnostics, 'duplicate-candidate');
+                    identities.add(identity);
+                    if (!winner.candidateName || !winner.constituencyCode || !integer(winner.allocatedSeats)) {
+                        addDiagnostic(diagnostics, 'winner-identity');
+                    }
+                    records.push({ candidateKey: winner.candidateKey ?? null, candidateName: winner.candidateName,
+                        partyCode: party.code, partyName: party.name, regionCode: region.code, regionName: region.name,
+                        constituencyCode: winner.constituencyCode, constituencyName: winner.constituencyName,
+                        seatType: 'LOCAL', votes: winner.votes ?? null });
+                }
+                for (const winner of regionalWinners) {
+                    regionalCount++;
+                    const identity = winner.candidateKey
+                        ? `key:${winner.candidateKey}` : `regional:${region.code}:${normalized(winner.candidateName)}`;
+                    if (identities.has(identity)) addDiagnostic(diagnostics, 'duplicate-candidate');
+                    identities.add(identity);
+                    if (!winner.candidateName) addDiagnostic(diagnostics, 'winner-identity');
+                    records.push({ candidateKey: winner.candidateKey ?? null, candidateName: winner.candidateName,
+                        partyCode: party.code, partyName: party.name, regionCode: region.code, regionName: region.name,
+                        constituencyCode: null, constituencyName: null, seatType: 'REGIONAL', votes: null });
+                }
+            }
+        }
+        if (localCount !== 305 || regionalCount !== 90 || records.length !== 395) {
+            addDiagnostic(diagnostics, 'representative-count');
+        }
+        if (diagnostics.length) return { available: false, diagnostics, records: [], totalRecords: null };
+        const query = normalized(filters.query);
+        const filtered = records.filter(row =>
+            (!query || [row.candidateName, row.constituencyName, row.constituencyCode]
+                .some(value => normalized(value).includes(query)))
+            && (!filters.regionCode || row.regionCode === filters.regionCode)
+            && (!filters.constituencyCode || row.constituencyCode === filters.constituencyCode)
+            && (!filters.partyCode || row.partyCode === filters.partyCode)
+            && (!filters.seatType || filters.seatType === 'ALL' || row.seatType === filters.seatType));
+        return { available: true, diagnostics: [], totalRecords: 395, filteredCount: filtered.length, records: filtered };
+    }
+
+    return { auditSnapshot, deriveBallotComponents, deriveBallotSeatComparison, deriveConcentration,
+        buildRegionMatrix, deriveRegionDelegation, derivePartyGeography,
+        deriveConstituencyDistribution, indexRepresentatives };
 });

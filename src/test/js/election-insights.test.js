@@ -5,7 +5,12 @@ const {
     auditSnapshot,
     deriveBallotComponents,
     deriveBallotSeatComparison,
-    deriveConcentration
+    deriveConcentration,
+    buildRegionMatrix,
+    deriveRegionDelegation,
+    derivePartyGeography,
+    deriveConstituencyDistribution,
+    indexRepresentatives
 } = require('../../main/resources/static/js/election-insights.js');
 
 // [code, local ballots, regional-list ballots, combined ballots, local seats, regional-list seats, all seats]
@@ -47,6 +52,60 @@ function snapshot(rows = APPROVED_ROWS, status = 'FINAL') {
             code, name: code, localVotes, regionalVotes, votes, localSeats, regionalListSeats, totalSeats
         }))
     };
+}
+
+function completeAtlasSnapshot() {
+    const input = snapshot();
+    const regionCodes = Array.from({ length: 12 }, (_, index) => `R${String(index + 1).padStart(2, '0')}`);
+    const groups = regionCodes.map(code => ({ code, name: code, status: 'FINAL', allocatedSeats: 0, declaredSeats: 0, parties: [] }));
+    const byRegionParty = new Map();
+    const getGroup = (regionIndex, partyCode) => {
+        const key = `${regionIndex}:${partyCode}`;
+        if (!byRegionParty.has(key)) {
+            const party = input.parties.find(row => row.code === partyCode);
+            const group = { code: partyCode, name: party.name, localSeats: 0, regionalListSeats: 0,
+                totalSeats: 0, winners: [], regionalListWinners: [] };
+            byRegionParty.set(key, group);
+            groups[regionIndex].parties.push(group);
+        }
+        return byRegionParty.get(key);
+    };
+    const localCodes = input.parties.flatMap(party => Array(party.localSeats).fill(party.code));
+    const regionalCodes = input.parties.flatMap(party => Array(party.regionalListSeats).fill(party.code));
+    const allocations = [
+        ...Array(21).fill(2), ...Array(38).fill(3), ...Array(22).fill(4),
+        ...Array(5).fill(5), ...Array(6).fill(6)
+    ];
+    let localIndex = 0;
+    allocations.forEach((allocatedSeats, constituencyIndex) => {
+        const regionIndex = constituencyIndex % 12;
+        const constituencyCode = `C${String(constituencyIndex + 1).padStart(3, '0')}`;
+        for (let seat = 0; seat < allocatedSeats; seat++) {
+            const group = getGroup(regionIndex, localCodes[localIndex]);
+            group.localSeats++;
+            group.totalSeats++;
+            group.winners.push({ constituencyCode, constituencyName: constituencyCode,
+                candidateName: `Local Candidate ${localIndex + 1}`,
+                votes: localIndex === 0 ? null : localIndex === 1 ? 0 : localIndex + 100,
+                allocatedSeats, status: 'FINAL' });
+            localIndex++;
+        }
+    });
+    regionalCodes.forEach((partyCode, regionalIndex) => {
+        const regionIndex = regionalIndex % 12;
+        const group = getGroup(regionIndex, partyCode);
+        group.regionalListSeats++;
+        group.totalSeats++;
+        group.regionalListWinners.push({ candidateKey: `regional-${regionalIndex + 1}`,
+            candidateName: `Regional Candidate ${regionalIndex + 1}`, status: 'FINAL' });
+    });
+    for (const region of groups) {
+        region.parties.sort((a, b) => a.code.localeCompare(b.code));
+        region.allocatedSeats = region.parties.reduce((sum, party) => sum + party.totalSeats, 0);
+        region.declaredSeats = region.allocatedSeats;
+    }
+    input.regions = groups;
+    return input;
 }
 
 test('complete approved 28-row ballot fixture is available with exact raw denominators', () => {
@@ -266,4 +325,151 @@ test('concentration groups keep ballot-order membership for ballots and seats', 
     assert.equal(result.remaining.ballotShare, 100 * 425109 / 9738526);
     assert.equal(result.remaining.seatShare, 100 * 6 / 395);
     assert.equal(result.zeroSeat.ballotShare, 100 * 206250 / 9738526);
+});
+
+test('the complete regional matrix has 12 by 14 seats including real zero cells', () => {
+    const result = buildRegionMatrix(completeAtlasSnapshot());
+    assert.equal(result.available, true);
+    assert.equal(result.rows.length, 12);
+    assert.equal(result.partyCodes.length, 14);
+    assert.equal(result.totalSeats, 395);
+    assert.equal(result.maxSeats, 9);
+    assert.ok(result.rows.every(row => row.cells.length === 14));
+    assert.ok(result.rows.flatMap(row => row.cells).some(cell => cell.seats === 0));
+    assert.ok(result.rows.flatMap(row => row.cells).every(cell => cell.maxSeats === result.maxSeats));
+    assert.equal(result.rows.reduce((sum, row) => sum + row.totalSeats, 0), 395);
+});
+
+test('region and party projections use complete allocations and preserve zero regions', () => {
+    const input = completeAtlasSnapshot();
+    const firstRegion = input.regions[0];
+    const delegation = deriveRegionDelegation(input, firstRegion.code);
+    const pamInRegion = firstRegion.parties.find(party => party.code === 'PAM');
+    assert.equal(delegation.available, true);
+    assert.equal(delegation.delegationSeats, firstRegion.allocatedSeats);
+    assert.equal(delegation.representedPartyCount, firstRegion.parties.length);
+    assert.equal(delegation.rows.find(row => row.code === 'PAM').share,
+        100 * pamInRegion.totalSeats / firstRegion.allocatedSeats);
+    assert.deepEqual(delegation.largestPartyCodes, ['PAM', 'PI']);
+
+    const geography = derivePartyGeography(input, 'PE');
+    assert.equal(geography.available, true);
+    assert.equal(geography.rows.length, 12);
+    assert.ok(geography.rows.some(row => row.seats === 0));
+    assert.equal(geography.representedRegionCount, geography.rows.filter(row => row.seats > 0).length);
+    assert.equal(geography.totalSeats, 2);
+    assert.equal(geography.localSeats, 1);
+    assert.equal(geography.regionalListSeats, 1);
+    assert.equal(geography.constituencyBreadth, 1);
+    assert.equal(geography.rows.reduce((sum, row) => sum + row.seats, 0), 2);
+    assert.ok(geography.rows.every(row => row.share === 100 * row.seats / 2));
+});
+
+test('regional projections fail closed when the 395-seat matrix is incomplete', () => {
+    const missing = completeAtlasSnapshot();
+    missing.regions.pop();
+    assert.equal(buildRegionMatrix(missing).available, false);
+    assert.equal(deriveRegionDelegation(missing, 'R01').available, false);
+    assert.equal(derivePartyGeography(missing, 'PAM').available, false);
+
+    const inconsistent = completeAtlasSnapshot();
+    inconsistent.regions[0].parties[0].totalSeats++;
+    assert.equal(buildRegionMatrix(inconsistent).available, false);
+
+    const mismatchedComponents = completeAtlasSnapshot();
+    const pamRegion = mismatchedComponents.regions[0].parties.find(party => party.code === 'PAM');
+    pamRegion.localSeats++;
+    pamRegion.regionalListSeats--;
+    assert.equal(buildRegionMatrix(mismatchedComponents).available, false);
+});
+
+test('party geography is unavailable if local constituency winners are incomplete', () => {
+    const input = completeAtlasSnapshot();
+    input.regions[0].parties.find(party => party.winners.length).winners.pop();
+    assert.equal(derivePartyGeography(input, 'PAM').available, false);
+});
+
+test('constituency distribution counts each identifier once across 305 local winners', () => {
+    const result = deriveConstituencyDistribution(completeAtlasSnapshot());
+    assert.equal(result.available, true);
+    assert.equal(result.constituencyCount, 92);
+    assert.equal(result.localSeats, 305);
+    assert.deepEqual(result.bins.map(({ seats, constituencies }) => ({ seats, constituencies })), [
+        { seats: 2, constituencies: 21 },
+        { seats: 3, constituencies: 38 },
+        { seats: 4, constituencies: 22 },
+        { seats: 5, constituencies: 5 },
+        { seats: 6, constituencies: 6 }
+    ]);
+    assert.equal(result.bins[0].items.length, 21);
+    assert.equal(result.bins[0].items[0].code, 'C001');
+});
+
+test('constituency distribution rejects missing and contradictory allocations', () => {
+    const missing = completeAtlasSnapshot();
+    missing.regions[0].parties.find(party => party.winners.length).winners[0].allocatedSeats = null;
+    assert.equal(deriveConstituencyDistribution(missing).available, false);
+
+    const contradictory = completeAtlasSnapshot();
+    contradictory.regions[0].parties.find(party => party.winners.length).winners[0].allocatedSeats = 3;
+    assert.equal(deriveConstituencyDistribution(contradictory).available, false);
+});
+
+test('representative index retains 305 local and 90 regional identities and vote unknowns', () => {
+    const result = indexRepresentatives(completeAtlasSnapshot());
+    assert.equal(result.available, true);
+    assert.equal(result.totalRecords, 395);
+    assert.equal(result.records.filter(row => row.seatType === 'LOCAL').length, 305);
+    assert.equal(result.records.filter(row => row.seatType === 'REGIONAL').length, 90);
+    const local = result.records.find(row => row.candidateName === 'Local Candidate 1');
+    const zero = result.records.find(row => row.candidateName === 'Local Candidate 2');
+    const regional = result.records.find(row => row.candidateName === 'Regional Candidate 1');
+    assert.deepEqual([local.regionCode, local.constituencyCode, local.votes], ['R01', 'C001', null]);
+    assert.equal(zero.votes, 0);
+    assert.equal(regional.regionCode, 'R01');
+    assert.equal(regional.constituencyCode, null);
+    assert.equal(regional.votes, null);
+});
+
+test('representative filters compose across text, geography, party, and seat type', () => {
+    const input = completeAtlasSnapshot();
+    const filtered = indexRepresentatives(input, {
+        query: 'candidate 1', regionCode: 'R01', constituencyCode: 'C001',
+        partyCode: 'PAM', seatType: 'LOCAL'
+    });
+    assert.equal(filtered.available, true);
+    assert.deepEqual(filtered.records.map(row => row.candidateName), ['Local Candidate 1']);
+    assert.equal(indexRepresentatives(input, { regionCode: 'R01', constituencyCode: 'C001',
+        seatType: 'REGIONAL' }).records.length, 0);
+    assert.ok(indexRepresentatives(input, { query: 'c001' }).records.length >= 2);
+    assert.equal(indexRepresentatives(input, { seatType: 'ALL' }).records.length, 395);
+});
+
+test('representative index rejects contradictory local allocation metadata', () => {
+    const input = completeAtlasSnapshot();
+    input.regions[0].parties.find(party => party.winners.length).winners[0].allocatedSeats = 3;
+    assert.equal(indexRepresentatives(input).available, false);
+});
+
+test('duplicate candidate identities make the representative index unavailable', () => {
+    const input = completeAtlasSnapshot();
+    const firstRegional = input.regions[0].parties.find(party => party.regionalListWinners.length)
+        .regionalListWinners[0];
+    const secondRegional = input.regions[1].parties.find(party => party.regionalListWinners.length)
+        .regionalListWinners[0];
+    secondRegional.candidateKey = firstRegional.candidateKey;
+    const result = indexRepresentatives(input);
+    assert.equal(result.available, false);
+    assert.ok(result.diagnostics.includes('duplicate-candidate'));
+});
+
+test('new projections do not mutate the snapshot', () => {
+    const input = completeAtlasSnapshot();
+    const original = structuredClone(input);
+    buildRegionMatrix(input);
+    deriveRegionDelegation(input, 'R01');
+    derivePartyGeography(input, 'PAM');
+    deriveConstituencyDistribution(input);
+    indexRepresentatives(input, { query: 'candidate', regionCode: 'R01' });
+    assert.deepEqual(input, original);
 });
