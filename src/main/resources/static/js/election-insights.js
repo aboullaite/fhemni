@@ -419,101 +419,130 @@
     }
 
     function deriveUrbanizationRepresentation(snapshot, demographics) {
-        const matrix = buildRegionMatrix(snapshot);
-        if (!matrix.available) {
-            return { available: false, diagnostics: [...matrix.diagnostics], rows: [], national: null, source: null };
+        const representatives = indexRepresentatives(snapshot);
+        if (!representatives.available) {
+            return { available: false, diagnostics: [...representatives.diagnostics], rows: [], national: null, source: null };
         }
 
         const diagnostics = [];
-        const regions = Array.isArray(demographics?.regions) ? demographics.regions : [];
-        if (regions.length !== 12) addDiagnostic(diagnostics, 'region-demographics-count');
+        const censusRows = Array.isArray(demographics?.constituencies) ? demographics.constituencies : [];
+        if (censusRows.length !== 92) addDiagnostic(diagnostics, 'constituency-demographics-count');
         if (!Number.isSafeInteger(demographics?.censusYear) || demographics.censusYear <= 0
                 || typeof demographics?.datasetVersion !== 'string' || !demographics.datasetVersion.trim()
-                || typeof demographics?.sourceUrl !== 'string' || !demographics.sourceUrl.trim()) {
-            addDiagnostic(diagnostics, 'region-demographics-source');
+                || typeof demographics?.sourceUrl !== 'string' || !demographics.sourceUrl.trim()
+                || typeof demographics?.decreeUrl !== 'string' || !demographics.decreeUrl.trim()
+                || typeof demographics?.revisedAt !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(demographics.revisedAt)) {
+            addDiagnostic(diagnostics, 'constituency-demographics-source');
+        }
+        if (demographics?.localSeatTotal !== LOCAL_SEAT_TOTAL
+                || demographics?.excludedRegionalSeatTotal !== REGIONAL_SEAT_TOTAL) {
+            addDiagnostic(diagnostics, 'constituency-demographics-seat-totals');
         }
 
         const byCode = new Map();
-        const hcpCodes = new Set();
-        let totalPopulation = 0;
-        let urbanPopulation = 0;
-        let ruralPopulation = 0;
-        for (const region of regions) {
-            if (!region?.regionCode || byCode.has(region.regionCode)
-                    || !region?.hcpCode || hcpCodes.has(region.hcpCode)) {
-                addDiagnostic(diagnostics, 'region-demographics-code');
-            } else {
-                byCode.set(region.regionCode, region);
-                hcpCodes.add(region.hcpCode);
+        for (const row of censusRows) {
+            if (typeof row?.constituencyCode !== 'string' || !row.constituencyCode.trim()
+                    || byCode.has(row.constituencyCode)) {
+                addDiagnostic(diagnostics, 'constituency-demographics-code');
+            } else byCode.set(row.constituencyCode, row);
+            if (!integer(row?.allocatedSeats) || row.allocatedSeats < 2 || row.allocatedSeats > 6) {
+                addDiagnostic(diagnostics, 'constituency-demographics-seat-totals');
             }
-            if (![region?.totalPopulation, region?.urbanPopulation, region?.ruralPopulation].every(integer)
-                    || region.totalPopulation === 0) {
-                addDiagnostic(diagnostics, 'region-demographics-population');
+            if (!Array.isArray(row?.componentCodes) || !row.componentCodes.length
+                    || row.componentCodes.some(code => typeof code !== 'string' || !code.trim())) {
+                addDiagnostic(diagnostics, 'constituency-demographics-components');
+            }
+            if (typeof row?.urbanShare !== 'number' || !Number.isFinite(row.urbanShare)
+                    || row.urbanShare < 0 || row.urbanShare > 100) {
+                addDiagnostic(diagnostics, 'constituency-demographics-population');
                 continue;
             }
-            if (region.urbanPopulation + region.ruralPopulation !== region.totalPopulation) {
-                addDiagnostic(diagnostics, 'region-demographics-total');
+            if (row.populationCoverage === 'exact') {
+                if (![row.totalPopulation, row.urbanPopulation, row.ruralPopulation].every(integer)
+                        || row.totalPopulation === 0) {
+                    addDiagnostic(diagnostics, 'constituency-demographics-population');
+                    continue;
+                }
+                if (row.urbanPopulation + row.ruralPopulation !== row.totalPopulation
+                        || Math.abs(row.urbanShare - 100 * row.urbanPopulation / row.totalPopulation) > 1e-9) {
+                    addDiagnostic(diagnostics, 'constituency-demographics-total');
+                }
+            } else if (row.populationCoverage !== 'share-only' || row.urbanShare !== 100) {
+                addDiagnostic(diagnostics, 'constituency-demographics-population');
             }
-            totalPopulation += region.totalPopulation;
-            urbanPopulation += region.urbanPopulation;
-            ruralPopulation += region.ruralPopulation;
         }
 
-        const matrixCodes = new Set(matrix.rows.map(region => region.code));
-        if (byCode.size !== matrix.rows.length
-                || matrix.rows.some(region => !byCode.has(region.code))
-                || [...byCode.keys()].some(code => !matrixCodes.has(code))) {
-            addDiagnostic(diagnostics, 'region-demographics-coverage');
+        const localRecords = representatives.records.filter(row => row.seatType === 'LOCAL');
+        const electionConstituencies = new Map();
+        for (const record of localRecords) {
+            const previous = electionConstituencies.get(record.constituencyCode);
+            if (previous && (previous.allocatedSeats !== record.allocatedSeats
+                    || previous.name !== record.constituencyName)) {
+                addDiagnostic(diagnostics, 'constituency-demographics-coverage');
+            } else if (!previous) electionConstituencies.set(record.constituencyCode, {
+                name: record.constituencyName,
+                allocatedSeats: record.allocatedSeats
+            });
         }
-        if (urbanPopulation + ruralPopulation !== totalPopulation || totalPopulation === 0) {
-            addDiagnostic(diagnostics, 'region-demographics-total');
+        if (byCode.size !== electionConstituencies.size
+                || [...electionConstituencies].some(([code, row]) => !byCode.has(code)
+                    || byCode.get(code).allocatedSeats !== row.allocatedSeats)
+                || [...byCode.keys()].some(code => !electionConstituencies.has(code))) {
+            addDiagnostic(diagnostics, 'constituency-demographics-coverage');
+        }
+        if (censusRows.reduce((sum, row) => sum + (integer(row?.allocatedSeats) ? row.allocatedSeats : 0), 0)
+                !== LOCAL_SEAT_TOTAL) {
+            addDiagnostic(diagnostics, 'constituency-demographics-seat-totals');
         }
         if (diagnostics.length) {
             return { available: false, diagnostics, rows: [], national: null, source: null };
         }
 
-        const parties = new Map(snapshot.parties.map(party => [party.code, party]));
+        const nationalUrbanizationIndex = censusRows.reduce((sum, row) =>
+            sum + row.allocatedSeats * row.urbanShare, 0) / LOCAL_SEAT_TOTAL;
         const national = {
-            totalPopulation,
-            urbanPopulation,
-            ruralPopulation,
-            urbanShare: 100 * urbanPopulation / totalPopulation,
-            ruralShare: 100 * ruralPopulation / totalPopulation
+            constituencyCount: censusRows.length,
+            localSeatTotal: LOCAL_SEAT_TOTAL,
+            excludedRegionalSeatTotal: REGIONAL_SEAT_TOTAL,
+            urbanizationIndex: nationalUrbanizationIndex,
+            ruralityIndex: 100 - nationalUrbanizationIndex
         };
-        const rows = matrix.partyCodes.map(code => {
-            const party = parties.get(code);
-            const regionRows = matrix.rows.map(region => {
-                const census = byCode.get(region.code);
-                const partySeats = region.cells.find(cell => cell.code === code).seats;
+        const rows = snapshot.parties.filter(party => party.localSeats > 0).map(party => {
+            const partyRecords = localRecords.filter(record => record.partyCode === party.code);
+            const partyConstituencies = new Map();
+            for (const record of partyRecords) {
+                if (!partyConstituencies.has(record.constituencyCode)) partyConstituencies.set(record.constituencyCode, {
+                    code: record.constituencyCode,
+                    name: record.constituencyName,
+                    allocatedSeats: record.allocatedSeats,
+                    partyLocalSeats: 0
+                });
+                partyConstituencies.get(record.constituencyCode).partyLocalSeats++;
+            }
+            const constituencyRows = [...partyConstituencies.values()].map(row => {
+                const census = byCode.get(row.code);
                 return {
-                    code: region.code,
-                    name: region.name,
-                    hcpCode: census.hcpCode,
-                    totalPopulation: census.totalPopulation,
-                    urbanPopulation: census.urbanPopulation,
-                    ruralPopulation: census.ruralPopulation,
-                    urbanShare: 100 * census.urbanPopulation / census.totalPopulation,
-                    ruralShare: 100 * census.ruralPopulation / census.totalPopulation,
-                    partySeats,
-                    delegationSeats: region.totalSeats
+                    ...row,
+                    totalPopulation: census.totalPopulation ?? null,
+                    urbanPopulation: census.urbanPopulation ?? null,
+                    ruralPopulation: census.ruralPopulation ?? null,
+                    populationCoverage: census.populationCoverage,
+                    urbanShare: census.urbanShare,
+                    ruralShare: 100 - census.urbanShare
                 };
             });
-            const weightedUrbanShare = regionRows.reduce((sum, region) =>
-                sum + region.partySeats * region.urbanPopulation / region.totalPopulation, 0);
-            const weightedRuralShare = regionRows.reduce((sum, region) =>
-                sum + region.partySeats * region.ruralPopulation / region.totalPopulation, 0);
-            const urbanizationIndex = 100 * weightedUrbanShare / party.totalSeats;
-            const ruralityIndex = 100 * weightedRuralShare / party.totalSeats;
+            const urbanizationIndex = constituencyRows.reduce((sum, row) =>
+                sum + row.partyLocalSeats * row.urbanShare, 0) / party.localSeats;
             return {
-                code,
+                code: party.code,
                 name: party.name,
                 color: party.color,
                 symbolAsset: party.symbolAsset,
-                totalSeats: party.totalSeats,
+                localSeats: party.localSeats,
                 urbanizationIndex,
-                ruralityIndex,
-                differenceFromNational: urbanizationIndex - national.urbanShare,
-                regionRows
+                ruralityIndex: 100 - urbanizationIndex,
+                differenceFromNational: urbanizationIndex - national.urbanizationIndex,
+                constituencyRows
             };
         }).sort((left, right) => right.urbanizationIndex - left.urbanizationIndex || codeOrder(left, right));
 
@@ -523,7 +552,9 @@
             source: {
                 datasetVersion: demographics.datasetVersion,
                 censusYear: demographics.censusYear,
-                sourceUrl: demographics.sourceUrl
+                sourceUrl: demographics.sourceUrl,
+                decreeUrl: demographics.decreeUrl,
+                revisedAt: demographics.revisedAt
             },
             national,
             rows

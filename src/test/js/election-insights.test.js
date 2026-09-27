@@ -46,28 +46,6 @@ const APPROVED_ROWS = [
     ['IND', 1174, 0, 1174, 0, 0, 0]
 ];
 
-const REGION_DEMOGRAPHICS = {
-    datasetVersion: '1.8.0',
-    censusYear: 2024,
-    sourceUrl: 'https://communes.pages.dev/data/v1/sources.json',
-    regions: [
-        ['R01', '01', 4030222, 2638815, 1391407],
-        ['R02', '02', 2294665, 1505714, 788951],
-        ['R03', '03', 4467911, 2855366, 1612545],
-        ['R04', '04', 5132639, 3627178, 1505461],
-        ['R05', '05', 2525801, 1283492, 1242309],
-        ['R06', '06', 7688967, 5633748, 2055219],
-        ['R07', '07', 4892393, 2248954, 2643439],
-        ['R08', '08', 1655623, 607724, 1047899],
-        ['R09', '09', 3020431, 1816102, 1204329],
-        ['R10', '10', 448685, 299543, 149142],
-        ['R11', '11', 451028, 416636, 34392],
-        ['R12', '12', 219965, 176836, 43129]
-    ].map(([regionCode, hcpCode, totalPopulation, urbanPopulation, ruralPopulation]) => ({
-        regionCode, hcpCode, totalPopulation, urbanPopulation, ruralPopulation
-    }))
-};
-
 function snapshot(rows = APPROVED_ROWS, status = 'FINAL') {
     return {
         election: { status, totalSeats: 395, declaredSeats: 395 },
@@ -130,6 +108,39 @@ function completeAtlasSnapshot() {
     }
     input.regions = groups;
     return input;
+}
+
+function constituencyDemographics(input = completeAtlasSnapshot()) {
+    const byCode = new Map();
+    for (const region of input.regions) {
+        for (const party of region.parties) {
+            for (const winner of party.winners) {
+                if (!byCode.has(winner.constituencyCode)) {
+                    const urbanPopulation = winner.constituencyCode === 'C092' ? 80 : 25;
+                    byCode.set(winner.constituencyCode, {
+                        constituencyCode: winner.constituencyCode,
+                        allocatedSeats: winner.allocatedSeats,
+                        totalPopulation: 100,
+                        urbanPopulation,
+                        ruralPopulation: 100 - urbanPopulation,
+                        urbanShare: urbanPopulation,
+                        populationCoverage: 'exact',
+                        componentCodes: [`test:${winner.constituencyCode}`]
+                    });
+                }
+            }
+        }
+    }
+    return {
+        datasetVersion: '1.8.0',
+        censusYear: 2024,
+        sourceUrl: 'https://communes.pages.dev/data/v1/sources.json',
+        decreeUrl: 'https://www.sgg.gov.ma/BO/bo_ar/2011/BO_5988_Ar.pdf',
+        revisedAt: '2026-09-27',
+        localSeatTotal: 305,
+        excludedRegionalSeatTotal: 90,
+        constituencies: [...byCode.values()]
+    };
 }
 
 test('complete approved 28-row ballot fixture is available with exact raw denominators', () => {
@@ -404,59 +415,72 @@ test('region and party projections use complete allocations and preserve zero re
     assert.ok(geography.rows.every(row => row.share === 100 * row.seats / 2));
 });
 
-test('urbanization representation joins all 12 census regions and weights them by party seats', () => {
-    const result = deriveUrbanizationRepresentation(completeAtlasSnapshot(), REGION_DEMOGRAPHICS);
+test('urbanization representation weights local seats by their actual constituencies', () => {
+    const input = completeAtlasSnapshot();
+    const result = deriveUrbanizationRepresentation(input, constituencyDemographics(input));
     assert.equal(result.available, true);
     assert.deepEqual(result.diagnostics, []);
     assert.deepEqual(result.source, {
         datasetVersion: '1.8.0',
         censusYear: 2024,
-        sourceUrl: 'https://communes.pages.dev/data/v1/sources.json'
+        sourceUrl: 'https://communes.pages.dev/data/v1/sources.json',
+        decreeUrl: 'https://www.sgg.gov.ma/BO/bo_ar/2011/BO_5988_Ar.pdf',
+        revisedAt: '2026-09-27'
     });
     assert.deepEqual(result.national, {
-        totalPopulation: 36828330,
-        urbanPopulation: 23110108,
-        ruralPopulation: 13718222,
-        urbanShare: 100 * 23110108 / 36828330,
-        ruralShare: 100 * 13718222 / 36828330
+        constituencyCount: 92,
+        localSeatTotal: 305,
+        excludedRegionalSeatTotal: 90,
+        urbanizationIndex: (299 * 25 + 6 * 80) / 305,
+        ruralityIndex: 100 - (299 * 25 + 6 * 80) / 305
     });
-    assert.equal(result.rows.length, 14);
-    assert.equal(result.rows.reduce((sum, row) => sum + row.totalSeats, 0), 395);
-    assert.ok(result.rows.every(row => row.regionRows.length === 12));
-    assert.ok(result.rows.every(row => row.regionRows.reduce((sum, region) => sum + region.partySeats, 0)
-        === row.totalSeats));
+    assert.equal(result.rows.length, 12);
+    assert.equal(result.rows.reduce((sum, row) => sum + row.localSeats, 0), 305);
+    assert.ok(result.rows.every(row => row.constituencyRows.length > 0));
+    assert.ok(result.rows.every(row => row.constituencyRows.reduce((sum, constituency) =>
+        sum + constituency.partyLocalSeats, 0) === row.localSeats));
+    assert.equal(result.rows.some(row => row.code === 'FFD'), false);
+    assert.equal(result.rows.some(row => row.code === 'ND'), false);
 
     const pud = result.rows.find(row => row.code === 'PUD');
-    assert.equal(pud.totalSeats, 1);
-    assert.equal(pud.urbanizationIndex, 100 * 607724 / 1655623);
-    assert.equal(pud.ruralityIndex, 100 * 1047899 / 1655623);
-    assert.equal(pud.differenceFromNational, pud.urbanizationIndex - result.national.urbanShare);
+    assert.equal(pud.localSeats, 1);
+    assert.equal(pud.urbanizationIndex, 80);
+    assert.equal(pud.ruralityIndex, 20);
+    assert.equal(pud.differenceFromNational, pud.urbanizationIndex - result.national.urbanizationIndex);
+    assert.deepEqual(pud.constituencyRows.map(row => [row.code, row.partyLocalSeats]), [['C092', 1]]);
 });
 
 test('urbanization representation fails closed on incomplete or inconsistent demographics', () => {
-    const missing = structuredClone(REGION_DEMOGRAPHICS);
-    missing.regions.pop();
-    const missingResult = deriveUrbanizationRepresentation(completeAtlasSnapshot(), missing);
+    const input = completeAtlasSnapshot();
+    const missing = constituencyDemographics(input);
+    missing.constituencies.pop();
+    const missingResult = deriveUrbanizationRepresentation(input, missing);
     assert.equal(missingResult.available, false);
-    assert.ok(missingResult.diagnostics.includes('region-demographics-count'));
+    assert.ok(missingResult.diagnostics.includes('constituency-demographics-count'));
 
-    const inconsistent = structuredClone(REGION_DEMOGRAPHICS);
-    inconsistent.regions[0].urbanPopulation++;
-    const inconsistentResult = deriveUrbanizationRepresentation(completeAtlasSnapshot(), inconsistent);
+    const inconsistent = constituencyDemographics(input);
+    inconsistent.constituencies[0].urbanPopulation++;
+    const inconsistentResult = deriveUrbanizationRepresentation(input, inconsistent);
     assert.equal(inconsistentResult.available, false);
-    assert.ok(inconsistentResult.diagnostics.includes('region-demographics-total'));
+    assert.ok(inconsistentResult.diagnostics.includes('constituency-demographics-total'));
 
-    const duplicate = structuredClone(REGION_DEMOGRAPHICS);
-    duplicate.regions[11].regionCode = duplicate.regions[0].regionCode;
-    const duplicateResult = deriveUrbanizationRepresentation(completeAtlasSnapshot(), duplicate);
+    const duplicate = constituencyDemographics(input);
+    duplicate.constituencies[91].constituencyCode = duplicate.constituencies[0].constituencyCode;
+    const duplicateResult = deriveUrbanizationRepresentation(input, duplicate);
     assert.equal(duplicateResult.available, false);
-    assert.ok(duplicateResult.diagnostics.includes('region-demographics-code'));
-    assert.ok(duplicateResult.diagnostics.includes('region-demographics-coverage'));
+    assert.ok(duplicateResult.diagnostics.includes('constituency-demographics-code'));
+    assert.ok(duplicateResult.diagnostics.includes('constituency-demographics-coverage'));
+
+    const regionalLeak = constituencyDemographics(input);
+    regionalLeak.excludedRegionalSeatTotal = 89;
+    const regionalLeakResult = deriveUrbanizationRepresentation(input, regionalLeak);
+    assert.equal(regionalLeakResult.available, false);
+    assert.ok(regionalLeakResult.diagnostics.includes('constituency-demographics-seat-totals'));
 });
 
 test('urbanization representation leaves election and census inputs untouched', () => {
     const input = completeAtlasSnapshot();
-    const demographics = structuredClone(REGION_DEMOGRAPHICS);
+    const demographics = constituencyDemographics(input);
     const originalInput = structuredClone(input);
     const originalDemographics = structuredClone(demographics);
     deriveUrbanizationRepresentation(input, demographics);

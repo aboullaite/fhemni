@@ -106,63 +106,66 @@
 
     Object.assign(ATLAS_COPY.ar, {
         jumpUrbanization: 'المدن والقرى',
-        urbanizationTitle: 'فين كيميل التمثيل: جهات أكثر حضرية ولا قروية؟',
-        urbanizationIntro: 'هاد المؤشر كيوزن مقاعد كل حزب بنسبة السكان الحضريين فكل جهة حسب إحصاء 2024. كيعطي سياق على الجهات اللي ممثل فيها الحزب، وما كيقيسش أصوات المدن ولا القرى.',
-        urbanizationRural: 'جهات أكثر قروية',
-        urbanizationUrban: 'جهات أكثر حضرية',
-        urbanizationNational: 'المعدل الوطني: {percent}% سكان حضريون',
-        urbanizationIndex: 'المؤشر الحضري المرجّح بالمقاعد',
+        urbanizationTitle: 'فين كاينين المقاعد المحلية: فدوائر أكثر حضرية ولا قروية؟',
+        urbanizationIntro: 'هاد المؤشر كيربط 305 مقعد محلي بالدائرة الانتخابية ديالو، وكيحسب نسبة السكان الحضريين فكل دائرة حسب إحصاء 2024. المقاعد الجهوية الـ90 ما داخلاش فالحساب، وما كيقيسش كيفاش صوتو سكان المدن ولا القرى.',
+        urbanizationRural: 'دوائر أكثر قروية',
+        urbanizationUrban: 'دوائر أكثر حضرية',
+        urbanizationNational: 'معدل 305 مقعد محلي: {percent}% حضري',
+        urbanizationIndex: 'المؤشر الحضري للمقاعد المحلية',
         urbanizationSeatCount: '{seatCount}',
-        urbanizationSelectParty: 'اختار الحزب باش تشوف الجهات',
-        urbanizationSelected: '{party}: المؤشر {index}% مقابل {national}% وطنياً ({difference} نقطة).',
-        urbanizationRegions: 'تفاصيل الجهات ديال {party}',
-        urbanizationRegion: 'الجهة',
-        urbanizationPopulation: 'السكان',
-        urbanizationUrbanShare: 'السكان الحضريون',
-        urbanizationPartySeats: 'مقاعد الحزب',
+        urbanizationSelectParty: 'اختار الحزب باش تشوف الدوائر المحلية',
+        urbanizationSelected: '{party}: المؤشر الحضري {index}% مقابل {national}% فمجموع 305 مقعد محلي ({difference} نقطة).',
+        urbanizationRegions: 'تفاصيل الدوائر المحلية ديال {party}',
+        urbanizationRegion: 'الدائرة',
+        urbanizationUrbanShare: 'نسبة السكان الحضريين',
+        urbanizationPartySeats: 'مقاعد الحزب المحلية',
+        urbanizationAllocatedSeats: 'مقاعد الدائرة',
         urbanizationSource: 'السكان: إحصاء HCP 2024 عبر Morocco Communes، النسخة {version}.',
-        urbanizationMethod: 'كل مقعد كياخذ نسبة السكان الحضريين فالجهة ديالو، ومن بعد كيتحسب متوسط مقاعد الحزب.',
-        urbanizationUnavailable: 'المعطيات الكاملة ديال المقاعد والسكان حسب الجهات مازال ما متوفراش.'
+        urbanizationDecree: 'التقسيم الانتخابي: المرسوم 2.11.603.',
+        urbanizationMethod: 'كل مقعد محلي كياخذ نسبة السكان الحضريين فالدائرة ديالو. المؤشر هو متوسط المقاعد المحلية ديال الحزب، والمقاعد الجهوية الـ90 مستثناة.',
+        urbanizationUnavailable: 'المعطيات الكاملة ديال 305 مقعد محلي والسكان حسب الدوائر مازال ما متوفراش.'
     });
     Object.assign(ATLAS_COPY.fr, {
         jumpUrbanization: 'Urbain et rural',
-        urbanizationTitle: 'Représentation dans les régions plus urbaines ou rurales',
-        urbanizationIntro: 'Cet indice pondère les sièges de chaque parti par la part de population urbaine de chaque région au RGPH 2024. Il décrit le contexte des régions représentées et ne mesure pas les votes urbains ou ruraux.',
-        urbanizationRural: 'Régions plus rurales',
-        urbanizationUrban: 'Régions plus urbaines',
-        urbanizationNational: 'Moyenne nationale : {percent}% de population urbaine',
-        urbanizationIndex: 'Indice urbain pondéré par les sièges',
+        urbanizationTitle: 'Où se trouvent les sièges locaux : circonscriptions plus urbaines ou rurales ?',
+        urbanizationIntro: 'Cet indice rattache chacun des 305 sièges locaux à sa circonscription et utilise sa part de population urbaine au RGPH 2024. Les 90 sièges des listes régionales sont exclus et l’indice ne mesure pas les votes urbains ou ruraux.',
+        urbanizationRural: 'Circonscriptions plus rurales',
+        urbanizationUrban: 'Circonscriptions plus urbaines',
+        urbanizationNational: 'Référence des 305 sièges locaux : {percent}% urbain',
+        urbanizationIndex: 'Indice urbain des sièges locaux',
         urbanizationSeatCount: '{seatCount}',
-        urbanizationSelectParty: 'Choisir un parti pour voir les régions',
-        urbanizationSelected: '{party} : indice de {index}% contre {national}% au niveau national ({difference} points).',
-        urbanizationRegions: 'Détail régional de {party}',
-        urbanizationRegion: 'Région',
-        urbanizationPopulation: 'Population',
-        urbanizationUrbanShare: 'Population urbaine',
-        urbanizationPartySeats: 'Sièges du parti',
+        urbanizationSelectParty: 'Choisir un parti pour voir ses circonscriptions locales',
+        urbanizationSelected: '{party} : indice urbain de {index}% contre {national}% pour l’ensemble des 305 sièges locaux ({difference} points).',
+        urbanizationRegions: 'Circonscriptions locales de {party}',
+        urbanizationRegion: 'Circonscription',
+        urbanizationUrbanShare: 'Part de population urbaine',
+        urbanizationPartySeats: 'Sièges locaux du parti',
+        urbanizationAllocatedSeats: 'Sièges de la circonscription',
         urbanizationSource: 'Population : RGPH 2024 du HCP via Morocco Communes, version {version}.',
-        urbanizationMethod: 'Chaque siège reçoit la part urbaine de sa région ; l’indice est la moyenne de tous les sièges du parti.',
-        urbanizationUnavailable: 'Les données régionales complètes sur les sièges et la population ne sont pas disponibles.'
+        urbanizationDecree: 'Découpage électoral : décret 2.11.603.',
+        urbanizationMethod: 'Chaque siège local reçoit la part urbaine de sa circonscription ; l’indice est la moyenne des sièges locaux du parti. Les 90 sièges régionaux sont exclus.',
+        urbanizationUnavailable: 'Les données complètes des 305 sièges locaux et de leurs circonscriptions ne sont pas disponibles.'
     });
     Object.assign(ATLAS_COPY.en, {
         jumpUrbanization: 'Urban and rural',
-        urbanizationTitle: 'Representation in more urban or rural regions',
-        urbanizationIntro: 'This index weights each party’s seats by the 2024 urban population share of each region. It describes the context of the regions a party represents and does not measure urban or rural votes.',
-        urbanizationRural: 'More rural regions',
-        urbanizationUrban: 'More urban regions',
-        urbanizationNational: 'National baseline: {percent}% urban population',
-        urbanizationIndex: 'Seat-weighted urban index',
+        urbanizationTitle: 'Where are local seats: more urban or rural constituencies?',
+        urbanizationIntro: 'This index ties each of the 305 local seats to its constituency and uses that constituency’s 2024 urban population share. The 90 regional-list seats are excluded, and it does not measure urban or rural voting.',
+        urbanizationRural: 'More rural constituencies',
+        urbanizationUrban: 'More urban constituencies',
+        urbanizationNational: '305-local-seat baseline: {percent}% urban',
+        urbanizationIndex: 'Local-seat urban index',
         urbanizationSeatCount: '{seatCount}',
-        urbanizationSelectParty: 'Choose a party to inspect its regions',
-        urbanizationSelected: '{party}: {index}% index versus {national}% nationally ({difference} points).',
-        urbanizationRegions: '{party} regional detail',
-        urbanizationRegion: 'Region',
-        urbanizationPopulation: 'Population',
-        urbanizationUrbanShare: 'Urban population',
-        urbanizationPartySeats: 'Party seats',
+        urbanizationSelectParty: 'Choose a party to inspect its local constituencies',
+        urbanizationSelected: '{party}: {index}% urban index versus {national}% across all 305 local seats ({difference} points).',
+        urbanizationRegions: '{party} local constituencies',
+        urbanizationRegion: 'Constituency',
+        urbanizationUrbanShare: 'Urban population share',
+        urbanizationPartySeats: 'Party local seats',
+        urbanizationAllocatedSeats: 'Constituency seats',
         urbanizationSource: 'Population: HCP RGPH 2024 via Morocco Communes, version {version}.',
-        urbanizationMethod: 'Each seat takes its region’s urban population share; the index averages those values across all party seats.',
-        urbanizationUnavailable: 'Complete regional seat and population data are not available.'
+        urbanizationDecree: 'Electoral boundaries: Decree 2.11.603.',
+        urbanizationMethod: 'Each local seat takes its constituency’s urban population share; the index averages those values across a party’s local seats. The 90 regional-list seats are excluded.',
+        urbanizationUnavailable: 'Complete data for the 305 local seats and their constituencies are not available.'
     });
 
     let snapshot;
@@ -1066,9 +1069,9 @@
 
     function urbanizationTrack(row, data, atlas) {
         const track = element('span', 'election-atlas-urbanization-track');
-        const baselinePosition = element('span', `election-atlas-urbanization-position ${widthClass(data.national.urbanShare)}`);
+        const baselinePosition = element('span', `election-atlas-urbanization-position ${widthClass(data.national.urbanizationIndex)}`);
         const baseline = element('i', 'election-atlas-urbanization-baseline');
-        baseline.title = format(atlas.urbanizationNational, { percent: exactPercent(data.national.urbanShare) });
+        baseline.title = format(atlas.urbanizationNational, { percent: exactPercent(data.national.urbanizationIndex) });
         baselinePosition.append(baseline);
         const markerPosition = element('span', `election-atlas-urbanization-position ${widthClass(row.urbanizationIndex)}`);
         const marker = element('i', `election-atlas-urbanization-marker ${partyClass(row.code)}`);
@@ -1086,10 +1089,10 @@
         identity.append(element('bdi', 'election-atlas-party-code', row.code),
             element('bdi', 'election-atlas-party-name', row.name || row.code));
         const localizedSeats = locale === 'ar'
-            ? localizedCountPhrase(row.totalSeats, 'seat')
-            : `${number(row.totalSeats)} ${row.totalSeats === 1 ? copy.seat : copy.seats}`;
+            ? localizedCountPhrase(row.localSeats, 'seat')
+            : `${number(row.localSeats)} ${row.localSeats === 1 ? copy.seat : copy.seats}`;
         const seatCount = format(atlas.urbanizationSeatCount, {
-            seats: number(row.totalSeats),
+            seats: number(row.localSeats),
             seatCount: localizedSeats
         });
         item.append(identity, element('span', 'election-atlas-urbanization-seats', seatCount),
@@ -1110,17 +1113,17 @@
         const table = element('table');
         const head = element('thead');
         const headerRow = element('tr');
-        [atlas.urbanizationRegion, atlas.urbanizationPopulation, atlas.urbanizationUrbanShare,
-            atlas.urbanizationPartySeats].forEach(label => headerRow.append(element('th', '', label)));
+        [atlas.urbanizationRegion, atlas.urbanizationUrbanShare, atlas.urbanizationPartySeats,
+            atlas.urbanizationAllocatedSeats].forEach(label => headerRow.append(element('th', '', label)));
         head.append(headerRow);
         const body = element('tbody');
-        [...selected.regionRows].sort((left, right) => right.partySeats - left.partySeats
+        [...selected.constituencyRows].sort((left, right) => right.partyLocalSeats - left.partyLocalSeats
                 || right.urbanShare - left.urbanShare || left.code.localeCompare(right.code)).forEach(region => {
             const row = element('tr');
             row.append(element('td', '', region.name || region.code),
-                element('td', '', number(region.totalPopulation)),
                 element('td', '', `${exactPercent(region.urbanShare)}%`),
-                element('td', '', number(region.partySeats)));
+                element('td', '', number(region.partyLocalSeats)),
+                element('td', '', number(region.allocatedSeats)));
             body.append(row);
         });
         table.append(head, body);
@@ -1134,7 +1137,7 @@
         const content = element('div', 'election-atlas-content election-atlas-urbanization');
         content.append(element('p', 'election-atlas-intro', atlas.urbanizationIntro));
         const data = window.FhemniElectionInsights.deriveUrbanizationRepresentation(
-            snapshot, window.FhemniElectionRegionDemographics
+            snapshot, window.FhemniElectionConstituencyDemographics
         );
         if (!data.available) {
             content.append(atlasUnavailable(atlas.urbanizationUnavailable));
@@ -1147,7 +1150,7 @@
         }
         const axis = element('div', 'election-atlas-urbanization-axis');
         axis.append(element('span', '', atlas.urbanizationRural),
-            element('strong', '', format(atlas.urbanizationNational, { percent: exactPercent(data.national.urbanShare) })),
+            element('strong', '', format(atlas.urbanizationNational, { percent: exactPercent(data.national.urbanizationIndex) })),
             element('span', '', atlas.urbanizationUrban));
         content.append(axis);
         const chart = element('div', 'election-atlas-urbanization-chart');
@@ -1169,7 +1172,7 @@
             content.append(element('p', 'election-atlas-takeaway', format(atlas.urbanizationSelected, {
                 party: selected.name || selected.code,
                 index: exactPercent(selected.urbanizationIndex),
-                national: exactPercent(data.national.urbanShare),
+                national: exactPercent(data.national.urbanizationIndex),
                 difference: `${difference > 0 ? '+' : ''}${exactPercent(difference)}`
             })));
             content.append(urbanizationRegionTable(selected, atlas));
@@ -1180,7 +1183,11 @@
         link.href = data.source.sourceUrl;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
-        source.append(link);
+        const decree = element('a', '', ` · ${atlas.urbanizationDecree}`);
+        decree.href = data.source.decreeUrl;
+        decree.target = '_blank';
+        decree.rel = 'noopener noreferrer';
+        source.append(link, decree);
         content.append(source);
         replaceAtlasSection('electionGraphUrbanizationContent', content, options);
         if (options.controlChange) announceAtlasStatus(format(atlas.geographySelectionAnnouncement,

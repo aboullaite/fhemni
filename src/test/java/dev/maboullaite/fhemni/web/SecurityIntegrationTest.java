@@ -102,10 +102,10 @@ class SecurityIntegrationTest {
                 .andExpect(content().string(containsString("'landing.exploreChecks': 'Check party promises'")))
                 .andExpect(content().string(containsString("ar: {")));
 
-        mvc.perform(get("/data/elections/2026/urban-rural-regions.js"))
+        mvc.perform(get("/data/elections/2026/urban-rural-constituencies.js"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("FhemniElectionRegionDemographics")))
-                .andExpect(content().string(containsString("datasetVersion: '1.8.0'")));
+                .andExpect(content().string(containsString("FhemniElectionConstituencyDemographics")))
+                .andExpect(content().string(containsString("\"datasetVersion\": \"1.8.0\"")));
 
         mvc.perform(get("/css/dist.css"))
                 .andExpect(status().isOk())

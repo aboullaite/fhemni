@@ -38,23 +38,23 @@ function view(locale) {
     const result = {
         available: true,
         diagnostics: [],
-        source: { datasetVersion: '1.8.0', censusYear: 2024, sourceUrl: 'https://communes.pages.dev/data/v1/sources.json' },
-        national: { totalPopulation: 36828330, urbanPopulation: 23110108, ruralPopulation: 13718222,
-            urbanShare: 62.75089856, ruralShare: 37.24910144 },
+        source: { datasetVersion: '1.8.0', censusYear: 2024,
+            sourceUrl: 'https://communes.pages.dev/data/v1/sources.json',
+            decreeUrl: 'https://www.sgg.gov.ma/BO/bo_ar/2011/BO_5988_Ar.pdf', revisedAt: '2026-09-27' },
+        national: { constituencyCount: 92, localSeatTotal: 305, excludedRegionalSeatTotal: 90,
+            urbanizationIndex: 62.75, ruralityIndex: 37.25 },
         rows: [
-            { code: 'PAM', name: 'PAM', totalSeats: 97, urbanizationIndex: 66.25,
-                ruralityIndex: 33.75, differenceFromNational: 3.49910144,
-                regionRows: [
-                    { code: 'casablanca-settat', name: 'Casablanca-Settat', totalPopulation: 7688967,
-                        urbanPopulation: 5633748, ruralPopulation: 2055219, urbanShare: 73.27,
-                        ruralShare: 26.73, partySeats: 14, delegationSeats: 65 }
+            { code: 'PAM', name: 'PAM', localSeats: 85, urbanizationIndex: 66.25,
+                ruralityIndex: 33.75, differenceFromNational: 3.5,
+                constituencyRows: [
+                    { code: 'casablanca-anfa', name: 'Casablanca-Anfa', urbanShare: 100,
+                        partyLocalSeats: 1, allocatedSeats: 4 }
                 ] },
-            { code: 'PUD', name: 'PUD', totalSeats: 1, urbanizationIndex: 36.71,
-                ruralityIndex: 63.29, differenceFromNational: -26.04089856,
-                regionRows: [
-                    { code: 'draa-tafilalet', name: 'Drâa-Tafilalet', totalPopulation: 1655623,
-                        urbanPopulation: 607724, ruralPopulation: 1047899, urbanShare: 36.71,
-                        ruralShare: 63.29, partySeats: 1, delegationSeats: 24 }
+            { code: 'PUD', name: 'PUD', localSeats: 1, urbanizationIndex: 36.71,
+                ruralityIndex: 63.29, differenceFromNational: -26.04,
+                constituencyRows: [
+                    { code: 'tinghir', name: 'Tinghir', urbanShare: 36.71,
+                        partyLocalSeats: 1, allocatedSeats: 3 }
                 ] }
         ]
     };
@@ -65,7 +65,7 @@ function view(locale) {
         HTMLInputElement: class {},
         window: {
             queueMicrotask(callback) { callback(); },
-            FhemniElectionRegionDemographics: {},
+            FhemniElectionConstituencyDemographics: {},
             FhemniElectionInsights: { deriveUrbanizationRepresentation() { return result; } },
             FhemniElectionRegionFilters: {
                 SEAT_TYPES: {}, normalizeState() { return {}; }, createDeferredAction() { return {}; }
@@ -85,13 +85,13 @@ function view(locale) {
 test('the graphs page exposes a dedicated urban and rural context section', () => {
     assert.match(page, /id="electionGraphsJumpUrbanization"/);
     assert.match(page, /id="electionGraphUrbanization"/);
-    assert.match(page, /urban-rural-regions\.js\?v=/);
+    assert.match(page, /urban-rural-constituencies\.js\?v=/);
 });
 
 for (const [locale, disclaimer] of Object.entries({
-    ar: 'ما كيقيسش أصوات المدن ولا القرى',
+    ar: 'المقاعد الجهوية الـ90 ما داخلاش',
     fr: 'ne mesure pas les votes urbains ou ruraux',
-    en: 'does not measure urban or rural votes'
+    en: '90 regional-list seats are excluded'
 })) {
     test(`${locale} urbanization graph labels the measure and its vote limitation`, () => {
         const rendered = view(locale);
@@ -101,6 +101,8 @@ for (const [locale, disclaimer] of Object.entries({
         assert.match(rendered.nodes('election-atlas-intro')[0].textContent, new RegExp(disclaimer, 'i'));
         assert.equal(rendered.nodes('election-atlas-urbanization-source')[0].children[0].href,
             'https://communes.pages.dev/data/v1/sources.json');
+        assert.equal(rendered.nodes('election-atlas-urbanization-source')[0].children[1].href,
+            'https://www.sgg.gov.ma/BO/bo_ar/2011/BO_5988_Ar.pdf');
         const seatLabels = rendered.nodes('election-atlas-urbanization-seats').map(node => node.textContent);
         assert.equal(seatLabels[1], { ar: 'مقعد واحد', fr: '1 siège', en: '1 seat' }[locale]);
     });

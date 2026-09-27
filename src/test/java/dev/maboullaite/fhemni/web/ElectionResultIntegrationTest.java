@@ -204,9 +204,9 @@ class ElectionResultIntegrationTest {
                 .andExpect(content().string(containsString("id=\"electionGraphsPanel\"")))
                 .andExpect(content().string(containsString("id=\"electionGraphRepresentatives\"")))
                 .andExpect(content().string(containsString("id=\"electionCoalitionPanel\"")))
-                .andExpect(content().string(containsString("/data/elections/2026/urban-rural-regions.js?v=20260927-1")))
-                .andExpect(content().string(containsString("/js/election-insights.js?v=20260927-2")))
-                .andExpect(content().string(containsString("/js/election-results.js?v=20260927-4")));
+                .andExpect(content().string(containsString("/data/elections/2026/urban-rural-constituencies.js?v=20260927-1")))
+                .andExpect(content().string(containsString("/js/election-insights.js?v=20260927-3")))
+                .andExpect(content().string(containsString("/js/election-results.js?v=20260927-5")));
     }
 
     @Test

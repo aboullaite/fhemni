@@ -8,10 +8,10 @@ Replace the regional-average urbanization proxy with an auditable measure tied t
 
 - Maintain a versioned crosswalk from each election constituency code to the HCP commune or arrondissement codes that legally compose it.
 - Use the 2024 HCP urban and rural population published for those units through Morocco Communes dataset 1.8.0.
-- Precompute one immutable browser snapshot per constituency: total, urban, and rural population; allocated local seats; component unit codes; and evidence metadata.
+- Precompute one immutable browser snapshot per constituency: urban share, allocated local seats, component unit codes, and evidence metadata. Keep total, urban, and rural population wherever the electoral boundary reconciles exactly to current HCP units.
 - Keep the official decree and HCP/Morocco Communes provenance in the snapshot header.
 
-The crosswalk must be curated from Decree 2.11.603. Name matching may assist preparation but can never become runtime evidence. Split constituencies such as Fes, Rabat-Sale, Marrakech, Taroudant, Khemisset, Kenitra, Taounate, and Azilal require explicit component lists.
+The crosswalk must be curated from Decree 2.11.603. Name matching may assist preparation but can never become runtime evidence. Split constituencies such as Fes, Rabat-Sale, Marrakech, Taroudant, Khemisset, Kenitra, Taounate, and Azilal require explicit component lists. Rabat-Chellah and Rabat-Ocean split the Hassan arrondissement below the boundary published by the current HCP dataset; both are nevertheless exactly 100% urban because every legal component is urban. They are marked `share-only` and no population total is invented.
 
 ## Measure
 
@@ -30,7 +30,8 @@ The feature fails closed unless all of the following hold:
 - exactly 92 unique constituencies and 305 allocated local seats;
 - exactly 305 local winners, with each constituency's winner count equal to its allocation;
 - every current constituency has exactly one demographic record and no extra record exists;
-- each demographic record has positive integer population figures and `urban + rural = total`;
+- each `exact` demographic record has positive integer population figures and `urban + rural = total`;
+- each `share-only` record is explicitly documented and can only carry an exact 0% or 100% share;
 - every party's computed local-seat count reconciles with the election snapshot;
 - dataset version, census year, source URL, decree URL, and revision date are present.
 
@@ -42,7 +43,7 @@ There is no fallback to regional population averages.
 - Plot each party on a rural-to-urban continuum using local seats only.
 - Mark the 305-local-seat baseline.
 - Show the party's local-seat count beside the marker.
-- The detail table lists constituency, population, urban share, and local seats won.
+- The detail table lists constituency, urban share, local seats won, and the constituency's allocated seats. It does not imply an exact population total for the two Rabat boundaries that split Hassan below the HCP arrondissement level.
 - The source and method note links to the pinned HCP/Morocco Communes source and the official constituency decree.
 
 ## Testing
@@ -51,4 +52,3 @@ There is no fallback to regional population averages.
 - Negative tests cover missing, duplicate, extra, and inconsistent constituency demographics and mismatched local winners.
 - Dataset tests audit the full 92/305 snapshot and source metadata.
 - Rendering tests assert the 305/90 limitation and constituency wording in Arabic, French, and English.
-

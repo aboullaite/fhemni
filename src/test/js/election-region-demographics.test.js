@@ -1,40 +1,26 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const demographics = require('../../main/resources/static/data/elections/2026/urban-rural-regions.js');
+const demographics = require('../../main/resources/static/data/elections/2026/urban-rural-constituencies.js');
 
-test('the bundled HCP 2024 region snapshot is complete and internally consistent', () => {
+test('the bundled HCP 2024 constituency snapshot is complete and internally consistent', () => {
     assert.equal(demographics.datasetVersion, '1.8.0');
     assert.equal(demographics.censusYear, 2024);
-    assert.equal(demographics.regions.length, 12);
-    assert.equal(new Set(demographics.regions.map(region => region.regionCode)).size, 12);
-    assert.equal(new Set(demographics.regions.map(region => region.hcpCode)).size, 12);
-    assert.ok(demographics.regions.every(region =>
-        region.urbanPopulation + region.ruralPopulation === region.totalPopulation));
-    assert.deepEqual(demographics.regions.reduce((totals, region) => ({
-        total: totals.total + region.totalPopulation,
-        urban: totals.urban + region.urbanPopulation,
-        rural: totals.rural + region.ruralPopulation
-    }), { total: 0, urban: 0, rural: 0 }), {
-        total: 36828330,
-        urban: 23110108,
-        rural: 13718222
-    });
+    assert.equal(demographics.localSeatTotal, 305);
+    assert.equal(demographics.excludedRegionalSeatTotal, 90);
+    assert.equal(demographics.constituencies.length, 92);
+    assert.equal(new Set(demographics.constituencies.map(row => row.constituencyCode)).size, 92);
+    assert.equal(demographics.constituencies.reduce((sum, row) => sum + row.allocatedSeats, 0), 305);
+    assert.ok(demographics.constituencies.every(row => row.urbanShare >= 0 && row.urbanShare <= 100));
+    assert.ok(demographics.constituencies.every(row => row.populationCoverage === 'exact'
+        ? row.urbanPopulation + row.ruralPopulation === row.totalPopulation
+        : row.populationCoverage === 'share-only' && row.urbanShare === 100));
 });
 
-test('the snapshot maps exactly to the 12 stable election region codes', () => {
-    assert.deepEqual(demographics.regions.map(region => region.regionCode).sort(), [
-        'beni-mellal-khenifra',
-        'casablanca-settat',
-        'dakhla-oued-ed-dahab',
-        'draa-tafilalet',
-        'fes-meknes',
-        'guelmim-oued-noun',
-        'laayoune-sakia-el-hamra',
-        'marrakech-safi',
-        'oriental',
-        'rabat-sale-kenitra',
-        'souss-massa',
-        'tanger-tetouan-al-hoceima'
-    ]);
+test('the constituency snapshot carries both population and legal-boundary provenance', () => {
+    assert.equal(demographics.sourceUrl, 'https://communes.pages.dev/data/v1/sources.json');
+    assert.equal(demographics.decreeUrl, 'https://www.sgg.gov.ma/BO/bo_ar/2011/BO_5988_Ar.pdf');
+    assert.match(demographics.revisedAt, /^\d{4}-\d{2}-\d{2}$/);
+    assert.ok(demographics.constituencies.every(row => row.componentCodes.length > 0));
+    assert.equal(demographics.constituencies.filter(row => row.populationCoverage === 'share-only').length, 2);
 });
