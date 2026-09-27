@@ -37,7 +37,7 @@
         <google-genai.version>1.70.0</google-genai.version>
         <google-auth-library.version>1.52.0</google-auth-library.version>
         <openai-java.version>4.62.0</openai-java.version>
-        <video-js.version>8.23.8</video-js.version>
+        <video-js.version>8.24.1</video-js.version>
         <html-to-image.version>1.11.13</html-to-image.version>
         <testcontainers.version>2.0.5</testcontainers.version>
     </properties>
