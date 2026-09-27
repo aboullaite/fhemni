@@ -90,12 +90,13 @@ class NavigationConsistencyTest {
                 .contains("role=\"tablist\"")
                 .contains("id=\"electionMapPanel\"")
                 .contains("id=\"electionNationalPanel\"")
+                .contains("id=\"electionNationalVoteTotal\"")
                 .contains("id=\"electionCoalitionPanel\"")
                 .contains("id=\"electionRegionSelect\"")
                 .contains("id=\"electionRegionFilterStatus\"")
                 .contains("role=\"status\" aria-live=\"polite\" aria-atomic=\"true\"")
                 .contains("/js/election-region-filters.js?v=20260925-1")
-                .contains("/js/election-results.js?v=20260925-1")
+                .contains("/js/election-results.js?v=20260927-3")
                 .doesNotContain("style=\"");
         assertThat(html("js/election-region-filters.js"))
                 .contains("function filterRegion(region, state = {})")
@@ -130,10 +131,609 @@ class NavigationConsistencyTest {
                 .contains("function flushDeferredRegionRender()")
                 .contains("chips.setAttribute('role', 'group')")
                 .contains("announceRegionFilterStatus(constituencyWasCleared ? copy.constituencyCleared : '', regionFilterSummary(result))")
+                .contains("voteSummary:")
+                .contains("local and regional-list ballots, not unique voters")
+                .contains("bulletSeparator")
                 .doesNotContain(".style.");
         assertThat(html("assets/maps/morocco-regions-2026.svg"))
                 .contains("data-region-key=\"MA-01\"")
                 .contains("data-region-key=\"MA-12\"");
+    }
+
+    @Test
+    void electionAtlasHasOneAccessibleTabAndUsesTheExistingResultLifecycle() throws IOException {
+        String page = html("election-results.html");
+        String controller = html("js/election-results.js");
+        assertThat(page)
+                .containsPattern("(?s)id=\"electionNationalTab\".*id=\"electionGraphsTab\".*id=\"electionCoalitionTab\"")
+                .contains("id=\"electionGraphsTab\" type=\"button\" role=\"tab\" aria-controls=\"electionGraphsPanel\"")
+                .contains("id=\"electionGraphsPanel\" class=\"election-panel")
+                .contains("role=\"tabpanel\" aria-labelledby=\"electionGraphsTab\"")
+                .contains("href=\"#electionGraphBallots\"")
+                .contains("href=\"#electionGraphGeography\"")
+                .contains("href=\"#electionGraphConstituencies\"")
+                .contains("href=\"#electionGraphRepresentatives\"")
+                .contains("id=\"electionGraphBallots\"")
+                .contains("id=\"electionGraphRepresentation\"")
+                .contains("id=\"electionGraphGeography\"")
+                .contains("id=\"electionGraphConstituencies\"")
+                .contains("id=\"electionGraphRepresentatives\"")
+                .contains("id=\"electionAtlasStatus\" class=\"sr-only\" role=\"status\" aria-live=\"polite\"")
+                .contains("class=\"election-source-note\"")
+                .containsPattern("(?s)/js/election-insights\\.js\\?v=[^\"]+\" defer></script><script src=\"/js/election-results\\.js\\?v=[^\"]+\"")
+                .doesNotContain("style=\"")
+                .doesNotContain(" onclick=", " onkeydown=", " onchange=");
+        assertThat(controller)
+                .contains("['map', 'national', 'graphs', 'coalition']")
+                .contains("function renderAtlas(options = {})")
+                .contains("renderNational(); renderAtlas(options); renderCoalitionParties()")
+                .contains("const atlasState = {")
+                .contains("event.key === 'ArrowLeft'", "event.key === 'ArrowRight'", "event.key === 'Home'", "event.key === 'End'")
+                .contains("tabindex', selected ? '0' : '-1'")
+                .contains("election_results_tab_selected")
+                .contains("load({ fresh: true })")
+                .contains("title: 'النتيجة النهائية بالأرقام'")
+                .contains("title: 'Le résultat final, expliqué'")
+                .contains("title: 'The final result, explained'")
+                .contains("constituencySeats: null")
+                .contains("seatType: 'all', page: 1")
+                .contains("ATLAS_SECTION_IDS.has(requested)")
+                .doesNotContain("setInterval(");
+        assertThat(page.split("id=\"electionAtlasStatus\"", -1)).hasSize(2);
+        assertThat(controller.split("/api/catalog/elections/2026/results", -1)).hasSize(2);
+        assertThat(controller.split("function schedulePoll\\(", -1)).hasSize(2);
+        assertThat(controller.split("\\['map', 'national', 'graphs', 'coalition'\\]", -1)).hasSize(3);
+    }
+
+    @Test
+    void electionAtlasFitsFourTabsAndKeepsMobileFiguresReachable() throws IOException {
+        String styles = html("css/app.css");
+        String compiled = html("css/dist.css");
+        String page = html("election-results.html");
+
+        assertThat(styles)
+                .contains(".election-tabs { display: grid; grid-template-columns: repeat(4,minmax(0,1fr))")
+                .contains(".election-graphs-jumps")
+                .contains(".election-graphs-panel, .election-graph-section")
+                .contains(".election-atlas-table-scroll { min-width: 0; max-width: 100%; overflow-x: auto;")
+                .contains(".election-atlas-representative-cards { display: grid;")
+                .contains(".election-atlas-control:focus-visible")
+                .contains("@media (prefers-reduced-motion: reduce)")
+                .contains("[dir=\"rtl\"] .election-graphs-jumps");
+        assertThat(styles).containsPattern("(?s)@media \\(max-width: 640px\\).*?\\.election-tabs \\{[^}]*overflow-x: auto;[^}]*grid-template-columns: repeat\\(4,minmax\\(118px,1fr\\)\\)");
+        assertThat(compiled).contains(".election-graphs-jumps").contains(".election-atlas-representative-cards");
+        assertThat(page).contains("/css/dist.css?v=20260927-2");
+    }
+
+    @Test
+    void electionAtlasKeepsExactTextAndDecorativeChartsAccessible() throws IOException {
+        String page = html("election-results.html");
+        String controller = html("js/election-results.js");
+
+        assertThat(page)
+                .contains("id=\"electionAtlasStatus\" class=\"sr-only\" role=\"status\"")
+                .contains("class=\"election-source-note\"")
+                .doesNotContain("style=\"", " onclick=", " onkeydown=", " onchange=")
+                .doesNotContain("https://cdn", "<script src=\"http");
+        assertThat(controller)
+                .contains("track.setAttribute('aria-hidden', 'true')")
+                .contains("bar.setAttribute('aria-hidden', 'true')")
+                .contains("element('bdi', '', record.candidateName)")
+                .contains("element('bdi', '', value)")
+                .contains("element('bdi', '', code)")
+                .contains("const atlasState = {")
+                .contains("renderNational(); renderAtlas(options); renderCoalitionParties()")
+                .contains("load({ fresh: true })")
+                .doesNotContain("setInterval(");
+    }
+
+    @Test
+    void electionResultTabGroupUsesSelectedLanguage() throws Exception {
+        String controllerPath = new ClassPathResource("static/js/election-results.js").getFile().getAbsolutePath();
+        String harness = """
+                const assert = require('node:assert/strict');
+                const fs = require('node:fs');
+                const vm = require('node:vm');
+                const script = fs.readFileSync(process.argv[1], 'utf8').replace(
+                    "document.addEventListener('DOMContentLoaded', init);",
+                    "globalThis.__test = { applyCopy, use(next) { locale = next; copy = COPY[next]; } };"
+                );
+                const nodes = new Map();
+                const node = id => {
+                    if (!nodes.has(id)) nodes.set(id, {
+                        attrs: {}, setAttribute(name, value) { this.attrs[name] = value; }
+                    });
+                    return nodes.get(id);
+                };
+                const document = { documentElement: {}, getElementById: node, addEventListener() {} };
+                const window = { FhemniElectionRegionFilters: {
+                    SEAT_TYPES: {}, normalizeState() { return {}; }, createDeferredAction() { return {}; }
+                } };
+                const sandbox = { document, window };
+                vm.runInNewContext(script, sandbox);
+                for (const [locale, expected, direction] of [
+                    ['ar', 'طرق عرض نتائج الانتخابات', 'rtl'],
+                    ['fr', 'Vues des résultats électoraux', 'ltr'],
+                    ['en', 'Election result views', 'ltr']
+                ]) {
+                    sandbox.__test.use(locale);
+                    sandbox.__test.applyCopy();
+                    assert.equal(node('electionTabs').attrs['aria-label'], expected);
+                    assert.equal(document.documentElement.dir, direction);
+                }
+                """;
+        Process process = new ProcessBuilder("node", "-e", harness, controllerPath)
+                .redirectErrorStream(true).start();
+        String output = new String(process.getInputStream().readAllBytes(), UTF_8);
+        assertThat(process.waitFor()).as(output).isZero();
+        assertThat(html("election-results.html"))
+                .contains("class=\"election-tabs\" role=\"tablist\" aria-label=\"طرق عرض نتائج الانتخابات\"");
+    }
+
+    @Test
+    void electionAtlasSectionDeepLinksScrollOnceAfterContentBecomesVisible() throws Exception {
+        String controllerPath = new ClassPathResource("static/js/election-results.js").getFile().getAbsolutePath();
+        String harness = """
+                const assert = require('node:assert/strict');
+                const fs = require('node:fs');
+                const vm = require('node:vm');
+                const script = fs.readFileSync(process.argv[1], 'utf8').replace(
+                    "document.addEventListener('DOMContentLoaded', init);",
+                    "globalThis.__test = { bindTabs, showState };"
+                );
+                function visit(hash) {
+                    const scrolled = [];
+                    const elements = new Map();
+                    const node = id => {
+                        if (!elements.has(id)) elements.set(id, {
+                            id, hidden: true, attrs: {}, listeners: {},
+                            setAttribute(key, value) { this.attrs[key] = value; },
+                            addEventListener(type, listener) { this.listeners[type] = listener; },
+                            scrollIntoView() { scrolled.push(id); }
+                        });
+                        return elements.get(id);
+                    };
+                    const tabs = ['map', 'national', 'graphs', 'coalition'].map(name => {
+                        const button = node(`election${name[0].toUpperCase()}${name.slice(1)}Tab`);
+                        button.dataset = { electionTab: name };
+                        return button;
+                    });
+                    node('electionTabs').querySelectorAll = () => tabs;
+                    const location = { hash, pathname: '/elections/2026', search: '' };
+                    const sandbox = {
+                        window: {
+                            location,
+                            history: { replaceState(_state, _title, url) { location.hash = url.slice(url.indexOf('#')); } },
+                            queueMicrotask(callback) { callback(); },
+                            FhemniElectionRegionFilters: { SEAT_TYPES: {}, normalizeState() { return {}; }, createDeferredAction() { return {}; } }
+                        },
+                        document: {
+                            documentElement: { dir: 'ltr' },
+                            addEventListener() {},
+                            getElementById: node
+                        }
+                    };
+                    vm.runInNewContext(script, sandbox);
+                    sandbox.__test.bindTabs();
+                    return { node, location, scrolled, show: sandbox.__test.showState };
+                }
+                for (const id of [
+                    'electionGraphBallots', 'electionGraphRepresentation', 'electionGraphGeography',
+                    'electionGraphConstituencies', 'electionGraphRepresentatives'
+                ]) {
+                    const page = visit(`#${id}`);
+                    assert.equal(page.node('electionGraphsPanel').hidden, false);
+                    assert.equal(page.node('electionContent').hidden, true);
+                    assert.deepEqual(page.scrolled, []);
+                    page.show('content');
+                    assert.deepEqual(page.scrolled, [id], `must scroll to ${id} after reveal`);
+                    page.show('content');
+                    assert.deepEqual(page.scrolled, [id], `must not scroll twice to ${id}`);
+                    assert.equal(page.location.hash, `#${id}`);
+                }
+                const invalid = visit('#electionGraphWhatever');
+                invalid.show('content');
+                assert.equal(invalid.node('electionMapPanel').hidden, false);
+                assert.equal(invalid.node('electionGraphsPanel').hidden, true);
+                assert.equal(invalid.location.hash, '#map');
+                assert.deepEqual(invalid.scrolled, []);
+                const graphs = visit('#graphs');
+                graphs.show('content');
+                assert.equal(graphs.node('electionGraphsPanel').hidden, false);
+                assert.equal(graphs.location.hash, '#graphs');
+                assert.deepEqual(graphs.scrolled, []);
+                const switched = visit('#electionGraphBallots');
+                switched.node('electionNationalTab').listeners.click();
+                switched.show('content');
+                assert.deepEqual(switched.scrolled, []);
+                switched.node('electionGraphsTab').listeners.click();
+                switched.show('content');
+                assert.deepEqual(switched.scrolled, [], 'a user tab change cancels the old deep-link scroll');
+                """;
+        Process process = new ProcessBuilder("node", "-e", harness, controllerPath)
+                .redirectErrorStream(true).start();
+        String output = new String(process.getInputStream().readAllBytes(), UTF_8);
+        assertThat(process.waitFor()).as(output).isZero();
+    }
+
+    @Test
+    void electionAtlasBallotSectionsExposeLabeledControlsAndExactFigures() throws IOException {
+        String controller = html("js/election-results.js");
+        String css = html("css/app.css");
+        assertThat(controller)
+                .contains("function renderBallotComponents(")
+                .contains("function renderBallotSeatComparison(")
+                .contains("FhemniElectionInsights.deriveBallotComponents(")
+                .contains("FhemniElectionInsights.deriveBallotSeatComparison(")
+                .contains("FhemniElectionInsights.deriveConcentration(")
+                .contains("data-atlas-key")
+                .contains("atlas.ballotsDenominator", "atlas.representationDenominator")
+                .contains("atlas.ballotCaption", "atlas.representationCaption")
+                .contains("election-atlas-comparison-bar")
+                .contains("element('tfoot'")
+                .contains("widthClass(")
+                .contains("element('label'")
+                .contains("function announceAtlasControls(")
+                .contains("function announceAtlasStatus(")
+                .contains("atlasStatusAnnouncer.announce(message, { repeat: true })")
+                .contains("if (options.poll && changed) announceAtlasPollUpdate();")
+                .doesNotContain("setText('electionAtlasStatus'")
+                .contains("controlChange: action")
+                .contains("ballotsIntro: 'مقارنة الأصوات لدوائر المحلية واللوائح الجهوية لكل حزب أو لائحة، من مجموع 9.738.526 صوت محلي وجهوي.'")
+                .contains("representationIntro: 'حصة الأصوات من 9.738.526 صوت محلي وجهوي؛ حصة المقاعد من 395 مقعد.'")
+                .contains("ballotsIntro: 'Comparaison des voix des circonscriptions locales et des listes régionales pour chaque parti ou liste, sur un total de 9 738 526 voix locales et régionales.'")
+                .contains("representationIntro: 'Part des voix sur 9 738 526 voix locales et régionales ; part des sièges sur 395 sièges.'")
+                .contains("ballotsIntro: 'Compare local-constituency and regional-list votes for each party or list, out of 9,738,526 local and regional ballots.'")
+                .contains("representationIntro: 'Vote share out of 9,738,526 local and regional ballots; seat share out of 395 seats.'")
+                .contains("ballotsDenominator: ''", "representationDenominator: ''")
+                .doesNotContain(".style.width =");
+        assertThat(css)
+                .contains(".election-atlas-ballot-bar")
+                .contains(".election-atlas-exact-value { display: inline-flex; align-items: baseline; gap: 5px; font-size: 11px; font-weight: 400;")
+                .contains(".election-atlas-value-separator { color: var(--muted); font-size: 14px;")
+                .contains(".election-atlas-compare-marker")
+                .contains(".election-atlas-comparison-bar")
+                .contains(".election-atlas-figures")
+                .contains("inset-inline-start")
+                .doesNotContain(".election-atlas-ballot-bar { width:");
+    }
+
+    @Test
+    void electionAtlasGeographyOffersCompleteLabeledViewsAndRepresentativeHandoff() throws IOException {
+        String controller = html("js/election-results.js");
+        String css = html("css/app.css");
+        assertThat(controller)
+                .contains("function renderGeography(")
+                .contains("FhemniElectionInsights.deriveRegionDelegation(")
+                .contains("FhemniElectionInsights.derivePartyGeography(")
+                .contains("FhemniElectionInsights.buildRegionMatrix(")
+                .contains("geographyByRegion", "geographyByParty", "geographyAllFigures")
+                .contains("atlas.geographySelectRegion", "atlas.geographySelectParty")
+                .contains("data-atlas-key", "geography-region", "geography-party")
+                .contains("atlas.geographyRegionDenominator", "atlas.geographyPartyDenominator")
+                .contains("atlas.geographyMatrixCaption")
+                .contains("atlas.geographySeeRepresentatives")
+                .contains("atlasState.representatives.regionCode", "atlasState.representatives.partyCode")
+                .contains("atlasState.representatives.page = 1")
+                .contains("electionGraphRepresentativesTitle")
+                .contains("scope = 'col'", "scope = 'row'")
+                .contains("election-atlas-matrix-level-")
+                .doesNotContain(".style.backgroundColor =");
+        assertThat(css)
+                .contains(".election-atlas-geography")
+                .contains(".election-atlas-matrix-level-0")
+                .contains(".election-atlas-matrix-level-4")
+                .contains("overflow-x: auto");
+    }
+
+    @Test
+    void electionAtlasOffersExactConstituencyFiguresAndACompleteRepresentativeDirectory() throws IOException {
+        String controller = html("js/election-results.js");
+        assertThat(controller)
+                .contains("FhemniElectionInsights.deriveConstituencyDistribution(snapshot)")
+                .contains("FhemniElectionInsights.indexRepresentatives(snapshot")
+                .contains("function renderConstituencies(")
+                .contains("function renderRepresentativeHandoff(")
+                .contains("election-atlas-constituency-figures")
+                .contains("election-atlas-constituency-bin")
+                .contains("atlas.constituencyFigureSeats", "atlas.constituencyFigureCount")
+                .contains("representatives-search", "representatives-region", "representatives-constituency")
+                .contains("representatives-party", "representatives-seat-type")
+                .contains("election-atlas-representative-count", "election-atlas-representative-chips")
+                .contains("representatives-reset", "representatives-load-more")
+                .contains("election-atlas-representative-table", "election-atlas-representative-card")
+                .contains("atlas.representativesNotPublished")
+                .contains("atlas.representativesPage");
+    }
+
+    @Test
+    void electionAtlasDirectoryKeepsFocusAfterChipResetAndFinalPageActions() throws Exception {
+        String controllerPath = new ClassPathResource("static/js/election-results.js").getFile().getAbsolutePath();
+        String harness = """
+                const assert = require('node:assert/strict');
+                const fs = require('node:fs');
+                const vm = require('node:vm');
+                const script = fs.readFileSync(process.argv[1], 'utf8').replace(
+                    "document.addEventListener('DOMContentLoaded', init);",
+                    "locale = 'en'; snapshot = { regions: [{ code: 'R01', name: 'Region' }], parties: [{ code: 'PAM', name: 'Party', totalSeats: 26 }] }; globalThis.__renderDirectory = renderRepresentativeHandoff; globalThis.__renderConstituencies = renderConstituencies; globalThis.__atlasState = atlasState;"
+                );
+                let document;
+                function visit(node) { return [node, ...node.children.flatMap(visit)]; }
+                function makeNode(tag) {
+                    const node = { tag, className: '', dataset: {}, children: [], listeners: {}, textContent: '',
+                        classList: { add(...names) { node.className += ` ${names.join(' ')}`; } },
+                        append(...children) { this.children.push(...children); },
+                        replaceChildren(...children) { this.children = children; },
+                        contains(target) { return visit(this).includes(target); },
+                        querySelector(selector) { return visit(this).find(item => item.className.includes(selector.slice(1))) || null; },
+                        querySelectorAll(selector) { return visit(this).filter(item => item.dataset.atlasKey && selector === '[data-atlas-key]'); },
+                        setAttribute(name, value) { if (name === 'data-atlas-key') this.dataset.atlasKey = value; },
+                        addEventListener(name, callback) { this.listeners[name] = callback; },
+                        focus() { if (!this.disabled) document.activeElement = this; }
+                    };
+                    return node;
+                }
+                const root = makeNode('div');
+                const status = makeNode('p');
+                const constituencyRoot = makeNode('div');
+                const heading = makeNode('h3');
+                heading.scrollIntoView = () => {};
+                document = { activeElement: null, addEventListener() {}, createElement: makeNode,
+                    createElementNS(namespace, tag) { return makeNode(tag); },
+                    getElementById(id) { return id === 'electionAtlasStatus' ? status
+                        : id === 'electionGraphConstituenciesContent' ? constituencyRoot
+                        : id === 'electionGraphRepresentativesTitle' ? heading : root; } };
+                const records = Array.from({ length: 26 }, (_, index) => ({
+                    candidateName: `Candidate ${index + 1}`, partyCode: 'PAM', partyName: 'Party',
+                    seatType: 'LOCAL', regionName: 'Region', constituencyName: 'Constituency',
+                    votes: index === 0 ? null : index === 1 ? 0 : index + 100
+                }));
+                const insights = {
+                    indexRepresentatives() { return { available: true, totalRecords: 395, localCount: 305,
+                        regionalCount: 90, filteredCount: records.length, records }; },
+                    deriveConstituencyDistribution() { return { available: true, constituencyCount: 92,
+                        localSeats: 305, bins: [21, 38, 22, 5, 6].map((count, index) => ({
+                            seats: index + 2, constituencies: count,
+                            items: Array.from({ length: count }, (_, item) => ({ code: `C${index}-${item}`, name: `Place ${index}-${item}` }))
+                        })) }; }
+                };
+                const sandbox = { document, HTMLInputElement: class {}, window: {
+                    queueMicrotask(callback) { callback(); },
+                    FhemniElectionInsights: insights,
+                    FhemniElectionRegionFilters: { SEAT_TYPES: {}, normalizeState() { return {}; },
+                        createDeferredAction() { return {}; },
+                        createLiveRegionAnnouncer(target) { return { announce(message) { target.textContent = message; } }; } }
+                } };
+                vm.runInNewContext(script, sandbox);
+                sandbox.__renderConstituencies();
+                const bin = visit(constituencyRoot).find(node => node.dataset.atlasKey === 'constituency-bin-3');
+                assert.ok(bin);
+                bin.listeners.click();
+                assert.equal(sandbox.__atlasState.constituencySeats, null, 'previewing a bin does not prefilter the directory');
+                assert.equal(visit(constituencyRoot).filter(node => node.tag === 'li').length, 38);
+                const applyBin = visit(constituencyRoot).find(node => node.dataset.atlasKey === 'constituency-representatives');
+                applyBin.listeners.click();
+                assert.equal(sandbox.__atlasState.constituencySeats, 3);
+                assert.equal(sandbox.__atlasState.representatives.seatType, 'LOCAL');
+                assert.equal(document.activeElement, heading);
+                sandbox.__atlasState.constituencySeats = null;
+                sandbox.__atlasState.representatives.seatType = 'all';
+                sandbox.__atlasState.representatives.page = 1;
+                sandbox.__renderDirectory();
+                const find = key => visit(root).find(node => node.dataset.atlasKey === key);
+                const count = className => visit(root).filter(node => node.className.split(' ').includes(className)).length;
+                assert.equal(count('election-atlas-representative-card'), 25);
+                assert.ok(visit(root).some(node => node.textContent === 'Showing 25 of 26'));
+                const more = find('representatives-load-more');
+                assert.ok(more);
+                document.activeElement = more;
+                more.listeners.click();
+                assert.equal(count('election-atlas-representative-card'), 26);
+                assert.equal(find('representatives-load-more').disabled, true);
+                assert.equal(document.activeElement, find('representatives-result-count'));
+                assert.match(status.textContent, /Showing 26 of 26/);
+                assert.ok(visit(root).some(node => node.textContent === 'Not published'));
+                assert.ok(visit(root).some(node => node.textContent === '0'));
+                sandbox.__atlasState.representatives.query = 'Candidate';
+                sandbox.__renderDirectory();
+                assert.match(find('representatives-chip-query').textContent, /Candidate/);
+                const onlyChip = find('representatives-chip-query');
+                document.activeElement = onlyChip;
+                onlyChip.listeners.click();
+                assert.equal(sandbox.__atlasState.representatives.query, '');
+                assert.equal(document.activeElement, find('representatives-search'));
+                sandbox.__atlasState.representatives.query = 'Candidate';
+                sandbox.__renderDirectory();
+                const reset = find('representatives-reset');
+                document.activeElement = reset;
+                reset.listeners.click();
+                assert.equal(sandbox.__atlasState.representatives.query, '');
+                assert.equal(find('representatives-reset').disabled, true);
+                assert.equal(document.activeElement, find('representatives-search'));
+                """;
+        Process process = new ProcessBuilder("node", "-e", harness, controllerPath)
+                .redirectErrorStream(true).start();
+        String output = new String(process.getInputStream().readAllBytes(), UTF_8);
+        assertThat(process.waitFor()).as(output).isZero();
+    }
+
+    @Test
+    void electionAtlasGeographyMatrixUsesOneGlobalIntensityScale() throws Exception {
+        String controllerPath = new ClassPathResource("static/js/election-results.js").getFile().getAbsolutePath();
+        String harness = """
+                const assert = require('node:assert/strict');
+                const fs = require('node:fs');
+                const vm = require('node:vm');
+                const script = fs.readFileSync(process.argv[1], 'utf8').replace(
+                    "document.addEventListener('DOMContentLoaded', init);",
+                    "globalThis.__level = geographyMatrixLevel;"
+                );
+                const sandbox = {
+                    document: { addEventListener() {} },
+                    window: { queueMicrotask(callback) { callback(); },
+                        FhemniElectionRegionFilters: { SEAT_TYPES: {}, normalizeState() { return {}; },
+                            createDeferredAction() { return {}; } } }
+                };
+                vm.runInNewContext(script, sandbox);
+                const level = sandbox.__level;
+                assert.deepEqual([0, 1, 3, 6, 9, 12].map(seats => level(seats, 12)),
+                    [0, 1, 1, 2, 3, 4]);
+                assert.equal(level(1, 24), 1, 'tiny positive cells stay visible');
+                """;
+        Process process = new ProcessBuilder("node", "-e", harness, controllerPath)
+                .redirectErrorStream(true).start();
+        String output = new String(process.getInputStream().readAllBytes(), UTF_8);
+        assertThat(process.waitFor()).as(output).isZero();
+    }
+
+    @Test
+    void electionAtlasRepresentativeHandoffAnnouncesVisibleFiltersAndKeepsFocus() throws Exception {
+        String controllerPath = new ClassPathResource("static/js/election-results.js").getFile().getAbsolutePath();
+        String harness = """
+                const assert = require('node:assert/strict');
+                const fs = require('node:fs');
+                const vm = require('node:vm');
+                const script = fs.readFileSync(process.argv[1], 'utf8')
+                    .replace("document.addEventListener('DOMContentLoaded', init);",
+                        "locale = 'en'; snapshot = { regions: [{ code: 'MA-01', name: 'Tanger-Tétouan-Al Hoceïma' }], parties: [] }; globalThis.__test = { geographyRepresentativesAction, atlasCopy, atlasState };")
+                    .replace('renderConstituencies({ handoff: true });', 'globalThis.__constituenciesRendered = true;')
+                    .replace('renderRepresentativeHandoff();', 'globalThis.__handoffRendered = true;');
+                const heading = { tabIndex: 0, scrolled: false, focused: false,
+                    scrollIntoView() { this.scrolled = true; }, focus() { this.focused = true; } };
+                const status = { textContent: '' };
+                const document = {
+                    addEventListener() {},
+                    getElementById(id) { return id === 'electionAtlasStatus' ? status : heading; },
+                    createElement(tag) { return { tag, dataset: {}, classList: { add() {} },
+                        setAttribute() {}, addEventListener(type, callback) { this[type] = callback; } }; }
+                };
+                const sandbox = { document, window: { queueMicrotask(callback) { callback(); },
+                    FhemniElectionRegionFilters: { SEAT_TYPES: {}, normalizeState() { return {}; },
+                        createDeferredAction() { return {}; },
+                        createLiveRegionAnnouncer(target) { return { announce(message) { target.textContent = message; } }; } } } };
+                vm.runInNewContext(script, sandbox);
+                const { geographyRepresentativesAction, atlasCopy, atlasState } = sandbox.__test;
+                atlasState.constituencySeats = 2;
+                const action = geographyRepresentativesAction(atlasCopy(), 'MA-01', '');
+                action.click();
+                assert.equal(atlasState.representatives.regionCode, 'MA-01');
+                assert.equal(atlasState.representatives.partyCode, '');
+                assert.equal(atlasState.representatives.page, 1);
+                assert.equal(atlasState.constituencySeats, null);
+                assert.equal(sandbox.__constituenciesRendered, true);
+                assert.match(status.textContent, /Tanger-Tétouan-Al Hoceïma/);
+                assert.match(status.textContent, /representatives/i);
+                assert.equal(sandbox.__handoffRendered, true);
+                assert.equal(heading.tabIndex, -1);
+                assert.equal(heading.scrolled, true);
+                assert.equal(heading.focused, true);
+                """;
+        Process process = new ProcessBuilder("node", "-e", harness, controllerPath)
+                .redirectErrorStream(true).start();
+        String output = new String(process.getInputStream().readAllBytes(), UTF_8);
+        assertThat(process.waitFor()).as(output).isZero();
+    }
+
+    @Test
+    void electionAtlasZeroSeatRegionShowsLocalizedEmptyStateWithoutLargestDelegation() throws Exception {
+        String controllerPath = new ClassPathResource("static/js/election-results.js").getFile().getAbsolutePath();
+        String harness = """
+                const assert = require('node:assert/strict');
+                const fs = require('node:fs');
+                const vm = require('node:vm');
+                const script = fs.readFileSync(process.argv[1], 'utf8').replace(
+                    "document.addEventListener('DOMContentLoaded', init);",
+                    "locale = 'en'; snapshot = { regions: [], parties: [] }; globalThis.__renderGeography = renderGeography;"
+                );
+                const root = { children: [], contains() { return false; }, querySelector() { return null; },
+                    replaceChildren(...nodes) { this.children = nodes; } };
+                const document = {
+                    activeElement: null, addEventListener() {}, getElementById() { return root; },
+                    createElement(tag) { return { tag, className: '', textContent: '', dataset: {}, children: [],
+                        setAttribute() {}, addEventListener() {}, append(...nodes) { this.children.push(...nodes); } }; }
+                };
+                const matrix = { available: true, rows: [{ code: 'MA-01', name: 'Zero', totalSeats: 0 }],
+                    partyCodes: ['PAM'], maxSeats: 4 };
+                const empty = { available: true, delegationSeats: 0, representedPartyCount: 0,
+                    largestPartyCodes: [], rows: [] };
+                const sandbox = { document, window: { queueMicrotask(callback) { callback(); },
+                    FhemniElectionRegionFilters: { SEAT_TYPES: {}, normalizeState() { return {}; },
+                        createDeferredAction() { return {}; } },
+                    FhemniElectionInsights: { buildRegionMatrix() { return matrix; },
+                        deriveRegionDelegation() { return empty; } } } };
+                vm.runInNewContext(script, sandbox);
+                assert.doesNotThrow(() => sandbox.__renderGeography());
+                const nodes = [];
+                function visit(node) { nodes.push(node); (node.children || []).forEach(visit); }
+                root.children.forEach(visit);
+                assert.ok(nodes.some(node => node.className === 'election-atlas-unavailable'
+                    && /no seats/i.test(node.textContent)), 'localized empty region notice is rendered');
+                assert.ok(!nodes.some(node => node.className === 'election-atlas-takeaway'),
+                    'there is no misleading largest-delegation takeaway');
+                """;
+        Process process = new ProcessBuilder("node", "-e", harness, controllerPath)
+                .redirectErrorStream(true).start();
+        String output = new String(process.getInputStream().readAllBytes(), UTF_8);
+        assertThat(process.waitFor()).as(output).isZero();
+    }
+
+    @Test
+    void electionAtlasAppliesLatestDeferredPollAfterFocusLeavesAndShowsTinyPositiveShares() throws Exception {
+        String controllerPath = new ClassPathResource("static/js/election-results.js").getFile().getAbsolutePath();
+        String harness = """
+                const assert = require('node:assert/strict');
+                const fs = require('node:fs');
+                const vm = require('node:vm');
+                const script = fs.readFileSync(process.argv[1], 'utf8').replace(
+                    "document.addEventListener('DOMContentLoaded', init);",
+                    "globalThis.__atlasTest = { replaceAtlasSection, widthClass };"
+                );
+                const firstControl = { dataset: {} };
+                const secondControl = { dataset: {} };
+                const root = {
+                    current: { version: 'old' }, replacements: 0, listeners: [],
+                    contains(node) { return node === firstControl || node === secondControl; },
+                    querySelector() { return null; },
+                    querySelectorAll() { return []; },
+                    addEventListener(type, handler) { if (type === 'focusout') this.listeners.push(handler); },
+                    replaceChildren(content) { this.current = content; this.replacements++; }
+                };
+                const document = {
+                    activeElement: firstControl,
+                    addEventListener() {},
+                    getElementById() { return root; }
+                };
+                const sandbox = {
+                    document, HTMLInputElement: class {},
+                    window: {
+                        queueMicrotask(callback) { callback(); },
+                        FhemniElectionRegionFilters: { SEAT_TYPES: {}, normalizeState() { return {}; }, createDeferredAction() { return {}; } }
+                    }
+                };
+                vm.runInNewContext(script, sandbox);
+                const { replaceAtlasSection, widthClass } = sandbox.__atlasTest;
+                const content = version => ({ version, querySelector() { return null; } });
+                replaceAtlasSection('ballots', content('first poll'), { poll: true });
+                replaceAtlasSection('ballots', content('latest poll'), { poll: true });
+                assert.equal(root.current.version, 'old');
+                assert.equal(root.listeners.length, 1, 'queue one focus-leave listener');
+                document.activeElement = secondControl;
+                root.listeners[0]();
+                assert.equal(root.current.version, 'old', 'moving inside the section keeps current controls');
+                document.activeElement = {};
+                root.listeners[0]();
+                assert.equal(root.current.version, 'latest poll');
+                assert.equal(root.replacements, 1, 'use the newest poll once');
+                assert.equal(widthClass(0), 'priority-width-0');
+                assert.equal(widthClass(0.01), 'priority-width-1');
+                assert.equal(widthClass(0.49), 'priority-width-1');
+                assert.equal(widthClass(1000), 'priority-width-100');
+                assert.equal(widthClass(Infinity), 'priority-width-0');
+                """;
+        Process process = new ProcessBuilder("node", "-e", harness, controllerPath)
+                .redirectErrorStream(true).start();
+        String output = new String(process.getInputStream().readAllBytes(), UTF_8);
+        assertThat(process.waitFor()).as(output).isZero();
     }
 
     @Test
@@ -332,7 +932,7 @@ class NavigationConsistencyTest {
             String version = switch (page) {
                 case "priorities.html" -> "20260917-9";
                 case "404.html" -> "20260917-1";
-                case "election-results.html" -> "20260925-1";
+                case "election-results.html" -> "20260927-2";
                 default -> "20260916-22";
             };
             assertThat(html(page))
