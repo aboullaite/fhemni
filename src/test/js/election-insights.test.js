@@ -552,6 +552,23 @@ test('duplicate local candidate keys across constituencies make the representati
     assert.ok(result.diagnostics.includes('duplicate-candidate'));
 });
 
+test('representative index rejects missing or blank candidate keys instead of falling back to names', () => {
+    for (const { seatType, missingValue } of [
+        { seatType: 'LOCAL', missingValue: undefined },
+        { seatType: 'LOCAL', missingValue: '' },
+        { seatType: 'REGIONAL', missingValue: '   ' }
+    ]) {
+        const input = completeAtlasSnapshot();
+        const winners = input.regions.flatMap(region => region.parties.flatMap(party => seatType === 'LOCAL'
+            ? party.winners : party.regionalListWinners));
+        winners[0].candidateKey = missingValue;
+
+        const result = indexRepresentatives(input);
+        assert.equal(result.available, false);
+        assert.ok(result.diagnostics.includes('candidate-key'));
+    }
+});
+
 test('new projections do not mutate the snapshot', () => {
     const input = completeAtlasSnapshot();
     const original = structuredClone(input);

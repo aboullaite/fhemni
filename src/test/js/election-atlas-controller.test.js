@@ -136,6 +136,43 @@ test('Arabic count phrases cover all six plural categories for Atlas nouns', () 
         ['لا منتخبين', 'منتخب واحد', 'منتخبان', '7 منتخبين', '12 منتخباً', '100 منتخب']);
     assert.deepEqual([0, 1, 2, 7, 12, 100].map(value => phrase(value, 'list')),
         ['لا لوائح', 'لائحة واحدة', 'لائحتان', '7 لوائح', '12 لائحةً', '100 لائحة']);
+    assert.deepEqual([0, 1, 2, 7, 12, 100].map(value => phrase(value, 'seat')),
+        ['لا مقاعد', 'مقعد واحد', 'مقعدان', '7 مقاعد', '12 مقعداً', '100 مقعد']);
+    assert.deepEqual([0, 1, 2, 7, 12, 100].map(value => phrase(value, 'region')),
+        ['لا جهات', 'جهة واحدة', 'جهتان', '7 جهات', '12 جهةً', '100 جهة']);
+});
+
+test('Arabic rendered count templates inflect seats, regions, and votes', () => {
+    const script = source.replace("document.addEventListener('DOMContentLoaded', init);",
+        `locale = 'ar'; copy = COPY.ar; globalThis.__renderedCounts = {
+            constituencyBin: constituencyBinLabel(ATLAS_COPY.ar, 2),
+            regionSeats: regionSeatSummary({ declaredSeats: 2, allocatedSeats: 12 }),
+            votes: voteCountLabel(2),
+            coalitionNeed: coalitionVerdictText(196, { majoritySeats: 198 }),
+            coalitionExact: coalitionVerdictText(198, { majoritySeats: 198 }),
+            coalitionWon: coalitionVerdictText(200, { majoritySeats: 198 }),
+            coalitionTotal: coalitionSeatValue(2) + ' ' + copy.coalitionSeats,
+            geography: partyGeographyTakeaway(ATLAS_COPY.ar, 'PAM', { representedRegionCount: 2, constituencyBreadth: 2 }),
+            geographyZero: partyGeographyTakeaway(ATLAS_COPY.ar, 'PAM', { representedRegionCount: 2, constituencyBreadth: 0 }),
+            geographyDenominator: partyGeographyDenominator(ATLAS_COPY.ar, 2)
+        };`);
+    const sandbox = { document: { addEventListener() {} }, window: {
+        queueMicrotask(callback) { callback(); },
+        FhemniElectionRegionFilters: { SEAT_TYPES: {}, normalizeState() { return {}; }, createDeferredAction() { return {}; } }
+    } };
+    vm.runInNewContext(script, sandbox);
+    assert.deepEqual({ ...sandbox.__renderedCounts }, {
+        constituencyBin: 'دوائر بمقعدين',
+        regionSeats: 'المعلن: مقعدان · المخصص: 12 مقعداً',
+        votes: 'صوتان',
+        coalitionNeed: 'الباقي للوصول للأغلبية: مقعدان.',
+        coalitionExact: 'وصلتي للأغلبية بالضبط.',
+        coalitionWon: 'فقتي الأغلبية بمقعدين.',
+        coalitionTotal: 'مقعدان من أصل 395',
+        geography: 'PAM ممثل فجهتين وعندو فائزين فدائرتين.',
+        geographyZero: 'PAM ممثل فجهتين وما عندوش فائزين فالدوائر المحلية.',
+        geographyDenominator: 'النسب من مقعدين ديال هاد الحزب.'
+    });
 });
 
 test('Atlas status repeats identical actions and announces poll updates through the live-region announcer', () => {

@@ -488,27 +488,32 @@
                 }
                 for (const winner of localWinners) {
                     localCount++;
-                    const identity = winner.candidateKey
-                        ? `key:${winner.candidateKey}`
-                        : `local:${region.code}:${winner.constituencyCode}:${normalized(winner.candidateName)}`;
-                    if (identities.has(identity)) addDiagnostic(diagnostics, 'duplicate-candidate');
-                    identities.add(identity);
+                    const candidateKey = typeof winner.candidateKey === 'string' ? winner.candidateKey.trim() : '';
+                    if (!candidateKey) addDiagnostic(diagnostics, 'candidate-key');
+                    else {
+                        const identity = `key:${candidateKey}`;
+                        if (identities.has(identity)) addDiagnostic(diagnostics, 'duplicate-candidate');
+                        identities.add(identity);
+                    }
                     if (!winner.candidateName || !winner.constituencyCode || !integer(winner.allocatedSeats)) {
                         addDiagnostic(diagnostics, 'winner-identity');
                     }
-                    records.push({ candidateKey: winner.candidateKey ?? null, candidateName: winner.candidateName,
+                    records.push({ candidateKey: candidateKey || null, candidateName: winner.candidateName,
                         partyCode: party.code, partyName: party.name, regionCode: region.code, regionName: region.name,
                         constituencyCode: winner.constituencyCode, constituencyName: winner.constituencyName,
                         allocatedSeats: winner.allocatedSeats, seatType: 'LOCAL', votes: winner.votes ?? null });
                 }
                 for (const winner of regionalWinners) {
                     regionalCount++;
-                    const identity = winner.candidateKey
-                        ? `key:${winner.candidateKey}` : `regional:${region.code}:${normalized(winner.candidateName)}`;
-                    if (identities.has(identity)) addDiagnostic(diagnostics, 'duplicate-candidate');
-                    identities.add(identity);
+                    const candidateKey = typeof winner.candidateKey === 'string' ? winner.candidateKey.trim() : '';
+                    if (!candidateKey) addDiagnostic(diagnostics, 'candidate-key');
+                    else {
+                        const identity = `key:${candidateKey}`;
+                        if (identities.has(identity)) addDiagnostic(diagnostics, 'duplicate-candidate');
+                        identities.add(identity);
+                    }
                     if (!winner.candidateName) addDiagnostic(diagnostics, 'winner-identity');
-                    records.push({ candidateKey: winner.candidateKey ?? null, candidateName: winner.candidateName,
+                    records.push({ candidateKey: candidateKey || null, candidateName: winner.candidateName,
                         partyCode: party.code, partyName: party.name, regionCode: region.code, regionName: region.name,
                         constituencyCode: null, constituencyName: null, allocatedSeats: null,
                         seatType: 'REGIONAL', votes: null });
