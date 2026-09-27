@@ -96,7 +96,7 @@ class NavigationConsistencyTest {
                 .contains("id=\"electionRegionFilterStatus\"")
                 .contains("role=\"status\" aria-live=\"polite\" aria-atomic=\"true\"")
                 .contains("/js/election-region-filters.js?v=20260925-1")
-                .contains("/js/election-results.js?v=20260927-1")
+                .contains("/js/election-results.js?v=20260927-2")
                 .doesNotContain("style=\"");
         assertThat(html("js/election-region-filters.js"))
                 .contains("function filterRegion(region, state = {})")
@@ -138,6 +138,51 @@ class NavigationConsistencyTest {
         assertThat(html("assets/maps/morocco-regions-2026.svg"))
                 .contains("data-region-key=\"MA-01\"")
                 .contains("data-region-key=\"MA-12\"");
+    }
+
+    @Test
+    void electionAtlasHasOneAccessibleTabAndUsesTheExistingResultLifecycle() throws IOException {
+        String page = html("election-results.html");
+        String controller = html("js/election-results.js");
+        assertThat(page)
+                .containsPattern("(?s)id=\"electionNationalTab\".*id=\"electionGraphsTab\".*id=\"electionCoalitionTab\"")
+                .contains("id=\"electionGraphsTab\" type=\"button\" role=\"tab\" aria-controls=\"electionGraphsPanel\"")
+                .contains("id=\"electionGraphsPanel\" class=\"election-panel")
+                .contains("role=\"tabpanel\" aria-labelledby=\"electionGraphsTab\"")
+                .contains("href=\"#electionGraphBallots\"")
+                .contains("href=\"#electionGraphGeography\"")
+                .contains("href=\"#electionGraphConstituencies\"")
+                .contains("href=\"#electionGraphRepresentatives\"")
+                .contains("id=\"electionGraphBallots\"")
+                .contains("id=\"electionGraphRepresentation\"")
+                .contains("id=\"electionGraphGeography\"")
+                .contains("id=\"electionGraphConstituencies\"")
+                .contains("id=\"electionGraphRepresentatives\"")
+                .contains("id=\"electionAtlasStatus\" class=\"sr-only\" role=\"status\" aria-live=\"polite\"")
+                .contains("class=\"election-source-note\"")
+                .containsPattern("(?s)/js/election-insights\\.js\\?v=[^\"]+\" defer></script><script src=\"/js/election-results\\.js\\?v=[^\"]+\"")
+                .doesNotContain("style=\"")
+                .doesNotContain(" onclick=", " onkeydown=", " onchange=");
+        assertThat(controller)
+                .contains("['map', 'national', 'graphs', 'coalition']")
+                .contains("function renderAtlas()")
+                .contains("renderNational(); renderAtlas(); renderCoalitionParties()")
+                .contains("const atlasState = {")
+                .contains("event.key === 'ArrowLeft'", "event.key === 'ArrowRight'", "event.key === 'Home'", "event.key === 'End'")
+                .contains("tabindex', selected ? '0' : '-1'")
+                .contains("election_results_tab_selected")
+                .contains("load({ fresh: true })")
+                .contains("title: 'النتيجة النهائية بالأرقام'")
+                .contains("title: 'Le résultat final, expliqué'")
+                .contains("title: 'The final result, explained'")
+                .contains("constituencySeats: null")
+                .contains("seatType: 'all', page: 1")
+                .contains("requested.startsWith('electionGraph')")
+                .doesNotContain("setInterval(");
+        assertThat(page.split("id=\"electionAtlasStatus\"", -1)).hasSize(2);
+        assertThat(controller.split("/api/catalog/elections/2026/results", -1)).hasSize(2);
+        assertThat(controller.split("function schedulePoll\\(", -1)).hasSize(2);
+        assertThat(controller.split("\\['map', 'national', 'graphs', 'coalition'\\]", -1)).hasSize(3);
     }
 
     @Test
