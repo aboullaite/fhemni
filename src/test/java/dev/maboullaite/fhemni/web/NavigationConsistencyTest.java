@@ -288,6 +288,12 @@ class NavigationConsistencyTest {
                 .contains("element('tfoot'")
                 .contains("widthClass(")
                 .contains("element('label'")
+                .contains("function announceAtlasControls(")
+                .contains("setText('electionAtlasStatus'")
+                .contains("controlChange: action")
+                .containsPattern("ballotsDenominator: '[^']*ماشي عدد المصوتين[^']*'")
+                .containsPattern("ballotsDenominator: '[^']*pas des électeurs uniques[^']*'")
+                .containsPattern("ballotsDenominator: '[^']*not unique voters[^']*'")
                 .doesNotContain(".style.width =");
         assertThat(css)
                 .contains(".election-atlas-ballot-bar")
@@ -296,6 +302,65 @@ class NavigationConsistencyTest {
                 .contains(".election-atlas-figures")
                 .contains("inset-inline-start")
                 .doesNotContain(".election-atlas-ballot-bar { width:");
+    }
+
+    @Test
+    void electionAtlasAppliesLatestDeferredPollAfterFocusLeavesAndShowsTinyPositiveShares() throws Exception {
+        String controllerPath = new ClassPathResource("static/js/election-results.js").getFile().getAbsolutePath();
+        String harness = """
+                const assert = require('node:assert/strict');
+                const fs = require('node:fs');
+                const vm = require('node:vm');
+                const script = fs.readFileSync(process.argv[1], 'utf8').replace(
+                    "document.addEventListener('DOMContentLoaded', init);",
+                    "globalThis.__atlasTest = { replaceAtlasSection, widthClass };"
+                );
+                const firstControl = { dataset: {} };
+                const secondControl = { dataset: {} };
+                const root = {
+                    current: { version: 'old' }, replacements: 0, listeners: [],
+                    contains(node) { return node === firstControl || node === secondControl; },
+                    querySelector() { return null; },
+                    querySelectorAll() { return []; },
+                    addEventListener(type, handler) { if (type === 'focusout') this.listeners.push(handler); },
+                    replaceChildren(content) { this.current = content; this.replacements++; }
+                };
+                const document = {
+                    activeElement: firstControl,
+                    addEventListener() {},
+                    getElementById() { return root; }
+                };
+                const sandbox = {
+                    document, HTMLInputElement: class {},
+                    window: {
+                        queueMicrotask(callback) { callback(); },
+                        FhemniElectionRegionFilters: { SEAT_TYPES: {}, normalizeState() { return {}; }, createDeferredAction() { return {}; } }
+                    }
+                };
+                vm.runInNewContext(script, sandbox);
+                const { replaceAtlasSection, widthClass } = sandbox.__atlasTest;
+                const content = version => ({ version, querySelector() { return null; } });
+                replaceAtlasSection('ballots', content('first poll'), { poll: true });
+                replaceAtlasSection('ballots', content('latest poll'), { poll: true });
+                assert.equal(root.current.version, 'old');
+                assert.equal(root.listeners.length, 1, 'queue one focus-leave listener');
+                document.activeElement = secondControl;
+                root.listeners[0]();
+                assert.equal(root.current.version, 'old', 'moving inside the section keeps current controls');
+                document.activeElement = {};
+                root.listeners[0]();
+                assert.equal(root.current.version, 'latest poll');
+                assert.equal(root.replacements, 1, 'use the newest poll once');
+                assert.equal(widthClass(0), 'priority-width-0');
+                assert.equal(widthClass(0.01), 'priority-width-1');
+                assert.equal(widthClass(0.49), 'priority-width-1');
+                assert.equal(widthClass(1000), 'priority-width-100');
+                assert.equal(widthClass(Infinity), 'priority-width-0');
+                """;
+        Process process = new ProcessBuilder("node", "-e", harness, controllerPath)
+                .redirectErrorStream(true).start();
+        String output = new String(process.getInputStream().readAllBytes(), UTF_8);
+        assertThat(process.waitFor()).as(output).isZero();
     }
 
     @Test
