@@ -381,9 +381,11 @@ class NavigationConsistencyTest {
                 .contains("controlChange: action")
                 .contains("ballotsIntro: 'مقارنة الأصوات لدوائر المحلية واللوائح الجهوية لكل حزب أو لائحة، من مجموع 9.738.526 صوت محلي وجهوي.'")
                 .contains("representationIntro: 'حصة الأصوات من 9.738.526 صوت محلي وجهوي؛ حصة المقاعد من 395 مقعد.'")
+                .contains("ballotsIntro: 'Comparaison des voix des circonscriptions locales et des listes régionales pour chaque parti ou liste, sur un total de 9 738 526 voix locales et régionales.'")
+                .contains("representationIntro: 'Part des voix sur 9 738 526 voix locales et régionales ; part des sièges sur 395 sièges.'")
+                .contains("ballotsIntro: 'Compare local-constituency and regional-list votes for each party or list, out of 9,738,526 local and regional ballots.'")
+                .contains("representationIntro: 'Vote share out of 9,738,526 local and regional ballots; seat share out of 395 seats.'")
                 .contains("ballotsDenominator: ''", "representationDenominator: ''")
-                .containsPattern("ballotsDenominator: '[^']*pas des électeurs uniques[^']*'")
-                .containsPattern("ballotsDenominator: '[^']*not unique voters[^']*'")
                 .doesNotContain(".style.width =");
         assertThat(css)
                 .contains(".election-atlas-ballot-bar")

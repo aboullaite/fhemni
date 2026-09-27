@@ -73,21 +73,32 @@ const groups = { available: true,
     remaining: { counts: { ballots: 50, seats: 5 }, ballotShare: 39.9, seatShare: 24.25 },
     zeroSeat: { counts: { ballots: 10, seats: 0 }, ballotShare: 2.5, seatShare: 0 } };
 
-test('Arabic chart introductions carry the totals without separate denominator paragraphs', () => {
-    const view = controller('ar', 5, groups);
-
-    view.sandbox.__renderBallots();
-    assert.deepEqual(view.nodes('electionGraphBallotsContent', 'election-atlas-intro').map(node => node.textContent), [
-        'مقارنة الأصوات لدوائر المحلية واللوائح الجهوية لكل حزب أو لائحة، من مجموع 9.738.526 صوت محلي وجهوي.'
-    ]);
-    assert.equal(view.nodes('electionGraphBallotsContent', 'election-atlas-denominator').length, 0);
-
-    view.sandbox.__renderRepresentation();
-    assert.deepEqual(view.nodes('electionGraphRepresentationContent', 'election-atlas-intro').map(node => node.textContent), [
+for (const [locale, [ballotsIntro, representationIntro]] of Object.entries({
+    ar: [
+        'مقارنة الأصوات لدوائر المحلية واللوائح الجهوية لكل حزب أو لائحة، من مجموع 9.738.526 صوت محلي وجهوي.',
         'حصة الأصوات من 9.738.526 صوت محلي وجهوي؛ حصة المقاعد من 395 مقعد.'
-    ]);
-    assert.equal(view.nodes('electionGraphRepresentationContent', 'election-atlas-denominator').length, 0);
-});
+    ],
+    fr: [
+        'Comparaison des voix des circonscriptions locales et des listes régionales pour chaque parti ou liste, sur un total de 9 738 526 voix locales et régionales.',
+        'Part des voix sur 9 738 526 voix locales et régionales ; part des sièges sur 395 sièges.'
+    ],
+    en: [
+        'Compare local-constituency and regional-list votes for each party or list, out of 9,738,526 local and regional ballots.',
+        'Vote share out of 9,738,526 local and regional ballots; seat share out of 395 seats.'
+    ]
+})) {
+    test(`${locale} chart introductions carry the totals without separate denominator paragraphs`, () => {
+        const view = controller(locale, 5, groups);
+
+        view.sandbox.__renderBallots();
+        assert.deepEqual(view.nodes('electionGraphBallotsContent', 'election-atlas-intro').map(node => node.textContent), [ballotsIntro]);
+        assert.equal(view.nodes('electionGraphBallotsContent', 'election-atlas-denominator').length, 0);
+
+        view.sandbox.__renderRepresentation();
+        assert.deepEqual(view.nodes('electionGraphRepresentationContent', 'election-atlas-intro').map(node => node.textContent), [representationIntro]);
+        assert.equal(view.nodes('electionGraphRepresentationContent', 'election-atlas-denominator').length, 0);
+    });
+}
 
 test('Atlas exact values use a horizontal separator with an independent style hook', () => {
     const script = source.replace("document.addEventListener('DOMContentLoaded', init);",
