@@ -362,6 +362,92 @@ class NavigationConsistencyTest {
     }
 
     @Test
+    void electionAtlasRepresentativeHandoffAnnouncesVisibleFiltersAndKeepsFocus() throws Exception {
+        String controllerPath = new ClassPathResource("static/js/election-results.js").getFile().getAbsolutePath();
+        String harness = """
+                const assert = require('node:assert/strict');
+                const fs = require('node:fs');
+                const vm = require('node:vm');
+                const script = fs.readFileSync(process.argv[1], 'utf8')
+                    .replace("document.addEventListener('DOMContentLoaded', init);",
+                        "locale = 'en'; snapshot = { regions: [{ code: 'MA-01', name: 'Tanger-Tétouan-Al Hoceïma' }], parties: [] }; globalThis.__test = { geographyRepresentativesAction, atlasCopy, atlasState };")
+                    .replace('renderRepresentativeHandoff();', 'globalThis.__handoffRendered = true;');
+                const heading = { tabIndex: 0, scrolled: false, focused: false,
+                    scrollIntoView() { this.scrolled = true; }, focus() { this.focused = true; } };
+                const status = { textContent: '' };
+                const document = {
+                    addEventListener() {},
+                    getElementById(id) { return id === 'electionAtlasStatus' ? status : heading; },
+                    createElement(tag) { return { tag, dataset: {}, classList: { add() {} },
+                        setAttribute() {}, addEventListener(type, callback) { this[type] = callback; } }; }
+                };
+                const sandbox = { document, window: { queueMicrotask(callback) { callback(); },
+                    FhemniElectionRegionFilters: { SEAT_TYPES: {}, normalizeState() { return {}; },
+                        createDeferredAction() { return {}; } } } };
+                vm.runInNewContext(script, sandbox);
+                const { geographyRepresentativesAction, atlasCopy, atlasState } = sandbox.__test;
+                const action = geographyRepresentativesAction(atlasCopy(), 'MA-01', '');
+                action.click();
+                assert.equal(atlasState.representatives.regionCode, 'MA-01');
+                assert.equal(atlasState.representatives.partyCode, '');
+                assert.equal(atlasState.representatives.page, 1);
+                assert.match(status.textContent, /Tanger-Tétouan-Al Hoceïma/);
+                assert.match(status.textContent, /representatives/i);
+                assert.equal(sandbox.__handoffRendered, true);
+                assert.equal(heading.tabIndex, -1);
+                assert.equal(heading.scrolled, true);
+                assert.equal(heading.focused, true);
+                """;
+        Process process = new ProcessBuilder("node", "-e", harness, controllerPath)
+                .redirectErrorStream(true).start();
+        String output = new String(process.getInputStream().readAllBytes(), UTF_8);
+        assertThat(process.waitFor()).as(output).isZero();
+    }
+
+    @Test
+    void electionAtlasZeroSeatRegionShowsLocalizedEmptyStateWithoutLargestDelegation() throws Exception {
+        String controllerPath = new ClassPathResource("static/js/election-results.js").getFile().getAbsolutePath();
+        String harness = """
+                const assert = require('node:assert/strict');
+                const fs = require('node:fs');
+                const vm = require('node:vm');
+                const script = fs.readFileSync(process.argv[1], 'utf8').replace(
+                    "document.addEventListener('DOMContentLoaded', init);",
+                    "locale = 'en'; snapshot = { regions: [], parties: [] }; globalThis.__renderGeography = renderGeography;"
+                );
+                const root = { children: [], contains() { return false; }, querySelector() { return null; },
+                    replaceChildren(...nodes) { this.children = nodes; } };
+                const document = {
+                    activeElement: null, addEventListener() {}, getElementById() { return root; },
+                    createElement(tag) { return { tag, className: '', textContent: '', dataset: {}, children: [],
+                        setAttribute() {}, addEventListener() {}, append(...nodes) { this.children.push(...nodes); } }; }
+                };
+                const matrix = { available: true, rows: [{ code: 'MA-01', name: 'Zero', totalSeats: 0 }],
+                    partyCodes: ['PAM'], maxSeats: 4 };
+                const empty = { available: true, delegationSeats: 0, representedPartyCount: 0,
+                    largestPartyCodes: [], rows: [] };
+                const sandbox = { document, window: { queueMicrotask(callback) { callback(); },
+                    FhemniElectionRegionFilters: { SEAT_TYPES: {}, normalizeState() { return {}; },
+                        createDeferredAction() { return {}; } },
+                    FhemniElectionInsights: { buildRegionMatrix() { return matrix; },
+                        deriveRegionDelegation() { return empty; } } } };
+                vm.runInNewContext(script, sandbox);
+                assert.doesNotThrow(() => sandbox.__renderGeography());
+                const nodes = [];
+                function visit(node) { nodes.push(node); (node.children || []).forEach(visit); }
+                root.children.forEach(visit);
+                assert.ok(nodes.some(node => node.className === 'election-atlas-unavailable'
+                    && /no seats/i.test(node.textContent)), 'localized empty region notice is rendered');
+                assert.ok(!nodes.some(node => node.className === 'election-atlas-takeaway'),
+                    'there is no misleading largest-delegation takeaway');
+                """;
+        Process process = new ProcessBuilder("node", "-e", harness, controllerPath)
+                .redirectErrorStream(true).start();
+        String output = new String(process.getInputStream().readAllBytes(), UTF_8);
+        assertThat(process.waitFor()).as(output).isZero();
+    }
+
+    @Test
     void electionAtlasAppliesLatestDeferredPollAfterFocusLeavesAndShowsTinyPositiveShares() throws Exception {
         String controllerPath = new ClassPathResource("static/js/election-results.js").getFile().getAbsolutePath();
         String harness = """
