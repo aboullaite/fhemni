@@ -507,7 +507,7 @@ class NavigationConsistencyTest {
                     getElementById(id) { return id === 'electionAtlasStatus' ? status
                         : id === 'electionGraphConstituenciesContent' ? constituencyRoot
                         : id === 'electionGraphRepresentativesTitle' ? heading : root; } };
-                const records = Array.from({ length: 26 }, (_, index) => ({
+                const records = Array.from({ length: 16 }, (_, index) => ({
                     candidateName: `Candidate ${index + 1}`, partyCode: 'PAM', partyName: 'Party',
                     seatType: 'LOCAL', regionName: 'Region', constituencyName: 'Constituency',
                     votes: index === 0 ? null : index === 1 ? 0 : index + 100
@@ -546,20 +546,20 @@ class NavigationConsistencyTest {
                 sandbox.__renderDirectory();
                 const find = key => visit(root).find(node => node.dataset.atlasKey === key);
                 const count = className => visit(root).filter(node => node.className.split(' ').includes(className)).length;
-                assert.equal(count('election-atlas-representative-card'), 25);
-                assert.ok(visit(root).some(node => node.textContent === 'Showing 1–25 of 26 · page 1 of 2'));
+                assert.equal(count('election-atlas-representative-card'), 10);
+                assert.ok(visit(root).some(node => node.textContent === 'Showing 1–10 of 16 · page 1 of 2'));
                 const next = find('representatives-next');
                 assert.ok(next);
                 document.activeElement = next;
                 next.listeners.click();
-                assert.equal(count('election-atlas-representative-card'), 1);
+                assert.equal(count('election-atlas-representative-card'), 6);
                 assert.equal(find('representatives-next').disabled, true);
                 assert.equal(document.activeElement, find('representatives-previous'));
-                assert.match(status.textContent, /Showing 26–26 of 26 · page 2 of 2/);
+                assert.match(status.textContent, /Showing 11–16 of 16 · page 2 of 2/);
                 const previous = find('representatives-previous');
                 document.activeElement = previous;
                 previous.listeners.click();
-                assert.equal(count('election-atlas-representative-card'), 25);
+                assert.equal(count('election-atlas-representative-card'), 10);
                 assert.equal(find('representatives-previous').disabled, true);
                 assert.equal(document.activeElement, find('representatives-next'));
                 assert.ok(visit(root).some(node => node.textContent === 'Not published'));

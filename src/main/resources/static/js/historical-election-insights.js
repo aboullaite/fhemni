@@ -8,7 +8,7 @@
     const LOCAL_SEATS = 305;
     const LIST_SEATS = 90;
     const REGION_COUNT = 12;
-    const PAGE_SIZE = 25;
+    const PAGE_SIZE = 10;
     const DIMENSIONS = ['gender', 'age', 'education'];
     const REPORTED_FACT_STATUS = 'REPORTED_ELECTIONS_MA';
     const ANALYSIS_FACT_STATUS = 'FHEMNI_ANALYSIS_BASED_ON_ELECTIONS_MA';

@@ -7,7 +7,7 @@
     const MAX_POLL_BACKOFF_MS = 5 * 60_000;
     const COALITION_DEBOUNCE_MS = 250;
     const MAX_COALITION_PARTIES = 5;
-    const REPRESENTATIVE_PAGE_SIZE = 25;
+    const REPRESENTATIVE_PAGE_SIZE = 10;
     const REGION_FILTERS = window.FhemniElectionRegionFilters;
     const SEAT_TYPES = REGION_FILTERS.SEAT_TYPES;
     const deferredRegionRender = REGION_FILTERS.createDeferredAction(callback => window.queueMicrotask(callback));

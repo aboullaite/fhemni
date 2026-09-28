@@ -22,6 +22,11 @@ test('representative pagination returns one page at a time and clamps boundary p
     vm.runInNewContext(script, sandbox);
     const records = Array.from({ length: 55 }, (_, index) => index + 1);
 
+    const defaultPage = sandbox.__representativePage(records, 1);
+    assert.deepEqual(Array.from(defaultPage.records), Array.from({ length: 10 }, (_, index) => index + 1));
+    assert.deepEqual({ page: defaultPage.page, pages: defaultPage.pages, start: defaultPage.start, end: defaultPage.end },
+        { page: 1, pages: 6, start: 1, end: 10 });
+
     const second = sandbox.__representativePage(records, 2, 25);
     assert.deepEqual(Array.from(second.records), Array.from({ length: 25 }, (_, index) => index + 26));
     assert.deepEqual({ page: second.page, pages: second.pages, start: second.start, end: second.end },

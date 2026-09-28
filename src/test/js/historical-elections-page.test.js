@@ -20,6 +20,7 @@ const {
     partyBarPercent,
     partyBarMaximum,
     regionSeatBarPercent,
+    seatSharePercent,
     resolveAvailableSelection,
     evidenceReference,
     formatSigned
@@ -124,6 +125,9 @@ test('presentation helpers preserve direction, exact values, and zero baselines'
     assert.equal(regionSeatBarPercent(1, 20), 5);
     assert.equal(regionSeatBarPercent(20, 20), 100);
     assert.equal(regionSeatBarPercent(30, 20), 100);
+    assert.equal(seatSharePercent(305, 395), 77.22);
+    assert.equal(seatSharePercent(90, 395), 22.78);
+    assert.equal(seatSharePercent(10, 0), 0);
     assert.deepEqual(resolveAvailableSelection('stale', ['a', 'b']), { value: 'a', usedFallback: true });
     assert.deepEqual(resolveAvailableSelection('b', ['a', 'b']), { value: 'b', usedFallback: false });
     assert.equal(evidenceReference('query-42', 'Record reference'), 'Record reference: query-42');
@@ -149,4 +153,26 @@ test('visible demographic evidence wraps inside the mobile viewport', () => {
     const css = fs.readFileSync(cssPath, 'utf8');
     assert.match(css, /\.history-demographic-points span\s*\{[^}]*min-width:\s*0;/);
     assert.match(css, /\.history-demographic-points small\s*\{[^}]*overflow-wrap:\s*anywhere;/);
+});
+
+test('historical tables stay contained and the mobile jump navigation scrolls in one row', () => {
+    const css = fs.readFileSync(cssPath, 'utf8');
+    assert.match(css, /\.history-table-scroll\s*\{[^}]*width:\s*100%;[^}]*min-width:\s*0;[^}]*overflow-x:\s*auto;/);
+    assert.match(css, /\.history-exact-figures\s*\{[^}]*min-width:\s*0;/);
+    assert.match(css, /\.history-quotient-national,\s*\.history-quotient-constituency\s*\{[^}]*min-width:\s*0;/);
+    assert.match(css, /@media \(max-width:\s*680px\)[\s\S]*?\.election-graphs-jumps\.history-jumps\s*\{[^}]*flex-wrap:\s*nowrap;[^}]*overflow-x:\s*auto;/);
+    assert.match(css, /@media \(max-width:\s*680px\)[\s\S]*?\.election-graphs-jumps\.history-jumps a\s*\{[^}]*flex:\s*0 0 auto;/);
+});
+
+test('dense quotient decomposition starts collapsed', () => {
+    const page = fs.readFileSync(pagePath, 'utf8');
+    assert.doesNotMatch(page, /<details class="history-exact-figures" open>/);
+});
+
+test('the national overview uses an accessible part-to-whole seat chart', () => {
+    const controller = fs.readFileSync(controllerPath, 'utf8');
+    const css = fs.readFileSync(cssPath, 'utf8');
+    assert.match(controller, /history-ballot-donut/);
+    assert.match(controller, /setAttribute\('role',\s*'img'\)/);
+    assert.match(css, /\.history-ballot-donut\s*\{[^}]*conic-gradient/);
 });

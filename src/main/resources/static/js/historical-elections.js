@@ -119,6 +119,11 @@
         return Math.min(100, Math.round(Math.max(0, seats) / regionCapacity * 10000) / 100);
     }
 
+    function seatSharePercent(seats, totalSeats) {
+        if (!Number.isFinite(seats) || !Number.isFinite(totalSeats) || totalSeats <= 0) return 0;
+        return Math.min(100, Math.round(Math.max(0, seats) / totalSeats * 10000) / 100);
+    }
+
     function listMeasureAvailable(fromYear, toYear) {
         return Number(fromYear) >= 2021 && Number(toYear) >= 2021;
     }
@@ -151,7 +156,7 @@
     }
 
     if (!root.document || !root.addEventListener) {
-        return { COPY, readUrlState, writeUrlState, listMeasureAvailable, listSeatLabelKey, totalMeasureCaveatKey, partyBarPercent, partyBarMaximum, regionSeatBarPercent, resolveAvailableSelection, evidenceReference, formatSigned };
+        return { COPY, readUrlState, writeUrlState, listMeasureAvailable, listSeatLabelKey, totalMeasureCaveatKey, partyBarPercent, partyBarMaximum, regionSeatBarPercent, seatSharePercent, resolveAvailableSelection, evidenceReference, formatSigned };
     }
 
     const document = root.document;
@@ -337,8 +342,21 @@
         ballots.append(node('span', 'section-kicker', t('ballotsCard')));
         const columns = node('div', 'history-ballot-columns');
         for (const election of [overview.earlier, overview.later]) {
-            const column = node('div'); column.append(node('strong', '', String(election.year)));
-            for (const ballot of election.ballots) column.append(node('span', '', ballotLine(ballot)));
+            const column = node('div', 'history-ballot-year');
+            const totalSeats = election.ballots.reduce((sum, ballot) => sum + ballot.seats, 0);
+            const localSeats = election.ballots.find(ballot => ballot.type === 'local')?.seats || 0;
+            const donut = node('div', 'history-ballot-donut');
+            donut.style.setProperty('--local-share', `${seatSharePercent(localSeats, totalSeats)}%`);
+            donut.setAttribute('role', 'img');
+            donut.setAttribute('aria-label', `${election.year}: ${election.ballots.map(ballotLine).join(', ')}`);
+            donut.append(bdi(String(election.year)));
+            const legend = node('div', 'history-ballot-legend');
+            for (const ballot of election.ballots) {
+                const line = node('span', `history-ballot-${ballot.type}`);
+                line.append(node('i'), node('span', '', ballotLine(ballot)));
+                legend.append(line);
+            }
+            column.append(donut, legend);
             columns.append(column);
         }
         ballots.append(columns, node('p', '', t('ballotsNotVoters')));
@@ -697,5 +715,5 @@
     }
 
     document.addEventListener('DOMContentLoaded', init);
-    return { COPY, readUrlState, writeUrlState, listMeasureAvailable, listSeatLabelKey, totalMeasureCaveatKey, partyBarPercent, partyBarMaximum, regionSeatBarPercent, resolveAvailableSelection, evidenceReference, formatSigned };
+    return { COPY, readUrlState, writeUrlState, listMeasureAvailable, listSeatLabelKey, totalMeasureCaveatKey, partyBarPercent, partyBarMaximum, regionSeatBarPercent, seatSharePercent, resolveAvailableSelection, evidenceReference, formatSigned };
 });

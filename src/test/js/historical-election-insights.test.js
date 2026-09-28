@@ -224,28 +224,28 @@ test('turnout and demographic trends are chronological and retain evidence statu
     }
 });
 
-test('repeated-name explorer labels evidence, filters different party labels, and paginates by stable pages of 25', () => {
+test('repeated-name explorer labels evidence, filters different party labels, and paginates by stable pages of 10', () => {
     const valid = payload();
     const first = deriveRepeatedNameGroups(valid, { page: 1 });
     const second = deriveRepeatedNameGroups(valid, { page: 2 });
     assert.equal(first.available, true);
-    assert.equal(first.pageSize, 25);
-    assert.equal(first.rows.length, 25);
-    assert.equal(second.rows.length, 25);
+    assert.equal(first.pageSize, 10);
+    assert.equal(first.rows.length, 10);
+    assert.equal(second.rows.length, 10);
     assert.equal(first.rows.at(-1).normalizedName < second.rows[0].normalizedName, true);
     assert.ok(first.rows.every(row => row.evidenceStatus === 'name_match_only'));
 
     const changed = deriveRepeatedNameGroups(valid, {
         differentPartyLabelsOnly: true, page: 1
     });
-    assert.ok(changed.totalRows > 25);
+    assert.ok(changed.totalRows > 10);
     assert.ok(changed.rows.every(row => new Set(row.occurrences.map(item =>
         item.comparisonKey)).size > 1));
     assert.ok(changed.rows.every(row => row.evidenceStatus === 'name_match_only'));
 
     const beyondEnd = deriveRepeatedNameGroups(valid, { page: 999 });
     assert.equal(beyondEnd.page, beyondEnd.pageCount);
-    assert.ok(beyondEnd.rows.length > 0 && beyondEnd.rows.length <= 25);
+    assert.ok(beyondEnd.rows.length > 0 && beyondEnd.rows.length <= 10);
 });
 
 test('tampered evidence labels and regional totals make dependent analysis unavailable', () => {
