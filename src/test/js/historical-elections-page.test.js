@@ -27,7 +27,6 @@ const {
     regionSeatBarPercent,
     seatSharePercent,
     resolveAvailableSelection,
-    evidenceReference,
     formatSigned,
     normalizeHistoryTab,
     historyTabIndex,
@@ -94,9 +93,9 @@ test('history page exposes the progressive comparison sections and accessible st
     assert.match(page, /<script src="\/js\/historical-election-insights\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-electoral-quotient\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-elections\.js[^>]*defer/);
-    assert.match(page, /\/css\/dist\.css\?v=20260927-6/);
+    assert.match(page, /\/css\/dist\.css\?v=20260928-1/);
     assert.match(page, /\/js\/historical-election-insights\.js\?v=20260927-2/);
-    assert.match(page, /\/js\/historical-elections\.js\?v=20260927-2/);
+    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-1/);
 });
 
 test('all page copy is complete in Darija, French, and English and states the evidence limits', () => {
@@ -139,6 +138,8 @@ test('all page copy is complete in Darija, French, and English and states the ev
     assert.match(COPY.ar.quotientWarning, /محاكاة/);
     assert.match(COPY.en.fullMethodology, /methodology/i);
     assert.equal(COPY.ar.overviewTitle, 'الأصوات والتمثيل البرلماني');
+    assert.equal(COPY.ar.gender, 'الجنس');
+    assert.equal(COPY.ar.analysisLabel, 'تحليل فهّمني مبني على معطيات elections.ma');
     assert.equal(COPY.fr.overviewTitle, 'Voix et représentation parlementaire');
     assert.equal(COPY.en.overviewTitle, 'Votes and parliamentary representation');
     assert.equal(COPY.ar.peopleTitle, 'منتخبون فالجوج الانتخابات');
@@ -153,6 +154,7 @@ test('all page copy is complete in Darija, French, and English and states the ev
     for (const locale of ['ar', 'fr', 'en']) {
         assert.equal(Object.hasOwn(COPY[locale], 'quotientFullAssumption'), false);
         assert.equal(Object.hasOwn(COPY[locale], 'quotientLocalOnly'), false);
+        assert.equal(Object.hasOwn(COPY[locale], 'sourceQuery'), false);
         assert.match(COPY[locale].partyNotComparableTitle, /./);
         assert.match(COPY[locale].partyNotComparableIntro, /./);
     }
@@ -257,7 +259,6 @@ test('presentation helpers preserve direction, exact values, and zero baselines'
     assert.equal(seatSharePercent(10, 0), 0);
     assert.deepEqual(resolveAvailableSelection('stale', ['a', 'b']), { value: 'a', usedFallback: true });
     assert.deepEqual(resolveAvailableSelection('b', ['a', 'b']), { value: 'b', usedFallback: false });
-    assert.equal(evidenceReference('query-42', 'Record reference'), 'Record reference: query-42');
 });
 
 test('quotient presentation hides national totals unless the full simulation validates', () => {
@@ -333,9 +334,9 @@ test('the simulation warning links to the full methodology on the same page', ()
     assert.equal(container.children[1].textContent, 'Full methodology');
 });
 
-test('page script renders demographic provenance visibly and restores focus after paging', () => {
+test('page script keeps archive query ids out of the UI and restores focus after paging', () => {
     const controller = fs.readFileSync(controllerPath, 'utf8');
-    assert.match(controller, /node\('small',[\s\S]{0,180}evidenceReference\(segment\.sourceQueryId/);
+    assert.doesNotMatch(controller, /history-demographic-source|evidenceReference\(/);
     assert.match(controller, /segment\.sourcePercentageText/);
     assert.match(controller, /history-demographic-donut/);
     assert.match(controller, /history-demographic-stack/);
@@ -359,7 +360,7 @@ test('page script renders demographic provenance visibly and restores focus afte
 test('visible demographic evidence wraps inside the mobile viewport', () => {
     const css = fs.readFileSync(cssPath, 'utf8');
     assert.match(css, /\.history-demographic-values > span\s*\{[^}]*min-width:\s*0;/);
-    assert.match(css, /\.history-demographic-source\s*\{[^}]*overflow-wrap:\s*anywhere;/);
+    assert.doesNotMatch(css, /\.history-demographic-source\s*\{/);
     assert.match(css, /\.history-demographic-donut\s*\{[^}]*border-radius:\s*50%;/);
     assert.match(css, /\.history-demographic-stack\s*\{[^}]*overflow:\s*hidden;/);
 });
