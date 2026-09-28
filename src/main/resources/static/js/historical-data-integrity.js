@@ -8,7 +8,7 @@
     // Pins the served projection, not the source archive declared inside it.
     // Update only after regeneration and source reconciliation, never to bless a manual data edit.
     const EXPECTED_ARTIFACT_SHA256 = '3d2cea11a125ea9fa6cecfd0d4afd83b1b95bd9d2bf4d0a76feae0fe7e015323';
-    const EXPECTED_BACKFILL_SHA256 = 'c1dc8869326f937453f267e716180c65b2d209fd86bde004319827688850b950';
+    const EXPECTED_BACKFILL_SHA256 = '21e8d3801b58029a6e0ad930c7e90994ae43635ab3897b5e24162d9866f27269';
 
     async function parseVerifiedHistoricalData(bytes, cryptoProvider = root.crypto) {
         return parsePinnedBytes(bytes, EXPECTED_ARTIFACT_SHA256, cryptoProvider);

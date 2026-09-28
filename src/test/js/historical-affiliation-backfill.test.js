@@ -237,6 +237,33 @@ test('explicit retrospective year evidence does not invent a historical day or b
     assert.equal(earlier.evidence[0].publishedAt,'2026-07-13');
 });
 
+test('reviewed Sofia and Dalila affiliations appear without inventing 2021 parliamentary outcomes', () => {
+    const p = data();
+    const backfill = JSON.parse(fs.readFileSync(`${__dirname}/../../main/resources/static/data/elections/affiliation-backfill.json`));
+    for (const [name, before, after, changed] of [
+        ['صفية اللبار', 'USFP', 'UC', true],
+        ['دليلة الاوديي', 'PPS', 'PPS', false]
+    ]) {
+        const result = insights.deriveRepeatedNameGroups(p, 2021, 2026,
+            {scope: 'candidates', backfill, query: name});
+        assert.equal(result.available, true);
+        assert.equal(result.totalRows, 1, name);
+        const earlier = result.rows[0].occurrences.find(r => r.year === 2021);
+        const later = result.rows[0].occurrences.find(r => r.year === 2026);
+        assert.equal(earlier.abbreviation, before);
+        assert.equal(earlier.elected, null);
+        assert.equal(later.abbreviation, after);
+        assert.equal(later.elected, true);
+        const different = insights.deriveRepeatedNameGroups(p, 2021, 2026,
+            {scope: 'candidates', backfill, query: name, differentPartyLabelsOnly: true});
+        assert.equal(different.totalRows, changed ? 1 : 0);
+    }
+    for (const name of ['خالد العجلي', 'اناس الانصاري', 'مفيدة وداد', 'فاطمة واشاي']) {
+        assert.equal(backfill.records.some(r => r.year === 2021 && r.target.nameAr === name), false,
+            `${name}: later affiliation or independent candidacy is not a verified 2021 party`);
+    }
+});
+
 test('the shipped enrichment is authenticated independently of any declared checksum', async () => {
     const integrity = require('../../main/resources/static/js/historical-data-integrity.js');
     const bytes = fs.readFileSync(`${__dirname}/../../main/resources/static/data/elections/affiliation-backfill.json`);

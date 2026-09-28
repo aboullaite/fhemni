@@ -6,7 +6,7 @@
     'use strict';
 
     const DATA_URL = '/data/elections/history.json?v=20260928-2';
-    const BACKFILL_URL = '/data/elections/affiliation-backfill.json?v=20260928-1';
+    const BACKFILL_URL = '/data/elections/affiliation-backfill.json?v=20260928-2';
     const MEASURES = new Set(['total', 'local', 'list']);
     const SORTS = new Set(['delta-desc', 'delta-asc', 'later-desc', 'name']);
     const DEMOGRAPHIC_DIMENSIONS = new Set(['gender', 'age', 'education']);
