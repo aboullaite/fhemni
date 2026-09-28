@@ -1149,7 +1149,7 @@
         try {
             const response = await root.fetch(DATA_URL, { headers: { Accept: 'application/json' } });
             if (!response.ok) throw new Error(`history data ${response.status}`);
-            const nextPayload = await response.json();
+            const nextPayload = await root.FhemniHistoricalDataIntegrity.parseVerifiedHistoricalData(await response.arrayBuffer());
             const audit = insights.auditHistoricalPayload(nextPayload);
             if (!audit.available) throw new Error(`history data invalid: ${audit.diagnostics.join(',')}`);
             payload = nextPayload;

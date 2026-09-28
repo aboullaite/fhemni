@@ -106,7 +106,8 @@ test('history page exposes the progressive comparison sections and accessible st
     assert.match(page, /<script src="\/js\/historical-elections\.js[^>]*defer/);
     assert.match(page, /\/css\/dist\.css\?v=20260928-8/);
     assert.match(page, /\/js\/historical-election-insights\.js\?v=20260928-5/);
-    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-11/);
+    assert.match(page, /\/js\/historical-data-integrity\.js\?v=20260928-1/);
+    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-12/);
 });
 
 test('current and historical election heroes cross-link with compact green actions', () => {
