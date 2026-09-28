@@ -37,14 +37,14 @@
             ballotsCard: 'بنية المقاعد والأصوات', localBallot: 'الدوائر المحلية', nationalBallot: 'اللائحة الوطنية', regionalBallot: 'اللوائح الجهوية', ballotsNotVoters: 'الأصوات ديال كل ورقة اقتراع معروضة بوحدها؛ ماشي مجموع المصوتين.', seats: 'مقاعد', ballots: 'صوت',
             partiesKicker: 'الرابحين والخاسرين', partiesTitle: 'تغيّر مقاعد الأحزاب',
             measure: 'المقياس', measureLocal: 'المقاعد المحلية', measureTotal: 'مجموع المقاعد', measureList: 'مقاعد اللائحة', partySearch: 'قلب على حزب', partySearchPlaceholder: 'الاسم الرسمي أو الاختصار', sort: 'الترتيب', sortDeltaDesc: 'أكبر زيادة', sortDeltaAsc: 'أكبر نقصان', sortLater: 'الأكثر فالسنة اللاحقة', sortName: 'الاسم',
-            measureLocalCaveat: 'المجموع هو المقياس الافتراضي؛ المقاعد المحلية هي الأكثر تجانساً بين السنوات.', measureTotalCaveat: 'المجموع كيجمع 305 مقعد محلي و90 مقعد من اللوائح الجهوية فكل سنة.', measureTotalChangedCaveat: 'مجموع المقاعد قابل للحساب، ولكن النظام تبدّل: 2016 فيها 90 مقعد من اللائحة الوطنية، و2021 و2026 فيهم 90 مقعد من اللوائح الجهوية.', measureListCaveat: '2021 و2026 كيستعملو لوائح جهوية قابلة للمقارنة وطنياً.', listUnavailable: 'مقاعد اللائحة ما متاحاش فمقارنة فيها 2016، حيت كانت لائحة وطنية ماشي لوائح جهوية.', noPartyResults: 'ما لقينا حتى حزب بهاد البحث.', sourceOnlyResult: 'نتيجة رسمية بلا مقارنة', showAll: 'بين جميع الأحزاب ({count})', showLess: 'بين غير الأبرز', exactFigures: 'الأرقام المضبوطة', exactCaption: 'المقاعد لكل حزب حسب الاختيار', party: 'الحزب أو اللائحة', earlier: 'قبل', later: 'من بعد', change: 'التغيّر', unchanged: 'بلا تغيير',
+            measureLocalCaveat: 'المجموع هو المقياس الافتراضي؛ المقاعد المحلية هي الأكثر تجانساً بين السنوات.', measureTotalCaveat: 'المجموع كيجمع 305 مقعد محلي و90 مقعد من اللوائح الجهوية فكل سنة.', measureTotalChangedCaveat: 'مجموع المقاعد قابل للحساب، ولكن النظام تبدّل: 2016 فيها 90 مقعد من اللائحة الوطنية، و2021 و2026 فيهم 90 مقعد من اللوائح الجهوية.', measureListCaveat: '2021 و2026 كيستعملو لوائح جهوية قابلة للمقارنة وطنياً.', listUnavailable: 'مقاعد اللائحة ما متاحاش فمقارنة فيها 2016، حيت كانت لائحة وطنية ماشي لوائح جهوية.', noPartyResults: 'ما لقينا حتى حزب بهاد البحث.', sourceOnlyResult: 'نتيجة رسمية بلا مقارنة', showAll: 'بين الكل ({partyCount})', showLess: 'بين غير الأبرز', exactFigures: 'الأرقام المضبوطة', exactCaption: 'المقاعد لكل حزب حسب الاختيار', party: 'الحزب أو اللائحة', earlier: 'قبل', later: 'من بعد', change: 'التغيّر', unchanged: 'بلا تغيير',
             trajectoryKicker: 'ثلاث محطات', trajectoryTitle: 'مسار حزب عبر جميع الانتخابات', trajectoryIntro: 'اختار حزب أو لائحة وشوف المقاعد المحلية، مقاعد اللائحة الوطنية أو الجهوية، والمجموع فكل سنة متاحة.', trajectoryParty: 'الحزب أو اللائحة', totalSeats: 'المجموع', localSeats: 'محلية', listSeats: 'اللائحة', nationalListSeats: 'اللائحة الوطنية', regionalListSeats: 'اللوائح الجهوية', notObserved: 'ما بانش فالسجل الكامل لهاد السنة', sourceLabelOnly: 'فالعادة، الاستمرارية كتعتمد على نفس الاسم الرسمي بالضبط. غير التحالفات اللي تأكد تكوينها بين الانتخابات كنجمعوها؛ وباقي التسميات كتبقى مستقلة.',
             quotientKicker: 'محاكاة مضادة للواقع', quotientTitle: 'واش القاسم الانتخابي القديم كان غادي يبدّل النتيجة؟', quotientIntro: 'المقاعد الرسمية ديال 2026 تحسبات بقاسم مبني على عدد المسجلين. فهاد المحاكاة كنطبقو قواعد 2016 على أصوات الدوائر المحلية: عتبة 3%، قاسم أصوات اللوائح المؤهلة، ومن بعد أكبر البقايا.', quotientWarning: 'هادشي محاكاة مضادة للواقع من فهّمني، ماشي نتيجة رسمية. سيناريو 395 مقعد كيجمع اللائحة الجهوية فمسابقة وحدة من 90 مقعد، بينما لائحة 2016 كانت قانونياً مقسومة 60 + 30.', quotientUnavailable: 'المحاكاة ما متاحاش حيت التحقق من قواعد 2016 ولا معطيات الدوائر ما دازش. ما اخترنا حتى فائز آلياً.', quotientValidationTitle: 'اختبار المقاعد المحلية', quotientValidationValue: '{constituencies}/92 دائرة · {seats}/305 مقعد', quotientValidationDetail: 'نفس القواعد رجعات التوزيع الرسمي المحلي ديال 2016 بالضبط، بلا حتى تعادل غير محسوم.', quotientListValidationTitle: 'اختبار اللائحة الوطنية', quotientListValidationValue: '{parties}/24 لائحة · {seats}/90 مقعد', quotientListValidationDetail: 'نفس القواعد رجعات توزيع اللائحة الوطنية الرسمي ديال 2016 بالضبط.', quotientPartyTitle: 'الفرق فمجموع المقاعد', quotientPartyIntro: 'كل خط كيبين المحلي ومقاعد اللائحة بالألوان، والرقم فالطرف هو المجموع. كنبينو غير الأحزاب اللي تبدّل ليها المجموع.', quotientOfficial: 'رسمي 2026', quotientSimulated: 'بقواعد 2016', quotientDelta: 'الفرق', quotientAllParties: 'المحلي والجهوي/الوطني والمجموع', quotientAllPartiesCaption: 'تفصيل المقاعد الرسمية والمحاكية لكل حزب', quotientOfficialLocal: 'محلي رسمي', quotientSimulatedLocal: 'محلي محاكى', quotientOfficialRegional: 'جهوي رسمي', quotientSimulatedNational: 'وطني مفترض', quotientOfficialTotal: 'المجموع الرسمي', quotientSimulatedTotal: 'المجموع المحاكى', quotientConstituencyTitle: 'شوف الحساب داخل دائرة', quotientConstituency: 'الدائرة المحلية', quotientAllocatedSeats: 'المقاعد الموزعة', quotientTotalVotes: 'الأصوات الصحيحة', quotientEligibleVotes: 'أصوات اللوائح المؤهلة', quotientValue: 'القاسم الانتخابي', quotientThreshold: 'عتبة التأهل', quotientVotes: 'الأصوات', quotientEligible: 'مؤهلة', quotientFirstPass: 'المقاعد بالقاسم', quotientRemainder: 'الباقي', quotientRemainderSeat: 'مقعد بأكبر البقايا', quotientOfficialSeats: 'المقاعد الرسمية', quotientSimulatedSeats: 'المقاعد المحاكية', yes: 'نعم', no: 'لا',
             regionsKicker: 'فين وقع التغيّر', regionsTitle: 'مقارنة الجهات', regionsIntro: 'تكوين المقاعد المحلية فكل جهة عبر السنوات الثلاث.', region: 'الجهة', regionCaveat: 'مقارنة الجهات كتستعمل المقاعد المحلية فقط. لائحة 2016 الوطنية ما يمكنش نوزعوها على الجهات.', regionEmpty: 'ما كايناش مقارنة متاحة لهاد الجهة.',
             evidenceKicker: 'شنو نشر المصدر', evidenceTitle: 'خصائص المنتخبين', evidenceIntro: 'النسب الديموغرافية اللي نشرها elections.ma حرفياً.', demographic: 'البعد', gender: 'الجنس', age: 'العمر', education: 'المستوى الدراسي', demographicCaveat: 'كنعرضو غير النسب اللي نشرها elections.ma بنصها. ما كنستنتجوش أعداد من النسب، والفراغ ماشي صفر.', unreported: 'غير منشور', noDemographics: 'ما كايناش نسب منشورة لهاد البعد.',
-            peopleKicker: 'السجل ماشي الهوية', peopleTitle: 'منتخبون فالجوج الانتخابات', peopleIntro: 'استكشف التطابقات الحرفية والفريدة للاسم بين الانتخابات، مع كل ملاحظة رسمية بوحدها.', nameMatchCaveat: 'name_match_only كيعني غير تطابق الاسم، ماشي هوية متحقق منها وماشي دليل على تبديل الحزب.', movementTitle: 'فين تزادت وفين نقصات هاد التطابقات؟', movementIntro: 'هاد الرسم كيحسب غير تطابقات الاسم بالضبط بين العامين المختارين ملي تبدلات التسمية الحزبية. ماشي إثبات أن الشخص بدّل الحزب.', movementGains: 'تسميات تزادت', movementLosses: 'تسميات نقصات', movementCount: '{count} تطابق', peopleSearch: 'قلب فالأسامي والسجلات', peopleSearchPlaceholder: 'الاسم، الحزب أو الدائرة', differentOnly: 'غير السجلات اللي فيها تسميات حزبية مختلفة', peopleCount: '{count} تطابق اسم', peopleCaption: 'منتخبون فالجوج الانتخابات', name: 'الاسم كما تنشر', observations: 'الملاحظات الانتخابية', evidence: 'قوة الدليل', nameMatchOnly: 'تطابق الاسم فقط', constituency: 'الدائرة', noPeople: 'ما لقينا حتى تطابق بهاد الفلاتر.', previous: 'السابق', next: 'التالي', paginationLabel: 'صفحات الأسماء المتكررة', pageStatus: 'الصفحة {page} من {pages} · {start}–{end} من {total}', emptyPageStatus: '0 نتائج',
+            peopleKicker: 'السجل ماشي الهوية', peopleTitle: 'منتخبون فالجوج الانتخابات', peopleIntro: 'استكشف التطابقات الحرفية والفريدة للاسم بين الانتخابات، مع كل ملاحظة رسمية بوحدها.', nameMatchCaveat: 'name_match_only كيعني غير تطابق الاسم، ماشي هوية متحقق منها وماشي دليل على تبديل الحزب.', movementTitle: 'فين تزادت وفين نقصات هاد التطابقات؟', movementIntro: 'هاد الرسم كيحسب غير تطابقات الاسم بالضبط بين العامين المختارين ملي تبدلات التسمية الحزبية. ماشي إثبات أن الشخص بدّل الحزب.', movementGains: 'تسميات تزادت', movementLosses: 'تسميات نقصات', movementCount: '{matchCount}', peopleSearch: 'قلب فالأسامي والسجلات', peopleSearchPlaceholder: 'الاسم، الحزب أو الدائرة', differentOnly: 'غير السجلات اللي فيها تسميات حزبية مختلفة', peopleCount: '{nameMatchCount}', peopleCaption: 'منتخبون فالجوج الانتخابات', name: 'الاسم كما تنشر', observations: 'الملاحظات الانتخابية', evidence: 'قوة الدليل', nameMatchOnly: 'تطابق الاسم فقط', constituency: 'الدائرة', noPeople: 'ما لقينا حتى تطابق بهاد الفلاتر.', previous: 'السابق', next: 'التالي', paginationLabel: 'صفحات الأسماء المتكررة', pageStatus: 'الصفحة {page} من {pages} · {start}–{end} من {total}', emptyPageStatus: '0 نتائج',
             sourcesKicker: 'تتبّع الدليل', sourcesTitle: 'المصادر والمنهجية', sourcesIntro: 'هاد الصفحة كتوصل لسجلات كل انتخابات فـ elections.ma؛ المقارنات والحسابات كيديرهم فهّمني انطلاقاً من الأرشيف المثبّت.', sourceLinksTitle: 'روابط elections.ma', openElection: 'فتح سجل انتخابات {year}', methodTitle: 'شنو حسبنا؟', fullMethodology: 'المصادر والمنهجية كاملة', methodText: 'فهّمني كيحسب الفروق من لوائح كاملة ومراجعة. محاكاة القاسم كتقارن 305 مقعد محلي دائرة بدائرة. سيناريو 395 مقعد كيجمع أصوات اللوائح الجهوية ديال 2026 وكيعاملها كلائحة وطنية مفترضة فمسابقة وحدة من 90 مقعد بقواعد 2016، مع أن اللائحة الوطنية ديال 2016 كانت قانونياً جوج أقسام منفصلة: 60 + 30. هاد الفرضية ما كتساويش بين النظامين. كنخليو أوراق الاقتراع منفصلة، كنستعملو المقاعد المحلية للجهات، وما كنثبتوش هوية الأشخاص من الاسم.', archiveFile: 'الأرشيف المثبّت', archiveDigest: 'SHA-256', aggregateStatus: 'صفة التجميع',
-            loadedStatus: 'تحمّلات مقارنة {from} و{to}.', partyStatus: '{count} أحزاب أو لوائح ظاهرين.', peopleStatus: '{count} تطابقات؛ الصفحة {page} من {pages}.', selectedYears: '{from} ← {to}', sourceRecord: 'سجل elections.ma', analysisLabel: 'تحليل فهّمني مبني على معطيات elections.ma'
+            loadedStatus: 'تحمّلات مقارنة {from} و{to}.', partyStatus: '{partyCount} ظاهرين.', peopleStatus: '{matchCount}؛ الصفحة {page} من {pages}.', selectedYears: '{from} ← {to}', sourceRecord: 'سجل elections.ma', analysisLabel: 'تحليل فهّمني مبني على معطيات elections.ma'
         },
         fr: {
             pageTitle: 'L’évolution des élections — Fhemni', metaDescription: 'Comparez les résultats officiels des législatives marocaines de 2016, 2021 et 2026.',
@@ -107,6 +107,52 @@
         const step = key === 'ArrowLeft' ? (rtl ? 1 : -1)
             : key === 'ArrowRight' ? (rtl ? -1 : 1) : 0;
         return step ? (currentIndex + step + count) % count : currentIndex;
+    }
+
+    const ARABIC_HISTORY_COUNT_FORMS = Object.freeze({
+        match: Object.freeze({ zero: 'لا تطابقات', one: 'تطابق واحد', two: 'تطابقان',
+            few: '{count} تطابقات', many: '{count} تطابقاً', other: '{count} تطابق' }),
+        nameMatch: Object.freeze({ zero: 'لا تطابقات أسماء', one: 'تطابق اسم واحد', two: 'تطابقا اسم',
+            few: '{count} تطابقات أسماء', many: '{count} تطابق اسم', other: '{count} تطابق اسم' }),
+        party: Object.freeze({ zero: 'لا أحزاب أو لوائح', one: 'حزب أو لائحة واحدة', two: 'حزبان أو لائحتان',
+            few: '{count} أحزاب أو لوائح', many: '{count} حزباً أو لائحةً', other: '{count} حزب أو لائحة' })
+    });
+    const HISTORY_COUNT_BINDINGS = Object.freeze({
+        movementCount: Object.freeze({ noun: 'match', placeholder: 'matchCount' }),
+        peopleCount: Object.freeze({ noun: 'nameMatch', placeholder: 'nameMatchCount' }),
+        partyStatus: Object.freeze({ noun: 'party', placeholder: 'partyCount' }),
+        peopleStatus: Object.freeze({ noun: 'match', placeholder: 'matchCount' }),
+        showAll: Object.freeze({ noun: 'party', placeholder: 'partyCount' })
+    });
+
+    function interpolate(template, values) {
+        let rendered = template;
+        for (const [name, replacement] of Object.entries(values)) {
+            rendered = rendered.replaceAll(`{${name}}`, String(replacement));
+        }
+        return rendered;
+    }
+
+    function historyCountText(locale, key, count, values = {}) {
+        const language = COPY[locale] ? locale : 'en';
+        const formattedCount = new Intl.NumberFormat(language === 'ar' ? 'ar-MA' : language).format(count);
+        const binding = HISTORY_COUNT_BINDINGS[key];
+        const localizedCount = language === 'ar' && binding
+            ? interpolate(ARABIC_HISTORY_COUNT_FORMS[binding.noun][new Intl.PluralRules('ar').select(Number(count))],
+                { count: formattedCount })
+            : formattedCount;
+        return interpolate(COPY[language][key] || COPY.en[key] || key, {
+            ...values,
+            count: formattedCount,
+            ...(binding ? { [binding.placeholder]: localizedCount } : {})
+        });
+    }
+
+    function createHistoryAnnouncer(status, filters, scheduleTask) {
+        const announcer = scheduleTask
+            ? filters.createLiveRegionAnnouncer(status, scheduleTask)
+            : filters.createLiveRegionAnnouncer(status);
+        return message => announcer.announce(message, { repeat: true });
     }
 
     function readUrlState(search) {
@@ -310,12 +356,14 @@
     }
 
     if (!root.document || !root.addEventListener) {
-        return { COPY, readUrlState, writeUrlState, listMeasureAvailable, listSeatLabelKey, totalMeasureCaveatKey, partyBarPercent, partyBarMaximum, stackedSeatSeries, quotientViewState, demographicChartModel, createEvidenceStatusBadge, appendMethodologyLink, regionSeatBarPercent, seatSharePercent, resolveAvailableSelection, formatSigned, normalizeHistoryTab, historyTabIndex, historyTabPanelState, historicalPartyLogoAsset, repeatedNameTransition, partySearchRows };
+        return { COPY, readUrlState, writeUrlState, listMeasureAvailable, listSeatLabelKey, totalMeasureCaveatKey, partyBarPercent, partyBarMaximum, stackedSeatSeries, quotientViewState, demographicChartModel, createEvidenceStatusBadge, appendMethodologyLink, regionSeatBarPercent, seatSharePercent, resolveAvailableSelection, formatSigned, normalizeHistoryTab, historyTabIndex, historyTabPanelState, historicalPartyLogoAsset, repeatedNameTransition, partySearchRows, historyCountText, createHistoryAnnouncer };
     }
 
     const document = root.document;
     const insights = root.FhemniHistoricalElectionInsights;
     const quotientEngine = root.FhemniHistoricalElectoralQuotient;
+    const announceStatus = createHistoryAnnouncer(document.getElementById('historyStatus'),
+        root.FhemniElectionRegionFilters);
     let payload = null;
     let quotientSimulation = null;
     let fullSystemSimulation = null;
@@ -361,7 +409,7 @@
         identity.append(logo, bdi(nameAr, 'history-party-name'));
         return identity;
     }
-    function announce(message) { setText('historyStatus', message); }
+    function announce(message) { announceStatus(message); }
     function syncUrl(mode = 'replace') {
         const method = mode === 'push' ? 'pushState' : 'replaceState';
         root.history[method](null, '', `${root.location.pathname}${writeUrlState(state)}${root.location.hash}`);
@@ -625,7 +673,8 @@
         setText('historyPartyEmpty', t('noPartyResults'));
         const showButton = byId('historyShowAll');
         showButton.hidden = Boolean(state.partyQuery) || result.totalRows <= 10;
-        showButton.textContent = state.showAllParties ? t('showLess') : t('showAll', { count: number(result.totalRows) });
+        showButton.textContent = state.showAllParties ? t('showLess')
+            : historyCountText(locale, 'showAll', result.totalRows);
         const caveat = state.measure === 'local' ? 'measureLocalCaveat'
             : state.measure === 'list' ? 'measureListCaveat' : totalMeasureCaveatKey(state.from, state.to);
         setText('historyMeasureCaveat', t(caveat));
@@ -657,7 +706,7 @@
             }
             tr.append(nameCell, earlier, later, delta); return tr;
         }));
-        announce(t('partyStatus', { count: number(displayRows.length) }));
+        announce(historyCountText(locale, 'partyStatus', displayRows.length));
     }
 
     function renderTrajectory() {
@@ -917,7 +966,7 @@
         fill.style.width = `${partyBarPercent(row.count, maximum)}%`;
         track.append(fill);
         const count = bdi(number(row.count), 'history-movement-count');
-        item.setAttribute('aria-label', `${row.partyNameAr}: ${t('movementCount', { count: number(row.count) })}`);
+        item.setAttribute('aria-label', `${row.partyNameAr}: ${historyCountText(locale, 'movementCount', row.count)}`);
         item.append(identity, track, count);
         return item;
     }
@@ -940,7 +989,7 @@
         state.page = result.page;
         const start = result.totalRows ? (result.page - 1) * result.pageSize + 1 : 0;
         const end = result.totalRows ? start + result.rows.length - 1 : 0;
-        setText('historyPeopleCount', t('peopleCount', { count: number(result.totalRows) }));
+        setText('historyPeopleCount', historyCountText(locale, 'peopleCount', result.totalRows));
         byId('historyPeopleEmpty').hidden = result.totalRows !== 0;
         setText('historyPeopleEmpty', t('noPeople'));
         byId('historyPeopleTable').hidden = result.totalRows === 0;
@@ -961,7 +1010,8 @@
         byId('historyPeoplePrevious').disabled = result.page <= 1;
         byId('historyPeopleNext').disabled = result.page >= result.pageCount;
         syncUrl();
-        announce(t('peopleStatus', { count: number(result.totalRows), page: number(result.page), pages: number(result.pageCount || 1) }));
+        announce(historyCountText(locale, 'peopleStatus', result.totalRows,
+            { page: number(result.page), pages: number(result.pageCount || 1) }));
     }
 
     function renderSources() {
@@ -1081,5 +1131,5 @@
     }
 
     document.addEventListener('DOMContentLoaded', init);
-    return { COPY, readUrlState, writeUrlState, listMeasureAvailable, listSeatLabelKey, totalMeasureCaveatKey, partyBarPercent, partyBarMaximum, stackedSeatSeries, quotientViewState, demographicChartModel, createEvidenceStatusBadge, appendMethodologyLink, regionSeatBarPercent, seatSharePercent, resolveAvailableSelection, formatSigned, normalizeHistoryTab, historyTabIndex, historyTabPanelState, historicalPartyLogoAsset, repeatedNameTransition, partySearchRows };
+    return { COPY, readUrlState, writeUrlState, listMeasureAvailable, listSeatLabelKey, totalMeasureCaveatKey, partyBarPercent, partyBarMaximum, stackedSeatSeries, quotientViewState, demographicChartModel, createEvidenceStatusBadge, appendMethodologyLink, regionSeatBarPercent, seatSharePercent, resolveAvailableSelection, formatSigned, normalizeHistoryTab, historyTabIndex, historyTabPanelState, historicalPartyLogoAsset, repeatedNameTransition, partySearchRows, historyCountText, createHistoryAnnouncer };
 });

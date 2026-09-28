@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const regionFilters = require('../../main/resources/static/js/election-region-filters.js');
 
 const pagePath = path.join(__dirname,
     '../../main/resources/static/historical-elections.html');
@@ -37,7 +38,9 @@ const {
     historyTabPanelState,
     historicalPartyLogoAsset,
     repeatedNameTransition,
-    partySearchRows
+    partySearchRows,
+    historyCountText,
+    createHistoryAnnouncer
 } = require(controllerPath);
 
 function fakeDocument() {
@@ -97,12 +100,13 @@ test('history page exposes the progressive comparison sections and accessible st
     assert.match(page, /id="historyMeasureLocal"[^>]*aria-pressed="false"/);
     assert.match(page, /id="historyMeasureList"[^>]*aria-pressed="false"/);
     assert.match(page, /<script src="\/js\/i18n\.js[^>]*defer/);
+    assert.match(page, /<script src="\/js\/election-region-filters\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-election-insights\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-electoral-quotient\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-elections\.js[^>]*defer/);
     assert.match(page, /\/css\/dist\.css\?v=20260928-7/);
     assert.match(page, /\/js\/historical-election-insights\.js\?v=20260928-4/);
-    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-8/);
+    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-9/);
 });
 
 test('current and historical election heroes cross-link with compact green actions', () => {
@@ -198,6 +202,43 @@ test('all page copy is complete in Darija, French, and English and states the ev
     assert.match(COPY.fr.sourceLabelOnly, /compositions d’alliance vérifiées/);
     assert.match(COPY.en.sourceLabelOnly, /verified alliance compositions/);
     assert.doesNotMatch(COPY.en.sourceLabelOnly, /distinct alliances are not merged/);
+});
+
+test('Arabic history counts render the noun instead of interpolating a raw number', () => {
+    assert.deepEqual([0, 1, 2, 3, 11, 102].map(count =>
+        historyCountText('ar', 'movementCount', count)), [
+        'لا تطابقات',
+        'تطابق واحد',
+        'تطابقان',
+        '3 تطابقات',
+        '11 تطابقاً',
+        '102 تطابق'
+    ]);
+    assert.equal(historyCountText('ar', 'peopleCount', 2), 'تطابقا اسم');
+    assert.equal(historyCountText('ar', 'partyStatus', 2), 'حزبان أو لائحتان ظاهرين.');
+    assert.equal(historyCountText('ar', 'peopleStatus', 2, { page: 1, pages: 4 }),
+        'تطابقان؛ الصفحة 1 من 4.');
+    assert.equal(historyCountText('ar', 'showAll', 2), 'بين الكل (حزبان أو لائحتان)');
+    assert.equal(historyCountText('en', 'movementCount', 2), '2 matches');
+});
+
+test('history status re-announces an identical control result', () => {
+    const changes = [];
+    const scheduled = [];
+    const status = {
+        value: '',
+        get textContent() { return this.value; },
+        set textContent(value) { this.value = value; changes.push(value); }
+    };
+    const announce = createHistoryAnnouncer(status, regionFilters,
+        callback => scheduled.push(callback));
+
+    announce('2 parties shown.');
+    announce('2 parties shown.');
+
+    assert.deepEqual(changes, ['2 parties shown.', '']);
+    scheduled.shift()();
+    assert.deepEqual(changes, ['2 parties shown.', '', '2 parties shown.']);
 });
 
 test('party search includes source-only official results without treating them as gains or losses', () => {
