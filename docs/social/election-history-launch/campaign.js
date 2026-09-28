@@ -310,7 +310,7 @@
             'واش القاسم القديم كان غادي يبدل النتيجة؟',
             data.quotient.qualifier || SIMULATION_QUALIFIER));
         body.append(element(document, 'p', 'campaign-note',
-            'مقارنة النتيجة الرسمية ديال 2026 مع نموذج كيطبّق قواعد 2016 على المجلس كامل.'));
+            data.quotient.methodNote));
 
         const layout = element(document, 'div', 'quotient-layout');
         const surface = element(document, 'section', 'chart-surface');

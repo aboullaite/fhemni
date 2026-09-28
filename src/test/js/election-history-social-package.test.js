@@ -100,12 +100,14 @@ test('simulation keeps its qualifier while political-transhumance copy avoids re
     assert.match(closingPost, /محاكاة، ماشي نتيجة رسمية/);
     const allCopy = [...thread.posts.map(post => post.text), thread.instagramStory.copy].join('\n');
     assert.match(allCopy, /الترحال السياسي/u);
-    assert.match(allCopy, /رصد بالأسماء المنشورة فـ elections\.ma/u);
+    assert.match(allCopy, /رصد بالاسم المنشور فقط فـ elections\.ma/u);
     assert.match(thread.posts[2].text, /12 حالة/);
     assert.doesNotMatch(allCopy, /تطابقات الأسامي|تطابق الاسم/u);
     assert.doesNotMatch(allCopy,
         /المؤشر مبني على مقارنة الأسماء المنشورة، وماشي إثبات قانوني نهائي للهوية أو الانتقال/u);
     assert.match(thread.instagramStory.copy, /محاكاة، ماشي نتيجة رسمية/);
+    assert.match(thread.posts[5].text, /90.*60\s*\+\s*30/u);
+    assert.match(thread.instagramStory.copy, /90.*60\s*\+\s*30/u);
 });
 
 test('human-readable thread is generated consistently from the JSON package', () => {

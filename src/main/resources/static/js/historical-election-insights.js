@@ -725,12 +725,25 @@
         return { available: true, diagnostics: [], years: audit.years, dimension, rows };
     }
 
-    function deriveRepeatedNameGroups(payload, options = {}) {
+    function deriveRepeatedNameGroups(payload, fromYear, toYear, options = {}) {
         const audit = auditHistoricalPayload(payload);
         if (!audit.available) return unavailable(audit,
             { rows: [], totalRows: 0, page: 1, pageCount: 0, pageSize: PAGE_SIZE });
+        const from = Number(fromYear);
+        const to = Number(toYear);
+        const supported = listValidYearPairs(payload).pairs.some(pair =>
+            pair.fromYear === from && pair.toYear === to);
+        if (!supported) return unavailable({ diagnostics: ['year-pair'] },
+            { rows: [], totalRows: 0, page: 1, pageCount: 0, pageSize: PAGE_SIZE });
         const query = normalize(options.query);
-        const filtered = records(payload.repeatedNames).filter(group => {
+        const scoped = records(payload.repeatedNames).flatMap(group => {
+            const occurrences = group.occurrences.filter(row => row.year === from || row.year === to);
+            const earlier = occurrences.filter(row => row.year === from);
+            const later = occurrences.filter(row => row.year === to);
+            return earlier.length === 1 && later.length === 1
+                ? [{ ...group, occurrences }] : [];
+        });
+        const filtered = scoped.filter(group => {
             const searchable = [group.normalizedName,
                 ...group.occurrences.flatMap(row => [row.nameAr, row.abbreviation, row.constituencyNameAr])];
             const differentLabels = new Set(group.occurrences.map(row => row.comparisonKey)).size > 1;

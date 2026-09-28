@@ -139,7 +139,7 @@
     "toYear": 2026,
     "totalMovements": 12,
     "evidenceStatus": "name_match_only",
-    "qualifier": "رصد بالأسماء المنشورة فـ elections.ma",
+    "qualifier": "رصد بالاسم المنشور فقط فـ elections.ma",
     "gains": [
       {
         "comparisonKey": "exact-source-label:party_b42379b4d45a",
@@ -574,6 +574,7 @@
   "quotient": {
     "year": 2026,
     "qualifier": "محاكاة، ماشي نتيجة رسمية",
+    "methodNote": "كنجمعو أصوات لوائح 2026 الجهوية فمسابقة وحدة من 90 مقعد؛ لائحة 2016 كانت قانونياً مقسومة 60 + 30.",
     "listScenario": "AGGREGATED_2026_REGIONAL_VOTES_AS_2016_NATIONAL_LIST",
     "officialSeatTotal": 395,
     "simulatedSeatTotal": 395,

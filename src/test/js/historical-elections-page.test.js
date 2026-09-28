@@ -99,8 +99,8 @@ test('history page exposes the progressive comparison sections and accessible st
     assert.match(page, /<script src="\/js\/historical-electoral-quotient\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-elections\.js[^>]*defer/);
     assert.match(page, /\/css\/dist\.css\?v=20260928-4/);
-    assert.match(page, /\/js\/historical-election-insights\.js\?v=20260928-1/);
-    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-4/);
+    assert.match(page, /\/js\/historical-election-insights\.js\?v=20260928-2/);
+    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-5/);
 });
 
 test('current and historical election heroes cross-link with compact green actions', () => {
@@ -170,6 +170,10 @@ test('all page copy is complete in Darija, French, and English and states the ev
     assert.equal(COPY.ar.overviewTitle, 'الأصوات والتمثيل البرلماني');
     assert.equal(COPY.ar.gender, 'الجنس');
     assert.equal(COPY.ar.analysisLabel, 'تحليل فهّمني مبني على معطيات elections.ma');
+    assert.match(COPY.en.evidenceIntro, /elections\.ma/i);
+    assert.doesNotMatch(COPY.en.evidenceIntro, /reference/i);
+    assert.doesNotMatch(COPY.fr.evidenceIntro, /référence/i);
+    assert.doesNotMatch(COPY.ar.evidenceIntro, /مرجع/);
     assert.equal(COPY.fr.overviewTitle, 'Voix et représentation parlementaire');
     assert.equal(COPY.en.overviewTitle, 'Votes and parliamentary representation');
     assert.equal(COPY.ar.peopleTitle, 'منتخبون فالجوج الانتخابات');
@@ -245,7 +249,11 @@ test('presentation helpers preserve direction, exact values, and zero baselines'
     assert.equal(historicalPartyLogoAsset('RNI'), '/assets/parties/rni-display.png');
     assert.equal(historicalPartyLogoAsset('PAM'), '/assets/parties/pam-display.png');
     assert.equal(historicalPartyLogoAsset('P.EQUITE'), '/assets/parties/pe-display.png');
-    assert.equal(historicalPartyLogoAsset('AG'), '/assets/parties/fgd-official-2026.png');
+    assert.equal(historicalPartyLogoAsset('AG'), '/assets/parties/party.svg');
+    assert.equal(historicalPartyLogoAsset('AG', 'source_observation_only'), '/assets/parties/party.svg');
+    assert.equal(historicalPartyLogoAsset('AG', 'same_exact_source_label'), '/assets/parties/fgd-official-2026.png');
+    assert.equal(historicalPartyLogoAsset('PSU', 'source_observation_only'), '/assets/parties/party.svg');
+    assert.equal(historicalPartyLogoAsset('PSU', 'same_exact_source_label'), '/assets/parties/psu-display.png');
     assert.equal(historicalPartyLogoAsset('unknown-code'), '/assets/parties/party.svg');
     assert.equal(listMeasureAvailable(2016, 2021), false);
     assert.equal(listMeasureAvailable(2016, 2026), false);
@@ -384,6 +392,7 @@ test('page script keeps archive query ids out of the UI and restores focus after
     assert.match(controller, /historyPeopleCount'\)\.focus\(\)/);
     assert.match(controller, /historyPagination.*setAttribute\('aria-label', t\('paginationLabel'\)\)/);
     assert.match(controller, /deriveRepeatedNamePartyMovements\(payload, Number\(state\.from\), Number\(state\.to\)\)/);
+    assert.match(controller, /deriveRepeatedNameGroups\(payload, Number\(state\.from\), Number\(state\.to\), \{/);
     assert.match(controller, /historyMovementGains/);
     assert.match(controller, /historyMovementLosses/);
     assert.match(controller, /notComparableRows/);

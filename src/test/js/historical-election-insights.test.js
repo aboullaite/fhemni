@@ -267,26 +267,34 @@ test('turnout and demographic trends are chronological and retain evidence statu
 
 test('repeated-name explorer labels evidence, filters different party labels, and paginates by stable pages of 10', () => {
     const valid = payload();
-    const first = deriveRepeatedNameGroups(valid, { page: 1 });
-    const second = deriveRepeatedNameGroups(valid, { page: 2 });
+    const first = deriveRepeatedNameGroups(valid, 2021, 2026, { page: 1 });
+    const second = deriveRepeatedNameGroups(valid, 2021, 2026, { page: 2 });
     assert.equal(first.available, true);
+    assert.equal(first.totalRows, 155);
     assert.equal(first.pageSize, 10);
     assert.equal(first.rows.length, 10);
     assert.equal(second.rows.length, 10);
     assert.equal(first.rows.at(-1).normalizedName < second.rows[0].normalizedName, true);
     assert.ok(first.rows.every(row => row.evidenceStatus === 'name_match_only'));
+    assert.ok([...first.rows, ...second.rows].every(row =>
+        row.occurrences.length === 2
+        && row.occurrences.map(item => item.year).sort().join(',') === '2021,2026'));
 
-    const changed = deriveRepeatedNameGroups(valid, {
+    const changed = deriveRepeatedNameGroups(valid, 2021, 2026, {
         differentPartyLabelsOnly: true, page: 1
     });
-    assert.ok(changed.totalRows > 10);
+    assert.equal(changed.totalRows, 13);
     assert.ok(changed.rows.every(row => new Set(row.occurrences.map(item =>
         item.comparisonKey)).size > 1));
     assert.ok(changed.rows.every(row => row.evidenceStatus === 'name_match_only'));
 
-    const beyondEnd = deriveRepeatedNameGroups(valid, { page: 999 });
+    const beyondEnd = deriveRepeatedNameGroups(valid, 2021, 2026, { page: 999 });
     assert.equal(beyondEnd.page, beyondEnd.pageCount);
     assert.ok(beyondEnd.rows.length > 0 && beyondEnd.rows.length <= 10);
+
+    const reversed = deriveRepeatedNameGroups(valid, 2026, 2021, { page: 1 });
+    assert.equal(reversed.available, false);
+    assert.deepEqual(reversed.diagnostics, ['year-pair']);
 });
 
 test('repeated-name party movement counts only exact-name matches present at both selected endpoints', () => {
@@ -330,7 +338,7 @@ test('repeated-name party movement excludes unchanged labels and fails closed on
 test('tampered evidence labels and regional totals make dependent analysis unavailable', () => {
     const invalidNames = payload();
     invalidNames.repeatedNames[0].evidenceStatus = 'verified_identity';
-    assert.equal(deriveRepeatedNameGroups(invalidNames).available, false);
+    assert.equal(deriveRepeatedNameGroups(invalidNames, 2021, 2026).available, false);
 
     const invalidRegions = payload();
     invalidRegions.regionalLocalSeats[0].parties[0].seats += 1;

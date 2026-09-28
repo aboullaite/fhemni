@@ -2,7 +2,7 @@
   "campaign": "election-history-launch",
   "source": "elections.ma",
   "sourceSha256": "920f9270eefd0a05e8963aeb5f8d93fc59f47e93796064d84724ab62fb44a05e",
-  "campaignDataSha256": "0931f5c213def8607f200571f754af9a21455c435b2caa69e0d41a08418b6e86",
+  "campaignDataSha256": "af25726ea77fdefba5fff8145e8a759d7aa9540da0287bbd0b71e47d023bfdbd",
   "designReview": {
     "status": "approved",
     "verdict": "SHIP"
@@ -42,7 +42,7 @@
       "file": "assets/03-political-transhumance.png",
       "width": 1600,
       "height": 900,
-      "sha256": "04ad65da40bf01762758f11e924e7d3cbdc3314bdd92546e132ce68ffa05d530",
+      "sha256": "f4949575bb5fc2862230f989013ec3d9dad2ffa908046eeabfbdb7b521050b56",
       "claimKeys": [
         "politicalTranshumance.fromYear",
         "politicalTranshumance.toYear",
@@ -83,9 +83,10 @@
       "file": "assets/06-quotient.png",
       "width": 1600,
       "height": 900,
-      "sha256": "7d95376926a467b21466278c39ed5602e7324165c9466576469f8885ceb4ebb8",
+      "sha256": "1ecb0631b8251e695a74629969431058318949c442b6e20be6c0a043794b6665",
       "claimKeys": [
         "quotient.qualifier",
+        "quotient.methodNote",
         "quotient.officialSeatTotal",
         "quotient.simulatedSeatTotal",
         "quotient.rows"

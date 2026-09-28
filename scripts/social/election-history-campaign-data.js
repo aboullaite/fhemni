@@ -102,7 +102,7 @@ function buildCampaignData(payload, {
             toYear: politicalTranshumance.toYear,
             totalMovements: politicalTranshumance.totalMovements,
             evidenceStatus: politicalTranshumance.evidenceStatus,
-            qualifier: 'رصد بالأسماء المنشورة فـ elections.ma',
+            qualifier: 'رصد بالاسم المنشور فقط فـ elections.ma',
             gains: politicalTranshumance.gains.map(transhumanceRow),
             losses: politicalTranshumance.losses.map(transhumanceRow)
         },
@@ -126,6 +126,7 @@ function buildCampaignData(payload, {
         quotient: {
             year: simulation.year,
             qualifier: 'محاكاة، ماشي نتيجة رسمية',
+            methodNote: 'كنجمعو أصوات لوائح 2026 الجهوية فمسابقة وحدة من 90 مقعد؛ لائحة 2016 كانت قانونياً مقسومة 60 + 30.',
             listScenario: simulation.listScenario,
             officialSeatTotal: simulation.officialSeatTotal,
             simulatedSeatTotal: simulation.simulatedSeatTotal,

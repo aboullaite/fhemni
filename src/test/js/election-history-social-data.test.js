@@ -61,7 +61,7 @@ test('campaign projection derives the 2021 to 2026 political transhumance poster
 
     assert.deepEqual([movement.fromYear, movement.toYear, movement.totalMovements], [2021, 2026, 12]);
     assert.equal(movement.evidenceStatus, 'name_match_only');
-    assert.equal(movement.qualifier, 'رصد بالأسماء المنشورة فـ elections.ma');
+    assert.equal(movement.qualifier, 'رصد بالاسم المنشور فقط فـ elections.ma');
     assert.deepEqual(movement.gains.slice(0, 3).map(row => [row.abbreviation, row.count]), [
         ['PAM', 4], ['MP', 4], ['PI', 3]
     ]);
@@ -104,6 +104,7 @@ test('campaign projection preserves the full-house simulation qualifier and 395-
     assert.equal(simulation.officialSeatTotal, 395);
     assert.equal(simulation.simulatedSeatTotal, 395);
     assert.equal(simulation.qualifier, 'محاكاة، ماشي نتيجة رسمية');
+    assert.match(simulation.methodNote, /90.*60\s*\+\s*30/u);
     assert.equal(simulation.year, 2026);
     assert.ok(simulation.rows.length > 0 && simulation.rows.every(row =>
         row.delta !== 0 && row.simulatedSeats - row.officialSeats === row.delta));

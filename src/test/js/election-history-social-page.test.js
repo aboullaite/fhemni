@@ -89,6 +89,10 @@ test('regional, transhumance, and quotient cards retain their mandatory qualifie
     assert.ok(script.includes('المقاعد المحلية فقط'));
     assert.match(script, /data\.politicalTranshumance\.qualifier/);
     assert.ok(script.includes('محاكاة، ماشي نتيجة رسمية'));
+    assert.match(script, /data\.quotient\.methodNote/);
+    assert.match(campaignData.quotient.methodNote, /90.*60\s*\+\s*30/u);
+    assert.equal(campaignData.politicalTranshumance.qualifier,
+        'رصد بالاسم المنشور فقط فـ elections.ma');
 });
 
 test('campaign script isolates Latin numbers and abbreviations inside RTL copy', () => {
