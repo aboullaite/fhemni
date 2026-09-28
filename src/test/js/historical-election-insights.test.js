@@ -46,6 +46,26 @@ test('validation accepts the generated payload and fails closed when a complete 
     });
 });
 
+test('validation fails closed when pinned archive provenance is missing or altered', () => {
+    const missingGeneration = payload();
+    delete missingGeneration.generation;
+    const missingAudit = auditHistoricalPayload(missingGeneration);
+    assert.equal(missingAudit.available, false);
+    assert.ok(missingAudit.diagnostics.includes('source-provenance'));
+
+    const missingDigest = payload();
+    delete missingDigest.generation.sourceSha256;
+    const digestAudit = auditHistoricalPayload(missingDigest);
+    assert.equal(digestAudit.available, false);
+    assert.ok(digestAudit.diagnostics.includes('source-provenance'));
+
+    const changedUrl = payload();
+    changedUrl.generation.sourceUrls[0] = 'https://example.com/not-elections-ma';
+    const urlAudit = auditHistoricalPayload(changedUrl);
+    assert.equal(urlAudit.available, false);
+    assert.ok(urlAudit.diagnostics.includes('source-provenance'));
+});
+
 test('year pairs are chronological and unsupported selections visibly fall back to the newest pair', () => {
     const valid = payload();
     const pairs = listValidYearPairs(valid);

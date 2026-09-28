@@ -55,12 +55,18 @@
         <p id="historyStatus" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
 
         <section id="historyOverview" class="history-section" aria-labelledby="historyOverviewTitle">
-            <header class="history-section-heading"><div><span class="section-kicker" id="historyOverviewKicker"></span><h2 id="historyOverviewTitle"></h2><p id="historyOverviewIntro"></p></div></header>
+            <header class="history-section-heading"><div><h2 id="historyOverviewTitle"></h2><p id="historyOverviewIntro"></p></div></header>
             <div id="historyOverviewCards" class="history-overview-grid"></div>
         </section>
 
         <section id="historyParties" class="history-section" aria-labelledby="historyPartiesTitle">
-            <header class="history-section-heading"><div><span class="section-kicker" id="historyPartiesKicker"></span><h2 id="historyPartiesTitle"></h2><p id="historyPartiesIntro"></p></div></header>
+            <header class="history-section-heading"><div><h2 id="historyPartiesTitle"></h2><p id="historyPartiesIntro"></p></div></header>
+            <div id="historyMeasureTabs" class="history-measure-tabs" role="group" aria-labelledby="historyMeasureTabsLabel">
+                <span id="historyMeasureTabsLabel" class="sr-only"></span>
+                <button id="historyMeasureTotal" type="button" data-measure="total" aria-pressed="true"></button>
+                <button id="historyMeasureLocal" type="button" data-measure="local" aria-pressed="false"></button>
+                <button id="historyMeasureList" type="button" data-measure="list" aria-pressed="false"></button>
+            </div>
             <div class="history-controls history-party-controls">
                 <label class="history-field"><span id="historyPartySearchLabel"></span><input id="historyPartySearch" type="search" autocomplete="off"></label>
                 <label class="history-field"><span id="historySortLabel"></span><select id="historyPartySort"><option value="delta-desc"></option><option value="delta-asc"></option><option value="later-desc"></option><option value="name"></option></select></label>
@@ -74,15 +80,13 @@
         </section>
 
         <section id="historyTrajectory" class="history-section" aria-labelledby="historyTrajectoryTitle">
-            <header class="history-section-heading"><div><span class="section-kicker" id="historyTrajectoryKicker"></span><h2 id="historyTrajectoryTitle"></h2><p id="historyTrajectoryIntro"></p></div><label class="history-field history-heading-control"><span id="historyTrajectoryPartyLabel"></span><select id="historyTrajectoryParty"></select></label></header>
+            <header class="history-section-heading"><div><h2 id="historyTrajectoryTitle"></h2><p id="historyTrajectoryIntro"></p></div><label class="history-field history-heading-control"><span id="historyTrajectoryPartyLabel"></span><select id="historyTrajectoryParty"></select></label></header>
             <div id="historyTrajectoryContent" class="history-trajectory"></div>
         </section>
 
         <section id="historyQuotient" class="history-section history-quotient" aria-labelledby="historyQuotientTitle">
-            <header class="history-section-heading"><div><span class="section-kicker" id="historyQuotientKicker"></span><h2 id="historyQuotientTitle"></h2><p id="historyQuotientIntro"></p></div></header>
+            <header class="history-section-heading"><div><h2 id="historyQuotientTitle"></h2><p id="historyQuotientIntro"></p></div></header>
             <p id="historyQuotientWarning" class="history-warning-note"></p>
-            <p id="historyQuotientLocalOnly" class="history-evidence-note"></p>
-            <p id="historyQuotientFullAssumption" class="history-evidence-note history-quotient-assumption"></p>
             <div id="historyQuotientValidation" class="history-quotient-validation"></div>
             <div class="history-quotient-national">
                 <div class="history-subheading"><h3 id="historyQuotientPartyTitle"></h3><p id="historyQuotientPartyIntro"></p></div>
@@ -97,13 +101,13 @@
         </section>
 
         <section id="historyRegions" class="history-section" aria-labelledby="historyRegionsTitle">
-            <header class="history-section-heading"><div><span class="section-kicker" id="historyRegionsKicker"></span><h2 id="historyRegionsTitle"></h2><p id="historyRegionsIntro"></p></div><label class="history-field history-heading-control"><span id="historyRegionLabel"></span><select id="historyRegion"></select></label></header>
+            <header class="history-section-heading"><div><h2 id="historyRegionsTitle"></h2><p id="historyRegionsIntro"></p></div><label class="history-field history-heading-control"><span id="historyRegionLabel"></span><select id="historyRegion"></select></label></header>
             <p id="historyRegionCaveat" class="history-evidence-note"></p>
             <div id="historyRegionContent" class="history-region-content"></div>
         </section>
 
         <section id="historyEvidence" class="history-section" aria-labelledby="historyEvidenceTitle">
-            <header class="history-section-heading"><div><span class="section-kicker" id="historyEvidenceKicker"></span><h2 id="historyEvidenceTitle"></h2><p id="historyEvidenceIntro"></p></div></header>
+            <header class="history-section-heading"><div><h2 id="historyEvidenceTitle"></h2><p id="historyEvidenceIntro"></p></div></header>
             <div class="history-demographic-block">
                 <label class="history-field history-heading-control"><span id="historyDemographicLabel"></span><select id="historyDemographic"><option value="gender"></option><option value="age"></option><option value="education"></option></select></label>
                 <p id="historyDemographicCaveat" class="history-evidence-note"></p>
@@ -112,7 +116,7 @@
         </section>
 
         <section id="historyPeople" class="history-section" aria-labelledby="historyPeopleTitle">
-            <header class="history-section-heading"><div><span class="section-kicker" id="historyPeopleKicker"></span><h2 id="historyPeopleTitle"></h2><p id="historyPeopleIntro"></p></div></header>
+            <header class="history-section-heading"><div><h2 id="historyPeopleTitle"></h2><p id="historyPeopleIntro"></p></div></header>
             <p id="historyNameMatchCaveat" class="history-warning-note"></p>
             <div class="history-controls history-people-controls">
                 <label class="history-field"><span id="historyPeopleSearchLabel"></span><input id="historyPeopleSearch" type="search" autocomplete="off"></label>
@@ -126,7 +130,7 @@
         </section>
 
         <section id="historySources" class="history-section history-sources" aria-labelledby="historySourcesTitle">
-            <header class="history-section-heading"><div><span class="section-kicker" id="historySourcesKicker"></span><h2 id="historySourcesTitle"></h2><p id="historySourcesIntro"></p></div></header>
+            <header class="history-section-heading"><div><h2 id="historySourcesTitle"></h2><p id="historySourcesIntro"></p></div></header>
             <div class="history-method-grid"><article><h3 id="historySourceLinksTitle"></h3><ul id="historySourceLinks"></ul></article><article><h3 id="historyMethodTitle"></h3><p id="historyMethodText"></p><dl id="historyArchiveMeta"></dl></article></div>
         </section>
     </div>

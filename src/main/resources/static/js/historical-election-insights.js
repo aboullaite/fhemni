@@ -13,6 +13,11 @@
     const REPORTED_FACT_STATUS = 'REPORTED_ELECTIONS_MA';
     const ANALYSIS_FACT_STATUS = 'FHEMNI_ANALYSIS_BASED_ON_ELECTIONS_MA';
     const ABBREVIATION_STATUS = 'ARCHIVE_FIELD_NOT_VERIFIED_IDENTITY';
+    const EXPECTED_SOURCE_URLS = [
+        'https://www.elections.ma/elections/legislatives/resultats.aspx?Id=l1Vr5AJaDkA534Qqp+Idqg==&IE=1',
+        'https://www.elections.ma/elections/legislatives/resultats.aspx?Id=T1uzm+f7U/WFF+rn+x03Zg==&IE=1',
+        'https://www.elections.ma/elections/legislatives/resultats.aspx?Id=8waOZwF4QzhMMKY7yKQzGQ==&IE=1'
+    ];
 
     function records(value) {
         return Array.isArray(value) ? value : [];
@@ -101,6 +106,20 @@
             }
         }
         return years;
+    }
+
+    function auditGeneration(payload, diagnostics) {
+        const generation = payload?.generation;
+        const sourceUrls = records(generation?.sourceUrls);
+        const electionUrls = records(payload?.elections).map(election => election?.sourceUrl);
+        if (!generation || generation.sourceArchive !== 'morocco-legislative-results.json'
+                || generation.sourceDatasetId !== 'morocco-legislative-2016-2021-2026'
+                || !/^[a-f0-9]{64}$/.test(generation.sourceSha256 || '')
+                || generation.aggregateFactStatus !== ANALYSIS_FACT_STATUS
+                || !sameValues(sourceUrls, EXPECTED_SOURCE_URLS)
+                || !sameValues(electionUrls, EXPECTED_SOURCE_URLS)) {
+            addDiagnostic(diagnostics, 'source-provenance');
+        }
     }
 
     function auditParties(payload, diagnostics) {
@@ -422,6 +441,7 @@
         if (!payload || typeof payload !== 'object' || payload.schemaVersion !== 1) {
             addDiagnostic(diagnostics, 'schema-version');
         }
+        auditGeneration(payload, diagnostics);
         const years = auditElections(payload, diagnostics);
         auditParties(payload, diagnostics);
         auditRegions(payload, diagnostics);
