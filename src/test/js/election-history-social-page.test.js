@@ -5,6 +5,8 @@ const path = require('node:path');
 
 const campaignDirectory = path.join(__dirname,
     '../../../docs/social/election-history-launch');
+const campaignData = JSON.parse(fs.readFileSync(path.join(campaignDirectory,
+    'campaign-data.json'), 'utf8'));
 
 function readCampaignFile(name) {
     return fs.readFileSync(path.join(campaignDirectory, name), 'utf8');
@@ -50,15 +52,21 @@ test('campaign cards use fixed export dimensions and the approved brand tokens',
     assert.match(css, /\.story-safe-area\s*\{[^}]*top:\s*240px;[^}]*height:\s*1400px;/s);
 });
 
-test('every card contains the Fhemni logo and elections.ma attribution', () => {
+test('every card contains the Fhemni logo without a visible source footer', () => {
     const html = readCampaignFile('campaign.html');
     const logoPath = '../../../src/main/resources/static/assets/brand/fhemni-logo.png';
     const source = 'المصدر: elections.ma · التحليل: فهّمني';
 
     assert.equal(count(html, `src="${logoPath}"`), 6);
-    assert.equal(count(html, source), 6);
     assert.equal(count(html, 'class="campaign-logo"'), 6);
-    assert.equal(count(html, 'class="campaign-attribution"'), 6);
+    assert.equal(count(html, source), 0);
+    assert.equal(count(html, 'class="campaign-attribution"'), 0);
+});
+
+test('overview gives the full content area to the three-election comparison', () => {
+    const script = readCampaignFile('campaign.js');
+
+    assert.doesNotMatch(script, /overview-stat|overview-count|electedRecordCount/);
 });
 
 test('regional and quotient cards retain their mandatory qualifiers', () => {
@@ -82,4 +90,39 @@ test('campaign election years remain ungrouped Latin labels', () => {
     assert.equal(formatYear(2016), '2016');
     assert.equal(formatYear(2021), '2021');
     assert.equal(formatYear(2026), '2026');
+});
+
+test('regional zero values render with no fill while positive values retain a minimum', () => {
+    const { scaledPercentage } = require('../../../docs/social/election-history-launch/campaign.js');
+
+    assert.equal(scaledPercentage(0, 22), 0);
+    assert.equal(scaledPercentage(1, 100), 2);
+    assert.equal(scaledPercentage(11, 22), 50);
+});
+
+test('profile cues use exact published age and education endpoint percentages', () => {
+    const { publishedComparison } = require('../../../docs/social/election-history-launch/campaign.js');
+
+    assert.deepEqual(publishedComparison(campaignData.demographics.age, 'أكبر من 55'), {
+        fromYear: 2016,
+        fromPercentage: 30.63,
+        toYear: 2026,
+        toPercentage: 42.78
+    });
+    assert.deepEqual(publishedComparison(campaignData.demographics.education, 'عالي'), {
+        fromYear: 2016,
+        fromPercentage: 74.68,
+        toYear: 2026,
+        toPercentage: 69.87
+    });
+});
+
+test('party movement title keeps the compared years together', () => {
+    const script = readCampaignFile('campaign.js');
+    const css = readCampaignFile('campaign.css');
+
+    assert.match(script, /element\(document, 'span', 'nowrap'\)/);
+    assert.match(script, /appendBdi\(years, '2021'\)/);
+    assert.match(script, /appendBdi\(years, '2026'\)/);
+    assert.match(css, /\.nowrap\s*\{[^}]*white-space:\s*nowrap;/s);
 });

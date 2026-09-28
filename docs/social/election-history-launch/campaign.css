@@ -96,7 +96,7 @@ body {
     z-index: 1;
     display: grid;
     height: 100%;
-    grid-template-rows: 92px 1fr 42px;
+    grid-template-rows: 92px 1fr;
     gap: 18px;
 }
 
@@ -132,16 +132,6 @@ body {
     min-height: 0;
 }
 
-.campaign-attribution {
-    align-self: end;
-    border-top: 2px solid var(--line);
-    padding-top: 12px;
-    color: var(--deep-teal);
-    font-size: 24px;
-    font-weight: 500;
-    letter-spacing: 0;
-}
-
 .headline-row {
     display: flex;
     align-items: center;
@@ -157,6 +147,10 @@ body {
     font-weight: 700;
     line-height: 1.06;
     letter-spacing: -1.3px;
+}
+
+.nowrap {
+    white-space: nowrap;
 }
 
 .campaign-note {
@@ -183,17 +177,11 @@ body {
 .overview-layout {
     display: grid;
     height: 100%;
-    grid-template-columns: 1.45fr 0.75fr;
     grid-template-rows: auto 1fr;
-    gap: 22px 48px;
-}
-
-.overview-copy {
-    grid-column: 1 / -1;
+    gap: 24px;
 }
 
 .timeline-card,
-.overview-stat,
 .chart-surface,
 .movement-group,
 .profile-ring-card,
@@ -208,7 +196,7 @@ body {
     display: grid;
     align-content: center;
     border-radius: 28px;
-    padding: 34px 46px;
+    padding: 42px 64px;
 }
 
 .timeline {
@@ -216,7 +204,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: 0 6px 34px;
+    margin: 0 36px 44px;
 }
 
 .timeline::before {
@@ -232,14 +220,14 @@ body {
 .timeline-year {
     position: relative;
     display: grid;
-    width: 126px;
-    height: 126px;
+    width: 146px;
+    height: 146px;
     place-items: center;
     border: 7px solid var(--teal);
     border-radius: 50%;
     background: var(--ivory);
     color: var(--deep-teal);
-    font-size: 38px;
+    font-size: 42px;
     font-weight: 700;
 }
 
@@ -255,38 +243,14 @@ body {
 
 .feature-pill {
     display: grid;
-    min-height: 76px;
+    min-height: 88px;
     place-items: center;
     border-radius: 16px;
     background: rgba(23, 107, 99, 0.09);
     color: var(--deep-teal);
-    font-size: 24px;
+    font-size: 27px;
     font-weight: 700;
     text-align: center;
-}
-
-.overview-stat {
-    display: grid;
-    align-content: center;
-    justify-items: center;
-    border-radius: 28px;
-    padding: 32px;
-    text-align: center;
-}
-
-.overview-stat strong {
-    color: var(--orange);
-    font-size: 94px;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.overview-stat span {
-    max-width: 300px;
-    margin-top: 18px;
-    font-size: 30px;
-    font-weight: 700;
-    line-height: 1.25;
 }
 
 .movement-layout {
@@ -359,7 +323,7 @@ body {
 .party-name {
     overflow: hidden;
     color: var(--muted);
-    font-size: 21px;
+    font-size: 23px;
     font-weight: 500;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -375,7 +339,7 @@ body {
 
 .bar-fill {
     height: 100%;
-    min-width: 3px;
+    min-width: 0;
     border-radius: inherit;
     background: var(--teal);
 }
@@ -408,7 +372,7 @@ body {
 
 .region-legend {
     display: flex;
-    margin: 3px 0 18px;
+    margin: 0 0 12px;
 }
 
 .legend-item {
@@ -416,7 +380,7 @@ body {
     align-items: center;
     gap: 9px;
     color: var(--muted);
-    font-size: 21px;
+    font-size: 23px;
     font-weight: 700;
 }
 
@@ -428,7 +392,7 @@ body {
 
 .region-rows {
     display: grid;
-    gap: 13px;
+    gap: 9px;
 }
 
 .region-row {
@@ -439,7 +403,7 @@ body {
 
 .region-party {
     align-self: center;
-    font-size: 25px;
+    font-size: 27px;
     font-weight: 700;
     direction: ltr;
     text-align: left;
@@ -459,31 +423,65 @@ body {
     background: rgba(19, 44, 43, 0.07);
 }
 
+.region-year-0 {
+    background: rgba(11, 79, 73, 0.11);
+}
+
+.region-year-1 {
+    background: rgba(23, 107, 99, 0.08);
+}
+
+.region-year-2 {
+    background: rgba(232, 111, 60, 0.08);
+}
+
 .region-cell-fill {
     position: absolute;
     inset-block: 0;
     right: 0;
-    min-width: 3px;
     border-radius: inherit;
     opacity: 0.9;
 }
 
-.region-cell bdi {
-    position: relative;
-    z-index: 1;
-    display: inline-block;
-    min-width: 48px;
-    padding: 5px 10px 0;
+.region-cell .region-cell-value {
+    position: absolute;
+    z-index: 2;
+    top: 4px;
+    bottom: 4px;
+    left: 5px;
+    display: grid;
+    min-width: 46px;
+    place-items: center;
+    border: 1px solid rgba(19, 44, 43, 0.14);
+    border-radius: 6px;
+    background: var(--ivory);
     color: var(--ink);
-    font-size: 22px;
+    font-size: 23px;
     font-weight: 700;
     direction: ltr;
     unicode-bidi: isolate;
 }
 
+.region-body .headline-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 20px;
+    margin-bottom: 10px;
+}
+
+.region-body .campaign-title {
+    font-size: 61px;
+}
+
+.region-chart {
+    margin-top: 8px;
+    padding: 18px 30px;
+}
+
 .profiles-layout {
     display: grid;
-    grid-template-columns: 1fr 320px;
+    grid-template-columns: 1fr 390px;
     gap: 26px;
     margin-top: 22px;
 }
@@ -542,7 +540,7 @@ body {
     display: grid;
     align-content: center;
     border-radius: 22px;
-    padding: 24px;
+    padding: 18px 22px;
 }
 
 .profile-cue strong {
@@ -550,11 +548,27 @@ body {
     font-size: 27px;
 }
 
-.profile-cue span {
+.profile-cue-values {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 8px;
+    color: var(--orange);
+    font-size: 27px;
+    font-weight: 700;
+    direction: ltr;
+}
+
+.profile-cue-years {
     margin-top: 5px;
     color: var(--muted);
-    font-size: 21px;
+    font-size: 20px;
     font-weight: 500;
+    direction: ltr;
+}
+
+.profiles-layout.rings-only {
+    grid-template-columns: 1fr;
 }
 
 .quotient-layout {
@@ -595,7 +609,7 @@ body {
 }
 
 .quotient-bars bdi {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 700;
     direction: ltr;
 }
@@ -653,9 +667,10 @@ body {
     top: 240px;
     right: 72px;
     left: 72px;
-    display: flex;
+    display: grid;
     height: 1400px;
-    flex-direction: column;
+    grid-template-rows: auto auto 680px 92px 72px;
+    align-content: space-between;
 }
 
 .story-title {
@@ -673,20 +688,25 @@ body {
 }
 
 .story-subtitle {
-    margin: 22px 0 0;
+    margin: 0;
     color: var(--muted);
     font-size: 30px;
     font-weight: 500;
 }
 
 .story-chart {
-    flex: 1;
-    margin-top: 38px;
+    display: grid;
+    height: 680px;
+    grid-template-rows: 1fr 1fr;
+    margin: 0;
     border-radius: 30px;
     padding: 32px;
 }
 
 .story-chart .movement-group {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     padding: 0;
     border: 0;
     background: transparent;
@@ -694,7 +714,7 @@ body {
 }
 
 .story-chart .movement-group + .movement-group {
-    margin-top: 25px;
+    margin-top: 0;
     border-top: 2px solid var(--line);
     padding-top: 24px;
 }
@@ -715,7 +735,7 @@ body {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
-    margin-top: 26px;
+    margin-top: 0;
 }
 
 .story-feature {
@@ -735,7 +755,7 @@ body {
     align-items: flex-end;
     justify-content: space-between;
     gap: 20px;
-    margin-top: 28px;
+    margin-top: 0;
 }
 
 .story-years {
@@ -755,16 +775,6 @@ body {
     color: var(--ivory);
     font-size: 29px;
     font-weight: 700;
-}
-
-.story-card > .campaign-attribution {
-    position: absolute;
-    z-index: 2;
-    right: 72px;
-    bottom: 102px;
-    left: 72px;
-    padding-top: 16px;
-    font-size: 25px;
 }
 
 bdi {

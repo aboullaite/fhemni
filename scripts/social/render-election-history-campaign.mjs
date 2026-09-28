@@ -51,6 +51,9 @@ export function assertCaptureReady(status) {
             throw new Error(`Campaign root has incorrect bounds: ${asset.rootId} `
                 + `(${root.width}x${root.height})`);
         }
+        if (root.contentFits !== true) {
+            throw new Error(`Campaign content exceeds its content bounds: ${asset.rootId}`);
+        }
     }
 }
 
@@ -182,11 +185,27 @@ function readinessExpression(timeoutMs) {
                             roots: assets.map(asset => {
                                 const node = document.getElementById(asset.rootId);
                                 const rect = node?.getBoundingClientRect();
+                                const body = node?.querySelector('[data-campaign-body]');
+                                const bodyRect = body?.getBoundingClientRect();
+                                const contentRects = body
+                                    ? [...body.querySelectorAll('*')]
+                                        .map(child => child.getBoundingClientRect())
+                                        .filter(childRect => childRect.width > 0 && childRect.height > 0)
+                                    : [];
+                                const contentFits = Boolean(bodyRect)
+                                    && body.scrollHeight <= body.clientHeight + 1
+                                    && body.scrollWidth <= body.clientWidth + 1
+                                    && contentRects.every(childRect =>
+                                        childRect.top >= bodyRect.top - 1
+                                        && childRect.right <= bodyRect.right + 1
+                                        && childRect.bottom <= bodyRect.bottom + 1
+                                        && childRect.left >= bodyRect.left - 1);
                                 return {
                                     id: asset.rootId,
                                     ready: node?.dataset.ready === 'true',
                                     width: rect?.width || 0,
-                                    height: rect?.height || 0
+                                    height: rect?.height || 0,
+                                    contentFits
                                 };
                             })
                         });

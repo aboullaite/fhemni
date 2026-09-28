@@ -32,7 +32,8 @@ function readyPage(assets) {
             id: asset.rootId,
             ready: true,
             width: asset.width,
-            height: asset.height
+            height: asset.height,
+            contentFits: true
         }))
     };
 }
@@ -90,6 +91,10 @@ test('renderer refuses capture when fonts, logo, data, or ready flags are missin
         ...valid,
         roots: valid.roots.map((root, index) => index ? root : { ...root, width: 0 })
     }), /bounds/i);
+    assert.throws(() => assertCaptureReady({
+        ...valid,
+        roots: valid.roots.map((root, index) => index ? root : { ...root, contentFits: false })
+    }), /content bounds/i);
 });
 
 test('renderer requires an isolated root at the viewport origin before capture', async () => {

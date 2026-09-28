@@ -43,6 +43,24 @@
         return String(value);
     }
 
+    function scaledPercentage(value, maximum, minimumPositive = 2) {
+        if (!Number.isFinite(value) || value <= 0) return 0;
+        return Math.max(minimumPositive, value / Math.max(maximum, 1) * 100);
+    }
+
+    function publishedComparison(rows, categoryAr, fromYear = 2016, toYear = 2026) {
+        const row = rows.find(candidate => candidate.categoryAr === categoryAr);
+        const from = row?.points.find(point => point.year === fromYear);
+        const to = row?.points.find(point => point.year === toYear);
+        if (!Number.isFinite(from?.percentage) || !Number.isFinite(to?.percentage)) return null;
+        return {
+            fromYear,
+            fromPercentage: from.percentage,
+            toYear,
+            toPercentage: to.percentage
+        };
+    }
+
     function campaignBody(document, id) {
         const root = document.getElementById(id);
         if (!root) throw new Error(`Missing campaign root: ${id}`);
@@ -82,7 +100,7 @@
 
             const track = element(document, 'div', 'bar-track');
             const fill = element(document, 'div', 'bar-fill');
-            fill.style.width = `${Math.max(2, Math.abs(row.delta) / scale * 100)}%`;
+            fill.style.width = `${scaledPercentage(Math.abs(row.delta), scale)}%`;
             track.append(fill);
             item.append(meta, track);
             group.append(item);
@@ -111,17 +129,21 @@
         });
         timelineCard.append(timeline, features);
 
-        const stat = element(document, 'aside', 'overview-stat');
-        appendBdi(stat, formatNumber(data.overview.electedRecordCount), 'overview-count');
-        stat.append(element(document, 'span', '', 'سجل ديال منتخب ومنتخبة عبر 3 انتخابات'));
-        layout.append(copy, timelineCard, stat);
+        layout.append(copy, timelineCard);
         body.append(layout);
         root.dataset.ready = 'true';
     }
 
     function renderParties(document, data) {
         const { root, body } = campaignBody(document, 'campaign-02-parties');
-        body.append(title(document, 'شكون طلع وشكون هبط بين 2021 و2026؟'));
+        const heading = title(document, 'شكون طلع وشكون هبط بين ');
+        const years = element(document, 'span', 'nowrap');
+        appendBdi(years, '2021');
+        years.append(document.createTextNode(' و'));
+        appendBdi(years, '2026');
+        years.append(document.createTextNode('؟'));
+        heading.append(years);
+        body.append(heading);
         body.append(element(document, 'p', 'campaign-note',
             'المقاعد كاملة: المحلية وزايد اللائحة الوطنية أو الجهوية حسب كل انتخابات. الأسماء الحزبية باقية كيف نشرها المصدر.'));
         const movements = [...data.partyMovement.gains, ...data.partyMovement.losses];
@@ -137,6 +159,7 @@
 
     function renderRegions(document, data) {
         const { root, body } = campaignBody(document, 'campaign-03-regions');
+        body.classList.add('region-body');
         body.append(headlineWithQualifier(document,
             'الانتخابات ما كتبدلش بنفس الشكل فكل جهة',
             data.region.qualifier || LOCAL_SEATS_QUALIFIER));
@@ -146,7 +169,7 @@
         note.append(document.createTextNode(' عبر ثلاث انتخابات.'));
         body.append(note);
 
-        const surface = element(document, 'section', 'chart-surface');
+        const surface = element(document, 'section', 'chart-surface region-chart');
         const legend = element(document, 'div', 'region-legend');
         data.region.years.forEach((year, index) => {
             const item = element(document, 'span', 'legend-item');
@@ -164,12 +187,12 @@
             appendBdi(rowNode, row.abbreviation, 'region-party');
             const series = element(document, 'div', 'region-series');
             row.points.forEach((point, index) => {
-                const cell = element(document, 'div', 'region-cell');
+                const cell = element(document, 'div', `region-cell region-year-${index}`);
                 const fill = element(document, 'span', 'region-cell-fill');
-                fill.style.width = `${Math.max(2, point.localSeats / maxSeats * 100)}%`;
+                fill.style.width = `${scaledPercentage(point.localSeats, maxSeats)}%`;
                 fill.style.backgroundColor = YEAR_COLORS[index];
                 cell.append(fill);
-                appendBdi(cell, formatNumber(point.localSeats));
+                appendBdi(cell, formatNumber(point.localSeats), 'region-cell-value');
                 series.append(cell);
             });
             rowNode.append(series);
@@ -199,15 +222,33 @@
             card.append(ring, year);
             rings.append(card);
         });
-        const cues = element(document, 'aside', 'profile-cues');
-        const age = element(document, 'div', 'profile-cue');
-        age.append(element(document, 'strong', '', 'الفئات العمرية'),
-            element(document, 'span', '', 'قارن التوزيع حسب السن'));
-        const education = element(document, 'div', 'profile-cue');
-        education.append(element(document, 'strong', '', 'المستوى الدراسي'),
-            element(document, 'span', '', 'تابع التغيّر بين السنوات'));
-        cues.append(age, education);
-        layout.append(rings, cues);
+        const age = publishedComparison(data.demographics.age, 'أكبر من 55');
+        const education = publishedComparison(data.demographics.education, 'عالي');
+        const comparisons = [
+            ['فوق 55 سنة', age],
+            ['تعليم عالي', education]
+        ].filter(([, comparison]) => comparison);
+        if (comparisons.length) {
+            const cues = element(document, 'aside', 'profile-cues');
+            comparisons.forEach(([label, comparison]) => {
+                const cue = element(document, 'div', 'profile-cue');
+                cue.append(element(document, 'strong', '', label));
+                const values = element(document, 'span', 'profile-cue-values');
+                appendBdi(values, `${formatNumber(comparison.fromPercentage, 2)}%`);
+                values.append(document.createTextNode(' → '));
+                appendBdi(values, `${formatNumber(comparison.toPercentage, 2)}%`);
+                const cueYears = element(document, 'span', 'profile-cue-years');
+                appendBdi(cueYears, formatYear(comparison.fromYear));
+                cueYears.append(document.createTextNode(' → '));
+                appendBdi(cueYears, formatYear(comparison.toYear));
+                cue.append(values, cueYears);
+                cues.append(cue);
+            });
+            layout.append(rings, cues);
+        } else {
+            layout.classList.add('rings-only');
+            layout.append(rings);
+        }
         body.append(layout);
         root.dataset.ready = 'true';
     }
@@ -216,7 +257,7 @@
         const wrapper = element(document, 'div', `quotient-bars ${kind}`);
         const track = element(document, 'div', 'bar-track');
         const fill = element(document, 'div', 'bar-fill');
-        fill.style.width = `${Math.max(2, value / scale * 100)}%`;
+        fill.style.width = `${scaledPercentage(value, scale)}%`;
         track.append(fill);
         wrapper.append(track);
         appendBdi(wrapper, formatNumber(value));
@@ -342,5 +383,5 @@
         }
     }
 
-    return { renderCampaign, formatYear };
+    return { renderCampaign, formatYear, scaledPercentage, publishedComparison };
 }));
