@@ -88,11 +88,13 @@ public class SecurityConfiguration {
                                 "/privacy", "/privacy/", "/privacy.html",
                                 "/priorities", "/priorities/", "/priorities.html",
                                 "/elections/2026", "/elections/2026/", "/election-results.html",
+                                "/elections/history", "/elections/history/", "/historical-elections.html",
                                 "/s/priorities/**",
                                 "/suggestions", "/suggestions/",
                                 "/video.html", "/videos.html", "/login", "/login.html",
                                 "/error", "/favicon.ico", "/css/**", "/js/**",
                                 "/data/elections/2026/urban-rural-constituencies.js",
+                                "/data/elections/history.json",
                                 "/assets/**", "/webjars/**",
                                 "/oauth2/**", "/login/oauth2/**", "/auth/magic-link", "/auth/magic-link/**",
                                 "/api/auth/session", "/api/auth/magic-link", "/healthz")

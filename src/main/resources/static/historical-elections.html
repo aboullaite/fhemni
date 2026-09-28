@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="fhemni">
+<head>
+    <script src="/js/analytics.js?v=20260923-1"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta id="historyMetaDescription" name="description" content="قارن نتائج الانتخابات التشريعية المغربية الرسمية بين 2016 و2021 و2026.">
+    <title>كيفاش تبدلات نتائج الانتخابات — فهّمني</title>
+    <link rel="icon" href="/favicon.ico?v=20260911" sizes="32x32">
+    <link rel="stylesheet" href="/css/dist.css?v=20260928-7">
+</head>
+<body class="public-page election-page history-page">
+<div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+
+<header class="site-header public-header">
+    <a class="brand" href="/" aria-label="Fhemni home" data-i18n-aria-label="common.brandHome"><img class="brand-logo brand-logo-full" src="/assets/brand/fhemni-logo.png" alt=""><img class="brand-logo brand-logo-icon" src="/assets/brand/fhemni-icon.png" alt=""></a>
+    <nav class="primary-nav" aria-label="Primary navigation" data-i18n-aria-label="common.primaryNavigation"><a href="/elections/2026" class="active" data-i18n="common.electionResults">Election results</a><a href="/videos" data-i18n="common.catalogue">Catalogue</a><a href="/parties" data-i18n="common.parties">Parties</a><a href="/priorities" data-i18n="common.prioritiesQuiz">Your priorities</a></nav>
+    <div class="header-actions"><label class="site-language"><span class="sr-only" data-i18n="common.siteLanguage">Website language</span><select data-site-language data-i18n-aria-label="common.siteLanguage" aria-label="Website language"><option value="en">EN</option><option value="fr">FR</option><option value="ar">الدارجة</option></select></label><div id="authNav"></div></div>
+</header>
+
+<main class="election-main history-main">
+    <section id="historyLoading" class="election-state-card" aria-live="polite">
+        <span class="priority-loader" aria-hidden="true"></span>
+        <p id="historyLoadingText">كنحضّرو المقارنة…</p>
+    </section>
+
+    <section id="historyError" class="election-state-card" hidden>
+        <strong id="historyErrorTitle"></strong>
+        <p id="historyErrorText"></p>
+        <button id="historyRetry" class="priority-primary-button" type="button"></button>
+    </section>
+
+    <div id="historyContent" hidden>
+        <section class="history-hero" aria-labelledby="historyTitle">
+            <div class="history-hero-copy">
+                <div class="eyebrow"><span></span><span id="historyEyebrow"></span></div>
+                <h1 id="historyTitle"></h1>
+                <p id="historyIntro" class="history-lede"></p>
+                <a id="historyCurrentResultsLink" class="priority-primary-button button-link history-current-results-link" href="/elections/2026"></a>
+            </div>
+            <form id="historyPairForm" class="history-pair-card">
+                <strong id="historyPairTitle"></strong>
+                <div class="history-pair-fields">
+                    <label><span id="historyFromLabel"></span><select id="historyFrom"></select></label>
+                    <span class="history-pair-arrow" aria-hidden="true">→</span>
+                    <label><span id="historyToLabel"></span><select id="historyTo"></select></label>
+                </div>
+                <p id="historyPairNotice" class="history-pair-notice" role="status" hidden></p>
+            </form>
+        </section>
+
+        <p id="historySelectionNotice" class="history-warning-note" role="status" aria-live="polite" hidden></p>
+        <nav id="historyTabs" class="election-graphs-jumps history-jumps history-tabs" role="tablist" aria-label="Historical election sections"></nav>
+        <p id="historyStatus" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
+
+        <div id="historyOverviewPanel" role="tabpanel">
+        <section id="historyOverview" class="history-section" aria-labelledby="historyOverviewTitle">
+            <header class="history-section-heading"><div><h2 id="historyOverviewTitle"></h2></div></header>
+            <div id="historyOverviewCards" class="history-overview-grid"></div>
+        </section>
+        </div>
+
+        <div id="historyPartiesPanel" role="tabpanel" hidden>
+        <section id="historyParties" class="history-section" aria-labelledby="historyPartiesTitle">
+            <header class="history-section-heading"><div><h2 id="historyPartiesTitle"></h2></div></header>
+            <div id="historyMeasureTabs" class="history-measure-tabs" role="group" aria-labelledby="historyMeasureTabsLabel">
+                <span id="historyMeasureTabsLabel" class="sr-only"></span>
+                <button id="historyMeasureTotal" type="button" data-measure="total" aria-pressed="true"></button>
+                <button id="historyMeasureLocal" type="button" data-measure="local" aria-pressed="false"></button>
+                <button id="historyMeasureList" type="button" data-measure="list" aria-pressed="false"></button>
+            </div>
+            <div class="history-controls history-party-controls">
+                <label class="history-field"><span id="historyPartySearchLabel"></span><input id="historyPartySearch" type="search" autocomplete="off"></label>
+                <label class="history-field"><span id="historySortLabel"></span><select id="historyPartySort"><option value="delta-desc"></option><option value="delta-asc"></option><option value="later-desc"></option><option value="name"></option></select></label>
+            </div>
+            <p id="historyMeasureCaveat" class="history-evidence-note"></p>
+            <div id="historySeatLegend" class="history-seat-legend" aria-hidden="true"></div>
+            <div id="historyPartyEmpty" class="election-empty" hidden></div>
+            <div id="historyPartyBars" class="history-party-bars"></div>
+            <button id="historyShowAll" class="priority-secondary-button history-show-all" type="button"></button>
+            <details id="historyExactFigures" class="history-exact-figures"><summary></summary><div class="history-table-scroll"><table><caption id="historyExactCaption"></caption><thead><tr><th scope="col" id="historyExactParty"></th><th scope="col" id="historyExactEarlier"></th><th scope="col" id="historyExactLater"></th><th scope="col" id="historyExactChange"></th></tr></thead><tbody id="historyExactBody"></tbody></table></div></details>
+        </section>
+
+        <section id="historyTrajectory" class="history-section" aria-labelledby="historyTrajectoryTitle">
+            <header class="history-section-heading"><div><h2 id="historyTrajectoryTitle"></h2></div><label class="history-field history-heading-control"><span id="historyTrajectoryPartyLabel"></span><select id="historyTrajectoryParty"></select></label></header>
+            <div id="historyTrajectoryContent" class="history-trajectory"></div>
+        </section>
+        </div>
+
+        <div id="historyQuotientPanel" role="tabpanel" hidden>
+        <section id="historyQuotient" class="history-section history-quotient" aria-labelledby="historyQuotientTitle">
+            <header class="history-section-heading"><div><h2 id="historyQuotientTitle"></h2><p id="historyQuotientIntro"></p></div></header>
+            <p id="historyQuotientWarning" class="history-warning-note"></p>
+            <div id="historyQuotientValidation" class="history-quotient-validation"></div>
+            <div class="history-quotient-national">
+                <div class="history-subheading"><h3 id="historyQuotientPartyTitle"></h3><p id="historyQuotientPartyIntro"></p></div>
+                <div id="historyQuotientPartyChanges" class="history-quotient-party-changes"></div>
+                <details class="history-exact-figures"><summary id="historyQuotientAllParties"></summary><div class="history-table-scroll"><table class="history-quotient-decomposition"><caption id="historyQuotientAllPartiesCaption"></caption><thead><tr><th scope="col" id="historyQuotientParty"></th><th scope="col" id="historyQuotientOfficialLocal"></th><th scope="col" id="historyQuotientSimulatedLocal"></th><th scope="col" id="historyQuotientOfficialRegional"></th><th scope="col" id="historyQuotientSimulatedNational"></th><th scope="col" id="historyQuotientOfficialTotal"></th><th scope="col" id="historyQuotientSimulatedTotal"></th><th scope="col" id="historyQuotientDelta"></th></tr></thead><tbody id="historyQuotientPartyBody"></tbody></table></div></details>
+            </div>
+            <div class="history-quotient-constituency">
+                <div class="history-subheading"><h3 id="historyQuotientConstituencyTitle"></h3><label class="history-field history-heading-control"><span id="historyQuotientConstituencyLabel"></span><select id="historyQuotientConstituency"></select></label></div>
+                <div id="historyQuotientMetrics" class="history-quotient-metrics"></div>
+                <div class="history-table-scroll"><table class="history-quotient-table"><caption id="historyQuotientContestCaption" class="sr-only"></caption><thead><tr><th scope="col" id="historyQuotientContestParty"></th><th scope="col" id="historyQuotientVotes"></th><th scope="col" id="historyQuotientEligible"></th><th scope="col" id="historyQuotientFirstPass"></th><th scope="col" id="historyQuotientRemainder"></th><th scope="col" id="historyQuotientRemainderSeat"></th><th scope="col" id="historyQuotientOfficialSeats"></th><th scope="col" id="historyQuotientSimulatedSeats"></th></tr></thead><tbody id="historyQuotientContestBody"></tbody></table></div>
+            </div>
+        </section>
+        </div>
+
+        <div id="historyRegionsPanel" role="tabpanel" hidden>
+        <section id="historyRegions" class="history-section" aria-labelledby="historyRegionsTitle">
+            <header class="history-section-heading"><div><h2 id="historyRegionsTitle"></h2></div><label class="history-field history-heading-control"><span id="historyRegionLabel"></span><select id="historyRegion"></select></label></header>
+            <p id="historyRegionCaveat" class="history-evidence-note"></p>
+            <div id="historyRegionContent" class="history-region-content"></div>
+        </section>
+        </div>
+
+        <div id="historyPeoplePanel" role="tabpanel" hidden>
+        <section id="historyEvidence" class="history-section" aria-labelledby="historyEvidenceTitle">
+            <header class="history-section-heading"><div><h2 id="historyEvidenceTitle"></h2></div></header>
+            <div class="history-demographic-block">
+                <label class="history-field history-heading-control"><span id="historyDemographicLabel"></span><select id="historyDemographic"><option value="gender"></option><option value="age"></option><option value="education"></option></select></label>
+                <p id="historyDemographicCaveat" class="history-evidence-note"></p>
+                <div id="historyDemographicContent" class="history-demographic-content"></div>
+            </div>
+        </section>
+
+        <section id="historyPeople" class="history-section" aria-labelledby="historyPeopleTitle">
+            <header class="history-section-heading"><div><h2 id="historyPeopleTitle"></h2></div></header>
+            <p id="historyNameMatchCaveat" class="history-warning-note"></p>
+            <div id="historyPeopleMovements" class="history-movement-block">
+                <div class="history-subheading"><h3 id="historyMovementTitle"></h3><p id="historyMovementIntro"></p></div>
+                <div class="history-movement-grid">
+                    <article class="history-movement-card is-gain"><h4 id="historyMovementGainsTitle"></h4><div id="historyMovementGains" class="history-movement-bars"></div></article>
+                    <article class="history-movement-card is-loss"><h4 id="historyMovementLossesTitle"></h4><div id="historyMovementLosses" class="history-movement-bars"></div></article>
+                </div>
+            </div>
+            <div class="history-controls history-people-controls">
+                <label class="history-field"><span id="historyPeopleSearchLabel"></span><input id="historyPeopleSearch" type="search" autocomplete="off"></label>
+                <label class="history-check"><input id="historyDifferentOnly" type="checkbox"><span id="historyDifferentOnlyLabel"></span></label>
+            </div>
+            <p id="historyPeopleCount" class="history-result-count sr-only" tabindex="-1"></p>
+            <div id="historyPeopleEmpty" class="election-empty" hidden></div>
+            <div id="historyPeopleTable" class="history-people-table history-table-scroll"><table><caption id="historyPeopleCaption" class="sr-only"></caption><thead><tr><th scope="col" id="historyPeopleName"></th><th scope="col" id="historyPeopleObservations"></th><th scope="col" id="historyPeopleEvidence"></th></tr></thead><tbody id="historyPeopleBody"></tbody></table></div>
+            <div id="historyPeopleCards" class="history-people-cards"></div>
+            <nav id="historyPagination" class="history-pagination" aria-label="صفحات الأسماء المتكررة"><button id="historyPeoplePrevious" class="priority-secondary-button" type="button"></button><span id="historyPeoplePageStatus"></span><button id="historyPeopleNext" class="priority-secondary-button" type="button"></button></nav>
+        </section>
+        </div>
+
+        <div id="historySourcesPanel" role="tabpanel" hidden>
+        <section id="historySources" class="history-section history-sources" aria-labelledby="historySourcesTitle">
+            <header class="history-section-heading"><div><h2 id="historySourcesTitle"></h2><p id="historySourcesIntro"></p></div></header>
+            <div class="history-method-grid"><article><h3 id="historySourceLinksTitle"></h3><ul id="historySourceLinks"></ul></article><article><h3 id="historyMethodTitle"></h3><p id="historyMethodText"></p><dl id="historyArchiveMeta"></dl></article></div>
+        </section>
+        </div>
+    </div>
+</main>
+
+<footer><img class="footer-logo" src="/assets/brand/fhemni-logo.png" alt="Fhemni — فهّمني"><a href="https://x.com/laytoun" target="_blank" rel="me noopener noreferrer" title="@laytoun on X" data-i18n="common.footer">© 2026 Mohammed Aboullaite</a><a class="footer-feedback-link" href="https://github.com/aboullaite/fhemni/issues" target="_blank" rel="noopener noreferrer" data-i18n="common.suggestFeature">Suggest a feature</a></footer>
+<script src="/js/i18n.js?v=20260923-1" defer></script><script src="/js/auth.js?v=20260911-2" defer></script><script src="/js/election-region-filters.js?v=20260925-1" defer></script><script src="/js/historical-election-insights.js?v=20260928-4" defer></script><script src="/js/historical-electoral-quotient.js?v=20260927-1" defer></script><script src="/js/historical-elections.js?v=20260928-9" defer></script>
+</body>
+</html>

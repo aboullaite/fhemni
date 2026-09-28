@@ -30,6 +30,7 @@ class NavigationConsistencyTest {
             "community.html",
             "compare-programmes.html",
             "election-results.html",
+            "historical-elections.html",
             "methodology.html",
             "parties.html",
             "party.html",
@@ -50,6 +51,7 @@ class NavigationConsistencyTest {
             "community.html",
             "compare-programmes.html",
             "election-results.html",
+            "historical-elections.html",
             "index.html",
             "login.html",
             "methodology.html",
@@ -98,7 +100,7 @@ class NavigationConsistencyTest {
                 .contains("/js/election-region-filters.js?v=20260925-1")
                 .contains("/data/elections/2026/urban-rural-constituencies.js?v=20260927-1")
                 .contains("/js/election-insights.js?v=20260927-4")
-                .contains("/js/election-results.js?v=20260927-7")
+                .contains("/js/election-results.js?v=20260928-1")
                 .doesNotContain("style=\"");
         assertThat(html("js/election-region-filters.js"))
                 .contains("function filterRegion(region, state = {})")
@@ -140,6 +142,26 @@ class NavigationConsistencyTest {
         assertThat(html("assets/maps/morocco-regions-2026.svg"))
                 .contains("data-region-key=\"MA-01\"")
                 .contains("data-region-key=\"MA-12\"");
+    }
+
+    @Test
+    void electionPagesProvideContextualLinksWithoutChangingTheAtlasTabs() throws IOException {
+        String currentResults = html("election-results.html");
+        String historicalResults = html("historical-elections.html");
+
+        assertThat(currentResults)
+                .contains("id=\"electionHistoryLink\"")
+                .contains("href=\"/elections/history\"");
+        assertThat(historicalResults)
+                .contains("id=\"historyCurrentResultsLink\"")
+                .contains("href=\"/elections/2026\"");
+
+        int tablistStart = currentResults.indexOf("<div class=\"election-tabs\"");
+        int tablistEnd = currentResults.indexOf("</div>", tablistStart);
+        String tablist = currentResults.substring(tablistStart, tablistEnd);
+        assertThat(tablist)
+                .containsPattern("(?s)id=\"electionMapTab\".*id=\"electionNationalTab\".*id=\"electionGraphsTab\".*id=\"electionCoalitionTab\"");
+        assertThat(tablist.split("role=\"tab\"", -1)).hasSize(5);
     }
 
     @Test
@@ -204,7 +226,7 @@ class NavigationConsistencyTest {
                 .contains("[dir=\"rtl\"] .election-graphs-jumps");
         assertThat(styles).containsPattern("(?s)@media \\(max-width: 640px\\).*?\\.election-tabs \\{[^}]*overflow-x: auto;[^}]*grid-template-columns: repeat\\(4,minmax\\(118px,1fr\\)\\)");
         assertThat(compiled).contains(".election-graphs-jumps").contains(".election-atlas-representative-cards");
-        assertThat(page).contains("/css/dist.css?v=20260927-4");
+        assertThat(page).contains("/css/dist.css?v=20260928-7");
     }
 
     @Test
@@ -485,7 +507,7 @@ class NavigationConsistencyTest {
                     getElementById(id) { return id === 'electionAtlasStatus' ? status
                         : id === 'electionGraphConstituenciesContent' ? constituencyRoot
                         : id === 'electionGraphRepresentativesTitle' ? heading : root; } };
-                const records = Array.from({ length: 26 }, (_, index) => ({
+                const records = Array.from({ length: 16 }, (_, index) => ({
                     candidateName: `Candidate ${index + 1}`, partyCode: 'PAM', partyName: 'Party',
                     seatType: 'LOCAL', regionName: 'Region', constituencyName: 'Constituency',
                     votes: index === 0 ? null : index === 1 ? 0 : index + 100
@@ -524,20 +546,20 @@ class NavigationConsistencyTest {
                 sandbox.__renderDirectory();
                 const find = key => visit(root).find(node => node.dataset.atlasKey === key);
                 const count = className => visit(root).filter(node => node.className.split(' ').includes(className)).length;
-                assert.equal(count('election-atlas-representative-card'), 25);
-                assert.ok(visit(root).some(node => node.textContent === 'Showing 1–25 of 26 · page 1 of 2'));
+                assert.equal(count('election-atlas-representative-card'), 10);
+                assert.ok(visit(root).some(node => node.textContent === 'Showing 1–10 of 16 · page 1 of 2'));
                 const next = find('representatives-next');
                 assert.ok(next);
                 document.activeElement = next;
                 next.listeners.click();
-                assert.equal(count('election-atlas-representative-card'), 1);
+                assert.equal(count('election-atlas-representative-card'), 6);
                 assert.equal(find('representatives-next').disabled, true);
                 assert.equal(document.activeElement, find('representatives-previous'));
-                assert.match(status.textContent, /Showing 26–26 of 26 · page 2 of 2/);
+                assert.match(status.textContent, /Showing 11–16 of 16 · page 2 of 2/);
                 const previous = find('representatives-previous');
                 document.activeElement = previous;
                 previous.listeners.click();
-                assert.equal(count('election-atlas-representative-card'), 25);
+                assert.equal(count('election-atlas-representative-card'), 10);
                 assert.equal(find('representatives-previous').disabled, true);
                 assert.equal(document.activeElement, find('representatives-next'));
                 assert.ok(visit(root).some(node => node.textContent === 'Not published'));
@@ -940,7 +962,7 @@ class NavigationConsistencyTest {
             String version = switch (page) {
                 case "priorities.html" -> "20260917-9";
                 case "404.html" -> "20260917-1";
-                case "election-results.html" -> "20260927-4";
+                case "election-results.html", "historical-elections.html" -> "20260928-7";
                 default -> "20260916-22";
             };
             assertThat(html(page))
@@ -1011,7 +1033,9 @@ class NavigationConsistencyTest {
     @Test
     void everyPageUsesCampaignAwarePrivacySafeAnalytics() throws IOException {
         for (String page : ALL_PAGES) {
-            String version = page.equals("election-results.html") ? "20260923-1" : "20260911-1";
+            String version = page.equals("election-results.html") || page.equals("historical-elections.html")
+                    ? "20260923-1"
+                    : "20260911-1";
             assertThat(html(page))
                     .as("analytics asset in %s", page)
                     .contains("/js/analytics.js?v=" + version);
