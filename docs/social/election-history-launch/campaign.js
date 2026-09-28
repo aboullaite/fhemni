@@ -180,6 +180,8 @@
         appendBdi(total, formatNumber(data.politicalTranshumance.totalMovements));
         total.append(document.createTextNode(' حالة مرصودة بين لوائح المنتخبين'));
         body.append(total);
+        body.append(element(document, 'p', 'campaign-note',
+            data.politicalTranshumance.qualifier));
 
         const scale = Math.max(data.politicalTranshumance.maximum || 0,
             ...data.politicalTranshumance.gains.map(row => row.count),

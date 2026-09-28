@@ -30,7 +30,8 @@ const {
     formatSigned,
     normalizeHistoryTab,
     historyTabIndex,
-    historyTabPanelState
+    historyTabPanelState,
+    historicalPartyLogoAsset
 } = require(controllerPath);
 
 function fakeDocument() {
@@ -93,9 +94,9 @@ test('history page exposes the progressive comparison sections and accessible st
     assert.match(page, /<script src="\/js\/historical-election-insights\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-electoral-quotient\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-elections\.js[^>]*defer/);
-    assert.match(page, /\/css\/dist\.css\?v=20260928-1/);
-    assert.match(page, /\/js\/historical-election-insights\.js\?v=20260927-2/);
-    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-1/);
+    assert.match(page, /\/css\/dist\.css\?v=20260928-2/);
+    assert.match(page, /\/js\/historical-election-insights\.js\?v=20260928-1/);
+    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-2/);
 });
 
 test('all page copy is complete in Darija, French, and English and states the evidence limits', () => {
@@ -212,6 +213,11 @@ test('history tabs normalize state and follow RTL keyboard order', () => {
 });
 
 test('presentation helpers preserve direction, exact values, and zero baselines', () => {
+    assert.equal(historicalPartyLogoAsset('RNI'), '/assets/parties/rni-display.png');
+    assert.equal(historicalPartyLogoAsset('PAM'), '/assets/parties/pam-display.png');
+    assert.equal(historicalPartyLogoAsset('P.EQUITE'), '/assets/parties/pe-display.png');
+    assert.equal(historicalPartyLogoAsset('AG'), '/assets/parties/fgd-official-2026.png');
+    assert.equal(historicalPartyLogoAsset('unknown-code'), '/assets/parties/party.svg');
     assert.equal(listMeasureAvailable(2016, 2021), false);
     assert.equal(listMeasureAvailable(2016, 2026), false);
     assert.equal(listMeasureAvailable(2021, 2026), true);
@@ -355,12 +361,15 @@ test('page script keeps archive query ids out of the UI and restores focus after
     assert.match(controller, /historyPartyNotComparable/);
     assert.match(controller, /result\.totalRows \+ result\.notComparableTotalRows/);
     assert.match(controller, /result\.rows\.length \+ result\.notComparableRows\.length/);
+    assert.match(controller, /function partyIdentity\(/);
+    assert.match(controller, /history-party-logo/);
 });
 
 test('visible demographic evidence wraps inside the mobile viewport', () => {
     const css = fs.readFileSync(cssPath, 'utf8');
     assert.match(css, /\.history-demographic-values > span\s*\{[^}]*min-width:\s*0;/);
     assert.doesNotMatch(css, /\.history-demographic-source\s*\{/);
+    assert.match(css, /\.history-party-logo\s*\{[^}]*object-fit:\s*contain;/);
     assert.match(css, /\.history-demographic-donut\s*\{[^}]*border-radius:\s*50%;/);
     assert.match(css, /\.history-demographic-stack\s*\{[^}]*overflow:\s*hidden;/);
 });

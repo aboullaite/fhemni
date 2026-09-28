@@ -9,6 +9,14 @@
     const MEASURES = new Set(['total', 'local', 'list']);
     const SORTS = new Set(['delta-desc', 'delta-asc', 'later-desc', 'name']);
     const DEMOGRAPHIC_DIMENSIONS = new Set(['gender', 'age', 'education']);
+    const PARTY_LOGO_ASSETS = Object.freeze({
+        RNI: 'rni-display.png', PAM: 'pam-display.png', PI: 'pi-display.png',
+        PJD: 'pjd-display.png', USFP: 'usfp-display.png', PPS: 'pps-display.png',
+        MP: 'mp-display.png', UC: 'uc-display.png', FFD: 'ffd-display.png',
+        MDS: 'mds-display.png', PSU: 'psu-display.png', PUD: 'pud-display.png',
+        'P.EQUITE': 'pe-display.png', PGVM: 'pgv-display.png', PND: 'nd-display.png',
+        AG: 'fgd-official-2026.png'
+    });
     const HISTORY_TABS = [
         { tab: 'overview', panelId: 'historyOverviewPanel', labelKey: 'tabOverview' },
         { tab: 'parties', panelId: 'historyPartiesPanel', labelKey: 'tabParties' },
@@ -255,8 +263,13 @@
         return `${value > 0 ? '+' : '−'}${digits}`;
     }
 
+    function historicalPartyLogoAsset(abbreviation) {
+        const filename = PARTY_LOGO_ASSETS[String(abbreviation || '').trim().toUpperCase()];
+        return `/assets/parties/${filename || 'party.svg'}`;
+    }
+
     if (!root.document || !root.addEventListener) {
-        return { COPY, readUrlState, writeUrlState, listMeasureAvailable, listSeatLabelKey, totalMeasureCaveatKey, partyBarPercent, partyBarMaximum, stackedSeatSeries, quotientViewState, demographicChartModel, createEvidenceStatusBadge, appendMethodologyLink, regionSeatBarPercent, seatSharePercent, resolveAvailableSelection, formatSigned, normalizeHistoryTab, historyTabIndex, historyTabPanelState };
+        return { COPY, readUrlState, writeUrlState, listMeasureAvailable, listSeatLabelKey, totalMeasureCaveatKey, partyBarPercent, partyBarMaximum, stackedSeatSeries, quotientViewState, demographicChartModel, createEvidenceStatusBadge, appendMethodologyLink, regionSeatBarPercent, seatSharePercent, resolveAvailableSelection, formatSigned, normalizeHistoryTab, historyTabIndex, historyTabPanelState, historicalPartyLogoAsset };
     }
 
     const document = root.document;
@@ -297,6 +310,16 @@
         const item = node('bdi', className, value);
         item.dir = 'auto';
         return item;
+    }
+    function partyIdentity(abbreviation, nameAr, className = '') {
+        const identity = node('span', `history-party-identity${className ? ` ${className}` : ''}`);
+        const logo = node('img', 'history-party-logo');
+        logo.src = historicalPartyLogoAsset(abbreviation);
+        logo.alt = '';
+        logo.loading = 'lazy';
+        identity.append(logo, bdi(abbreviation || '—', 'history-party-code'),
+            bdi(nameAr, 'history-party-name'));
+        return identity;
     }
     function announce(message) { setText('historyStatus', message); }
     function syncUrl(mode = 'replace') {
@@ -531,8 +554,7 @@
 
     function partyBar(row, maximum) {
         const item = node('article', 'history-party-row');
-        const identity = node('div', 'history-party-identity');
-        identity.append(bdi(row.abbreviation || '—', 'history-party-code'), bdi(row.nameAr, 'history-party-name'));
+        const identity = partyIdentity(row.abbreviation, row.nameAr);
         const graphic = stackedSeatBars(state.from, row.earlier, state.to, row.later, maximum,
             `${row.nameAr}: ${state.from} ${number(measureValue(row.earlier))}, ${state.to} ${number(measureValue(row.later))}`,
             state.measure);
@@ -543,8 +565,7 @@
 
     function notComparablePartyRow(row) {
         const item = node('article', 'history-party-not-comparable-row');
-        const identity = node('div', 'history-party-identity');
-        identity.append(bdi(row.abbreviation || '—', 'history-party-code'), bdi(row.nameAr, 'history-party-name'));
+        const identity = partyIdentity(row.abbreviation, row.nameAr);
         const values = node('div', 'history-party-not-comparable-values');
         for (const [year, seats] of [[state.from, row.earlier], [state.to, row.later]]) {
             const observed = seats.status === 'present_in_complete_roster';
@@ -597,7 +618,8 @@
             measure: state.measure, sort: state.sort, query: state.partyQuery, showAll: true
         });
         byId('historyExactBody').replaceChildren(...exact.rows.map(row => {
-            const tr = node('tr'); const nameCell = node('th'); nameCell.scope = 'row'; nameCell.append(bdi(`${row.abbreviation || '—'} · ${row.nameAr}`));
+            const tr = node('tr'); const nameCell = node('th'); nameCell.scope = 'row';
+            nameCell.append(partyIdentity(row.abbreviation, row.nameAr, 'is-compact'));
             const earlier = node('td'); earlier.append(bdi(number(measureValue(row.earlier))));
             const later = node('td'); later.append(bdi(number(measureValue(row.later))));
             const delta = node('td'); delta.append(bdi(formatSigned(row.selectedDelta, locale)));
@@ -612,7 +634,8 @@
         if (!trajectory.available) return;
         const maximum = Math.max(1, ...trajectory.points.map(point => point.totalSeats));
         const heading = node('div', 'history-trajectory-heading');
-        heading.append(bdi(trajectory.abbreviation || '—', 'history-party-code'), bdi(trajectory.nameAr), node('span', 'history-analysis-label', t('analysisLabel')));
+        heading.append(partyIdentity(trajectory.abbreviation, trajectory.nameAr),
+            node('span', 'history-analysis-label', t('analysisLabel')));
         const points = node('div', 'history-trajectory-points');
         for (const point of trajectory.points) {
             const item = node('article', 'history-trajectory-point');
@@ -648,9 +671,7 @@
         const quotientMaximum = Math.max(1, ...changed.flatMap(row => [row.officialTotalSeats, row.simulatedTotalSeats]));
         byId('historyQuotientPartyChanges').replaceChildren(...changed.map(row => {
             const article = node('article', 'history-quotient-party-row');
-            const identity = node('div', 'history-party-identity');
-            identity.append(bdi(row.abbreviation || '—', 'history-party-code'),
-                bdi(row.nameAr, 'history-party-name'));
+            const identity = partyIdentity(row.abbreviation, row.nameAr);
             const official = {
                 localSeats: row.officialLocalSeats,
                 listSeats: row.officialRegionalListSeats,
@@ -676,7 +697,7 @@
         byId('historyQuotientPartyBody').replaceChildren(...fullRows.map(row => {
             const tr = node('tr');
             const name = node('th'); name.scope = 'row';
-            name.append(bdi(`${row.abbreviation || '—'} · ${row.nameAr}`));
+            name.append(partyIdentity(row.abbreviation, row.nameAr, 'is-compact'));
             const values = [row.officialLocalSeats, row.simulatedLocalSeats,
                 row.officialRegionalListSeats, row.simulatedNationalListSeats,
                 row.officialTotalSeats, row.simulatedTotalSeats].map(value => {
@@ -711,7 +732,7 @@
         byId('historyQuotientContestBody').replaceChildren(...contest.parties.map(party => {
             const tr = node('tr');
             const name = node('th'); name.scope = 'row';
-            name.append(bdi(`${party.abbreviation || '—'} · ${party.nameAr}`));
+            name.append(partyIdentity(party.abbreviation, party.nameAr, 'is-compact'));
             const cells = [
                 number(party.votes),
                 t(party.eligible ? 'yes' : 'no'),
@@ -736,7 +757,7 @@
         const regionCapacity = Math.max(1, ...region.years.map((year, index) => region.rows.reduce((sum, row) => sum + row.points[index].localSeats, 0)));
         for (const row of region.rows.filter(item => item.points.some(point => point.localSeats > 0))) {
             const article = node('article', 'history-region-row');
-            const label = node('div', 'history-party-identity'); label.append(bdi(row.abbreviation || '—', 'history-party-code'), bdi(row.nameAr, 'history-party-name'));
+            const label = partyIdentity(row.abbreviation, row.nameAr);
             const values = node('div', 'history-region-values');
             row.points.forEach((point, index) => {
                 const value = node('span', `history-year-${index + 1}`);
@@ -828,7 +849,8 @@
         const list = node(compact ? 'div' : 'ul', compact ? 'history-occurrence-cards' : 'history-occurrence-list');
         for (const item of group.occurrences) {
             const entry = node(compact ? 'article' : 'li');
-            entry.append(node('strong', '', String(item.year)), bdi(item.abbreviation || '—', 'history-party-code'), bdi(item.nameAr));
+            entry.append(node('strong', '', String(item.year)),
+                partyIdentity(item.abbreviation, item.nameAr, 'is-compact'));
             const place = node('span', '', `${t('constituency')}: ${item.constituencyNameAr}`); place.dir = 'auto'; entry.append(place);
             list.append(entry);
         }
@@ -837,8 +859,8 @@
 
     function movementBar(row, maximum, kind) {
         const item = node('div', `history-movement-row is-${kind}`);
-        const identity = node('span', 'history-movement-identity');
-        identity.append(bdi(row.abbreviation || '—', 'history-party-code'), bdi(row.partyNameAr));
+        const identity = partyIdentity(row.abbreviation, row.partyNameAr,
+            'history-movement-identity is-compact');
         const track = node('span', 'history-movement-track');
         const fill = node('i');
         fill.style.width = `${partyBarPercent(row.count, maximum)}%`;
@@ -1008,5 +1030,5 @@
     }
 
     document.addEventListener('DOMContentLoaded', init);
-    return { COPY, readUrlState, writeUrlState, listMeasureAvailable, listSeatLabelKey, totalMeasureCaveatKey, partyBarPercent, partyBarMaximum, stackedSeatSeries, quotientViewState, demographicChartModel, createEvidenceStatusBadge, appendMethodologyLink, regionSeatBarPercent, seatSharePercent, resolveAvailableSelection, formatSigned, normalizeHistoryTab, historyTabIndex, historyTabPanelState };
+    return { COPY, readUrlState, writeUrlState, listMeasureAvailable, listSeatLabelKey, totalMeasureCaveatKey, partyBarPercent, partyBarMaximum, stackedSeatSeries, quotientViewState, demographicChartModel, createEvidenceStatusBadge, appendMethodologyLink, regionSeatBarPercent, seatSharePercent, resolveAvailableSelection, formatSigned, normalizeHistoryTab, historyTabIndex, historyTabPanelState, historicalPartyLogoAsset };
 });

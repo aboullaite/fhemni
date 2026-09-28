@@ -2,7 +2,7 @@
   "campaign": "election-history-launch",
   "source": "elections.ma",
   "sourceSha256": "920f9270eefd0a05e8963aeb5f8d93fc59f47e93796064d84724ab62fb44a05e",
-  "campaignDataSha256": "054405d39dc229ba4038b057b56c56595cac2b9f5e5d3bb74c649ff26fc2ebe4",
+  "campaignDataSha256": "0931f5c213def8607f200571f754af9a21455c435b2caa69e0d41a08418b6e86",
   "designReview": {
     "status": "approved",
     "verdict": "SHIP"
@@ -42,11 +42,13 @@
       "file": "assets/03-political-transhumance.png",
       "width": 1600,
       "height": 900,
-      "sha256": "8d81ed81b420f425b02caefec1daffcd3b840631fd6c715a33dde01f4cbcc8d1",
+      "sha256": "04ad65da40bf01762758f11e924e7d3cbdc3314bdd92546e132ce68ffa05d530",
       "claimKeys": [
         "politicalTranshumance.fromYear",
         "politicalTranshumance.toYear",
         "politicalTranshumance.totalMovements",
+        "politicalTranshumance.evidenceStatus",
+        "politicalTranshumance.qualifier",
         "politicalTranshumance.gains",
         "politicalTranshumance.losses"
       ]

@@ -59,13 +59,20 @@ test('campaign projection preserves exact-label party gains and losses for 2021 
 test('campaign projection derives the 2021 to 2026 political transhumance poster data', () => {
     const movement = campaignData().politicalTranshumance;
 
-    assert.deepEqual([movement.fromYear, movement.toYear, movement.totalMovements], [2021, 2026, 13]);
+    assert.deepEqual([movement.fromYear, movement.toYear, movement.totalMovements], [2021, 2026, 12]);
+    assert.equal(movement.evidenceStatus, 'name_match_only');
+    assert.equal(movement.qualifier, 'رصد بالأسماء المنشورة فـ elections.ma');
     assert.deepEqual(movement.gains.slice(0, 3).map(row => [row.abbreviation, row.count]), [
         ['PAM', 4], ['MP', 4], ['PI', 3]
     ]);
     assert.deepEqual(movement.losses.slice(0, 3).map(row => [row.abbreviation, row.count]), [
         ['RNI', 3], ['UC', 2], ['PI', 2]
     ]);
+    assert.equal(movement.gains.some(row => row.abbreviation === 'AG'), false);
+    assert.equal(movement.losses.some(row => row.abbreviation === 'PSU'), false);
+    assert.ok([...movement.gains, ...movement.losses].every(row =>
+        row.evidenceStatus === 'name_match_only'
+        && row.continuityBasis === 'same_exact_source_label'));
 });
 
 test('campaign projection labels Casablanca-Settat as local seats only', () => {

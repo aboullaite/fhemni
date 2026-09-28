@@ -767,6 +767,10 @@
             const later = group.occurrences.filter(row => row.year === to);
             if (earlier.length !== 1 || later.length !== 1
                 || earlier[0].comparisonKey === later[0].comparisonKey) continue;
+            const earlierObservation = observations.get(`${from}:${earlier[0].comparisonKey}`);
+            const laterObservation = observations.get(`${to}:${later[0].comparisonKey}`);
+            if (earlierObservation?.continuityBasis !== 'same_exact_source_label'
+                || laterObservation?.continuityBasis !== 'same_exact_source_label') continue;
             gains.set(later[0].comparisonKey, (gains.get(later[0].comparisonKey) || 0) + 1);
             losses.set(earlier[0].comparisonKey, (losses.get(earlier[0].comparisonKey) || 0) + 1);
             totalMovements += 1;
@@ -781,6 +785,7 @@
                 partyNameAr: observation?.nameAr || comparisonKey,
                 abbreviation: observation?.abbreviation || null,
                 abbreviationStatus: observation?.abbreviationStatus || null,
+                continuityBasis: observation?.continuityBasis || null,
                 count,
                 evidenceStatus: 'name_match_only'
             };

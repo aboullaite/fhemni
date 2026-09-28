@@ -30,6 +30,8 @@ function transhumanceRow(row) {
         comparisonKey: row.comparisonKey,
         nameAr: row.partyNameAr,
         abbreviation: row.abbreviation,
+        continuityBasis: row.continuityBasis,
+        evidenceStatus: row.evidenceStatus,
         count: row.count
     };
 }
@@ -99,6 +101,8 @@ function buildCampaignData(payload, {
             fromYear: politicalTranshumance.fromYear,
             toYear: politicalTranshumance.toYear,
             totalMovements: politicalTranshumance.totalMovements,
+            evidenceStatus: politicalTranshumance.evidenceStatus,
+            qualifier: 'رصد بالأسماء المنشورة فـ elections.ma',
             gains: politicalTranshumance.gains.map(transhumanceRow),
             losses: politicalTranshumance.losses.map(transhumanceRow)
         },

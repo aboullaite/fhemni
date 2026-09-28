@@ -963,7 +963,7 @@ class NavigationConsistencyTest {
                 case "priorities.html" -> "20260917-9";
                 case "404.html" -> "20260917-1";
                 case "election-results.html" -> "20260927-4";
-                case "historical-elections.html" -> "20260928-1";
+                case "historical-elections.html" -> "20260928-2";
                 default -> "20260916-22";
             };
             assertThat(html(page))

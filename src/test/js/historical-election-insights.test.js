@@ -294,16 +294,20 @@ test('repeated-name party movement counts only exact-name matches present at bot
 
     assert.equal(movement.available, true);
     assert.equal(movement.evidenceStatus, 'name_match_only');
-    assert.equal(movement.totalMovements, 13);
+    assert.equal(movement.totalMovements, 12);
     assert.equal(movement.maximum, 4);
     assert.deepEqual(movement.gains.map(row => [row.abbreviation, row.count]), [
-        ['PAM', 4], ['MP', 4], ['PI', 3], ['AG', 1], ['UC', 1]
+        ['PAM', 4], ['MP', 4], ['PI', 3], ['UC', 1]
     ]);
-    assert.deepEqual(movement.losses.map(row => [row.abbreviation, row.count]), [
-        ['RNI', 3], ['UC', 2], ['PI', 2], ['PSU', 1], ['PAM', 1]
+    assert.deepEqual(movement.losses.slice(0, 3).map(row => [row.abbreviation, row.count]), [
+        ['RNI', 3], ['UC', 2], ['PI', 2]
     ]);
+    assert.equal(movement.gains.some(row => row.abbreviation === 'AG'), false);
+    assert.equal(movement.losses.some(row => row.abbreviation === 'PSU'), false);
     assert.ok([...movement.gains, ...movement.losses].every(row =>
-        row.evidenceStatus === 'name_match_only' && row.partyNameAr));
+        row.evidenceStatus === 'name_match_only'
+        && row.continuityBasis === 'same_exact_source_label'
+        && row.partyNameAr));
 });
 
 test('repeated-name party movement excludes unchanged labels and fails closed on unsupported pairs', () => {

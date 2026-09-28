@@ -83,10 +83,11 @@ test('overview gives the full content area to the three-election comparison', ()
     assert.doesNotMatch(script, /overview-stat|overview-count|electedRecordCount/);
 });
 
-test('regional and quotient cards retain their mandatory qualifiers', () => {
+test('regional, transhumance, and quotient cards retain their mandatory qualifiers', () => {
     const script = readCampaignFile('campaign.js');
 
     assert.ok(script.includes('المقاعد المحلية فقط'));
+    assert.match(script, /data\.politicalTranshumance\.qualifier/);
     assert.ok(script.includes('محاكاة، ماشي نتيجة رسمية'));
 });
 
