@@ -82,12 +82,16 @@
     }
 
     function allocateLocalSeatsUnder2016Rules(contest) {
+        return allocateSeats(contest, 3, RULE_ID);
+    }
+
+    function allocateSeats(contest, thresholdPercent, ruleId) {
         const diagnostics = auditAllocatorInput(contest);
         if (diagnostics.length) return unavailable(diagnostics, { parties: [] });
 
         const totalVotes = contest.totalVotes;
         const allocatedSeats = contest.allocatedSeats;
-        const thresholdNumerator = totalVotes * 3;
+        const thresholdNumerator = totalVotes * thresholdPercent;
         const eligibleParties = contest.parties.filter(party => party.votes * 100 >= thresholdNumerator);
         const eligibleVotes = eligibleParties.reduce((sum, party) => sum + party.votes, 0);
         if (!positiveInteger(eligibleVotes)) {
@@ -149,9 +153,10 @@
         return {
             available: true,
             diagnostics: [],
-            ruleId: RULE_ID,
+            ruleId,
             year: contest.year,
             constituencyId: contest.constituencyId,
+            constituencyType: contest.constituencyType,
             constituencyNameAr: contest.constituencyNameAr,
             regionId: contest.regionId,
             regionNameAr: contest.regionNameAr,
@@ -159,7 +164,7 @@
             sourceUrl: contest.sourceUrl,
             allocatedSeats,
             totalVotes,
-            eligibilityThreshold: { percent: 3, ...rational(thresholdNumerator, 100) },
+            eligibilityThreshold: { percent: thresholdPercent, ...rational(thresholdNumerator, 100) },
             eligibleVotes,
             electoralQuotient: rational(eligibleVotes, allocatedSeats),
             firstPassSeatTotal,
@@ -170,29 +175,30 @@
         };
     }
 
-    function auditLocalConstituencies(payload, year) {
+    function auditLocalConstituencies(payload, year, ballotType = 'local') {
         const diagnostics = [];
-        if (!Array.isArray(payload?.localConstituencyResults)) {
+        const collection = ballotType === 'local' ? payload?.localConstituencyResults : payload?.regionalConstituencyResults;
+        if (!Array.isArray(collection)) {
             return { available: false, diagnostics: ['local-constituency-roster'], contests: [] };
         }
         const election = records(payload?.elections).find(row => row?.year === year);
-        const contests = payload.localConstituencyResults.filter(row => row?.year === year);
+        const contests = collection.filter(row => row?.year === year);
         const constituencyIds = new Set();
         const observations = new Map(records(payload?.partyObservations)
             .filter(row => row?.year === year).map(row => [row.partyId, row]));
         const nationalResults = new Map(records(payload?.nationalPartyResults)
             .filter(row => row?.year === year).map(row => [row.partyId, row]));
         const localVotesByParty = new Map();
-        if (contests.length !== EXPECTED_CONSTITUENCIES
+        if (contests.length !== (ballotType === 'local' ? EXPECTED_CONSTITUENCIES : 12)
                 || contests.reduce((sum, row) => sum
                     + (positiveInteger(row?.allocatedSeats) ? row.allocatedSeats : 0), 0)
-                    !== EXPECTED_LOCAL_SEATS) {
+                    !== (ballotType === 'local' ? EXPECTED_LOCAL_SEATS : EXPECTED_LIST_SEATS)) {
             addDiagnostic(diagnostics, 'local-constituency-roster');
         }
         for (const contest of contests) {
             if (!contest || !text(contest.constituencyId)
                     || constituencyIds.has(contest.constituencyId)
-                    || contest.constituencyType !== 'local'
+                    || contest.constituencyType !== ballotType
                     || contest.aggregateFactStatus !== AGGREGATE_FACT_STATUS
                     || !text(contest.sourceQueryId) || !officialUrl(contest.sourceUrl)
                     || contest.sourceUrl !== election?.sourceUrl) {
@@ -239,7 +245,7 @@
             }
         }
         const electionLocalVotes = records(election?.ballots)
-            .find(ballot => ballot?.type === 'local')?.votes;
+            .find(ballot => ballot?.type === ballotType)?.votes;
         const contestLocalVotes = contests.reduce((sum, contest) =>
             sum + (nonnegativeInteger(contest?.totalVotes) ? contest.totalVotes : 0), 0);
         if (contestLocalVotes !== electionLocalVotes) {
@@ -247,7 +253,8 @@
         }
         for (const partyId of new Set([...localVotesByParty.keys(), ...nationalResults.keys()])) {
             const nationalLocalVotes = records(nationalResults.get(partyId)?.ballotVotes)
-                .find(ballot => ballot?.type === 'local')?.votes;
+                .find(ballot => ballot?.type === ballotType)?.votes;
+            if (nationalLocalVotes === undefined && !localVotesByParty.has(partyId)) continue;
             if (nationalLocalVotes !== (localVotesByParty.get(partyId) || 0)) {
                 addDiagnostic(diagnostics, 'national-local-vote-mismatch');
             }
@@ -597,7 +604,70 @@
         };
     }
 
+    function derive2026QuotientOnlyCounterfactual(payload) {
+        const empty = { partyDeltas: [], constituencies: [] };
+        if (payload?.generation?.sourceSha256 !== '13378267af52eecba43d0bab4d3de5330351f48f4c9e3c580107da995f6b7ce1') {
+            return unavailable(['source-provenance'], empty);
+        }
+        const local = auditLocalConstituencies(payload, 2026);
+        const regional = auditLocalConstituencies(payload, 2026, 'regional');
+        if (!local.available || !regional.available) return unavailable([
+            ...local.diagnostics, ...regional.diagnostics.map(code => `regional:${code}`)
+        ], empty);
+        const contests = [...local.contests, ...regional.contests];
+        // Check the independent elected roster, including each constituency's allocation.
+        for (const contest of contests) {
+            const winners = records(payload.elected).filter(row => row.year === 2026
+                && row.constituencyId === contest.constituencyId && row.constituencyType === contest.constituencyType);
+            if (winners.length !== contest.allocatedSeats || winners.some(row => row.regionId !== contest.regionId)
+                    || contest.parties.some(party => party.officialSeats !== winners.filter(row => row.partyId === party.partyId).length)) {
+                return unavailable(['constituency-winner-reconciliation'], empty);
+            }
+        }
+        if (new Set(regional.contests.map(c => c.regionId)).size !== 12
+                || new Set(contests.map(c => c.constituencyId)).size !== 104) {
+            return unavailable(['regional-geography'], empty);
+        }
+        for (const party of records(payload.nationalPartyResults).filter(row => row.year === 2026)) {
+            let officialTotal = 0;
+            for (const type of ['local', 'regional']) {
+                const partyContests = contests.filter(c => c.constituencyType === type)
+                    .flatMap(c => c.parties.filter(p => p.partyId === party.partyId));
+                const seats = partyContests.reduce((sum, row) => sum + row.officialSeats, 0);
+                const ballot = records(party.ballotVotes).find(b => b.type === type);
+                if ((!ballot && partyContests.length) || (ballot && ballot.seats !== seats)) {
+                    return unavailable(['official-party-seat-reconciliation'], empty);
+                }
+                officialTotal += seats;
+            }
+            if (party.seats !== officialTotal) return unavailable(['official-party-seat-reconciliation'], empty);
+        }
+        const ruleId = '2026_GEOGRAPHY_VALID_VOTES_NO_THRESHOLD_LARGEST_REMAINDER';
+        const allocations = contests.map(contest => allocateSeats(contest, 0, ruleId));
+        const errors = allocations.filter(row => !row.available).flatMap(row => row.diagnostics);
+        if (errors.length) return unavailable(errors, empty);
+        const partyDeltas = records(payload.nationalPartyResults).filter(row => row.year === 2026).map(party => {
+            const seats = type => allocations.filter(c => c.constituencyType === type)
+                .reduce((sum, c) => sum + (c.parties.find(p => p.partyId === party.partyId)?.simulatedSeats || 0), 0);
+            const officialLocalSeats = party.ballotVotes.find(b => b.type === 'local').seats;
+            const officialRegionalListSeats = party.ballotVotes.find(b => b.type === 'regional')?.seats || 0;
+            const simulatedLocalSeats = seats('local');
+            const simulatedRegionalListSeats = seats('regional');
+            return { ...party, officialLocalSeats, officialRegionalListSeats, simulatedLocalSeats,
+                simulatedRegionalListSeats, officialTotalSeats: party.seats,
+                simulatedTotalSeats: simulatedLocalSeats + simulatedRegionalListSeats,
+                delta: simulatedLocalSeats + simulatedRegionalListSeats - party.seats,
+                simulationFactStatus: COUNTERFACTUAL_FACT_STATUS };
+        }).sort((a,b) => b.delta - a.delta || codepointOrder(a.partyId,b.partyId));
+        const simulatedSeatTotal = partyDeltas.reduce((sum,p) => sum + p.simulatedTotalSeats, 0);
+        if (simulatedSeatTotal !== 395) return unavailable(['full-system-seat-total'], empty);
+        return { available: true, diagnostics: [], ruleId, year: 2026,
+            officialSeatTotal: 395, simulatedSeatTotal, partyDeltas, constituencies: allocations,
+            sourceUrl: local.election.sourceUrl, analysisFactStatus: COUNTERFACTUAL_FACT_STATUS };
+    }
+
     return {
+        derive2026QuotientOnlyCounterfactual,
         allocateLocalSeatsUnder2016Rules,
         verify2016LocalSeatRuleReproduction,
         derive2026LocalSeatCounterfactual,

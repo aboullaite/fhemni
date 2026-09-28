@@ -701,13 +701,21 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .history-movement-card { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--surface); }
 .history-movement-card h4 { margin: 0 0 13px; color: var(--ink); font-size: 15px; }
 .history-movement-bars { display: grid; gap: 10px; }
-.history-movement-row { display: grid; grid-template-columns: minmax(115px,.9fr) minmax(90px,1.1fr) 28px; align-items: center; gap: 9px; min-width: 0; }
+.history-movement-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.2fr); align-items: center; gap: 9px; min-width: 0; }
+.history-movement-values { display: grid; gap: 4px; min-width: 0; }
+.history-movement-value { display: grid; grid-template-columns: minmax(0,1fr) 28px; gap: 7px; align-items: center; }
+.history-movement-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: -4px 0 16px; font-size: 11px; color: var(--muted); }
+.history-movement-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.history-movement-legend span::before { content: ''; width: 14px; height: 8px; flex: 0 0 14px; border-radius: 2px; background: #abbfbb; }
+.history-movement-card.is-loss .history-movement-legend span::before { background: var(--red); }
+.history-movement-card .history-movement-legend span.is-elected::before { background: var(--teal); }
 .history-movement-identity { display: flex; min-width: 0; align-items: center; gap: 7px; overflow: hidden; color: var(--ink); font-family: Tajawal, sans-serif; font-size: 11px; font-weight: 750; white-space: nowrap; }
 .history-movement-identity > bdi:last-child { overflow: hidden; text-overflow: ellipsis; }
-.history-movement-track { display: block; height: 12px; overflow: hidden; border-radius: 999px; background: rgba(19,44,43,.075); }
-.history-movement-track i { display: block; height: 100%; border-radius: inherit; background: var(--teal); }
+.history-movement-track { display: block; height: 8px; overflow: hidden; border-radius: 999px; background: rgba(19,44,43,.075); }
+.history-movement-track i { display: block; height: 100%; border-radius: inherit; background: #abbfbb; }
 .history-movement-row.is-loss .history-movement-track i { background: var(--red); }
-.history-movement-count { color: var(--ink); font-size: 13px; font-weight: 900; font-variant-numeric: tabular-nums; text-align: end; }
+.history-movement-row .is-elected .history-movement-track i { background: var(--teal); }
+.history-movement-count { color: var(--ink); font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; text-align: end; }
 .history-people-controls .history-field { flex: 1 1 300px; }
 .history-check { display: flex; min-height: 44px; flex: 1 1 320px; align-items: center; gap: 9px; padding: 8px 11px; border: 1px solid var(--line); border-radius: var(--radius-control); background: var(--white); font-size: 12px; font-weight: 800; cursor: pointer; }
 .history-check input { width: 18px; height: 18px; accent-color: var(--teal-dark); }

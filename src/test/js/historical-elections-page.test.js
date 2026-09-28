@@ -104,9 +104,10 @@ test('history page exposes the progressive comparison sections and accessible st
     assert.match(page, /<script src="\/js\/historical-election-insights\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-electoral-quotient\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-elections\.js[^>]*defer/);
-    assert.match(page, /\/css\/dist\.css\?v=20260928-7/);
-    assert.match(page, /\/js\/historical-election-insights\.js\?v=20260928-4/);
-    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-9/);
+    assert.match(page, /\/css\/dist\.css\?v=20260928-8/);
+    assert.match(page, /\/js\/historical-election-insights\.js\?v=20260928-5/);
+    assert.match(page, /\/js\/historical-data-integrity\.js\?v=20260928-1/);
+    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-12/);
 });
 
 test('current and historical election heroes cross-link with compact green actions', () => {
@@ -153,14 +154,14 @@ test('all page copy is complete in Darija, French, and English and states the ev
     assert.match(COPY.en.sourcesIntro, /election-level records/i);
     assert.doesNotMatch(COPY.en.sourcesIntro, /every result/i);
     assert.match(COPY.en.paginationLabel, /pages/i);
-    assert.match(COPY.en.nameMatchCaveat, /not verified identity/i);
-    assert.match(COPY.en.nameMatchCaveat, /party switch/i);
-    assert.match(COPY.fr.nameMatchCaveat, /identit[ée].*v[ée]rifi[ée]e/i);
-    assert.match(COPY.ar.nameMatchCaveat, /ماشي.*هوية/);
+    assert.match(COPY.en.nameMatchCaveat, /do not verify identity/i);
+    assert.match(COPY.en.nameMatchCaveat, /does not cover every candidate/i);
+    assert.match(COPY.fr.nameMatchCaveat, /ne certifie pas l’identité/i);
+    assert.match(COPY.ar.nameMatchCaveat, /ما كيأكدش الهوية/);
     assert.match(COPY.en.quotientWarning, /counterfactual/i);
-    assert.match(COPY.en.quotientWarning, /60\s*\+\s*30|60.*30/i);
-    assert.match(COPY.fr.quotientWarning, /60\s*\+\s*30|60.*30/i);
-    assert.match(COPY.ar.quotientWarning, /60\s*\+\s*30|60.*30/);
+    assert.match(COPY.en.quotientWarning, /without pooling/i);
+    assert.match(COPY.fr.quotientWarning, /sans liste nationale agrégée/i);
+    assert.match(COPY.ar.quotientWarning, /بلا جمع الجهات/);
     assert.match(COPY.en.quotientIntro, /registered voters/i);
     assert.match(COPY.fr.quotientIntro, /inscrit/i);
     assert.match(COPY.ar.quotientIntro, /المسجلين/);
@@ -169,7 +170,7 @@ test('all page copy is complete in Darija, French, and English and states the ev
     assert.equal(Object.hasOwn(COPY.ar, 'partiesIntro'), false);
     assert.match(COPY.en.methodText, /305 local seats/i);
     assert.match(COPY.en.methodText, /395-seat/i);
-    assert.match(COPY.en.methodText, /60\s*\+\s*30|60.*30/i);
+    assert.match(COPY.en.methodText, /without an exclusion threshold/i);
     assert.match(COPY.fr.quotientWarning, /contrefactuelle/i);
     assert.match(COPY.ar.quotientWarning, /محاكاة/);
     assert.match(COPY.en.fullMethodology, /methodology/i);
@@ -182,12 +183,12 @@ test('all page copy is complete in Darija, French, and English and states the ev
     assert.doesNotMatch(COPY.ar.evidenceIntro, /مرجع/);
     assert.equal(COPY.fr.overviewTitle, 'Voix et représentation parlementaire');
     assert.equal(COPY.en.overviewTitle, 'Votes and parliamentary representation');
-    assert.equal(COPY.ar.peopleTitle, 'منتخبون فالجوج الانتخابات');
-    assert.equal(COPY.fr.peopleTitle, 'Élus aux deux élections');
-    assert.equal(COPY.en.peopleTitle, 'Elected in both elections');
-    assert.equal(COPY.ar.peopleCaption, COPY.ar.peopleTitle);
-    assert.equal(COPY.fr.peopleCaption, COPY.fr.peopleTitle);
-    assert.equal(COPY.en.peopleCaption, COPY.en.peopleTitle);
+    assert.match(COPY.ar.peopleTitle, /الترحال السياسي/);
+    assert.match(COPY.fr.peopleTitle, /Mobilité politique/);
+    assert.match(COPY.en.peopleTitle, /Political mobility/);
+    assert.equal(readUrlState('').peopleScope, 'candidates');
+    assert.equal(readUrlState(writeUrlState({ peopleScope: 'elected' })).peopleScope, 'elected');
+    assert.equal(readUrlState('?scope=invented').peopleScope, 'candidates');
     assert.match(COPY.ar.measureLocalCaveat, /المجموع.*الافتراضي/);
     assert.match(COPY.fr.measureLocalCaveat, /total.*défaut/i);
     assert.match(COPY.en.measureLocalCaveat, /total.*default/i);
@@ -274,12 +275,12 @@ test('URL state keeps non-default seat tabs shareable and defaults to total seat
     assert.deepEqual(readUrlState('?from=2016&to=2026&tab=people&measure=total&sort=name&party=p1&partyq=green&all=1&constituency=c9&region=4&demographic=education&people=amina&different=1&page=2'), {
         from: '2016', to: '2026', tab: 'people', measure: 'total', sort: 'name',
         party: 'p1', partyQuery: 'green', showAllParties: true, quotientConstituency: 'c9', region: '4',
-        demographicDimension: 'education', peopleQuery: 'amina', differentOnly: true, page: 2
+        demographicDimension: 'education', peopleQuery: 'amina', differentOnly: true, peopleScope: 'candidates', page: 2
     });
     assert.deepEqual(readUrlState('?from=nope&to=2026&measure=votes&sort=random&demographic=unknown&page=-3'), {
         from: null, to: '2026', tab: 'overview', measure: 'total', sort: 'delta-desc',
         party: '', partyQuery: '', showAllParties: false, quotientConstituency: '', region: '',
-        demographicDimension: 'gender', peopleQuery: '', differentOnly: false, page: 1
+        demographicDimension: 'gender', peopleQuery: '', differentOnly: false, peopleScope: 'candidates', page: 1
     });
     assert.equal(writeUrlState({
         from: '2016', to: '2026', tab: 'regions', measure: 'list', sort: 'delta-asc',
@@ -449,12 +450,11 @@ test('page script keeps archive query ids out of the UI and restores focus after
     assert.match(controller, /regionSeatBarPercent\(point\.localSeats, regionCapacity\)/);
     assert.match(controller, /value\.setAttribute\('aria-label'/);
     assert.match(controller, /heading\.append\(bdi\(group\.occurrences\[0\]\?\.nameAr/);
-    assert.match(controller, /derive2026LocalSeatCounterfactual\(payload\)/);
-    assert.match(controller, /derive2026Full2016SystemCounterfactual\(payload\)/);
+    assert.match(controller, /derive2026QuotientOnlyCounterfactual\(payload\)/);
     assert.match(controller, /historyQuotientConstituency/);
     assert.match(controller, /historyPeopleCount'\)\.focus\(\)/);
     assert.match(controller, /historyPagination.*setAttribute\('aria-label', t\('paginationLabel'\)\)/);
-    assert.match(controller, /deriveRepeatedNamePartyMovements\(payload, Number\(state\.from\), Number\(state\.to\)\)/);
+    assert.match(controller, /deriveRepeatedNamePartyMovements\(payload, Number\(state\.from\), Number\(state\.to\),/);
     assert.match(controller, /deriveRepeatedNameGroups\(payload, Number\(state\.from\), Number\(state\.to\), \{/);
     assert.match(controller, /historyMovementGains/);
     assert.match(controller, /historyMovementLosses/);
