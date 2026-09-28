@@ -18,9 +18,19 @@ function partyRow(row) {
         comparisonKey: row.comparisonKey,
         nameAr: row.nameAr,
         abbreviation: row.abbreviation,
+        continuityBasis: row.continuityBasis,
         earlierSeats: row.earlier.totalSeats,
         laterSeats: row.later.totalSeats,
         delta: row.delta.totalSeats
+    };
+}
+
+function transhumanceRow(row) {
+    return {
+        comparisonKey: row.comparisonKey,
+        nameAr: row.partyNameAr,
+        abbreviation: row.abbreviation,
+        count: row.count
     };
 }
 
@@ -43,6 +53,9 @@ function buildCampaignData(payload, {
     const audit = requireAvailable(insights.auditHistoricalPayload(payload), 'historical audit');
     const parties = requireAvailable(insights.derivePartyDeltas(payload, 2021, 2026,
         { measure: 'total', showAll: true }), 'party movement');
+    const politicalTranshumance = requireAvailable(
+        insights.deriveRepeatedNamePartyMovements(payload, 2021, 2026),
+        'political transhumance');
     const region = requireAvailable(insights.deriveRegionComparison(payload, '6'), 'region comparison');
     const demographics = requireAvailable(insights.deriveDemographicTrends(payload), 'demographic trends');
     const simulation = requireAvailable(quotient.derive2026Full2016SystemCounterfactual(payload),
@@ -50,7 +63,8 @@ function buildCampaignData(payload, {
 
     const tieBreak = (left, right) => codepointOrder(left.nameAr, right.nameAr)
         || codepointOrder(left.comparisonKey, right.comparisonKey);
-    const movements = parties.rows.map(partyRow);
+    const movements = parties.rows.filter(row => row.continuityBasis === 'same_exact_source_label')
+        .map(partyRow);
     const gains = movements.filter(row => row.delta > 0)
         .sort((left, right) => right.delta - left.delta || tieBreak(left, right));
     const losses = movements.filter(row => row.delta < 0)
@@ -80,6 +94,13 @@ function buildCampaignData(payload, {
             measure: 'total',
             gains,
             losses
+        },
+        politicalTranshumance: {
+            fromYear: politicalTranshumance.fromYear,
+            toYear: politicalTranshumance.toYear,
+            totalMovements: politicalTranshumance.totalMovements,
+            gains: politicalTranshumance.gains.map(transhumanceRow),
+            losses: politicalTranshumance.losses.map(transhumanceRow)
         },
         region: {
             regionId: region.regionId,

@@ -171,6 +171,26 @@ body {
     line-height: 1.45;
 }
 
+.transhumance-total {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin: 12px 0 0;
+    color: var(--deep-teal);
+    font-size: 31px;
+    font-weight: 700;
+}
+
+.transhumance-total bdi {
+    color: var(--orange);
+    font-size: 45px;
+    direction: ltr;
+}
+
+.transhumance-layout {
+    margin-top: 18px;
+}
+
 .qualifier {
     display: inline-flex;
     align-items: center;

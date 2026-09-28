@@ -23,7 +23,7 @@ function readyPage(assets) {
         fontsReady: true,
         campaignReady: true,
         dataError: null,
-        logos: Array.from({ length: 6 }, () => ({
+        logos: Array.from({ length: 7 }, () => ({
             complete: true,
             naturalWidth: 512,
             naturalHeight: 180
@@ -44,9 +44,10 @@ test('renderer maps every campaign root to the approved filename and dimensions'
     assert.deepEqual(CAMPAIGN_ASSETS, [
         { rootId: 'campaign-01-overview', filename: '01-overview.png', width: 1600, height: 900 },
         { rootId: 'campaign-02-parties', filename: '02-party-movement.png', width: 1600, height: 900 },
-        { rootId: 'campaign-03-regions', filename: '03-regions.png', width: 1600, height: 900 },
-        { rootId: 'campaign-04-profiles', filename: '04-profiles.png', width: 1600, height: 900 },
-        { rootId: 'campaign-05-quotient', filename: '05-quotient.png', width: 1600, height: 900 },
+        { rootId: 'campaign-03-transhumance', filename: '03-political-transhumance.png', width: 1600, height: 900 },
+        { rootId: 'campaign-04-regions', filename: '04-regions.png', width: 1600, height: 900 },
+        { rootId: 'campaign-05-profiles', filename: '05-profiles.png', width: 1600, height: 900 },
+        { rootId: 'campaign-06-quotient', filename: '06-quotient.png', width: 1600, height: 900 },
         { rootId: 'campaign-story', filename: 'instagram-story.png', width: 1080, height: 1920 }
     ]);
 });

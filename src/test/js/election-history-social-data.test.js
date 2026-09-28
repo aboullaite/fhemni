@@ -50,8 +50,22 @@ test('campaign projection preserves exact-label party gains and losses for 2021 
         ['USFP', 34, 26, -8]
     ]);
     assert.equal(data.partyMovement.measure, 'total');
+    assert.ok([...data.partyMovement.gains, ...data.partyMovement.losses].every(row =>
+        row.continuityBasis === 'same_exact_source_label'));
     assert.deepEqual([data.partyMovement.fromYear, data.partyMovement.toYear], [2021, 2026]);
     assert.equal(Object.hasOwn(data, 'turnout'), false);
+});
+
+test('campaign projection derives the 2021 to 2026 political transhumance poster data', () => {
+    const movement = campaignData().politicalTranshumance;
+
+    assert.deepEqual([movement.fromYear, movement.toYear, movement.totalMovements], [2021, 2026, 13]);
+    assert.deepEqual(movement.gains.slice(0, 3).map(row => [row.abbreviation, row.count]), [
+        ['PAM', 4], ['MP', 4], ['PI', 3]
+    ]);
+    assert.deepEqual(movement.losses.slice(0, 3).map(row => [row.abbreviation, row.count]), [
+        ['RNI', 3], ['UC', 2], ['PI', 2]
+    ]);
 });
 
 test('campaign projection labels Casablanca-Settat as local seats only', () => {

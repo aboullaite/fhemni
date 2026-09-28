@@ -5,9 +5,10 @@ import { pathToFileURL } from 'node:url';
 export const CAMPAIGN_ASSETS = Object.freeze([
     Object.freeze({ rootId: 'campaign-01-overview', filename: '01-overview.png', width: 1600, height: 900 }),
     Object.freeze({ rootId: 'campaign-02-parties', filename: '02-party-movement.png', width: 1600, height: 900 }),
-    Object.freeze({ rootId: 'campaign-03-regions', filename: '03-regions.png', width: 1600, height: 900 }),
-    Object.freeze({ rootId: 'campaign-04-profiles', filename: '04-profiles.png', width: 1600, height: 900 }),
-    Object.freeze({ rootId: 'campaign-05-quotient', filename: '05-quotient.png', width: 1600, height: 900 }),
+    Object.freeze({ rootId: 'campaign-03-transhumance', filename: '03-political-transhumance.png', width: 1600, height: 900 }),
+    Object.freeze({ rootId: 'campaign-04-regions', filename: '04-regions.png', width: 1600, height: 900 }),
+    Object.freeze({ rootId: 'campaign-05-profiles', filename: '05-profiles.png', width: 1600, height: 900 }),
+    Object.freeze({ rootId: 'campaign-06-quotient', filename: '06-quotient.png', width: 1600, height: 900 }),
     Object.freeze({ rootId: 'campaign-story', filename: 'instagram-story.png', width: 1080, height: 1920 })
 ]);
 

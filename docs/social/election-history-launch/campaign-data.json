@@ -17,6 +17,7 @@
         "comparisonKey": "exact-source-label:party_c16128d91ef1",
         "nameAr": "حزب العدالة والتنمية",
         "abbreviation": "PJD",
+        "continuityBasis": "same_exact_source_label",
         "earlierSeats": 13,
         "laterSeats": 54,
         "delta": 41
@@ -25,22 +26,16 @@
         "comparisonKey": "exact-source-label:party_b42379b4d45a",
         "nameAr": "حزب الأصالة والمعاصرة",
         "abbreviation": "PAM",
+        "continuityBasis": "same_exact_source_label",
         "earlierSeats": 87,
         "laterSeats": 97,
         "delta": 10
       },
       {
-        "comparisonKey": "source:2026:party_39839add54a7",
-        "nameAr": "تحالف اليسار",
-        "abbreviation": "AG",
-        "earlierSeats": 0,
-        "laterSeats": 8,
-        "delta": 8
-      },
-      {
         "comparisonKey": "exact-source-label:party_bab1c39f7906",
         "nameAr": "حزب الحركة الديمقراطية الاجتماعية",
         "abbreviation": "MDS",
+        "continuityBasis": "same_exact_source_label",
         "earlierSeats": 5,
         "laterSeats": 8,
         "delta": 3
@@ -49,6 +44,7 @@
         "comparisonKey": "exact-source-label:party_71662e25cf22",
         "nameAr": "حزب الإنصاف",
         "abbreviation": "P.EQUITE",
+        "continuityBasis": "same_exact_source_label",
         "earlierSeats": 0,
         "laterSeats": 2,
         "delta": 2
@@ -57,6 +53,7 @@
         "comparisonKey": "exact-source-label:party_48abf9bf0868",
         "nameAr": "حزب الحركة الشعبية",
         "abbreviation": "MP",
+        "continuityBasis": "same_exact_source_label",
         "earlierSeats": 28,
         "laterSeats": 29,
         "delta": 1
@@ -65,6 +62,7 @@
         "comparisonKey": "exact-source-label:party_24f6323d3344",
         "nameAr": "حزب الديمقراطيين الجدد",
         "abbreviation": "PND",
+        "continuityBasis": "same_exact_source_label",
         "earlierSeats": 0,
         "laterSeats": 1,
         "delta": 1
@@ -73,6 +71,7 @@
         "comparisonKey": "exact-source-label:party_436bd8da3eac",
         "nameAr": "حزب الوحدة والديمقراطية",
         "abbreviation": "PUD",
+        "continuityBasis": "same_exact_source_label",
         "earlierSeats": 0,
         "laterSeats": 1,
         "delta": 1
@@ -83,6 +82,7 @@
         "comparisonKey": "exact-source-label:party_040005b84836",
         "nameAr": "حزب التجمع الوطني للأحرار",
         "abbreviation": "RNI",
+        "continuityBasis": "same_exact_source_label",
         "earlierSeats": 102,
         "laterSeats": 66,
         "delta": -36
@@ -91,6 +91,7 @@
         "comparisonKey": "exact-source-label:party_a77e5f9ed798",
         "nameAr": "حزب الاستقلال",
         "abbreviation": "PI",
+        "continuityBasis": "same_exact_source_label",
         "earlierSeats": 81,
         "laterSeats": 65,
         "delta": -16
@@ -99,6 +100,7 @@
         "comparisonKey": "exact-source-label:party_62c8ea4bcf76",
         "nameAr": "حزب الاتحاد الاشتراكي للقوات الشعبية",
         "abbreviation": "USFP",
+        "continuityBasis": "same_exact_source_label",
         "earlierSeats": 34,
         "laterSeats": 26,
         "delta": -8
@@ -107,30 +109,16 @@
         "comparisonKey": "exact-source-label:party_d5eaa38f2da4",
         "nameAr": "حزب التقدم والاشتراكية",
         "abbreviation": "PPS",
+        "continuityBasis": "same_exact_source_label",
         "earlierSeats": 22,
         "laterSeats": 19,
         "delta": -3
       },
       {
-        "comparisonKey": "source:2021:party_ab8aeb368dd5",
-        "nameAr": "الحزب الاشتراكي الموحد",
-        "abbreviation": "PSU",
-        "earlierSeats": 1,
-        "laterSeats": 0,
-        "delta": -1
-      },
-      {
-        "comparisonKey": "source:2021:party_42efe2b85cd5",
-        "nameAr": "تحالف فيدرالية اليسار",
-        "abbreviation": "CNI",
-        "earlierSeats": 1,
-        "laterSeats": 0,
-        "delta": -1
-      },
-      {
         "comparisonKey": "exact-source-label:party_b95eec033913",
         "nameAr": "حزب الاتحاد الدستوري",
         "abbreviation": "UC",
+        "continuityBasis": "same_exact_source_label",
         "earlierSeats": 18,
         "laterSeats": 17,
         "delta": -1
@@ -139,9 +127,79 @@
         "comparisonKey": "exact-source-label:party_b659226b4897",
         "nameAr": "حزب جبهة القوى الديمقراطية",
         "abbreviation": "FFD",
+        "continuityBasis": "same_exact_source_label",
         "earlierSeats": 3,
         "laterSeats": 2,
         "delta": -1
+      }
+    ]
+  },
+  "politicalTranshumance": {
+    "fromYear": 2021,
+    "toYear": 2026,
+    "totalMovements": 13,
+    "gains": [
+      {
+        "comparisonKey": "exact-source-label:party_b42379b4d45a",
+        "nameAr": "حزب الأصالة والمعاصرة",
+        "abbreviation": "PAM",
+        "count": 4
+      },
+      {
+        "comparisonKey": "exact-source-label:party_48abf9bf0868",
+        "nameAr": "حزب الحركة الشعبية",
+        "abbreviation": "MP",
+        "count": 4
+      },
+      {
+        "comparisonKey": "exact-source-label:party_a77e5f9ed798",
+        "nameAr": "حزب الاستقلال",
+        "abbreviation": "PI",
+        "count": 3
+      },
+      {
+        "comparisonKey": "source:2026:party_39839add54a7",
+        "nameAr": "تحالف اليسار",
+        "abbreviation": "AG",
+        "count": 1
+      },
+      {
+        "comparisonKey": "exact-source-label:party_b95eec033913",
+        "nameAr": "حزب الاتحاد الدستوري",
+        "abbreviation": "UC",
+        "count": 1
+      }
+    ],
+    "losses": [
+      {
+        "comparisonKey": "exact-source-label:party_040005b84836",
+        "nameAr": "حزب التجمع الوطني للأحرار",
+        "abbreviation": "RNI",
+        "count": 3
+      },
+      {
+        "comparisonKey": "exact-source-label:party_b95eec033913",
+        "nameAr": "حزب الاتحاد الدستوري",
+        "abbreviation": "UC",
+        "count": 2
+      },
+      {
+        "comparisonKey": "exact-source-label:party_a77e5f9ed798",
+        "nameAr": "حزب الاستقلال",
+        "abbreviation": "PI",
+        "count": 2
+      },
+      {
+        "comparisonKey": "source:2021:party_ab8aeb368dd5",
+        "nameAr": "الحزب الاشتراكي الموحد",
+        "abbreviation": "PSU",
+        "count": 1
+      },
+      {
+        "comparisonKey": "exact-source-label:party_b42379b4d45a",
+        "nameAr": "حزب الأصالة والمعاصرة",
+        "abbreviation": "PAM",
+        "count": 1
       }
     ]
   },

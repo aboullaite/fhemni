@@ -16,14 +16,15 @@ function count(haystack, needle) {
     return haystack.split(needle).length - 1;
 }
 
-test('campaign page exposes five X cards and one global Story in narrative order', () => {
+test('campaign page exposes six X cards and one global Story in narrative order', () => {
     const html = readCampaignFile('campaign.html');
     const ids = [
         'campaign-01-overview',
         'campaign-02-parties',
-        'campaign-03-regions',
-        'campaign-04-profiles',
-        'campaign-05-quotient',
+        'campaign-03-transhumance',
+        'campaign-04-regions',
+        'campaign-05-profiles',
+        'campaign-06-quotient',
         'campaign-story'
     ];
 
@@ -32,7 +33,7 @@ test('campaign page exposes five X cards and one global Story in narrative order
         [...ids].map((_, index) => html.indexOf(`id="${ids[index]}"`))
             .sort((left, right) => left - right));
     assert.ok(ids.every(id => html.includes(`id="${id}"`)));
-    assert.equal(count(html, 'class="campaign-card x-card"'), 5);
+    assert.equal(count(html, 'class="campaign-card x-card"'), 6);
     assert.equal(count(html, 'class="campaign-card story-card"'), 1);
     assert.doesNotMatch(html, /turnout|نسبة المشاركة/u);
 });
@@ -41,7 +42,7 @@ test('campaign cards use fixed export dimensions and the approved brand tokens',
     const html = readCampaignFile('campaign.html');
     const css = readCampaignFile('campaign.css');
 
-    assert.equal(count(html, 'data-export-width="1600" data-export-height="900"'), 5);
+    assert.equal(count(html, 'data-export-width="1600" data-export-height="900"'), 6);
     assert.equal(count(html, 'data-export-width="1080" data-export-height="1920"'), 1);
     for (const token of ['#F5F1E8', '#FFFDF7', '#132C2B', '#176B63',
         '#0B4F49', '#E86F3C', '#BC4B51']) {
@@ -57,8 +58,8 @@ test('every card contains the Fhemni logo without a visible source footer', () =
     const logoPath = '../../../src/main/resources/static/assets/brand/fhemni-logo.png';
     const source = 'المصدر: elections.ma · التحليل: فهّمني';
 
-    assert.equal(count(html, `src="${logoPath}"`), 6);
-    assert.equal(count(html, 'class="campaign-logo"'), 6);
+    assert.equal(count(html, `src="${logoPath}"`), 7);
+    assert.equal(count(html, 'class="campaign-logo"'), 7);
     assert.equal(count(html, source), 0);
     assert.equal(count(html, 'class="campaign-attribution"'), 0);
 });
@@ -69,8 +70,8 @@ test('X cards carry one bottom-left website signature while Story keeps one CTA'
     const css = readCampaignFile('campaign.css');
     const story = html.slice(html.indexOf('id="campaign-story"'));
 
-    assert.equal(count(html, 'class="campaign-signature"'), 5);
-    assert.equal(count(html, '<bdi>fhemni.ma</bdi>'), 5);
+    assert.equal(count(html, 'class="campaign-signature"'), 6);
+    assert.equal(count(html, '<bdi>fhemni.ma</bdi>'), 6);
     assert.equal(count(story, 'campaign-signature'), 0);
     assert.equal(count(script, "appendBdi(action, 'fhemni.ma')"), 1);
     assert.match(css, /\.campaign-signature\s*\{[^}]*justify-self:\s*left;[^}]*color:\s*var\(--deep-teal\);[^}]*font-size:\s*25px;[^}]*font-weight:\s*700;[^}]*direction:\s*ltr;/s);
@@ -138,4 +139,15 @@ test('party movement title keeps the compared years together', () => {
     assert.match(script, /appendBdi\(years, '2021'\)/);
     assert.match(script, /appendBdi\(years, '2026'\)/);
     assert.match(css, /\.nowrap\s*\{[^}]*white-space:\s*nowrap;/s);
+});
+
+test('political transhumance card uses the approved framing without the removed disclaimer', () => {
+    const script = readCampaignFile('campaign.js');
+
+    assert.match(script, /الترحال السياسي بين/);
+    assert.match(script, /الأحزاب الأكثر استقبالاً/);
+    assert.match(script, /الأحزاب الأكثر فقداناً/);
+    assert.doesNotMatch(script, /تطابقات الأسامي|تطابق الاسم/u);
+    assert.doesNotMatch(script,
+        /المؤشر مبني على مقارنة الأسماء المنشورة، وماشي إثبات قانوني نهائي للهوية أو الانتقال/u);
 });

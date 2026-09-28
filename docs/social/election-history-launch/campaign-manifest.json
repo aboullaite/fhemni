@@ -2,7 +2,7 @@
   "campaign": "election-history-launch",
   "source": "elections.ma",
   "sourceSha256": "920f9270eefd0a05e8963aeb5f8d93fc59f47e93796064d84724ab62fb44a05e",
-  "campaignDataSha256": "4e844113508d30bdaf734fa029974775a17e6fc8bec09cfe9c54f3a53a1ca30e",
+  "campaignDataSha256": "054405d39dc229ba4038b057b56c56595cac2b9f5e5d3bb74c649ff26fc2ebe4",
   "designReview": {
     "status": "approved",
     "verdict": "SHIP"
@@ -17,7 +17,7 @@
       "file": "assets/01-overview.png",
       "width": 1600,
       "height": 900,
-      "sha256": "89a87f11bcca5449b3ef5a1a8fe0fc0da0c7332f82070380b4160a13a4bc1b57",
+      "sha256": "d09b55bf5294427301c48ac10aad4f38140dbb6c87482befd3b780d0bfa08370",
       "claimKeys": [
         "overview.years",
         "overview.electedRecordCount",
@@ -29,7 +29,7 @@
       "file": "assets/02-party-movement.png",
       "width": 1600,
       "height": 900,
-      "sha256": "d5ae029b427b184dd04d4d5ea4475e99120796ce716e1b754da083058f86b147",
+      "sha256": "9529e537688d32b53189c15707a1c8b6cf4f7c7babb55f634b446e95f70d7de3",
       "claimKeys": [
         "partyMovement.fromYear",
         "partyMovement.toYear",
@@ -38,11 +38,25 @@
       ]
     },
     {
-      "key": "region",
-      "file": "assets/03-regions.png",
+      "key": "politicalTranshumance",
+      "file": "assets/03-political-transhumance.png",
       "width": 1600,
       "height": 900,
-      "sha256": "e091d93c782f215a880c3d5b69d6b545b41dd70190c0f7ec9921f62fc1dbcc7c",
+      "sha256": "8d81ed81b420f425b02caefec1daffcd3b840631fd6c715a33dde01f4cbcc8d1",
+      "claimKeys": [
+        "politicalTranshumance.fromYear",
+        "politicalTranshumance.toYear",
+        "politicalTranshumance.totalMovements",
+        "politicalTranshumance.gains",
+        "politicalTranshumance.losses"
+      ]
+    },
+    {
+      "key": "region",
+      "file": "assets/04-regions.png",
+      "width": 1600,
+      "height": 900,
+      "sha256": "6010cbfd4809ecddfbf09888c68e2dfda25e2f1ae2d26c9237ab20af0b51604b",
       "claimKeys": [
         "region.regionId",
         "region.regionNameAr",
@@ -52,10 +66,10 @@
     },
     {
       "key": "demographics",
-      "file": "assets/04-profiles.png",
+      "file": "assets/05-profiles.png",
       "width": 1600,
       "height": 900,
-      "sha256": "b23e4d951cdce44d6cc07cc122ef34c7e938a097fd9bd61fb732a650d2257921",
+      "sha256": "1220df221bc902721af829bad35989e31fcf9b93e8d05d74cc69958ea043bbc9",
       "claimKeys": [
         "demographics.women",
         "demographics.age",
@@ -64,10 +78,10 @@
     },
     {
       "key": "quotient",
-      "file": "assets/05-quotient.png",
+      "file": "assets/06-quotient.png",
       "width": 1600,
       "height": 900,
-      "sha256": "67f50602998a11661f49681d1365df13428ff3d94620ff6b74deb327c3267055",
+      "sha256": "7d95376926a467b21466278c39ed5602e7324165c9466576469f8885ceb4ebb8",
       "claimKeys": [
         "quotient.qualifier",
         "quotient.officialSeatTotal",

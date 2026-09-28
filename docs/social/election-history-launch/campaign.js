@@ -8,9 +8,10 @@
     const CARD_IDS = [
         'campaign-01-overview',
         'campaign-02-parties',
-        'campaign-03-regions',
-        'campaign-04-profiles',
-        'campaign-05-quotient',
+        'campaign-03-transhumance',
+        'campaign-04-regions',
+        'campaign-05-profiles',
+        'campaign-06-quotient',
         'campaign-story'
     ];
     const LOCAL_SEATS_QUALIFIER = 'المقاعد المحلية فقط';
@@ -108,6 +109,14 @@
         return group;
     }
 
+    function transhumanceGroup(document, heading, rows, scale, kind) {
+        const projected = rows.map(row => ({
+            ...row,
+            delta: kind === 'gain' ? row.count : -row.count
+        }));
+        return movementGroup(document, heading, projected, scale, kind);
+    }
+
     function renderOverview(document, data) {
         const { root, body } = campaignBody(document, 'campaign-01-overview');
         const layout = element(document, 'div', 'overview-layout');
@@ -157,8 +166,37 @@
         root.dataset.ready = 'true';
     }
 
+    function renderPoliticalTranshumance(document, data) {
+        const { root, body } = campaignBody(document, 'campaign-03-transhumance');
+        const heading = title(document, 'الترحال السياسي بين ');
+        const years = element(document, 'span', 'nowrap');
+        appendBdi(years, data.politicalTranshumance.fromYear);
+        years.append(document.createTextNode(' و'));
+        appendBdi(years, data.politicalTranshumance.toYear);
+        heading.append(years);
+        body.append(heading);
+
+        const total = element(document, 'p', 'transhumance-total');
+        appendBdi(total, formatNumber(data.politicalTranshumance.totalMovements));
+        total.append(document.createTextNode(' حالة مرصودة بين لوائح المنتخبين'));
+        body.append(total);
+
+        const scale = Math.max(data.politicalTranshumance.maximum || 0,
+            ...data.politicalTranshumance.gains.map(row => row.count),
+            ...data.politicalTranshumance.losses.map(row => row.count), 1);
+        const layout = element(document, 'div', 'movement-layout transhumance-layout');
+        layout.append(
+            transhumanceGroup(document, 'الأحزاب الأكثر استقبالاً',
+                data.politicalTranshumance.gains, scale, 'gain'),
+            transhumanceGroup(document, 'الأحزاب الأكثر فقداناً',
+                data.politicalTranshumance.losses, scale, 'loss')
+        );
+        body.append(layout);
+        root.dataset.ready = 'true';
+    }
+
     function renderRegions(document, data) {
-        const { root, body } = campaignBody(document, 'campaign-03-regions');
+        const { root, body } = campaignBody(document, 'campaign-04-regions');
         body.classList.add('region-body');
         body.append(headlineWithQualifier(document,
             'الانتخابات ما كتبدلش بنفس الشكل فكل جهة',
@@ -204,7 +242,7 @@
     }
 
     function renderProfiles(document, data) {
-        const { root, body } = campaignBody(document, 'campaign-04-profiles');
+        const { root, body } = campaignBody(document, 'campaign-05-profiles');
         body.append(title(document, 'شكون كيمثلنا؟'));
         body.append(element(document, 'p', 'campaign-note',
             'نسبة النساء من المنتخبين والمنتخبات، كيف ما نشرها elections.ma — بلا تحويل النِّسب لأعداد.'));
@@ -265,7 +303,7 @@
     }
 
     function renderQuotient(document, data) {
-        const { root, body } = campaignBody(document, 'campaign-05-quotient');
+        const { root, body } = campaignBody(document, 'campaign-06-quotient');
         body.append(headlineWithQualifier(document,
             'واش القاسم القديم كان غادي يبدل النتيجة؟',
             data.quotient.qualifier || SIMULATION_QUALIFIER));
@@ -353,6 +391,7 @@
 
         renderOverview(document, data);
         renderParties(document, data);
+        renderPoliticalTranshumance(document, data);
         renderRegions(document, data);
         renderProfiles(document, data);
         renderQuotient(document, data);

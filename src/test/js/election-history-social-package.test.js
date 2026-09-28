@@ -28,7 +28,7 @@ function pngDimensions(filePath) {
 
 function renderThreadMarkdown(thread) {
     const sections = thread.posts.map(post => [
-        `### ${post.number}/5`,
+        `### ${post.number}/6`,
         '',
         post.text,
         '',
@@ -52,13 +52,13 @@ function renderThreadMarkdown(thread) {
     ].join('\n');
 }
 
-test('X thread has five numbered posts at or below 280 code points', () => {
+test('X thread has six numbered posts at or below 280 code points', () => {
     const thread = readJson(threadPath);
-    assert.deepEqual(thread.posts.map(post => post.number), [1, 2, 3, 4, 5]);
-    assert.equal(new Set(thread.posts.map(post => post.number)).size, 5);
+    assert.deepEqual(thread.posts.map(post => post.number), [1, 2, 3, 4, 5, 6]);
+    assert.equal(new Set(thread.posts.map(post => post.number)).size, 6);
     assert.ok(thread.posts.every(post => Array.from(post.text).length <= 280));
     assert.ok(thread.posts.every(post => post.characterCount === Array.from(post.text).length));
-    assert.ok(thread.posts.every(post => post.text.startsWith(`${post.number}/5\n`)));
+    assert.ok(thread.posts.every(post => post.text.startsWith(`${post.number}/6\n`)));
     const allCopy = [
         ...thread.posts.map(post => post.text),
         thread.instagramStory.copy
@@ -71,12 +71,13 @@ test('thread maps one accessible asset to every post', () => {
     const expectedAssets = [
         'assets/01-overview.png',
         'assets/02-party-movement.png',
-        'assets/03-regions.png',
-        'assets/04-profiles.png',
-        'assets/05-quotient.png'
+        'assets/03-political-transhumance.png',
+        'assets/04-regions.png',
+        'assets/05-profiles.png',
+        'assets/06-quotient.png'
     ];
     assert.deepEqual(thread.posts.map(post => post.asset), expectedAssets);
-    assert.equal(new Set(thread.posts.map(post => post.asset)).size, 5);
+    assert.equal(new Set(thread.posts.map(post => post.asset)).size, 6);
     assert.ok(thread.posts.every(post => fs.existsSync(path.join(campaignDirectory, post.asset))));
     assert.ok(thread.posts.every(post => post.altText.length >= 40 && /\p{Script=Arabic}/u.test(post.altText)));
     assert.equal(thread.instagramStory.asset, 'assets/instagram-story.png');
@@ -93,17 +94,15 @@ test('closing post uses at most two hashtags and links to the historical compari
         /https:\/\/fhemni\.ma\/elections\/history/);
 });
 
-test('simulation and repeated-name claims retain their qualifiers', () => {
+test('simulation keeps its qualifier while political-transhumance copy avoids removed labels', () => {
     const thread = readJson(threadPath);
     const closingPost = thread.posts.at(-1).text;
     assert.match(closingPost, /محاكاة، ماشي نتيجة رسمية/);
-    assert.match(closingPost, /تطابق الاسم فقط/);
-    const repeatedNameClaims = [
-        ...thread.posts.map(post => post.text),
-        thread.instagramStory.copy
-    ].filter(copy => /الأسماء المتكررة|repeated names?/iu.test(copy));
-    assert.ok(repeatedNameClaims.length > 0);
-    assert.ok(repeatedNameClaims.every(copy => copy.includes('تطابق الاسم فقط')));
+    const allCopy = [...thread.posts.map(post => post.text), thread.instagramStory.copy].join('\n');
+    assert.match(allCopy, /الترحال السياسي/u);
+    assert.doesNotMatch(allCopy, /تطابقات الأسامي|تطابق الاسم/u);
+    assert.doesNotMatch(allCopy,
+        /المؤشر مبني على مقارنة الأسماء المنشورة، وماشي إثبات قانوني نهائي للهوية أو الانتقال/u);
     assert.match(thread.instagramStory.copy, /محاكاة، ماشي نتيجة رسمية/);
 });
 
@@ -118,9 +117,10 @@ test('manifest digest matches campaign data and every PNG has the approved dimen
     const expectedAssets = [
         ['overview', 'assets/01-overview.png', 1600, 900],
         ['partyMovement', 'assets/02-party-movement.png', 1600, 900],
-        ['region', 'assets/03-regions.png', 1600, 900],
-        ['demographics', 'assets/04-profiles.png', 1600, 900],
-        ['quotient', 'assets/05-quotient.png', 1600, 900],
+        ['politicalTranshumance', 'assets/03-political-transhumance.png', 1600, 900],
+        ['region', 'assets/04-regions.png', 1600, 900],
+        ['demographics', 'assets/05-profiles.png', 1600, 900],
+        ['quotient', 'assets/06-quotient.png', 1600, 900],
         ['instagramStory', 'assets/instagram-story.png', 1080, 1920]
     ];
 
