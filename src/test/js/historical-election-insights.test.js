@@ -13,7 +13,8 @@ const {
     deriveRegionComparison,
     deriveTurnoutTrend,
     deriveDemographicTrends,
-    deriveRepeatedNameGroups
+    deriveRepeatedNameGroups,
+    deriveRepeatedNamePartyMovements
 } = require('../../main/resources/static/js/historical-election-insights.js');
 
 const payloadPath = path.join(__dirname,
@@ -266,6 +267,40 @@ test('repeated-name explorer labels evidence, filters different party labels, an
     const beyondEnd = deriveRepeatedNameGroups(valid, { page: 999 });
     assert.equal(beyondEnd.page, beyondEnd.pageCount);
     assert.ok(beyondEnd.rows.length > 0 && beyondEnd.rows.length <= 10);
+});
+
+test('repeated-name party movement counts only exact-name matches present at both selected endpoints', () => {
+    const movement = deriveRepeatedNamePartyMovements(payload(), 2021, 2026);
+
+    assert.equal(movement.available, true);
+    assert.equal(movement.evidenceStatus, 'name_match_only');
+    assert.equal(movement.totalMovements, 13);
+    assert.equal(movement.maximum, 4);
+    assert.deepEqual(movement.gains.map(row => [row.abbreviation, row.count]), [
+        ['PAM', 4], ['MP', 4], ['PI', 3], ['AG', 1], ['UC', 1]
+    ]);
+    assert.deepEqual(movement.losses.map(row => [row.abbreviation, row.count]), [
+        ['RNI', 3], ['UC', 2], ['PI', 2], ['PSU', 1], ['PAM', 1]
+    ]);
+    assert.ok([...movement.gains, ...movement.losses].every(row =>
+        row.evidenceStatus === 'name_match_only' && row.partyNameAr));
+});
+
+test('repeated-name party movement excludes unchanged labels and fails closed on unsupported pairs', () => {
+    const valid = payload();
+    const movement = deriveRepeatedNamePartyMovements(valid, 2016, 2021);
+    assert.equal(movement.available, true);
+    assert.ok(movement.totalMovements < valid.repeatedNames.length);
+
+    const reversed = deriveRepeatedNamePartyMovements(valid, 2026, 2021);
+    assert.equal(reversed.available, false);
+    assert.deepEqual(reversed.diagnostics, ['year-pair']);
+    assert.deepEqual(reversed.gains, []);
+    assert.deepEqual(reversed.losses, []);
+
+    const tampered = payload();
+    tampered.repeatedNames[0].evidenceStatus = 'verified_identity';
+    assert.equal(deriveRepeatedNamePartyMovements(tampered, 2021, 2026).available, false);
 });
 
 test('tampered evidence labels and regional totals make dependent analysis unavailable', () => {

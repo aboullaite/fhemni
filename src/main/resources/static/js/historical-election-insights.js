@@ -738,6 +738,62 @@
                 .map(group => ({ ...group, occurrences: group.occurrences.map(row => ({ ...row })) })) };
     }
 
+    function deriveRepeatedNamePartyMovements(payload, fromYear, toYear, options = {}) {
+        const empty = { gains: [], losses: [], totalMovements: 0, maximum: 0,
+            evidenceStatus: 'name_match_only' };
+        const audit = auditHistoricalPayload(payload);
+        if (!audit.available) return unavailable(audit, empty);
+        const from = Number(fromYear);
+        const to = Number(toYear);
+        const supported = listValidYearPairs(payload).pairs.some(pair =>
+            pair.fromYear === from && pair.toYear === to);
+        if (!supported) return unavailable({ diagnostics: ['year-pair'] }, empty);
+
+        const observations = new Map(records(payload.partyObservations).map(row =>
+            [`${row.year}:${row.comparisonKey}`, row]));
+        const gains = new Map();
+        const losses = new Map();
+        let totalMovements = 0;
+        for (const group of records(payload.repeatedNames)) {
+            const earlier = group.occurrences.filter(row => row.year === from);
+            const later = group.occurrences.filter(row => row.year === to);
+            if (earlier.length !== 1 || later.length !== 1
+                || earlier[0].comparisonKey === later[0].comparisonKey) continue;
+            gains.set(later[0].comparisonKey, (gains.get(later[0].comparisonKey) || 0) + 1);
+            losses.set(earlier[0].comparisonKey, (losses.get(earlier[0].comparisonKey) || 0) + 1);
+            totalMovements += 1;
+        }
+
+        const limit = Number.isSafeInteger(Number(options.limit))
+            ? Math.max(1, Number(options.limit)) : 5;
+        const rows = (counts, year) => [...counts].map(([comparisonKey, count]) => {
+            const observation = observations.get(`${year}:${comparisonKey}`);
+            return {
+                comparisonKey,
+                partyNameAr: observation?.nameAr || comparisonKey,
+                abbreviation: observation?.abbreviation || null,
+                abbreviationStatus: observation?.abbreviationStatus || null,
+                count,
+                evidenceStatus: 'name_match_only'
+            };
+        }).sort((left, right) => right.count - left.count
+            || codepointOrder(left.partyNameAr, right.partyNameAr)
+            || codepointOrder(left.comparisonKey, right.comparisonKey)).slice(0, limit);
+        const gainRows = rows(gains, to);
+        const lossRows = rows(losses, from);
+        return {
+            available: true,
+            diagnostics: [],
+            fromYear: from,
+            toYear: to,
+            evidenceStatus: 'name_match_only',
+            totalMovements,
+            maximum: Math.max(0, ...gainRows.map(row => row.count), ...lossRows.map(row => row.count)),
+            gains: gainRows,
+            losses: lossRows
+        };
+    }
+
     return {
         auditHistoricalPayload,
         listValidYearPairs,
@@ -748,6 +804,7 @@
         deriveRegionComparison,
         deriveTurnoutTrend,
         deriveDemographicTrends,
-        deriveRepeatedNameGroups
+        deriveRepeatedNameGroups,
+        deriveRepeatedNamePartyMovements
     };
 });

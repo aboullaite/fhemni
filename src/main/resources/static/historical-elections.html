@@ -51,14 +51,17 @@
         </section>
 
         <p id="historySelectionNotice" class="history-warning-note" role="status" aria-live="polite" hidden></p>
-        <nav id="historyJumpNav" class="election-graphs-jumps history-jumps" aria-label="Historical election sections"></nav>
+        <nav id="historyTabs" class="election-graphs-jumps history-jumps history-tabs" role="tablist" aria-label="Historical election sections"></nav>
         <p id="historyStatus" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
 
+        <div id="historyOverviewPanel" role="tabpanel">
         <section id="historyOverview" class="history-section" aria-labelledby="historyOverviewTitle">
             <header class="history-section-heading"><div><h2 id="historyOverviewTitle"></h2><p id="historyOverviewIntro"></p></div></header>
             <div id="historyOverviewCards" class="history-overview-grid"></div>
         </section>
+        </div>
 
+        <div id="historyPartiesPanel" role="tabpanel" hidden>
         <section id="historyParties" class="history-section" aria-labelledby="historyPartiesTitle">
             <header class="history-section-heading"><div><h2 id="historyPartiesTitle"></h2><p id="historyPartiesIntro"></p></div></header>
             <div id="historyMeasureTabs" class="history-measure-tabs" role="group" aria-labelledby="historyMeasureTabsLabel">
@@ -83,7 +86,9 @@
             <header class="history-section-heading"><div><h2 id="historyTrajectoryTitle"></h2><p id="historyTrajectoryIntro"></p></div><label class="history-field history-heading-control"><span id="historyTrajectoryPartyLabel"></span><select id="historyTrajectoryParty"></select></label></header>
             <div id="historyTrajectoryContent" class="history-trajectory"></div>
         </section>
+        </div>
 
+        <div id="historyQuotientPanel" role="tabpanel" hidden>
         <section id="historyQuotient" class="history-section history-quotient" aria-labelledby="historyQuotientTitle">
             <header class="history-section-heading"><div><h2 id="historyQuotientTitle"></h2><p id="historyQuotientIntro"></p></div></header>
             <p id="historyQuotientWarning" class="history-warning-note"></p>
@@ -99,13 +104,17 @@
                 <div class="history-table-scroll"><table class="history-quotient-table"><caption id="historyQuotientContestCaption" class="sr-only"></caption><thead><tr><th scope="col" id="historyQuotientContestParty"></th><th scope="col" id="historyQuotientVotes"></th><th scope="col" id="historyQuotientEligible"></th><th scope="col" id="historyQuotientFirstPass"></th><th scope="col" id="historyQuotientRemainder"></th><th scope="col" id="historyQuotientRemainderSeat"></th><th scope="col" id="historyQuotientOfficialSeats"></th><th scope="col" id="historyQuotientSimulatedSeats"></th></tr></thead><tbody id="historyQuotientContestBody"></tbody></table></div>
             </div>
         </section>
+        </div>
 
+        <div id="historyRegionsPanel" role="tabpanel" hidden>
         <section id="historyRegions" class="history-section" aria-labelledby="historyRegionsTitle">
             <header class="history-section-heading"><div><h2 id="historyRegionsTitle"></h2><p id="historyRegionsIntro"></p></div><label class="history-field history-heading-control"><span id="historyRegionLabel"></span><select id="historyRegion"></select></label></header>
             <p id="historyRegionCaveat" class="history-evidence-note"></p>
             <div id="historyRegionContent" class="history-region-content"></div>
         </section>
+        </div>
 
+        <div id="historyPeoplePanel" role="tabpanel" hidden>
         <section id="historyEvidence" class="history-section" aria-labelledby="historyEvidenceTitle">
             <header class="history-section-heading"><div><h2 id="historyEvidenceTitle"></h2><p id="historyEvidenceIntro"></p></div></header>
             <div class="history-demographic-block">
@@ -118,6 +127,13 @@
         <section id="historyPeople" class="history-section" aria-labelledby="historyPeopleTitle">
             <header class="history-section-heading"><div><h2 id="historyPeopleTitle"></h2><p id="historyPeopleIntro"></p></div></header>
             <p id="historyNameMatchCaveat" class="history-warning-note"></p>
+            <div id="historyPeopleMovements" class="history-movement-block">
+                <div class="history-subheading"><h3 id="historyMovementTitle"></h3><p id="historyMovementIntro"></p></div>
+                <div class="history-movement-grid">
+                    <article class="history-movement-card is-gain"><h4 id="historyMovementGainsTitle"></h4><div id="historyMovementGains" class="history-movement-bars"></div></article>
+                    <article class="history-movement-card is-loss"><h4 id="historyMovementLossesTitle"></h4><div id="historyMovementLosses" class="history-movement-bars"></div></article>
+                </div>
+            </div>
             <div class="history-controls history-people-controls">
                 <label class="history-field"><span id="historyPeopleSearchLabel"></span><input id="historyPeopleSearch" type="search" autocomplete="off"></label>
                 <label class="history-check"><input id="historyDifferentOnly" type="checkbox"><span id="historyDifferentOnlyLabel"></span></label>
@@ -128,11 +144,14 @@
             <div id="historyPeopleCards" class="history-people-cards"></div>
             <nav id="historyPagination" class="history-pagination" aria-label="صفحات الأسماء المتكررة"><button id="historyPeoplePrevious" class="priority-secondary-button" type="button"></button><span id="historyPeoplePageStatus"></span><button id="historyPeopleNext" class="priority-secondary-button" type="button"></button></nav>
         </section>
+        </div>
 
+        <div id="historySourcesPanel" role="tabpanel" hidden>
         <section id="historySources" class="history-section history-sources" aria-labelledby="historySourcesTitle">
             <header class="history-section-heading"><div><h2 id="historySourcesTitle"></h2><p id="historySourcesIntro"></p></div></header>
             <div class="history-method-grid"><article><h3 id="historySourceLinksTitle"></h3><ul id="historySourceLinks"></ul></article><article><h3 id="historyMethodTitle"></h3><p id="historyMethodText"></p><dl id="historyArchiveMeta"></dl></article></div>
         </section>
+        </div>
     </div>
 </main>
 

@@ -28,7 +28,10 @@ const {
     seatSharePercent,
     resolveAvailableSelection,
     evidenceReference,
-    formatSigned
+    formatSigned,
+    normalizeHistoryTab,
+    historyTabIndex,
+    historyTabPanelState
 } = require(controllerPath);
 
 function fakeDocument() {
@@ -73,6 +76,14 @@ test('history page exposes the progressive comparison sections and accessible st
     assert.match(page, /id="historyPeopleCount"[^>]*tabindex="-1"/);
     assert.match(page, /class="history-pagination"[^>]*aria-label="[^"]+"/);
     assert.match(page, /id="historyExactFigures"/);
+    assert.match(page, /id="historyTabs"[^>]*role="tablist"/);
+    for (const id of ['historyOverviewPanel', 'historyPartiesPanel', 'historyQuotientPanel',
+        'historyRegionsPanel', 'historyPeoplePanel', 'historySourcesPanel']) {
+        assert.match(page, new RegExp(`id="${id}"[^>]*role="tabpanel"`));
+    }
+    assert.match(page, /id="historyPeopleMovements"/);
+    assert.match(page, /id="historyMovementGains"/);
+    assert.match(page, /id="historyMovementLosses"/);
     assert.match(page, /id="historyMeasureTabs"[^>]*role="group"/);
     assert.match(page, /id="historyMeasureTotal"[^>]*aria-pressed="true"/);
     assert.match(page, /id="historyMeasureLocal"[^>]*aria-pressed="false"/);
@@ -125,22 +136,40 @@ test('all page copy is complete in Darija, French, and English and states the ev
 });
 
 test('URL state keeps non-default seat tabs shareable and defaults to total seats', () => {
-    assert.deepEqual(readUrlState('?from=2016&to=2026&measure=total&sort=name&party=p1&partyq=green&all=1&constituency=c9&region=4&demographic=education&people=amina&different=1&page=2'), {
-        from: '2016', to: '2026', measure: 'total', sort: 'name',
+    assert.deepEqual(readUrlState('?from=2016&to=2026&tab=people&measure=total&sort=name&party=p1&partyq=green&all=1&constituency=c9&region=4&demographic=education&people=amina&different=1&page=2'), {
+        from: '2016', to: '2026', tab: 'people', measure: 'total', sort: 'name',
         party: 'p1', partyQuery: 'green', showAllParties: true, quotientConstituency: 'c9', region: '4',
         demographicDimension: 'education', peopleQuery: 'amina', differentOnly: true, page: 2
     });
     assert.deepEqual(readUrlState('?from=nope&to=2026&measure=votes&sort=random&demographic=unknown&page=-3'), {
-        from: null, to: '2026', measure: 'total', sort: 'delta-desc',
+        from: null, to: '2026', tab: 'overview', measure: 'total', sort: 'delta-desc',
         party: '', partyQuery: '', showAllParties: false, quotientConstituency: '', region: '',
         demographicDimension: 'gender', peopleQuery: '', differentOnly: false, page: 1
     });
     assert.equal(writeUrlState({
-        from: '2016', to: '2026', measure: 'list', sort: 'delta-asc',
+        from: '2016', to: '2026', tab: 'regions', measure: 'list', sort: 'delta-asc',
         party: 'party key', partyQuery: 'search words', showAllParties: true,
         quotientConstituency: 'contest key',
         region: '7', demographicDimension: 'age', peopleQuery: '', differentOnly: true, page: 1
-    }), '?from=2016&to=2026&measure=list&sort=delta-asc&party=party+key&partyq=search+words&all=1&constituency=contest+key&region=7&demographic=age&different=1');
+    }), '?from=2016&to=2026&tab=regions&measure=list&sort=delta-asc&party=party+key&partyq=search+words&all=1&constituency=contest+key&region=7&demographic=age&different=1');
+});
+
+test('history tabs normalize state and follow RTL keyboard order', () => {
+    assert.equal(normalizeHistoryTab('people'), 'people');
+    assert.equal(normalizeHistoryTab('unknown'), 'overview');
+    assert.deepEqual(historyTabPanelState('people'), [
+        { tab: 'overview', panelId: 'historyOverviewPanel', active: false },
+        { tab: 'parties', panelId: 'historyPartiesPanel', active: false },
+        { tab: 'quotient', panelId: 'historyQuotientPanel', active: false },
+        { tab: 'regions', panelId: 'historyRegionsPanel', active: false },
+        { tab: 'people', panelId: 'historyPeoplePanel', active: true },
+        { tab: 'sources', panelId: 'historySourcesPanel', active: false }
+    ]);
+    assert.equal(historyTabIndex(0, 'ArrowLeft', 6, 'rtl'), 1);
+    assert.equal(historyTabIndex(0, 'ArrowRight', 6, 'rtl'), 5);
+    assert.equal(historyTabIndex(5, 'ArrowRight', 6, 'ltr'), 0);
+    assert.equal(historyTabIndex(3, 'Home', 6, 'rtl'), 0);
+    assert.equal(historyTabIndex(3, 'End', 6, 'rtl'), 5);
 });
 
 test('presentation helpers preserve direction, exact values, and zero baselines', () => {
@@ -281,6 +310,9 @@ test('page script renders demographic provenance visibly and restores focus afte
     assert.match(controller, /historyQuotientConstituency/);
     assert.match(controller, /historyPeopleCount'\)\.focus\(\)/);
     assert.match(controller, /historyPagination.*setAttribute\('aria-label', t\('paginationLabel'\)\)/);
+    assert.match(controller, /deriveRepeatedNamePartyMovements\(payload, Number\(state\.from\), Number\(state\.to\)\)/);
+    assert.match(controller, /historyMovementGains/);
+    assert.match(controller, /historyMovementLosses/);
 });
 
 test('visible demographic evidence wraps inside the mobile viewport', () => {
@@ -298,6 +330,8 @@ test('historical tables stay contained and the mobile jump navigation scrolls in
     assert.match(css, /\.history-quotient-national,\s*\.history-quotient-constituency\s*\{[^}]*min-width:\s*0;/);
     assert.match(css, /@media \(max-width:\s*680px\)[\s\S]*?\.election-graphs-jumps\.history-jumps\s*\{[^}]*flex-wrap:\s*nowrap;[^}]*overflow-x:\s*auto;/);
     assert.match(css, /@media \(max-width:\s*680px\)[\s\S]*?\.election-graphs-jumps\.history-jumps a\s*\{[^}]*flex:\s*0 0 auto;/);
+    assert.match(css, /\.history-movement-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/);
+    assert.match(css, /@media \(max-width:\s*680px\)[\s\S]*?\.history-movement-grid\s*\{[^}]*grid-template-columns:\s*1fr;/);
 });
 
 test('dense quotient decomposition starts collapsed', () => {
