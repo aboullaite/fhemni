@@ -96,8 +96,8 @@ body {
     z-index: 1;
     display: grid;
     height: 100%;
-    grid-template-rows: 92px 1fr;
-    gap: 18px;
+    grid-template-rows: 92px minmax(0, 1fr) 30px;
+    gap: 14px;
 }
 
 .campaign-header,
@@ -130,6 +130,16 @@ body {
 .campaign-body {
     min-width: 0;
     min-height: 0;
+}
+
+.campaign-signature {
+    align-self: end;
+    justify-self: left;
+    color: var(--deep-teal);
+    font-size: 25px;
+    font-weight: 700;
+    direction: ltr;
+    letter-spacing: 0.3px;
 }
 
 .headline-row {

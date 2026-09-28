@@ -63,6 +63,19 @@ test('every card contains the Fhemni logo without a visible source footer', () =
     assert.equal(count(html, 'class="campaign-attribution"'), 0);
 });
 
+test('X cards carry one bottom-left website signature while Story keeps one CTA', () => {
+    const html = readCampaignFile('campaign.html');
+    const script = readCampaignFile('campaign.js');
+    const css = readCampaignFile('campaign.css');
+    const story = html.slice(html.indexOf('id="campaign-story"'));
+
+    assert.equal(count(html, 'class="campaign-signature"'), 5);
+    assert.equal(count(html, '<bdi>fhemni.ma</bdi>'), 5);
+    assert.equal(count(story, 'campaign-signature'), 0);
+    assert.equal(count(script, "appendBdi(action, 'fhemni.ma')"), 1);
+    assert.match(css, /\.campaign-signature\s*\{[^}]*justify-self:\s*left;[^}]*color:\s*var\(--deep-teal\);[^}]*font-size:\s*25px;[^}]*font-weight:\s*700;[^}]*direction:\s*ltr;/s);
+});
+
 test('overview gives the full content area to the three-election comparison', () => {
     const script = readCampaignFile('campaign.js');
 
