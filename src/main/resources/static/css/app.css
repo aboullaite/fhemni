@@ -725,7 +725,7 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .history-party-transition { display: grid; grid-template-columns: minmax(0,1fr) 36px minmax(0,1fr); align-items: center; width: min(100%,320px); direction: ltr; }
 .history-party-transition.is-unchanged { grid-template-columns: minmax(0,1fr); width: min(100%,142px); }
 .history-party-transition-party { display: inline-flex; min-width: 0; align-items: center; justify-content: center; gap: 7px; padding: 7px 9px; border: 1px solid rgba(23,107,99,.12); border-radius: 999px; background: rgba(23,107,99,.045); }
-.history-party-transition-code { overflow: hidden; color: var(--ink); font-size: 12px; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
+.history-party-transition-code { min-width: 0; color: var(--ink); font-size: 12px; font-weight: 600; white-space: normal; overflow-wrap: anywhere; text-align: center; }
 .history-party-transition-arrow { display: grid; width: 36px; height: 30px; place-items: center; justify-self: center; color: var(--orange); font-size: 20px; font-weight: 900; line-height: 1; }
 .history-transition-constituency { color: var(--muted); font-size: 10px; }
 .history-people-cards { display: none; }
@@ -1439,6 +1439,8 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .admin-person-directory-row { border: 1px solid var(--line); border-radius: 14px; background: var(--white); }
 .admin-person-directory-row > summary { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 15px; cursor: pointer; font-weight: 850; list-style: none; }
 .admin-person-directory-row > summary::-webkit-details-marker { display: none; }
+.history-affiliation-source { display: block; overflow-wrap: anywhere; }
+.history-affiliation-source bdi { white-space: nowrap; }
 .admin-affiliation-history { display: grid; gap: 8px; padding: 0 15px 15px; }
 .admin-affiliation-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 11px; background: rgba(207,230,220,.28); }
 .admin-affiliation-row strong, .admin-affiliation-row a, .admin-affiliation-row span { display: block; }

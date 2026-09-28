@@ -95,6 +95,7 @@ public class SecurityConfiguration {
                                 "/error", "/favicon.ico", "/css/**", "/js/**",
                                 "/data/elections/2026/urban-rural-constituencies.js",
                                 "/data/elections/history.json",
+                                "/data/elections/affiliation-backfill.json",
                                 "/assets/**", "/webjars/**",
                                 "/oauth2/**", "/login/oauth2/**", "/auth/magic-link", "/auth/magic-link/**",
                                 "/api/auth/session", "/api/auth/magic-link", "/healthz")

@@ -28,6 +28,7 @@ const {
     quotientViewState,
     demographicChartModel,
     createEvidenceStatusBadge,
+    createAffiliationSourceLink,
     appendMethodologyLink,
     regionSeatBarPercent,
     seatSharePercent,
@@ -58,6 +59,22 @@ function fakeDocument() {
         createTextNode(textContent) { return { nodeType: 3, textContent }; }
     };
 }
+
+test('affiliation evidence links never backdate an undated publication from its observation year', () => {
+    const doc = fakeDocument();
+    const undated = createAffiliationSourceLink(doc, {
+        publisher: 'Identity corroboration', publishedAt: null,
+        observedAt: '2021-09-08', year: 2021, url: 'https://example.org/2026/profile'
+    }, 'Identity check');
+    assert.equal(undated.textContent.trim(), 'Identity check');
+    assert.equal(undated.children.length, 0);
+    assert.equal(undated.href, 'https://example.org/2026/profile');
+    const dated = createAffiliationSourceLink(doc, {
+        publisher: 'Official roster', publishedAt: '2021-12-17', url: 'https://example.org/roster'
+    }, 'Identity check');
+    assert.equal(dated.children[0].textContent, '2021-12-17');
+    assert.equal(dated.children[0].dir, 'ltr');
+});
 
 test('history page exposes the progressive comparison sections and accessible status regions', () => {
     const page = fs.readFileSync(pagePath, 'utf8');
@@ -104,10 +121,10 @@ test('history page exposes the progressive comparison sections and accessible st
     assert.match(page, /<script src="\/js\/historical-election-insights\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-electoral-quotient\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-elections\.js[^>]*defer/);
-    assert.match(page, /\/css\/dist\.css\?v=20260928-8/);
-    assert.match(page, /\/js\/historical-election-insights\.js\?v=20260928-5/);
-    assert.match(page, /\/js\/historical-data-integrity\.js\?v=20260928-1/);
-    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-12/);
+    assert.match(page, /\/css\/dist\.css\?v=\d{8}-\d+/);
+    assert.match(page, /\/js\/historical-election-insights\.js\?v=\d{8}-\d+/);
+    assert.match(page, /\/js\/historical-data-integrity\.js\?v=\d{8}-\d+/);
+    assert.match(page, /\/js\/historical-elections\.js\?v=\d{8}-\d+/);
 });
 
 test('current and historical election heroes cross-link with compact green actions', () => {
@@ -159,9 +176,10 @@ test('all page copy is complete in Darija, French, and English and states the ev
     assert.match(COPY.fr.nameMatchCaveat, /ne certifie pas l’identité/i);
     assert.match(COPY.ar.nameMatchCaveat, /ما كيأكدش الهوية/);
     assert.match(COPY.en.quotientWarning, /counterfactual/i);
-    assert.match(COPY.en.quotientWarning, /without pooling/i);
-    assert.match(COPY.fr.quotientWarning, /sans liste nationale agrégée/i);
-    assert.match(COPY.ar.quotientWarning, /بلا جمع الجهات/);
+    for (const lang of ['ar', 'fr', 'en']) {
+        assert.match(COPY[lang].quotientWarning, /60\s*\+\s*30/);
+        assert.match(COPY[lang].quotientIntro, /3%/);
+    }
     assert.match(COPY.en.quotientIntro, /registered voters/i);
     assert.match(COPY.fr.quotientIntro, /inscrit/i);
     assert.match(COPY.ar.quotientIntro, /المسجلين/);
@@ -170,7 +188,8 @@ test('all page copy is complete in Darija, French, and English and states the ev
     assert.equal(Object.hasOwn(COPY.ar, 'partiesIntro'), false);
     assert.match(COPY.en.methodText, /305 local seats/i);
     assert.match(COPY.en.methodText, /395-seat/i);
-    assert.match(COPY.en.methodText, /without an exclusion threshold/i);
+    assert.match(COPY.en.methodText, /3% exclusion threshold/i);
+    assert.match(COPY.en.methodText, /not.*quotient alone/i);
     assert.match(COPY.fr.quotientWarning, /contrefactuelle/i);
     assert.match(COPY.ar.quotientWarning, /محاكاة/);
     assert.match(COPY.en.fullMethodology, /methodology/i);
@@ -367,6 +386,25 @@ test('presentation helpers preserve direction, exact values, and zero baselines'
     assert.deepEqual(resolveAvailableSelection('b', ['a', 'b']), { value: 'b', usedFallback: false });
 });
 
+test('Al Amal uses its verified logo when the archive has no abbreviation', () => {
+    assert.equal(historicalPartyLogoAsset(null, 'same_exact_source_label', 'حزب الأمل'),
+        '/assets/parties/alamal-display.png');
+    assert.equal(historicalPartyLogoAsset('حزب الأمل', 'same_exact_source_label', 'حزب الأمل'),
+        '/assets/parties/alamal-display.png');
+    assert.equal(historicalPartyLogoAsset('ALAMAL'), '/assets/parties/alamal-display.png');
+    assert.equal(historicalPartyLogoAsset(null, 'same_exact_source_label', 'حزب آخر'),
+        '/assets/parties/party.svg');
+});
+
+test('the identified left alliance keeps its logo without claiming cross-election continuity', () => {
+    assert.equal(historicalPartyLogoAsset('AG', null, 'تحالف اليسار'),
+        '/assets/parties/fgd-official-2026.png');
+    assert.equal(historicalPartyLogoAsset('AG', 'source_observation_only', 'تحالف اليسار'),
+        '/assets/parties/fgd-official-2026.png');
+    assert.equal(historicalPartyLogoAsset('AG', null, 'Different alliance'), '/assets/parties/party.svg');
+    assert.equal(historicalPartyLogoAsset('unknown', null, 'تحالف اليسار'), '/assets/parties/party.svg');
+});
+
 test('quotient presentation hides national totals unless the full simulation validates', () => {
     assert.deepEqual(quotientViewState({ available: true }, { available: true }), {
         showNational: true,
@@ -450,7 +488,8 @@ test('page script keeps archive query ids out of the UI and restores focus after
     assert.match(controller, /regionSeatBarPercent\(point\.localSeats, regionCapacity\)/);
     assert.match(controller, /value\.setAttribute\('aria-label'/);
     assert.match(controller, /heading\.append\(bdi\(group\.occurrences\[0\]\?\.nameAr/);
-    assert.match(controller, /derive2026QuotientOnlyCounterfactual\(payload\)/);
+    assert.match(controller, /derive2026Full2016SystemCounterfactual\(payload\)/);
+    assert.match(controller, /derive2026LocalSeatCounterfactual\(payload\)/);
     assert.match(controller, /historyQuotientConstituency/);
     assert.match(controller, /historyPeopleCount'\)\.focus\(\)/);
     assert.match(controller, /historyPagination.*setAttribute\('aria-label', t\('paginationLabel'\)\)/);

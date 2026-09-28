@@ -1,8 +1,10 @@
 (function (root, factory) {
-    const insights = factory();
+    const backfill = typeof module === 'object' && module.exports
+        ? require('./historical-affiliation-backfill.js') : root.FhemniHistoricalAffiliationBackfill;
+    const insights = factory(backfill);
     if (typeof module === 'object' && module.exports) module.exports = insights;
     else root.FhemniHistoricalElectionInsights = insights;
-})(typeof globalThis === 'undefined' ? this : globalThis, function () {
+})(typeof globalThis === 'undefined' ? this : globalThis, function (backfill) {
     const EXPECTED_YEARS = [2016, 2021, 2026];
     const TOTAL_SEATS = 395;
     const LOCAL_SEATS = 305;
@@ -99,6 +101,7 @@
             ...occurrence,
             canonicalComparisonKey: canonicalKey,
             canonicalAbbreviation: metadata.abbreviation,
+            partyNameAr: metadata.nameAr,
             continuityBasis: metadata.continuityBasis
         };
     }
@@ -862,9 +865,22 @@
             ({ normalizedName, evidenceStatus: 'name_match_only', occurrences })) };
     }
 
-    function scopedNameGroups(payload, scope) {
-        if (scope === 'candidates') return candidateNameGroups(payload);
+    function scopedNameGroups(payload, scope, options = {}, fromYear, toYear) {
+        if (scope === 'candidates') {
+            const source = candidateNameGroups(payload);
+            if (source.diagnostics.length || !options.backfill) return source;
+            return backfill.augmentGroups(payload, source.groups, options.backfill, fromYear, toYear, scope);
+        }
         if (scope && scope !== 'elected') return { diagnostics: ['candidate-scope'], groups: [] };
+        if (options.backfill) {
+            const groups = new Map();
+            for (const row of payload.elected) {
+                if (!groups.has(row.normalizedName)) groups.set(row.normalizedName,
+                    { normalizedName: row.normalizedName, evidenceStatus: 'name_match_only', occurrences: [] });
+                groups.get(row.normalizedName).occurrences.push({ ...row, elected: true });
+            }
+            return backfill.augmentGroups(payload, [...groups.values()], options.backfill, fromYear, toYear, 'elected');
+        }
         return { diagnostics: [], groups: records(payload.repeatedNames).map(group => ({ ...group,
             occurrences: group.occurrences.map(row => ({ ...row, elected: true })) })) };
     }
@@ -884,7 +900,7 @@
             pair.fromYear === from && pair.toYear === to);
         if (!supported) return unavailable({ diagnostics: ['year-pair'] },
             { rows: [], totalRows: 0, page: 1, pageCount: 0, pageSize: PAGE_SIZE });
-        const source = scopedNameGroups(payload, options.scope);
+        const source = scopedNameGroups(payload, options.scope, options, from, to);
         if (source.diagnostics.length) return unavailable(source,
             { rows: [], totalRows: 0, page: 1, pageCount: 0, pageSize: PAGE_SIZE });
         const query = normalize(options.query);
@@ -898,7 +914,7 @@
         });
         const filtered = scoped.filter(group => {
             const searchable = [group.normalizedName,
-                ...group.occurrences.flatMap(row => [row.nameAr, row.abbreviation, row.constituencyNameAr])];
+                ...group.occurrences.flatMap(row => [row.nameAr, row.abbreviation, row.partyNameAr, row.constituencyNameAr])];
             const differentLabels = comparableMovement(group.occurrences);
             return (!query || searchable.some(value => normalize(value).includes(query)))
                 && (!options.differentPartyLabelsOnly || differentLabels);
@@ -922,7 +938,7 @@
         const supported = listValidYearPairs(payload).pairs.some(pair =>
             pair.fromYear === from && pair.toYear === to);
         if (!supported) return unavailable({ diagnostics: ['year-pair'] }, empty);
-        const source = scopedNameGroups(payload, options.scope);
+        const source = scopedNameGroups(payload, options.scope, options, from, to);
         if (source.diagnostics.length) return unavailable(source, empty);
 
         const observations = new Map(records(payload.partyObservations).map(row =>
@@ -931,6 +947,10 @@
         const losses = new Map();
         const electedGains = new Map();
         const electedLosses = new Map();
+        const gainEvidence = new Map(), lossEvidence = new Map(), evidenceCounts = {};
+        const countEvidence = (counts, status) => { counts[status] = (counts[status] || 0) + 1; };
+        const evidenceStatus = counts => Object.keys(counts).length > 1
+            ? 'mixed_evidence' : Object.keys(counts)[0] || 'name_match_only';
         let totalMovements = 0;
         for (const group of source.groups) {
             const earlier = group.occurrences.filter(row => row.year === from);
@@ -949,6 +969,12 @@
             if (!earlierComparable || !laterComparable) continue;
             gains.set(laterKey, (gains.get(laterKey) || 0) + 1);
             losses.set(earlierKey, (losses.get(earlierKey) || 0) + 1);
+            const status = group.evidenceStatus || 'name_match_only';
+            if (!gainEvidence.has(laterKey)) gainEvidence.set(laterKey, {});
+            if (!lossEvidence.has(earlierKey)) lossEvidence.set(earlierKey, {});
+            countEvidence(gainEvidence.get(laterKey), status);
+            countEvidence(lossEvidence.get(earlierKey), status);
+            countEvidence(evidenceCounts, status);
             if (later[0].elected) {
                 electedGains.set(laterKey, (electedGains.get(laterKey) || 0) + 1);
                 electedLosses.set(earlierKey, (electedLosses.get(earlierKey) || 0) + 1);
@@ -958,7 +984,7 @@
 
         const limit = Number.isSafeInteger(Number(options.limit))
             ? Math.max(1, Number(options.limit)) : 5;
-        const rows = (counts, winners, year) => [...counts].map(([comparisonKey, count]) => {
+        const rows = (counts, winners, evidence, year) => [...counts].map(([comparisonKey, count]) => {
             const metadata = partyMetadata(payload, comparisonKey, year);
             return {
                 comparisonKey,
@@ -968,19 +994,21 @@
                 continuityBasis: metadata?.continuityBasis || null,
                 count,
                 laterElectedCount: winners.get(comparisonKey) || 0,
-                evidenceStatus: 'name_match_only'
+                evidenceStatus: evidenceStatus(evidence.get(comparisonKey)),
+                evidenceCounts: { ...evidence.get(comparisonKey) }
             };
         }).sort((left, right) => right.count - left.count
             || codepointOrder(left.partyNameAr, right.partyNameAr)
             || codepointOrder(left.comparisonKey, right.comparisonKey)).slice(0, limit);
-        const gainRows = rows(gains, electedGains, to);
-        const lossRows = rows(losses, electedLosses, from);
+        const gainRows = rows(gains, electedGains, gainEvidence, to);
+        const lossRows = rows(losses, electedLosses, lossEvidence, from);
         return {
             available: true,
             diagnostics: [],
             fromYear: from,
             toYear: to,
-            evidenceStatus: 'name_match_only',
+            evidenceStatus: evidenceStatus(evidenceCounts),
+            evidenceCounts,
             totalMovements,
             maximum: Math.max(0, ...gainRows.map(row => row.count), ...lossRows.map(row => row.count)),
             gains: gainRows,
