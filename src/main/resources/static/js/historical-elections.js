@@ -317,8 +317,7 @@
         logo.src = historicalPartyLogoAsset(abbreviation);
         logo.alt = '';
         logo.loading = 'lazy';
-        identity.append(logo, bdi(abbreviation || '—', 'history-party-code'),
-            bdi(nameAr, 'history-party-name'));
+        identity.append(logo, bdi(nameAr, 'history-party-name'));
         return identity;
     }
     function announce(message) { setText('historyStatus', message); }
@@ -462,7 +461,7 @@
         for (const party of payload.partyObservations) if (!seen.has(party.comparisonKey)) seen.set(party.comparisonKey, party);
         const parties = [...seen.values()].sort((a, b) => (latestSeats.get(b.comparisonKey) || 0) - (latestSeats.get(a.comparisonKey) || 0) || a.nameAr.localeCompare(b.nameAr, 'ar'));
         const select = byId('historyTrajectoryParty');
-        select.replaceChildren(...parties.map(party => option(party.comparisonKey, `${party.abbreviation || '—'} · ${party.nameAr}`)));
+        select.replaceChildren(...parties.map(party => option(party.comparisonKey, party.nameAr)));
         const resolution = resolveAvailableSelection(state.party, parties.map(party => party.comparisonKey));
         state.party = resolution.value;
         select.value = state.party;

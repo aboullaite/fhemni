@@ -600,8 +600,6 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .history-party-logo { display: block; flex: 0 0 auto; width: 34px; height: 34px; padding: 3px; border: 1px solid var(--line); border-radius: 9px; background: var(--white); object-fit: contain; }
 .history-party-identity.is-compact { display: inline-flex; }
 .history-party-identity.is-compact .history-party-logo { width: 28px; height: 28px; border-radius: 7px; }
-.history-party-identity.is-compact .history-party-code { min-width: 38px; min-height: 26px; font-size: 9px; }
-.history-party-code { display: inline-grid; flex: 0 0 auto; min-width: 44px; min-height: 30px; place-content: center; padding: 4px 7px; border-radius: 8px; background: var(--ink); color: var(--white); font-family: ui-sans-serif, sans-serif; font-size: 11px; font-weight: 850; direction: ltr; }
 .history-party-name { min-width: 0; overflow-wrap: anywhere; font-family: Tajawal, sans-serif; font-size: 13px; font-weight: 700; }
 .history-stacked-bars { display: grid; min-width: 0; gap: 6px; }
 .history-stacked-bar { display: grid; grid-template-columns: minmax(70px,auto) minmax(100px,1fr) 42px; align-items: center; gap: 9px; min-width: 0; }
@@ -713,7 +711,6 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .history-movement-row { display: grid; grid-template-columns: minmax(115px,.9fr) minmax(90px,1.1fr) 28px; align-items: center; gap: 9px; min-width: 0; }
 .history-movement-identity { display: flex; min-width: 0; align-items: center; gap: 7px; overflow: hidden; color: var(--ink); font-family: Tajawal, sans-serif; font-size: 11px; font-weight: 750; white-space: nowrap; }
 .history-movement-identity > bdi:last-child { overflow: hidden; text-overflow: ellipsis; }
-.history-movement-identity .history-party-code { min-width: 38px; min-height: 26px; font-size: 9px; }
 .history-movement-track { display: block; height: 12px; overflow: hidden; border-radius: 999px; background: rgba(19,44,43,.075); }
 .history-movement-track i { display: block; height: 100%; border-radius: inherit; background: var(--teal); }
 .history-movement-row.is-loss .history-movement-track i { background: var(--red); }

@@ -98,9 +98,9 @@ test('history page exposes the progressive comparison sections and accessible st
     assert.match(page, /<script src="\/js\/historical-election-insights\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-electoral-quotient\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-elections\.js[^>]*defer/);
-    assert.match(page, /\/css\/dist\.css\?v=20260928-3/);
+    assert.match(page, /\/css\/dist\.css\?v=20260928-4/);
     assert.match(page, /\/js\/historical-election-insights\.js\?v=20260928-1/);
-    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-3/);
+    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-4/);
 });
 
 test('current and historical election heroes cross-link with compact green actions', () => {
@@ -112,7 +112,7 @@ test('current and historical election heroes cross-link with compact green actio
 
     assert.match(currentPage,
         /class="election-hero-copy"[\s\S]*?id="electionHistoryLink"[^>]*class="priority-primary-button button-link election-history-link"/);
-    assert.match(currentPage, /\/css\/dist\.css\?v=20260928-3/);
+    assert.match(currentPage, /\/css\/dist\.css\?v=20260928-4/);
     assert.match(currentPage, /\/js\/election-results\.js\?v=20260928-1/);
     assert.match(currentController, /historyLink: 'قارن مع الانتخابات السابقة'/);
     assert.match(currentController, /historyLink: 'Comparer avec les élections précédentes'/);
@@ -392,6 +392,17 @@ test('page script keeps archive query ids out of the UI and restores focus after
     assert.match(controller, /result\.rows\.length \+ result\.notComparableRows\.length/);
     assert.match(controller, /function partyIdentity\(/);
     assert.match(controller, /history-party-logo/);
+});
+
+test('party identities use logos and official names without visible abbreviations', () => {
+    const controller = fs.readFileSync(controllerPath, 'utf8');
+    const css = fs.readFileSync(cssPath, 'utf8');
+
+    assert.doesNotMatch(controller, /history-party-code/);
+    assert.doesNotMatch(controller, /\$\{party\.abbreviation \|\| '—'\} · \$\{party\.nameAr\}/);
+    assert.match(controller, /identity\.append\(logo,\s*bdi\(nameAr, 'history-party-name'\)\)/);
+    assert.match(controller, /option\(party\.comparisonKey, party\.nameAr\)/);
+    assert.doesNotMatch(css, /\.history-party-code\s*\{/);
 });
 
 test('visible demographic evidence wraps inside the mobile viewport', () => {
