@@ -2,7 +2,6 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { pathToFileURL } = require('node:url');
 
 const {
     allocateLocalSeatsUnder2016Rules,
@@ -13,17 +12,11 @@ const {
 } = require('../../main/resources/static/js/historical-electoral-quotient.js');
 
 const repositoryRoot = path.join(__dirname, '../../..');
-const generatorUrl = pathToFileURL(path.join(repositoryRoot,
-    'scripts/elections/generate-historical-election-data.mjs')).href;
-const sourcePath = path.join(repositoryRoot,
-    'data/elections/history/morocco-legislative-results.json');
-const manifestPath = path.join(repositoryRoot, 'data/elections/history/manifest.json');
+const payloadPath = path.join(repositoryRoot,
+    'src/main/resources/static/data/elections/history.json');
 
 async function generatedPayload() {
-    const generator = await import(generatorUrl);
-    const source = JSON.parse(fs.readFileSync(sourcePath, 'utf8'));
-    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-    return generator.buildHistoricalPayload(source, manifest);
+    return JSON.parse(fs.readFileSync(payloadPath, 'utf8'));
 }
 
 test('2016 allocator applies the 3% threshold, eligible-vote quotient, and largest remainder exactly', () => {
