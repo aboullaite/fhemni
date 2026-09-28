@@ -795,6 +795,85 @@
         return { available: true, diagnostics: [], years: audit.years, dimension, rows };
     }
 
+    // This archive names every list head and every elected member, not every candidate
+    // on losing lists. Never describe this union as a census of political transfers.
+    function candidateNameGroups(payload) {
+        const rows = records(payload.candidateRecords);
+        const observations = observationIndex(payload);
+        const identity = row => `${row.year}:${row.constituencyId}:${row.partyId}:${row.normalizedName}`;
+        const elected = new Map(payload.elected.map(row => [identity(row), row]));
+        const seen = new Set();
+        const heads = new Set();
+        const totals = new Map();
+        const groups = new Map();
+        const diagnostics = [];
+        const counts = { 2016: 0, 2021: 0, 2026: 0 };
+        for (const row of rows) {
+            const observation = observations.get(`${row?.year}:${row?.partyId}`);
+            const id = row && identity(row);
+            const winner = elected.get(id);
+            if (!observation || seen.has(id) || !text(row?.nameAr)
+                    || row?.normalizedName !== row?.nameAr?.trim().replace(/\s+/g, ' ')
+                    || row.comparisonKey !== observation.comparisonKey
+                    || row.abbreviation !== observation.abbreviation
+                    || row.abbreviationStatus !== ABBREVIATION_STATUS
+                    || !text(row.sourceQueryId) || !row.sourceQueryId.startsWith(`${row.year}:`)
+                    || !text(row.constituencyNameAr) || !text(row.constituencyId)
+                    || !['local', row.year === 2016 ? 'national' : 'regional'].includes(row.constituencyType)
+                    || row.factStatus !== REPORTED_FACT_STATUS
+                    || typeof row.listHead !== 'boolean' || typeof row.elected !== 'boolean'
+                    || row.elected !== Boolean(winner)
+                    || (winner && (row.electedId !== winner.electedId
+                        || row.sourceQueryId !== winner.sourceQueryId))
+                    || (!row.listHead && !winner)) {
+                addDiagnostic(diagnostics, 'candidate-records');
+            }
+            if (!row) continue;
+            seen.add(id);
+            if (row.listHead) {
+                const headKey = `${row.year}:${row.constituencyId}:${row.partyId}`;
+                if (heads.has(headKey) || !integer(row.listVotes) || !integer(row.listSeats)
+                        || row.elected !== (row.listSeats > 0)) addDiagnostic(diagnostics, 'candidate-list-heads');
+                heads.add(headKey);
+                counts[row.year] += 1;
+                const tallyKey = `${row.year}:${row.partyId}:${row.constituencyType}`;
+                const tally = totals.get(tallyKey) || { votes: 0, seats: 0 };
+                tally.votes += row.listVotes;
+                tally.seats += row.listSeats;
+                totals.set(tallyKey, tally);
+            } else if (row.listVotes !== null || row.listSeats !== null) {
+                addDiagnostic(diagnostics, 'candidate-list-heads');
+            }
+            const group = groups.get(row.normalizedName) || [];
+            group.push(row);
+            groups.set(row.normalizedName, group);
+        }
+        if (counts[2016] !== 1407 || counts[2021] !== 1705 || counts[2026] !== 1847
+                || [...elected.keys()].some(id => !seen.has(id))) addDiagnostic(diagnostics, 'candidate-coverage');
+        for (const party of payload.nationalPartyResults) {
+            for (const ballot of party.ballotVotes) {
+                const tally = totals.get(`${party.year}:${party.partyId}:${ballot.type}`) || { votes: 0, seats: 0 };
+                if (tally.votes !== ballot.votes || tally.seats !== ballot.seats) {
+                    addDiagnostic(diagnostics, 'candidate-ballot-totals');
+                }
+            }
+        }
+        return { diagnostics, groups: diagnostics.length ? [] : [...groups].map(([normalizedName, occurrences]) =>
+            ({ normalizedName, evidenceStatus: 'name_match_only', occurrences })) };
+    }
+
+    function scopedNameGroups(payload, scope) {
+        if (scope === 'candidates') return candidateNameGroups(payload);
+        if (scope && scope !== 'elected') return { diagnostics: ['candidate-scope'], groups: [] };
+        return { diagnostics: [], groups: records(payload.repeatedNames).map(group => ({ ...group,
+            occurrences: group.occurrences.map(row => ({ ...row, elected: true })) })) };
+    }
+
+    function comparableMovement(occurrences) {
+        return occurrences.length === 2 && occurrences.every(row => isComparableBasis(row.continuityBasis))
+            && occurrences[0].canonicalComparisonKey !== occurrences[1].canonicalComparisonKey;
+    }
+
     function deriveRepeatedNameGroups(payload, fromYear, toYear, options = {}) {
         const audit = auditHistoricalPayload(payload);
         if (!audit.available) return unavailable(audit,
@@ -805,8 +884,11 @@
             pair.fromYear === from && pair.toYear === to);
         if (!supported) return unavailable({ diagnostics: ['year-pair'] },
             { rows: [], totalRows: 0, page: 1, pageCount: 0, pageSize: PAGE_SIZE });
+        const source = scopedNameGroups(payload, options.scope);
+        if (source.diagnostics.length) return unavailable(source,
+            { rows: [], totalRows: 0, page: 1, pageCount: 0, pageSize: PAGE_SIZE });
         const query = normalize(options.query);
-        const scoped = records(payload.repeatedNames).flatMap(group => {
+        const scoped = source.groups.flatMap(group => {
             const occurrences = group.occurrences.filter(row => row.year === from || row.year === to)
                 .map(row => comparisonOccurrence(payload, row));
             const earlier = occurrences.filter(row => row.year === from);
@@ -817,8 +899,7 @@
         const filtered = scoped.filter(group => {
             const searchable = [group.normalizedName,
                 ...group.occurrences.flatMap(row => [row.nameAr, row.abbreviation, row.constituencyNameAr])];
-            const differentLabels = new Set(group.occurrences.map(row =>
-                row.canonicalComparisonKey)).size > 1;
+            const differentLabels = comparableMovement(group.occurrences);
             return (!query || searchable.some(value => normalize(value).includes(query)))
                 && (!options.differentPartyLabelsOnly || differentLabels);
         }).sort((left, right) => codepointOrder(left.normalizedName, right.normalizedName));
@@ -841,13 +922,17 @@
         const supported = listValidYearPairs(payload).pairs.some(pair =>
             pair.fromYear === from && pair.toYear === to);
         if (!supported) return unavailable({ diagnostics: ['year-pair'] }, empty);
+        const source = scopedNameGroups(payload, options.scope);
+        if (source.diagnostics.length) return unavailable(source, empty);
 
         const observations = new Map(records(payload.partyObservations).map(row =>
             [`${row.year}:${row.comparisonKey}`, row]));
         const gains = new Map();
         const losses = new Map();
+        const electedGains = new Map();
+        const electedLosses = new Map();
         let totalMovements = 0;
-        for (const group of records(payload.repeatedNames)) {
+        for (const group of source.groups) {
             const earlier = group.occurrences.filter(row => row.year === from);
             const later = group.occurrences.filter(row => row.year === to);
             const earlierKey = earlier.length === 1
@@ -864,12 +949,16 @@
             if (!earlierComparable || !laterComparable) continue;
             gains.set(laterKey, (gains.get(laterKey) || 0) + 1);
             losses.set(earlierKey, (losses.get(earlierKey) || 0) + 1);
+            if (later[0].elected) {
+                electedGains.set(laterKey, (electedGains.get(laterKey) || 0) + 1);
+                electedLosses.set(earlierKey, (electedLosses.get(earlierKey) || 0) + 1);
+            }
             totalMovements += 1;
         }
 
         const limit = Number.isSafeInteger(Number(options.limit))
             ? Math.max(1, Number(options.limit)) : 5;
-        const rows = (counts, year) => [...counts].map(([comparisonKey, count]) => {
+        const rows = (counts, winners, year) => [...counts].map(([comparisonKey, count]) => {
             const metadata = partyMetadata(payload, comparisonKey, year);
             return {
                 comparisonKey,
@@ -878,13 +967,14 @@
                 abbreviationStatus: metadata?.abbreviationStatus || null,
                 continuityBasis: metadata?.continuityBasis || null,
                 count,
+                laterElectedCount: winners.get(comparisonKey) || 0,
                 evidenceStatus: 'name_match_only'
             };
         }).sort((left, right) => right.count - left.count
             || codepointOrder(left.partyNameAr, right.partyNameAr)
             || codepointOrder(left.comparisonKey, right.comparisonKey)).slice(0, limit);
-        const gainRows = rows(gains, to);
-        const lossRows = rows(losses, from);
+        const gainRows = rows(gains, electedGains, to);
+        const lossRows = rows(losses, electedLosses, from);
         return {
             available: true,
             diagnostics: [],
