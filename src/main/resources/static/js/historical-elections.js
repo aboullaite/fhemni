@@ -37,7 +37,7 @@
             ballotsCard: 'بنية المقاعد والأصوات', localBallot: 'الدوائر المحلية', nationalBallot: 'اللائحة الوطنية', regionalBallot: 'اللوائح الجهوية', ballotsNotVoters: 'الأصوات ديال كل ورقة اقتراع معروضة بوحدها؛ ماشي مجموع المصوتين.', seats: 'مقاعد', ballots: 'صوت',
             partiesKicker: 'الرابحين والخاسرين', partiesTitle: 'تغيّر مقاعد الأحزاب', partiesIntro: 'كل سطر كيقارن جوج الانتخابات: المحلي ومقاعد اللائحة بالألوان، والمجموع هو الرقم الرئيسي. كنقارنو التسميات الرسمية كيف نشرها المصدر؛ الأحزاب والتحالفات المختلفة ما كندمجوش بينها.',
             measure: 'المقياس', measureLocal: 'المقاعد المحلية', measureTotal: 'مجموع المقاعد', measureList: 'مقاعد اللائحة', partySearch: 'قلب على حزب', partySearchPlaceholder: 'الاسم الرسمي أو الاختصار', sort: 'الترتيب', sortDeltaDesc: 'أكبر زيادة', sortDeltaAsc: 'أكبر نقصان', sortLater: 'الأكثر فالسنة اللاحقة', sortName: 'الاسم',
-            measureLocalCaveat: 'المجموع هو المقياس الافتراضي؛ المقاعد المحلية هي الأكثر تجانساً بين السنوات.', measureTotalCaveat: 'المجموع كيجمع 305 مقعد محلي و90 مقعد من اللوائح الجهوية فكل سنة.', measureTotalChangedCaveat: 'مجموع المقاعد قابل للحساب، ولكن النظام تبدّل: 2016 فيها 90 مقعد من اللائحة الوطنية، و2021 و2026 فيهم 90 مقعد من اللوائح الجهوية.', measureListCaveat: '2021 و2026 كيستعملو لوائح جهوية قابلة للمقارنة وطنياً.', listUnavailable: 'مقاعد اللائحة ما متاحاش فمقارنة فيها 2016، حيت كانت لائحة وطنية ماشي لوائح جهوية.', noPartyResults: 'ما لقينا حتى حزب بهاد البحث.', partyNotComparableTitle: 'ما كيتقارنووش مباشرة', partyNotComparableIntro: 'تسميات باينة غير فانتخابات وحدة أو بلا استمرارية متحقق منها؛ ما كنحسبوهاش ضمن الربح والخسارة.', showAll: 'بين جميع الأحزاب ({count})', showLess: 'بين غير الأبرز', exactFigures: 'الأرقام المضبوطة', exactCaption: 'المقاعد لكل حزب حسب الاختيار', party: 'الحزب أو اللائحة', earlier: 'قبل', later: 'من بعد', change: 'التغيّر', unchanged: 'بلا تغيير',
+            measureLocalCaveat: 'المجموع هو المقياس الافتراضي؛ المقاعد المحلية هي الأكثر تجانساً بين السنوات.', measureTotalCaveat: 'المجموع كيجمع 305 مقعد محلي و90 مقعد من اللوائح الجهوية فكل سنة.', measureTotalChangedCaveat: 'مجموع المقاعد قابل للحساب، ولكن النظام تبدّل: 2016 فيها 90 مقعد من اللائحة الوطنية، و2021 و2026 فيهم 90 مقعد من اللوائح الجهوية.', measureListCaveat: '2021 و2026 كيستعملو لوائح جهوية قابلة للمقارنة وطنياً.', listUnavailable: 'مقاعد اللائحة ما متاحاش فمقارنة فيها 2016، حيت كانت لائحة وطنية ماشي لوائح جهوية.', noPartyResults: 'ما لقينا حتى حزب بهاد البحث.', showAll: 'بين جميع الأحزاب ({count})', showLess: 'بين غير الأبرز', exactFigures: 'الأرقام المضبوطة', exactCaption: 'المقاعد لكل حزب حسب الاختيار', party: 'الحزب أو اللائحة', earlier: 'قبل', later: 'من بعد', change: 'التغيّر', unchanged: 'بلا تغيير',
             trajectoryKicker: 'ثلاث محطات', trajectoryTitle: 'مسار حزب عبر جميع الانتخابات', trajectoryIntro: 'اختار حزب أو لائحة وشوف المقاعد المحلية، مقاعد اللائحة الوطنية أو الجهوية، والمجموع فكل سنة متاحة.', trajectoryParty: 'الحزب أو اللائحة', totalSeats: 'المجموع', localSeats: 'محلية', listSeats: 'اللائحة', nationalListSeats: 'اللائحة الوطنية', regionalListSeats: 'اللوائح الجهوية', notObserved: 'ما بانش فالسجل الكامل لهاد السنة', sourceLabelOnly: 'الاستمرارية مبنية على نفس الاسم الرسمي بالضبط؛ التحالفات المختلفة ما كتندمجش.',
             quotientKicker: 'محاكاة مضادة للواقع', quotientTitle: 'واش القاسم الانتخابي القديم كان غادي يبدّل النتيجة؟', quotientIntro: 'المقاعد الرسمية ديال 2026 تحسبات بقاسم مبني على عدد المسجلين. فهاد المحاكاة كنطبقو قواعد 2016 على أصوات الدوائر المحلية: عتبة 3%، قاسم أصوات اللوائح المؤهلة، ومن بعد أكبر البقايا.', quotientWarning: 'هادشي محاكاة مضادة للواقع من فهّمني، ماشي نتيجة رسمية. سيناريو 395 مقعد كيجمع اللائحة الجهوية فمسابقة وحدة من 90 مقعد، بينما لائحة 2016 كانت قانونياً مقسومة 60 + 30.', quotientUnavailable: 'المحاكاة ما متاحاش حيت التحقق من قواعد 2016 ولا معطيات الدوائر ما دازش. ما اخترنا حتى فائز آلياً.', quotientValidationTitle: 'اختبار المقاعد المحلية', quotientValidationValue: '{constituencies}/92 دائرة · {seats}/305 مقعد', quotientValidationDetail: 'نفس القواعد رجعات التوزيع الرسمي المحلي ديال 2016 بالضبط، بلا حتى تعادل غير محسوم.', quotientListValidationTitle: 'اختبار اللائحة الوطنية', quotientListValidationValue: '{parties}/24 لائحة · {seats}/90 مقعد', quotientListValidationDetail: 'نفس القواعد رجعات توزيع اللائحة الوطنية الرسمي ديال 2016 بالضبط.', quotientPartyTitle: 'الفرق فمجموع المقاعد', quotientPartyIntro: 'كل خط كيبين المحلي ومقاعد اللائحة بالألوان، والرقم فالطرف هو المجموع. كنبينو غير الأحزاب اللي تبدّل ليها المجموع.', quotientOfficial: 'رسمي 2026', quotientSimulated: 'بقواعد 2016', quotientDelta: 'الفرق', quotientAllParties: 'المحلي والجهوي/الوطني والمجموع', quotientAllPartiesCaption: 'تفصيل المقاعد الرسمية والمحاكية لكل حزب', quotientOfficialLocal: 'محلي رسمي', quotientSimulatedLocal: 'محلي محاكى', quotientOfficialRegional: 'جهوي رسمي', quotientSimulatedNational: 'وطني مفترض', quotientOfficialTotal: 'المجموع الرسمي', quotientSimulatedTotal: 'المجموع المحاكى', quotientConstituencyTitle: 'شوف الحساب داخل دائرة', quotientConstituency: 'الدائرة المحلية', quotientAllocatedSeats: 'المقاعد الموزعة', quotientTotalVotes: 'الأصوات الصحيحة', quotientEligibleVotes: 'أصوات اللوائح المؤهلة', quotientValue: 'القاسم الانتخابي', quotientThreshold: 'عتبة التأهل', quotientVotes: 'الأصوات', quotientEligible: 'مؤهلة', quotientFirstPass: 'المقاعد بالقاسم', quotientRemainder: 'الباقي', quotientRemainderSeat: 'مقعد بأكبر البقايا', quotientOfficialSeats: 'المقاعد الرسمية', quotientSimulatedSeats: 'المقاعد المحاكية', yes: 'نعم', no: 'لا',
             regionsKicker: 'فين وقع التغيّر', regionsTitle: 'مقارنة الجهات', regionsIntro: 'تكوين المقاعد المحلية فكل جهة عبر السنوات الثلاث.', region: 'الجهة', regionCaveat: 'مقارنة الجهات كتستعمل المقاعد المحلية فقط. لائحة 2016 الوطنية ما يمكنش نوزعوها على الجهات.', regionEmpty: 'ما كايناش مقارنة متاحة لهاد الجهة.',
@@ -56,7 +56,7 @@
             ballotsCard: 'Structure des sièges et bulletins', localBallot: 'Circonscriptions locales', nationalBallot: 'Liste nationale', regionalBallot: 'Listes régionales', ballotsNotVoters: 'Les voix de chaque bulletin restent séparées ; leur somme ne représente pas des électeurs uniques.', seats: 'sièges', ballots: 'voix',
             partiesKicker: 'Gains et pertes', partiesTitle: 'Évolution des sièges par parti', partiesIntro: 'Chaque ligne compare deux scrutins : sièges locaux et de liste en couleurs, total mis en évidence. Les libellés officiels sont comparés tels que publiés ; les partis et alliances distincts ne sont pas fusionnés.',
             measure: 'Mesure', measureLocal: 'Sièges locaux', measureTotal: 'Tous les sièges', measureList: 'Sièges de liste', partySearch: 'Rechercher un parti', partySearchPlaceholder: 'Nom officiel ou sigle', sort: 'Trier', sortDeltaDesc: 'Plus fortes hausses', sortDeltaAsc: 'Plus fortes baisses', sortLater: 'Plus de sièges ensuite', sortName: 'Nom',
-            measureLocalCaveat: 'Le total des sièges est la mesure par défaut ; les sièges locaux sont les plus homogènes entre les années.', measureTotalCaveat: 'Le total réunit 305 sièges locaux et 90 sièges de listes régionales pour chaque année.', measureTotalChangedCaveat: 'Le total reste calculable, mais le système change : 90 sièges de liste nationale en 2016 contre 90 sièges de listes régionales en 2021 et 2026.', measureListCaveat: 'Les scrutins de 2021 et 2026 utilisent des listes régionales comparables au niveau national.', listUnavailable: 'Les sièges de liste sont indisponibles pour une comparaison avec 2016 : ce scrutin utilisait une liste nationale, pas des listes régionales.', noPartyResults: 'Aucun parti ne correspond à cette recherche.', partyNotComparableTitle: 'Non directement comparables', partyNotComparableIntro: 'Libellés observés dans un seul scrutin ou sans continuité vérifiée ; ils sont exclus des gains et pertes signés.', showAll: 'Afficher tous les partis ({count})', showLess: 'Afficher les principaux', exactFigures: 'Chiffres exacts', exactCaption: 'Sièges par parti selon la vue', party: 'Parti ou liste', earlier: 'Avant', later: 'Après', change: 'Écart', unchanged: 'Inchangé',
+            measureLocalCaveat: 'Le total des sièges est la mesure par défaut ; les sièges locaux sont les plus homogènes entre les années.', measureTotalCaveat: 'Le total réunit 305 sièges locaux et 90 sièges de listes régionales pour chaque année.', measureTotalChangedCaveat: 'Le total reste calculable, mais le système change : 90 sièges de liste nationale en 2016 contre 90 sièges de listes régionales en 2021 et 2026.', measureListCaveat: 'Les scrutins de 2021 et 2026 utilisent des listes régionales comparables au niveau national.', listUnavailable: 'Les sièges de liste sont indisponibles pour une comparaison avec 2016 : ce scrutin utilisait une liste nationale, pas des listes régionales.', noPartyResults: 'Aucun parti ne correspond à cette recherche.', showAll: 'Afficher tous les partis ({count})', showLess: 'Afficher les principaux', exactFigures: 'Chiffres exacts', exactCaption: 'Sièges par parti selon la vue', party: 'Parti ou liste', earlier: 'Avant', later: 'Après', change: 'Écart', unchanged: 'Inchangé',
             trajectoryKicker: 'Trois étapes', trajectoryTitle: 'Trajectoire d’un parti sur tous les scrutins', trajectoryIntro: 'Choisissez un parti ou une liste pour voir les sièges locaux, de liste nationale ou régionale, et totaux à chaque scrutin disponible.', trajectoryParty: 'Parti ou liste', totalSeats: 'Total', localSeats: 'Locaux', listSeats: 'Liste', nationalListSeats: 'Liste nationale', regionalListSeats: 'Listes régionales', notObserved: 'Non observé dans la liste exhaustive de cette année', sourceLabelOnly: 'La continuité repose sur le même libellé source exact ; les alliances distinctes ne sont pas fusionnées.',
             quotientKicker: 'Simulation contrefactuelle', quotientTitle: 'Quel effet aurait eu l’ancien quotient électoral ?', quotientIntro: 'La répartition officielle de 2026 repose sur un quotient calculé à partir des électeurs inscrits. Ici, nous appliquons aux voix locales les règles de 2016 : seuil de 3 %, voix des listes éligibles, puis plus forts restes.', quotientWarning: 'Il s’agit d’une simulation contrefactuelle de Fhemni, pas d’un résultat officiel. Le scénario à 395 sièges agrège les listes régionales en un seul scrutin de 90 sièges, alors que la liste nationale de 2016 comportait légalement deux sections séparées de 60 + 30.', quotientUnavailable: 'La simulation est indisponible car la validation des règles de 2016 ou des données locales a échoué. Aucun gagnant n’est choisi automatiquement.', quotientValidationTitle: 'Validation des sièges locaux', quotientValidationValue: '{constituencies}/92 circonscriptions · {seats}/305 sièges', quotientValidationDetail: 'Les mêmes règles reproduisent exactement la répartition officielle locale de 2016, sans égalité non résolue.', quotientListValidationTitle: 'Validation de la liste nationale', quotientListValidationValue: '{parties}/24 listes · {seats}/90 sièges', quotientListValidationDetail: 'Les mêmes règles reproduisent exactement la répartition officielle de la liste nationale de 2016.', quotientPartyTitle: 'Écart du total des sièges', quotientPartyIntro: 'Chaque barre colore les sièges locaux et de liste ; le nombre final est le total. Seuls les partis dont le total change sont affichés.', quotientOfficial: 'Officiel 2026', quotientSimulated: 'Règles de 2016', quotientDelta: 'Écart', quotientAllParties: 'Local, régional/national et total', quotientAllPartiesCaption: 'Décomposition des sièges officiels et simulés par parti', quotientOfficialLocal: 'Local officiel', quotientSimulatedLocal: 'Local simulé', quotientOfficialRegional: 'Régional officiel', quotientSimulatedNational: 'National hypothétique', quotientOfficialTotal: 'Total officiel', quotientSimulatedTotal: 'Total simulé', quotientConstituencyTitle: 'Inspecter le calcul d’une circonscription', quotientConstituency: 'Circonscription locale', quotientAllocatedSeats: 'Sièges à répartir', quotientTotalVotes: 'Suffrages valides', quotientEligibleVotes: 'Voix des listes éligibles', quotientValue: 'Quotient électoral', quotientThreshold: 'Seuil d’éligibilité', quotientVotes: 'Voix', quotientEligible: 'Éligible', quotientFirstPass: 'Sièges au quotient', quotientRemainder: 'Reste', quotientRemainderSeat: 'Siège au plus fort reste', quotientOfficialSeats: 'Sièges officiels', quotientSimulatedSeats: 'Sièges simulés', yes: 'Oui', no: 'Non',
             regionsKicker: 'Où cela change', regionsTitle: 'Comparaison régionale', regionsIntro: 'Composition des sièges locaux de chaque région sur les trois scrutins.', region: 'Région', regionCaveat: 'La comparaison régionale utilise uniquement les sièges locaux. La liste nationale de 2016 ne peut pas être attribuée aux régions.', regionEmpty: 'Aucune comparaison disponible pour cette région.',
@@ -75,7 +75,7 @@
             ballotsCard: 'Seat and ballot structure', localBallot: 'Local constituencies', nationalBallot: 'National list', regionalBallot: 'Regional lists', ballotsNotVoters: 'Votes for each ballot stay separate; their sum is not a count of unique voters.', seats: 'seats', ballots: 'votes',
             partiesKicker: 'Gains and losses', partiesTitle: 'Party seat changes', partiesIntro: 'Each row compares two elections: local and list seats are colored segments, with the total emphasized. Official labels are compared as published; distinct parties and alliances are not merged.',
             measure: 'Measure', measureLocal: 'Local seats', measureTotal: 'All seats', measureList: 'List seats', partySearch: 'Search parties', partySearchPlaceholder: 'Official name or abbreviation', sort: 'Sort', sortDeltaDesc: 'Largest gains', sortDeltaAsc: 'Largest losses', sortLater: 'Most seats later', sortName: 'Name',
-            measureLocalCaveat: 'Total seats are the default measure; local seats are the most comparable across years.', measureTotalCaveat: 'The total combines 305 local seats and 90 regional-list seats in each election.', measureTotalChangedCaveat: 'Total seats remain countable, but the system changes: 90 national list seats in 2016 versus 90 regional list seats in 2021 and 2026.', measureListCaveat: 'The 2021 and 2026 elections use regional lists that are comparable at national level.', listUnavailable: 'List seats are unavailable for comparisons with 2016 because that election used a national list, not regional lists.', noPartyResults: 'No parties match this search.', partyNotComparableTitle: 'Not directly comparable', partyNotComparableIntro: 'Labels observed in only one election or without verified continuity are excluded from signed gains and losses.', showAll: 'Show all parties ({count})', showLess: 'Show leading parties', exactFigures: 'Exact figures', exactCaption: 'Seats by party for the selected view', party: 'Party or list', earlier: 'Earlier', later: 'Later', change: 'Change', unchanged: 'No change',
+            measureLocalCaveat: 'Total seats are the default measure; local seats are the most comparable across years.', measureTotalCaveat: 'The total combines 305 local seats and 90 regional-list seats in each election.', measureTotalChangedCaveat: 'Total seats remain countable, but the system changes: 90 national list seats in 2016 versus 90 regional list seats in 2021 and 2026.', measureListCaveat: 'The 2021 and 2026 elections use regional lists that are comparable at national level.', listUnavailable: 'List seats are unavailable for comparisons with 2016 because that election used a national list, not regional lists.', noPartyResults: 'No parties match this search.', showAll: 'Show all parties ({count})', showLess: 'Show leading parties', exactFigures: 'Exact figures', exactCaption: 'Seats by party for the selected view', party: 'Party or list', earlier: 'Earlier', later: 'Later', change: 'Change', unchanged: 'No change',
             trajectoryKicker: 'Three points in time', trajectoryTitle: 'One party across every election', trajectoryIntro: 'Choose a party or list to see local, national-list or regional-list, and total seats in every available election.', trajectoryParty: 'Party or list', totalSeats: 'Total', localSeats: 'Local', listSeats: 'List', nationalListSeats: 'National list', regionalListSeats: 'Regional lists', notObserved: 'Not observed in that year’s complete roster', sourceLabelOnly: 'Continuity uses the same exact official source label; distinct alliances are not merged.',
             quotientKicker: 'Counterfactual simulation', quotientTitle: 'What would the old electoral quotient have changed?', quotientIntro: 'The official 2026 allocation uses a quotient based on registered voters. Here we apply the 2016 rules to local votes: a 3% threshold, eligible-list votes, then largest remainders.', quotientWarning: 'This is a Fhemni counterfactual simulation, not an official result. The 395-seat scenario aggregates regional lists into one 90-seat contest, while the 2016 national list legally had separate 60 + 30 sections.', quotientUnavailable: 'The simulation is unavailable because the 2016 rule proof or local source data failed validation. No winner is selected automatically.', quotientValidationTitle: 'Local-seat validation', quotientValidationValue: '{constituencies}/92 constituencies · {seats}/305 seats', quotientValidationDetail: 'The same rules reproduce the official 2016 local allocation exactly, with no unresolved boundary ties.', quotientListValidationTitle: 'National-list validation', quotientListValidationValue: '{parties}/24 lists · {seats}/90 seats', quotientListValidationDetail: 'The same rules reproduce the official 2016 national-list allocation exactly.', quotientPartyTitle: 'Difference in total seats', quotientPartyIntro: 'Each bar colors local and list seats; the final number is the total. Only parties whose total changes are shown.', quotientOfficial: 'Official 2026', quotientSimulated: '2016 rules', quotientDelta: 'Difference', quotientAllParties: 'Local, regional/national, and total', quotientAllPartiesCaption: 'Official and simulated seat decomposition by party', quotientOfficialLocal: 'Official local', quotientSimulatedLocal: 'Simulated local', quotientOfficialRegional: 'Official regional', quotientSimulatedNational: 'Hypothetical national', quotientOfficialTotal: 'Official total', quotientSimulatedTotal: 'Simulated total', quotientConstituencyTitle: 'Inspect one constituency calculation', quotientConstituency: 'Local constituency', quotientAllocatedSeats: 'Seats allocated', quotientTotalVotes: 'Valid votes', quotientEligibleVotes: 'Eligible-list votes', quotientValue: 'Electoral quotient', quotientThreshold: 'Eligibility threshold', quotientVotes: 'Votes', quotientEligible: 'Eligible', quotientFirstPass: 'Quotient seats', quotientRemainder: 'Remainder', quotientRemainderSeat: 'Largest-remainder seat', quotientOfficialSeats: 'Official seats', quotientSimulatedSeats: 'Simulated seats', yes: 'Yes', no: 'No',
             regionsKicker: 'Where change happened', regionsTitle: 'Region comparison', regionsIntro: 'Local-seat composition in each region across all three elections.', region: 'Region', regionCaveat: 'Region comparisons use local seats only. The 2016 national list cannot be assigned to regions.', regionEmpty: 'No comparison is available for this region.',
@@ -267,15 +267,38 @@
     function historicalPartyLogoAsset(abbreviation, continuityBasis = null) {
         const code = String(abbreviation || '').trim().toUpperCase();
         if (EVIDENCE_GATED_PARTY_LOGOS.has(code)
-            && continuityBasis !== 'same_exact_source_label') {
+            && !['same_exact_source_label', 'verified_alliance_composition'].includes(continuityBasis)) {
             return '/assets/parties/party.svg';
         }
         const filename = PARTY_LOGO_ASSETS[code];
         return `/assets/parties/${filename || 'party.svg'}`;
     }
 
+    function repeatedNameTransition(group) {
+        const occurrences = Array.isArray(group?.occurrences)
+            ? [...group.occurrences].sort((left, right) => Number(left.year) - Number(right.year)) : [];
+        if (occurrences.length !== 2) return null;
+        const [earlier, later] = occurrences;
+        const continuityBasis = occurrence => String(occurrence.comparisonKey || '')
+            .startsWith('exact-source-label:') ? 'same_exact_source_label' : 'source_observation_only';
+        const fromParty = String(earlier.abbreviation || '—');
+        const toParty = String(later.abbreviation || '—');
+        return {
+            fromYear: Number(earlier.year),
+            toYear: Number(later.year),
+            fromParty,
+            toParty,
+            fromPartyLogo: historicalPartyLogoAsset(fromParty, continuityBasis(earlier)),
+            toPartyLogo: historicalPartyLogoAsset(toParty, continuityBasis(later)),
+            sameParty: earlier.comparisonKey === later.comparisonKey,
+            fromConstituency: String(earlier.constituencyNameAr || '—'),
+            toConstituency: String(later.constituencyNameAr || '—'),
+            sameConstituency: earlier.constituencyNameAr === later.constituencyNameAr
+        };
+    }
+
     if (!root.document || !root.addEventListener) {
-        return { COPY, readUrlState, writeUrlState, listMeasureAvailable, listSeatLabelKey, totalMeasureCaveatKey, partyBarPercent, partyBarMaximum, stackedSeatSeries, quotientViewState, demographicChartModel, createEvidenceStatusBadge, appendMethodologyLink, regionSeatBarPercent, seatSharePercent, resolveAvailableSelection, formatSigned, normalizeHistoryTab, historyTabIndex, historyTabPanelState, historicalPartyLogoAsset };
+        return { COPY, readUrlState, writeUrlState, listMeasureAvailable, listSeatLabelKey, totalMeasureCaveatKey, partyBarPercent, partyBarMaximum, stackedSeatSeries, quotientViewState, demographicChartModel, createEvidenceStatusBadge, appendMethodologyLink, regionSeatBarPercent, seatSharePercent, resolveAvailableSelection, formatSigned, normalizeHistoryTab, historyTabIndex, historyTabPanelState, historicalPartyLogoAsset, repeatedNameTransition };
     }
 
     const document = root.document;
@@ -388,7 +411,7 @@
             historyLoadingText: 'loading', historyErrorTitle: 'errorTitle', historyErrorText: 'errorText', historyRetry: 'retry',
             historyEyebrow: 'eyebrow', historyTitle: 'title', historyIntro: 'intro', historyCurrentResultsLink: 'currentResultsLink', historyPairTitle: 'pairTitle', historyFromLabel: 'from', historyToLabel: 'to',
             historyOverviewTitle: 'overviewTitle',
-            historyPartiesTitle: 'partiesTitle', historyPartySearchLabel: 'partySearch', historySortLabel: 'sort', historyMeasureTabsLabel: 'measure', historyPartyNotComparableTitle: 'partyNotComparableTitle', historyPartyNotComparableIntro: 'partyNotComparableIntro',
+            historyPartiesTitle: 'partiesTitle', historyPartySearchLabel: 'partySearch', historySortLabel: 'sort', historyMeasureTabsLabel: 'measure',
             historyTrajectoryTitle: 'trajectoryTitle', historyTrajectoryPartyLabel: 'trajectoryParty',
             historyQuotientTitle: 'quotientTitle', historyQuotientIntro: 'quotientIntro', historyQuotientWarning: 'quotientWarning', historyQuotientPartyTitle: 'quotientPartyTitle', historyQuotientPartyIntro: 'quotientPartyIntro', historyQuotientAllParties: 'quotientAllParties', historyQuotientAllPartiesCaption: 'quotientAllPartiesCaption', historyQuotientConstituencyTitle: 'quotientConstituencyTitle', historyQuotientConstituencyLabel: 'quotientConstituency', historyQuotientParty: 'party', historyQuotientOfficialLocal: 'quotientOfficialLocal', historyQuotientSimulatedLocal: 'quotientSimulatedLocal', historyQuotientOfficialRegional: 'quotientOfficialRegional', historyQuotientSimulatedNational: 'quotientSimulatedNational', historyQuotientOfficialTotal: 'quotientOfficialTotal', historyQuotientSimulatedTotal: 'quotientSimulatedTotal', historyQuotientDelta: 'quotientDelta', historyQuotientContestParty: 'party', historyQuotientVotes: 'quotientVotes', historyQuotientEligible: 'quotientEligible', historyQuotientFirstPass: 'quotientFirstPass', historyQuotientRemainder: 'quotientRemainder', historyQuotientRemainderSeat: 'quotientRemainderSeat', historyQuotientOfficialSeats: 'quotientOfficialSeats', historyQuotientSimulatedSeats: 'quotientSimulatedSeats',
             historyRegionsTitle: 'regionsTitle', historyRegionLabel: 'region', historyRegionCaveat: 'regionCaveat',
@@ -461,11 +484,12 @@
     }
 
     function populateTrajectoryParties() {
-        const latestYear = Math.max(...payload.elections.map(item => item.year));
-        const latestSeats = new Map(payload.nationalPartyResults.filter(row => row.year === latestYear).map(row => [row.comparisonKey, row.seats]));
-        const seen = new Map();
-        for (const party of payload.partyObservations) if (!seen.has(party.comparisonKey)) seen.set(party.comparisonKey, party);
-        const parties = [...seen.values()].sort((a, b) => (latestSeats.get(b.comparisonKey) || 0) - (latestSeats.get(a.comparisonKey) || 0) || a.nameAr.localeCompare(b.nameAr, 'ar'));
+        const years = payload.elections.map(item => item.year);
+        const comparison = insights.derivePartyDeltas(payload, Math.min(...years), Math.max(...years), {
+            showAll: true, sort: 'later-desc'
+        });
+        if (!comparison.available) throw new Error('trajectory parties unavailable');
+        const parties = comparison.rows;
         const select = byId('historyTrajectoryParty');
         select.replaceChildren(...parties.map(party => option(party.comparisonKey, party.nameAr)));
         const resolution = resolveAvailableSelection(state.party, parties.map(party => party.comparisonKey));
@@ -568,21 +592,6 @@
         return item;
     }
 
-    function notComparablePartyRow(row) {
-        const item = node('article', 'history-party-not-comparable-row');
-        const identity = partyIdentity(row.abbreviation, row.nameAr, '', row.continuityBasis);
-        const values = node('div', 'history-party-not-comparable-values');
-        for (const [year, seats] of [[state.from, row.earlier], [state.to, row.later]]) {
-            const observed = seats.status === 'present_in_complete_roster';
-            const value = observed ? number(measureValue(seats)) : '—';
-            const entry = node('span');
-            entry.append(bdi(year), bdi(value));
-            values.append(entry);
-        }
-        item.append(identity, values);
-        return item;
-    }
-
     function renderParties() {
         syncMeasureTabs();
         const result = insights.derivePartyDeltas(payload, Number(state.from), Number(state.to), {
@@ -596,12 +605,7 @@
         if (!scale.available) throw new Error('party scale unavailable');
         const maximum = Math.max(1, ...scale.rows.flatMap(row => [measureValue(row.earlier), measureValue(row.later)]));
         byId('historyPartyBars').replaceChildren(...result.rows.map(row => partyBar(row, maximum)));
-        const notComparable = byId('historyPartyNotComparable');
-        notComparable.hidden = result.notComparableRows.length === 0;
-        byId('historyPartyNotComparableRows').replaceChildren(
-            ...result.notComparableRows.map(notComparablePartyRow));
-        const totalMatchingRows = result.totalRows + result.notComparableTotalRows;
-        byId('historyPartyEmpty').hidden = totalMatchingRows !== 0;
+        byId('historyPartyEmpty').hidden = result.totalRows !== 0;
         setText('historyPartyEmpty', t('noPartyResults'));
         const showButton = byId('historyShowAll');
         showButton.hidden = result.totalRows <= 10;
@@ -630,8 +634,7 @@
             const delta = node('td'); delta.append(bdi(formatSigned(row.selectedDelta, locale)));
             tr.append(nameCell, earlier, later, delta); return tr;
         }));
-        const visibleRowCount = result.rows.length + result.notComparableRows.length;
-        announce(t('partyStatus', { count: number(visibleRowCount) }));
+        announce(t('partyStatus', { count: number(result.rows.length) }));
     }
 
     function renderTrajectory() {
@@ -850,16 +853,36 @@
         byId('historyDemographicContent').replaceChildren(charts);
     }
 
-    function occurrenceList(group, compact = false) {
-        const list = node(compact ? 'div' : 'ul', compact ? 'history-occurrence-cards' : 'history-occurrence-list');
-        for (const item of group.occurrences) {
-            const entry = node(compact ? 'article' : 'li');
-            entry.append(node('strong', '', String(item.year)),
-                partyIdentity(item.abbreviation, item.nameAr, 'is-compact', item.continuityBasis));
-            const place = node('span', '', `${t('constituency')}: ${item.constituencyNameAr}`); place.dir = 'auto'; entry.append(place);
-            list.append(entry);
+    function transitionParty(model, side) {
+        const party = node('span', 'history-party-transition-party');
+        const logo = node('img', 'history-party-logo');
+        logo.src = model[`${side}PartyLogo`];
+        logo.alt = '';
+        logo.loading = 'lazy';
+        party.append(logo, bdi(model[`${side}Party`], 'history-party-transition-code'));
+        return party;
+    }
+
+    function occurrenceTransition(group) {
+        const model = repeatedNameTransition(group);
+        const wrapper = node('div', 'history-occurrence-transition');
+        if (!model) return wrapper;
+        const transition = node('div', `history-party-transition${model.sameParty ? ' is-unchanged' : ''}`);
+        transition.dir = 'ltr';
+        transition.setAttribute('aria-label', `${model.fromYear} ${model.fromParty} → ${model.toYear} ${model.toParty}`);
+        transition.append(transitionParty(model, 'from'));
+        if (!model.sameParty) {
+            const arrow = node('span', 'history-party-transition-arrow', '→');
+            arrow.setAttribute('aria-hidden', 'true');
+            transition.append(arrow, transitionParty(model, 'to'));
         }
-        return list;
+        const place = node('span', 'history-transition-constituency');
+        place.dir = 'auto';
+        place.textContent = model.sameConstituency
+            ? `${t('constituency')}: ${model.fromConstituency}`
+            : `${t('constituency')}: ${model.fromConstituency} → ${model.toConstituency}`;
+        wrapper.append(transition, place);
+        return wrapper;
     }
 
     function movementBar(row, maximum, kind) {
@@ -901,14 +924,14 @@
         byId('historyPeopleCards').hidden = result.totalRows === 0;
         byId('historyPeopleBody').replaceChildren(...result.rows.map(group => {
             const tr = node('tr'); const nameCell = node('th'); nameCell.scope = 'row'; nameCell.append(bdi(group.occurrences[0]?.nameAr || group.normalizedName));
-            const records = node('td'); records.append(occurrenceList(group));
+            const records = node('td'); records.append(occurrenceTransition(group));
             const evidence = node('td'); evidence.append(createEvidenceStatusBadge(document, t('nameMatchOnly')));
             tr.append(nameCell, records, evidence); return tr;
         }));
         byId('historyPeopleCards').replaceChildren(...result.rows.map(group => {
             const article = node('article', 'history-person-card');
             const heading = node('h3'); heading.append(bdi(group.occurrences[0]?.nameAr || group.normalizedName));
-            article.append(heading, createEvidenceStatusBadge(document, t('nameMatchOnly')), occurrenceList(group, true)); return article;
+            article.append(heading, createEvidenceStatusBadge(document, t('nameMatchOnly')), occurrenceTransition(group)); return article;
         }));
         const pageStatus = result.totalRows ? t('pageStatus', { page: number(result.page), pages: number(result.pageCount), start: number(start), end: number(end), total: number(result.totalRows) }) : t('emptyPageStatus');
         setText('historyPeoplePageStatus', pageStatus);
@@ -1035,5 +1058,5 @@
     }
 
     document.addEventListener('DOMContentLoaded', init);
-    return { COPY, readUrlState, writeUrlState, listMeasureAvailable, listSeatLabelKey, totalMeasureCaveatKey, partyBarPercent, partyBarMaximum, stackedSeatSeries, quotientViewState, demographicChartModel, createEvidenceStatusBadge, appendMethodologyLink, regionSeatBarPercent, seatSharePercent, resolveAvailableSelection, formatSigned, normalizeHistoryTab, historyTabIndex, historyTabPanelState, historicalPartyLogoAsset };
+    return { COPY, readUrlState, writeUrlState, listMeasureAvailable, listSeatLabelKey, totalMeasureCaveatKey, partyBarPercent, partyBarMaximum, stackedSeatSeries, quotientViewState, demographicChartModel, createEvidenceStatusBadge, appendMethodologyLink, regionSeatBarPercent, seatSharePercent, resolveAvailableSelection, formatSigned, normalizeHistoryTab, historyTabIndex, historyTabPanelState, historicalPartyLogoAsset, repeatedNameTransition };
 });

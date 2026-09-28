@@ -19,6 +19,26 @@
         'https://www.elections.ma/elections/legislatives/resultats.aspx?Id=T1uzm+f7U/WFF+rn+x03Zg==&IE=1',
         'https://www.elections.ma/elections/legislatives/resultats.aspx?Id=8waOZwF4QzhMMKY7yKQzGQ==&IE=1'
     ];
+    const VERIFIED_PARTY_COMPARISON_GROUPS = Object.freeze([Object.freeze({
+        comparisonKey: 'verified-alliance:left-alliance',
+        nameAr: 'تحالف اليسار',
+        abbreviation: 'AG',
+        continuityBasis: 'verified_alliance_composition',
+        members: Object.freeze({
+            2016: Object.freeze(['source:2016:party_c02711490e0c']),
+            2021: Object.freeze([
+                'source:2021:party_42efe2b85cd5',
+                'source:2021:party_ab8aeb368dd5'
+            ]),
+            2026: Object.freeze(['source:2026:party_39839add54a7'])
+        }),
+        searchTerms: Object.freeze([
+            'تحالف أحزاب فيدرالية اليسار الديمقراطي',
+            'تحالف فيدرالية اليسار',
+            'الحزب الاشتراكي الموحد',
+            'تحالف اليسار', 'FGD', 'PSU', 'AG'
+        ])
+    })]);
 
     function records(value) {
         return Array.isArray(value) ? value : [];
@@ -61,6 +81,19 @@
     function resultIndex(payload) {
         return new Map(records(payload?.nationalPartyResults).map(result =>
             [`${result?.year}:${result?.comparisonKey}`, result]));
+    }
+
+    function verifiedComparisonGroup(year, comparisonKey) {
+        return VERIFIED_PARTY_COMPARISON_GROUPS.find(group =>
+            records(group.members?.[year]).includes(comparisonKey));
+    }
+
+    function canonicalComparisonKey(year, comparisonKey) {
+        return verifiedComparisonGroup(year, comparisonKey)?.comparisonKey || comparisonKey;
+    }
+
+    function isComparableBasis(value) {
+        return value === 'same_exact_source_label' || value === 'verified_alliance_composition';
     }
 
     function observationIndex(payload) {
@@ -536,6 +569,18 @@
     }
 
     function partyMetadata(payload, comparisonKey, preferredYear) {
+        const group = VERIFIED_PARTY_COMPARISON_GROUPS.find(row => row.comparisonKey === comparisonKey);
+        if (group) {
+            return {
+                comparisonKey,
+                nameAr: group.nameAr,
+                abbreviation: group.abbreviation,
+                abbreviationStatus: ABBREVIATION_STATUS,
+                continuityBasis: group.continuityBasis,
+                comparisonFactStatus: ANALYSIS_FACT_STATUS,
+                searchTerms: group.searchTerms
+            };
+        }
         const observations = records(payload.partyObservations)
             .filter(row => row.comparisonKey === comparisonKey)
             .sort((left, right) => Math.abs(left.year - preferredYear)
@@ -548,6 +593,25 @@
             abbreviationStatus: observation.abbreviationStatus,
             continuityBasis: observation.continuityBasis,
             comparisonFactStatus: observation.comparisonFactStatus
+        };
+    }
+
+    function comparisonMeasures(payload, year, comparisonKey, election) {
+        const matching = records(payload.nationalPartyResults).filter(row => row.year === year
+            && canonicalComparisonKey(year, row.comparisonKey) === comparisonKey);
+        if (!matching.length) return absentMeasures(election);
+        const measures = matching.map(row => reportedMeasures(row, election));
+        const sumNullable = field => measures.every(row => row[field] !== null)
+            ? measures.reduce((total, row) => total + row[field], 0) : null;
+        return {
+            status: 'present_in_complete_roster',
+            totalSeats: measures.reduce((total, row) => total + row.totalSeats, 0),
+            localSeats: measures.reduce((total, row) => total + row.localSeats, 0),
+            listSeats: measures.reduce((total, row) => total + row.listSeats, 0),
+            listBallotType: election.capabilities.listBallotType,
+            localVotes: sumNullable('localVotes'),
+            listVotes: sumNullable('listVotes'),
+            factStatus: ANALYSIS_FACT_STATUS
         };
     }
 
@@ -589,19 +653,14 @@
             return unavailable({ diagnostics: ['list-ballot-type'] }, { rows: [], totalRows: 0,
                 pair: pair.pair, usedFallback: pair.usedFallback, measure, sort });
         }
-        const results = resultIndex(payload);
         const keys = new Set(records(payload.nationalPartyResults)
             .filter(row => row.year === pair.pair.fromYear || row.year === pair.pair.toYear)
-            .map(row => row.comparisonKey));
+            .map(row => canonicalComparisonKey(row.year, row.comparisonKey)));
         const allRows = [...keys].map(comparisonKey => {
-            const earlierResult = results.get(`${pair.pair.fromYear}:${comparisonKey}`);
-            const laterResult = results.get(`${pair.pair.toYear}:${comparisonKey}`);
-            const earlier = earlierResult
-                ? reportedMeasures(earlierResult, elections.get(pair.pair.fromYear))
-                : absentMeasures(elections.get(pair.pair.fromYear));
-            const later = laterResult
-                ? reportedMeasures(laterResult, elections.get(pair.pair.toYear))
-                : absentMeasures(elections.get(pair.pair.toYear));
+            const earlier = comparisonMeasures(payload, pair.pair.fromYear, comparisonKey,
+                elections.get(pair.pair.fromYear));
+            const later = comparisonMeasures(payload, pair.pair.toYear, comparisonKey,
+                elections.get(pair.pair.toYear));
             const delta = {
                 totalSeats: later.totalSeats - earlier.totalSeats,
                 localSeats: later.localSeats - earlier.localSeats,
@@ -611,17 +670,17 @@
                 selectedMeasure: measure, selectedDelta: delta[field] };
         });
         const query = normalize(options.query);
-        const filtered = query ? allRows.filter(row => [row.nameAr, row.abbreviation, row.comparisonKey]
+        const filtered = query ? allRows.filter(row => [row.nameAr, row.abbreviation, row.comparisonKey,
+            ...records(row.searchTerms)]
             .some(value => normalize(value).includes(query))) : allRows;
-        const comparable = filtered.filter(row => row.continuityBasis === 'same_exact_source_label');
+        const comparable = filtered.filter(row => isComparableBasis(row.continuityBasis));
         const notComparable = filtered.filter(row => row.continuityBasis === 'source_observation_only');
         const ordered = partyDeltaOrder(comparable, sort, measure);
         const orderedNotComparable = partyDeltaOrder(notComparable, 'name', measure);
         return { available: true, diagnostics: [], pair: pair.pair,
             usedFallback: pair.usedFallback, measure, sort,
             totalRows: ordered.length,
-            unfilteredTotalRows: allRows.filter(row =>
-                row.continuityBasis === 'same_exact_source_label').length,
+            unfilteredTotalRows: allRows.filter(row => isComparableBasis(row.continuityBasis)).length,
             notComparableTotalRows: orderedNotComparable.length,
             notComparableRows: orderedNotComparable,
             rows: options.showAll || query ? ordered : ordered.slice(0, 10) };
@@ -630,15 +689,13 @@
     function derivePartyTrajectory(payload, comparisonKey) {
         const audit = auditHistoricalPayload(payload);
         if (!audit.available) return unavailable(audit, { points: [] });
-        if (!records(payload.partyObservations).some(row => row.comparisonKey === comparisonKey)) {
+        if (!records(payload.partyObservations).some(row => row.comparisonKey === comparisonKey)
+                && !VERIFIED_PARTY_COMPARISON_GROUPS.some(row => row.comparisonKey === comparisonKey)) {
             return unavailable({ diagnostics: ['comparison-key'] }, { points: [] });
         }
         const elections = electionIndex(payload);
-        const results = resultIndex(payload);
         const points = audit.years.map(year => {
-            const result = results.get(`${year}:${comparisonKey}`);
-            const measures = result ? reportedMeasures(result, elections.get(year))
-                : absentMeasures(elections.get(year));
+            const measures = comparisonMeasures(payload, year, comparisonKey, elections.get(year));
             return { year, ...measures };
         });
         return { available: true, diagnostics: [],
@@ -653,13 +710,15 @@
         if (rowsByYear.some(row => !row)) {
             return unavailable({ diagnostics: ['region-id'] }, { rows: [], years: audit.years });
         }
-        const keys = new Set(rowsByYear.flatMap(row => row.parties.map(party => party.comparisonKey)));
+        const keys = new Set(rowsByYear.flatMap(row => row.parties.map(party =>
+            canonicalComparisonKey(row.year, party.comparisonKey))));
         const rows = [...keys].map(comparisonKey => ({
             ...partyMetadata(payload, comparisonKey, audit.years.at(-1)),
             points: audit.years.map((year, index) => ({
                 year,
                 localSeats: rowsByYear[index].parties
-                    .find(party => party.comparisonKey === comparisonKey)?.seats ?? 0,
+                    .filter(party => canonicalComparisonKey(year, party.comparisonKey) === comparisonKey)
+                    .reduce((total, party) => total + party.seats, 0),
                 factStatus: rowsByYear[index].factStatus
             }))
         })).sort((left, right) => {
@@ -746,7 +805,8 @@
         const filtered = scoped.filter(group => {
             const searchable = [group.normalizedName,
                 ...group.occurrences.flatMap(row => [row.nameAr, row.abbreviation, row.constituencyNameAr])];
-            const differentLabels = new Set(group.occurrences.map(row => row.comparisonKey)).size > 1;
+            const differentLabels = new Set(group.occurrences.map(row =>
+                canonicalComparisonKey(row.year, row.comparisonKey))).size > 1;
             return (!query || searchable.some(value => normalize(value).includes(query)))
                 && (!options.differentPartyLabelsOnly || differentLabels);
         }).sort((left, right) => codepointOrder(left.normalizedName, right.normalizedName));
@@ -778,27 +838,33 @@
         for (const group of records(payload.repeatedNames)) {
             const earlier = group.occurrences.filter(row => row.year === from);
             const later = group.occurrences.filter(row => row.year === to);
-            if (earlier.length !== 1 || later.length !== 1
-                || earlier[0].comparisonKey === later[0].comparisonKey) continue;
+            const earlierKey = earlier.length === 1
+                ? canonicalComparisonKey(from, earlier[0].comparisonKey) : null;
+            const laterKey = later.length === 1
+                ? canonicalComparisonKey(to, later[0].comparisonKey) : null;
+            if (!earlierKey || !laterKey || earlierKey === laterKey) continue;
             const earlierObservation = observations.get(`${from}:${earlier[0].comparisonKey}`);
             const laterObservation = observations.get(`${to}:${later[0].comparisonKey}`);
-            if (earlierObservation?.continuityBasis !== 'same_exact_source_label'
-                || laterObservation?.continuityBasis !== 'same_exact_source_label') continue;
-            gains.set(later[0].comparisonKey, (gains.get(later[0].comparisonKey) || 0) + 1);
-            losses.set(earlier[0].comparisonKey, (losses.get(earlier[0].comparisonKey) || 0) + 1);
+            const earlierComparable = isComparableBasis(earlierObservation?.continuityBasis)
+                || earlierKey !== earlier[0].comparisonKey;
+            const laterComparable = isComparableBasis(laterObservation?.continuityBasis)
+                || laterKey !== later[0].comparisonKey;
+            if (!earlierComparable || !laterComparable) continue;
+            gains.set(laterKey, (gains.get(laterKey) || 0) + 1);
+            losses.set(earlierKey, (losses.get(earlierKey) || 0) + 1);
             totalMovements += 1;
         }
 
         const limit = Number.isSafeInteger(Number(options.limit))
             ? Math.max(1, Number(options.limit)) : 5;
         const rows = (counts, year) => [...counts].map(([comparisonKey, count]) => {
-            const observation = observations.get(`${year}:${comparisonKey}`);
+            const metadata = partyMetadata(payload, comparisonKey, year);
             return {
                 comparisonKey,
-                partyNameAr: observation?.nameAr || comparisonKey,
-                abbreviation: observation?.abbreviation || null,
-                abbreviationStatus: observation?.abbreviationStatus || null,
-                continuityBasis: observation?.continuityBasis || null,
+                partyNameAr: metadata?.nameAr || comparisonKey,
+                abbreviation: metadata?.abbreviation || null,
+                abbreviationStatus: metadata?.abbreviationStatus || null,
+                continuityBasis: metadata?.continuityBasis || null,
                 count,
                 evidenceStatus: 'name_match_only'
             };

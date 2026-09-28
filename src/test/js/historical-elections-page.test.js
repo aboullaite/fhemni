@@ -35,7 +35,8 @@ const {
     normalizeHistoryTab,
     historyTabIndex,
     historyTabPanelState,
-    historicalPartyLogoAsset
+    historicalPartyLogoAsset,
+    repeatedNameTransition
 } = require(controllerPath);
 
 function fakeDocument() {
@@ -89,7 +90,7 @@ test('history page exposes the progressive comparison sections and accessible st
     assert.match(page, /id="historyPeopleMovements"/);
     assert.match(page, /id="historyMovementGains"/);
     assert.match(page, /id="historyMovementLosses"/);
-    assert.match(page, /id="historyPartyNotComparable"/);
+    assert.doesNotMatch(page, /id="historyPartyNotComparable"/);
     assert.match(page, /id="historyMeasureTabs"[^>]*role="group"/);
     assert.match(page, /id="historyMeasureTotal"[^>]*aria-pressed="true"/);
     assert.match(page, /id="historyMeasureLocal"[^>]*aria-pressed="false"/);
@@ -98,9 +99,9 @@ test('history page exposes the progressive comparison sections and accessible st
     assert.match(page, /<script src="\/js\/historical-election-insights\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-electoral-quotient\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-elections\.js[^>]*defer/);
-    assert.match(page, /\/css\/dist\.css\?v=20260928-4/);
-    assert.match(page, /\/js\/historical-election-insights\.js\?v=20260928-2/);
-    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-5/);
+    assert.match(page, /\/css\/dist\.css\?v=20260928-6/);
+    assert.match(page, /\/js\/historical-election-insights\.js\?v=20260928-3/);
+    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-7/);
 });
 
 test('current and historical election heroes cross-link with compact green actions', () => {
@@ -112,7 +113,7 @@ test('current and historical election heroes cross-link with compact green actio
 
     assert.match(currentPage,
         /class="election-hero-copy"[\s\S]*?id="electionHistoryLink"[^>]*class="priority-primary-button button-link election-history-link"/);
-    assert.match(currentPage, /\/css\/dist\.css\?v=20260928-4/);
+    assert.match(currentPage, /\/css\/dist\.css\?v=20260928-6/);
     assert.match(currentPage, /\/js\/election-results\.js\?v=20260928-1/);
     assert.match(currentController, /historyLink: 'قارن مع الانتخابات السابقة'/);
     assert.match(currentController, /historyLink: 'Comparer avec les élections précédentes'/);
@@ -189,8 +190,8 @@ test('all page copy is complete in Darija, French, and English and states the ev
         assert.equal(Object.hasOwn(COPY[locale], 'quotientFullAssumption'), false);
         assert.equal(Object.hasOwn(COPY[locale], 'quotientLocalOnly'), false);
         assert.equal(Object.hasOwn(COPY[locale], 'sourceQuery'), false);
-        assert.match(COPY[locale].partyNotComparableTitle, /./);
-        assert.match(COPY[locale].partyNotComparableIntro, /./);
+        assert.equal(Object.hasOwn(COPY[locale], 'partyNotComparableTitle'), false);
+        assert.equal(Object.hasOwn(COPY[locale], 'partyNotComparableIntro'), false);
     }
 });
 
@@ -379,6 +380,7 @@ test('the simulation warning links to the full methodology on the same page', ()
 
 test('page script keeps archive query ids out of the UI and restores focus after paging', () => {
     const controller = fs.readFileSync(controllerPath, 'utf8');
+    const page = fs.readFileSync(pagePath, 'utf8');
     assert.doesNotMatch(controller, /history-demographic-source|evidenceReference\(/);
     assert.match(controller, /segment\.sourcePercentageText/);
     assert.match(controller, /history-demographic-donut/);
@@ -395,10 +397,9 @@ test('page script keeps archive query ids out of the UI and restores focus after
     assert.match(controller, /deriveRepeatedNameGroups\(payload, Number\(state\.from\), Number\(state\.to\), \{/);
     assert.match(controller, /historyMovementGains/);
     assert.match(controller, /historyMovementLosses/);
-    assert.match(controller, /notComparableRows/);
-    assert.match(controller, /historyPartyNotComparable/);
-    assert.match(controller, /result\.totalRows \+ result\.notComparableTotalRows/);
-    assert.match(controller, /result\.rows\.length \+ result\.notComparableRows\.length/);
+    assert.doesNotMatch(controller, /notComparableRows/);
+    assert.doesNotMatch(controller, /historyPartyNotComparable/);
+    assert.doesNotMatch(page, /historyPartyNotComparable/);
     assert.match(controller, /function partyIdentity\(/);
     assert.match(controller, /history-party-logo/);
 });
@@ -412,6 +413,40 @@ test('party identities use logos and official names without visible abbreviation
     assert.match(controller, /identity\.append\(logo,\s*bdi\(nameAr, 'history-party-name'\)\)/);
     assert.match(controller, /option\(party\.comparisonKey, party\.nameAr\)/);
     assert.doesNotMatch(css, /\.history-party-code\s*\{/);
+});
+
+test('repeated-name rows show one name with a centered party transition and constituency below', () => {
+    const changed = repeatedNameTransition({ occurrences: [
+        { year: 2021, nameAr: 'شخص واحد', abbreviation: 'PI',
+            comparisonKey: 'exact-source-label:pi', constituencyNameAr: 'طانطان' },
+        { year: 2026, nameAr: 'شخص واحد', abbreviation: 'PJD',
+            comparisonKey: 'exact-source-label:pjd', constituencyNameAr: 'طانطان' }
+    ] });
+    assert.deepEqual(changed, {
+        fromYear: 2021,
+        toYear: 2026,
+        fromParty: 'PI',
+        toParty: 'PJD',
+        fromPartyLogo: '/assets/parties/pi-display.png',
+        toPartyLogo: '/assets/parties/pjd-display.png',
+        sameParty: false,
+        fromConstituency: 'طانطان',
+        toConstituency: 'طانطان',
+        sameConstituency: true
+    });
+
+    const unchanged = repeatedNameTransition({ occurrences: [
+        { year: 2021, abbreviation: 'PAM', comparisonKey: 'exact-source-label:pam', constituencyNameAr: 'طانطان' },
+        { year: 2026, abbreviation: 'PAM', comparisonKey: 'exact-source-label:pam', constituencyNameAr: 'طانطان' }
+    ] });
+    assert.equal(unchanged.sameParty, true);
+
+    const controller = fs.readFileSync(controllerPath, 'utf8');
+    const css = fs.readFileSync(cssPath, 'utf8');
+    assert.doesNotMatch(controller, /partyIdentity\(item\.abbreviation, item\.nameAr/);
+    assert.match(controller, /history-party-transition-arrow/);
+    assert.match(css, /\.history-party-transition\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+36px\s+minmax\(0,\s*1fr\);/);
+    assert.match(css, /\.history-party-transition-arrow\s*\{[^}]*place-items:\s*center;[^}]*justify-self:\s*center;/);
 });
 
 test('visible demographic evidence wraps inside the mobile viewport', () => {

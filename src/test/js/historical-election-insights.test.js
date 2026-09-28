@@ -165,38 +165,40 @@ test('list-seat deltas are unavailable when endpoint list ballot types differ', 
     assert.equal(derivePartyDeltas(valid, 2021, 2026, { measure: 'list' }).available, true);
 });
 
-test('source-only observations are separated from signed party gains and losses', () => {
-    const result = derivePartyDeltas(payload(), 2016, 2021, {
-        query: 'PSU', showAll: true, sort: 'name'
+test('the left alliance comparison aggregates its verified election-year composition', () => {
+    const result = derivePartyDeltas(payload(), 2021, 2026, {
+        query: 'تحالف اليسار', showAll: true, sort: 'name'
     });
     assert.equal(result.available, true);
-    assert.equal(result.totalRows, 0);
-    assert.deepEqual(result.rows, []);
-    assert.equal(result.notComparableTotalRows, 2);
-    assert.deepEqual(result.notComparableRows.map(row => row.comparisonKey), [
-        'source:2021:party_ab8aeb368dd5',
-        'source:2016:party_c02711490e0c'
-    ]);
-    assert.deepEqual(result.notComparableRows.map(row => [row.earlier.status, row.later.status]), [
-        ['established_zero_from_complete_roster', 'present_in_complete_roster'],
-        ['present_in_complete_roster', 'established_zero_from_complete_roster']
-    ]);
-    assert.deepEqual(result.notComparableRows.map(row => row.continuityBasis), [
-        'source_observation_only', 'source_observation_only'
-    ]);
+    assert.equal(result.totalRows, 1);
+    assert.deepEqual(result.rows.map(row => ({
+        comparisonKey: row.comparisonKey,
+        abbreviation: row.abbreviation,
+        continuityBasis: row.continuityBasis,
+        earlier: [row.earlier.totalSeats, row.earlier.localSeats, row.earlier.listSeats],
+        later: [row.later.totalSeats, row.later.localSeats, row.later.listSeats],
+        delta: [row.delta.totalSeats, row.delta.localSeats, row.delta.listSeats]
+    })), [{
+        comparisonKey: 'verified-alliance:left-alliance',
+        abbreviation: 'AG',
+        continuityBasis: 'verified_alliance_composition',
+        earlier: [2, 0, 2],
+        later: [8, 3, 5],
+        delta: [6, 3, 3]
+    }]);
 });
 
-test('default 2021 to 2026 party ranking excludes unresolved alliance lineage', () => {
+test('default 2021 to 2026 party ranking includes the verified left alliance rollup once', () => {
     const result = derivePartyDeltas(payload(), 2021, 2026, { showAll: true });
 
     assert.equal(result.available, true);
-    assert.equal(result.rows.some(row => row.abbreviation === 'AG'), false);
-    assert.ok(result.rows.every(row => row.continuityBasis === 'same_exact_source_label'));
-    assert.ok(result.notComparableRows.some(row => row.abbreviation === 'AG'
-        && row.later.totalSeats === 8));
+    assert.equal(result.rows.filter(row => row.abbreviation === 'AG').length, 1);
+    assert.equal(result.rows.some(row => ['CNI', 'PSU'].includes(row.abbreviation)), false);
+    assert.equal(result.notComparableRows.some(row => ['AG', 'CNI', 'PSU']
+        .includes(row.abbreviation)), false);
 });
 
-test('party trajectory spans every election without merging a similarly labelled alliance', () => {
+test('party trajectory spans every election and rolls up the verified left alliance composition', () => {
     const rni = derivePartyTrajectory(payload(), 'exact-source-label:party_040005b84836');
     assert.equal(rni.available, true);
     assert.deepEqual(rni.points.map(point => [point.year, point.totalSeats, point.localSeats, point.listSeats]), [
@@ -205,11 +207,11 @@ test('party trajectory spans every election without merging a similarly labelled
         [2026, 66, 57, 9]
     ]);
 
-    const alliance = derivePartyTrajectory(payload(), 'source:2016:party_c02711490e0c');
+    const alliance = derivePartyTrajectory(payload(), 'verified-alliance:left-alliance');
     assert.deepEqual(alliance.points.map(point => [point.year, point.status, point.totalSeats]), [
         [2016, 'present_in_complete_roster', 2],
-        [2021, 'established_zero_from_complete_roster', 0],
-        [2026, 'established_zero_from_complete_roster', 0]
+        [2021, 'present_in_complete_roster', 2],
+        [2026, 'present_in_complete_roster', 8]
     ]);
 });
 
@@ -283,7 +285,7 @@ test('repeated-name explorer labels evidence, filters different party labels, an
     const changed = deriveRepeatedNameGroups(valid, 2021, 2026, {
         differentPartyLabelsOnly: true, page: 1
     });
-    assert.equal(changed.totalRows, 13);
+    assert.equal(changed.totalRows, 12);
     assert.ok(changed.rows.every(row => new Set(row.occurrences.map(item =>
         item.comparisonKey)).size > 1));
     assert.ok(changed.rows.every(row => row.evidenceStatus === 'name_match_only'));
@@ -316,6 +318,19 @@ test('repeated-name party movement counts only exact-name matches present at bot
         row.evidenceStatus === 'name_match_only'
         && row.continuityBasis === 'same_exact_source_label'
         && row.partyNameAr));
+});
+
+test('Nabila Mounib is elected at both endpoints without a false party-switch signal', () => {
+    const elected = deriveRepeatedNameGroups(payload(), 2021, 2026, {
+        query: 'نبيلة منيب', page: 1
+    });
+    const switched = deriveRepeatedNameGroups(payload(), 2021, 2026, {
+        query: 'نبيلة منيب', differentPartyLabelsOnly: true, page: 1
+    });
+
+    assert.equal(elected.totalRows, 1);
+    assert.deepEqual(elected.rows[0].occurrences.map(row => row.year), [2021, 2026]);
+    assert.equal(switched.totalRows, 0);
 });
 
 test('repeated-name party movement excludes unchanged labels and fails closed on unsupported pairs', () => {

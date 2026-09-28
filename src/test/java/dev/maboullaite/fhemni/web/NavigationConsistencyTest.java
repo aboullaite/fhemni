@@ -226,7 +226,7 @@ class NavigationConsistencyTest {
                 .contains("[dir=\"rtl\"] .election-graphs-jumps");
         assertThat(styles).containsPattern("(?s)@media \\(max-width: 640px\\).*?\\.election-tabs \\{[^}]*overflow-x: auto;[^}]*grid-template-columns: repeat\\(4,minmax\\(118px,1fr\\)\\)");
         assertThat(compiled).contains(".election-graphs-jumps").contains(".election-atlas-representative-cards");
-        assertThat(page).contains("/css/dist.css?v=20260928-4");
+        assertThat(page).contains("/css/dist.css?v=20260928-6");
     }
 
     @Test
@@ -962,7 +962,7 @@ class NavigationConsistencyTest {
             String version = switch (page) {
                 case "priorities.html" -> "20260917-9";
                 case "404.html" -> "20260917-1";
-                case "election-results.html", "historical-elections.html" -> "20260928-4";
+                case "election-results.html", "historical-elections.html" -> "20260928-6";
                 default -> "20260916-22";
             };
             assertThat(html(page))
