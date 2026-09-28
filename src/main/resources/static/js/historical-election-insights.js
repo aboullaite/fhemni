@@ -92,6 +92,17 @@
         return verifiedComparisonGroup(year, comparisonKey)?.comparisonKey || comparisonKey;
     }
 
+    function comparisonOccurrence(payload, occurrence) {
+        const canonicalKey = canonicalComparisonKey(occurrence.year, occurrence.comparisonKey);
+        const metadata = partyMetadata(payload, canonicalKey, occurrence.year);
+        return {
+            ...occurrence,
+            canonicalComparisonKey: canonicalKey,
+            canonicalAbbreviation: metadata.abbreviation,
+            continuityBasis: metadata.continuityBasis
+        };
+    }
+
     function isComparableBasis(value) {
         return value === 'same_exact_source_label' || value === 'verified_alliance_composition';
     }
@@ -796,7 +807,8 @@
             { rows: [], totalRows: 0, page: 1, pageCount: 0, pageSize: PAGE_SIZE });
         const query = normalize(options.query);
         const scoped = records(payload.repeatedNames).flatMap(group => {
-            const occurrences = group.occurrences.filter(row => row.year === from || row.year === to);
+            const occurrences = group.occurrences.filter(row => row.year === from || row.year === to)
+                .map(row => comparisonOccurrence(payload, row));
             const earlier = occurrences.filter(row => row.year === from);
             const later = occurrences.filter(row => row.year === to);
             return earlier.length === 1 && later.length === 1
@@ -806,7 +818,7 @@
             const searchable = [group.normalizedName,
                 ...group.occurrences.flatMap(row => [row.nameAr, row.abbreviation, row.constituencyNameAr])];
             const differentLabels = new Set(group.occurrences.map(row =>
-                canonicalComparisonKey(row.year, row.comparisonKey))).size > 1;
+                row.canonicalComparisonKey)).size > 1;
             return (!query || searchable.some(value => normalize(value).includes(query)))
                 && (!options.differentPartyLabelsOnly || differentLabels);
         }).sort((left, right) => codepointOrder(left.normalizedName, right.normalizedName));

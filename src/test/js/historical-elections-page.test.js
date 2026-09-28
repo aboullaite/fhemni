@@ -36,7 +36,8 @@ const {
     historyTabIndex,
     historyTabPanelState,
     historicalPartyLogoAsset,
-    repeatedNameTransition
+    repeatedNameTransition,
+    partySearchRows
 } = require(controllerPath);
 
 function fakeDocument() {
@@ -99,9 +100,9 @@ test('history page exposes the progressive comparison sections and accessible st
     assert.match(page, /<script src="\/js\/historical-election-insights\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-electoral-quotient\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-elections\.js[^>]*defer/);
-    assert.match(page, /\/css\/dist\.css\?v=20260928-6/);
-    assert.match(page, /\/js\/historical-election-insights\.js\?v=20260928-3/);
-    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-7/);
+    assert.match(page, /\/css\/dist\.css\?v=20260928-7/);
+    assert.match(page, /\/js\/historical-election-insights\.js\?v=20260928-4/);
+    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-8/);
 });
 
 test('current and historical election heroes cross-link with compact green actions', () => {
@@ -113,7 +114,7 @@ test('current and historical election heroes cross-link with compact green actio
 
     assert.match(currentPage,
         /class="election-hero-copy"[\s\S]*?id="electionHistoryLink"[^>]*class="priority-primary-button button-link election-history-link"/);
-    assert.match(currentPage, /\/css\/dist\.css\?v=20260928-6/);
+    assert.match(currentPage, /\/css\/dist\.css\?v=20260928-7/);
     assert.match(currentPage, /\/js\/election-results\.js\?v=20260928-1/);
     assert.match(currentController, /historyLink: 'قارن مع الانتخابات السابقة'/);
     assert.match(currentController, /historyLink: 'Comparer avec les élections précédentes'/);
@@ -159,9 +160,9 @@ test('all page copy is complete in Darija, French, and English and states the ev
     assert.match(COPY.en.quotientIntro, /registered voters/i);
     assert.match(COPY.fr.quotientIntro, /inscrit/i);
     assert.match(COPY.ar.quotientIntro, /المسجلين/);
-    assert.match(COPY.en.partiesIntro, /alliances.*not merged|not merged.*alliances/i);
-    assert.match(COPY.fr.partiesIntro, /alliances.*pas fusionn/i);
-    assert.match(COPY.ar.partiesIntro, /التحالفات.*ما كنـ?دمجوش|ما كندمجوش.*التحالفات/);
+    assert.equal(Object.hasOwn(COPY.en, 'partiesIntro'), false);
+    assert.equal(Object.hasOwn(COPY.fr, 'partiesIntro'), false);
+    assert.equal(Object.hasOwn(COPY.ar, 'partiesIntro'), false);
     assert.match(COPY.en.methodText, /305 local seats/i);
     assert.match(COPY.en.methodText, /395-seat/i);
     assert.match(COPY.en.methodText, /60\s*\+\s*30|60.*30/i);
@@ -193,6 +194,25 @@ test('all page copy is complete in Darija, French, and English and states the ev
         assert.equal(Object.hasOwn(COPY[locale], 'partyNotComparableTitle'), false);
         assert.equal(Object.hasOwn(COPY[locale], 'partyNotComparableIntro'), false);
     }
+    assert.match(COPY.ar.sourceLabelOnly, /التحالفات اللي تأكد/);
+    assert.match(COPY.fr.sourceLabelOnly, /compositions d’alliance vérifiées/);
+    assert.match(COPY.en.sourceLabelOnly, /verified alliance compositions/);
+    assert.doesNotMatch(COPY.en.sourceLabelOnly, /distinct alliances are not merged/);
+});
+
+test('party search includes source-only official results without treating them as gains or losses', () => {
+    const result = {
+        rows: [{ comparisonKey: 'exact-source-label:pam', nameAr: 'PAM' }],
+        notComparableRows: [{ comparisonKey: 'source:2016:pgvm', nameAr: 'PGVM' }]
+    };
+
+    assert.deepEqual(partySearchRows(result, ''), [
+        { comparisonKey: 'exact-source-label:pam', nameAr: 'PAM', comparisonAvailable: true }
+    ]);
+    assert.deepEqual(partySearchRows(result, 'PGVM'), [
+        { comparisonKey: 'exact-source-label:pam', nameAr: 'PAM', comparisonAvailable: true },
+        { comparisonKey: 'source:2016:pgvm', nameAr: 'PGVM', comparisonAvailable: false }
+    ]);
 });
 
 test('generic section subtitles are removed while evidence and methodology notes remain', () => {
@@ -397,7 +417,6 @@ test('page script keeps archive query ids out of the UI and restores focus after
     assert.match(controller, /deriveRepeatedNameGroups\(payload, Number\(state\.from\), Number\(state\.to\), \{/);
     assert.match(controller, /historyMovementGains/);
     assert.match(controller, /historyMovementLosses/);
-    assert.doesNotMatch(controller, /notComparableRows/);
     assert.doesNotMatch(controller, /historyPartyNotComparable/);
     assert.doesNotMatch(page, /historyPartyNotComparable/);
     assert.match(controller, /function partyIdentity\(/);
@@ -440,6 +459,22 @@ test('repeated-name rows show one name with a centered party transition and cons
         { year: 2026, abbreviation: 'PAM', comparisonKey: 'exact-source-label:pam', constituencyNameAr: 'طانطان' }
     ] });
     assert.equal(unchanged.sameParty, true);
+
+    const verifiedAlliance = repeatedNameTransition({ occurrences: [
+        { year: 2021, abbreviation: 'PSU', comparisonKey: 'source:2021:psu',
+            canonicalComparisonKey: 'verified-alliance:left-alliance',
+            canonicalAbbreviation: 'AG', continuityBasis: 'verified_alliance_composition',
+            constituencyNameAr: 'الدار البيضاء-سطات' },
+        { year: 2026, abbreviation: 'AG', comparisonKey: 'source:2026:ag',
+            canonicalComparisonKey: 'verified-alliance:left-alliance',
+            canonicalAbbreviation: 'AG', continuityBasis: 'verified_alliance_composition',
+            constituencyNameAr: 'الدار البيضاء - أنفا' }
+    ] });
+    assert.equal(verifiedAlliance.sameParty, true);
+    assert.equal(verifiedAlliance.fromParty, 'AG');
+    assert.equal(verifiedAlliance.toParty, 'AG');
+    assert.equal(verifiedAlliance.fromPartyLogo, '/assets/parties/fgd-official-2026.png');
+    assert.equal(verifiedAlliance.toPartyLogo, '/assets/parties/fgd-official-2026.png');
 
     const controller = fs.readFileSync(controllerPath, 'utf8');
     const css = fs.readFileSync(cssPath, 'utf8');

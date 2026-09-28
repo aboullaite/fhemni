@@ -610,6 +610,7 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .history-stacked-list { background: var(--orange); }
 .history-stacked-total { color: var(--ink); font-size: 14px; font-weight: 950; font-variant-numeric: tabular-nums; text-align: end; }
 .history-party-delta { min-width: 44px; font-size: 15px; font-weight: 900; font-variant-numeric: tabular-nums; text-align: end; }
+.history-party-delta.is-source-only { max-width: 120px; color: var(--muted); font-size: 10px; line-height: 1.35; }
 .is-gain { color: var(--teal-dark); }
 .is-loss { color: var(--red); }
 .history-show-all { min-height: 44px; margin-block-start: 12px; cursor: pointer; }

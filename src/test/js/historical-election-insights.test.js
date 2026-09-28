@@ -329,7 +329,17 @@ test('Nabila Mounib is elected at both endpoints without a false party-switch si
     });
 
     assert.equal(elected.totalRows, 1);
-    assert.deepEqual(elected.rows[0].occurrences.map(row => row.year), [2021, 2026]);
+    assert.deepEqual(elected.rows[0].occurrences.map(row => ({
+        year: row.year,
+        canonicalComparisonKey: row.canonicalComparisonKey,
+        canonicalAbbreviation: row.canonicalAbbreviation,
+        continuityBasis: row.continuityBasis
+    })), [
+        { year: 2021, canonicalComparisonKey: 'verified-alliance:left-alliance',
+            canonicalAbbreviation: 'AG', continuityBasis: 'verified_alliance_composition' },
+        { year: 2026, canonicalComparisonKey: 'verified-alliance:left-alliance',
+            canonicalAbbreviation: 'AG', continuityBasis: 'verified_alliance_composition' }
+    ]);
     assert.equal(switched.totalRows, 0);
 });
 
