@@ -129,6 +129,14 @@ class SecurityIntegrationTest {
     }
 
     @Test
+    void servesReviewedAffiliationEvidenceAnonymously() throws Exception {
+        mvc.perform(get("/data/elections/affiliation-backfill.json").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(content().string(containsString("\"baseHistorySha256\"")));
+    }
+
+    @Test
     void servesTheHistoricalElectionComparisonAndItsAssetsAnonymously() throws Exception {
         mvc.perform(get("/elections/history"))
                 .andExpect(status().isOk())

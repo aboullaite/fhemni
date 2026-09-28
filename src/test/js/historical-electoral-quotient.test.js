@@ -19,6 +19,24 @@ async function generatedPayload() {
     return JSON.parse(fs.readFileSync(payloadPath, 'utf8'));
 }
 
+test('pooled-list scenario reconciles all totals reported by Hespress without replacing quotient-only results', async () => {
+    // Hespress, 2026-09-27 20:08, article 1814555: independent reported totals.
+    const expected = { PAM:107, PJD:60, PI:69, RNI:67, MP:27, USFP:22,
+        UC:17, PPS:15, MDS:7, AG:2, 'P.EQUITE':1, PUD:1, FFD:0, PND:0 };
+    const payload = await generatedPayload();
+    const full = derive2026Full2016SystemCounterfactual(payload);
+    assert.equal(full.available, true);
+    for (const [code, seats] of Object.entries(expected)) {
+        assert.equal(full.partyDeltas.find(row => row.abbreviation === code)?.simulatedTotalSeats, seats, code);
+    }
+    assert.equal(full.simulatedSeatTotal, 395);
+    const isolated = require('../../main/resources/static/js/historical-electoral-quotient.js')
+        .derive2026QuotientOnlyCounterfactual(payload);
+    assert.equal(isolated.available, true);
+    assert.equal(isolated.partyDeltas.find(row => row.abbreviation === 'AG').simulatedTotalSeats, 4);
+    assert.equal(isolated.partyDeltas.find(row => row.abbreviation === 'PJD').simulatedTotalSeats, 59);
+});
+
 test('2016 allocator applies the 3% threshold, eligible-vote quotient, and largest remainder exactly', () => {
     const result = allocateLocalSeatsUnder2016Rules({
         year: 2026,
