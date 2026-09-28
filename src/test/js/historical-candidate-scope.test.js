@@ -4,6 +4,21 @@ const fs = require('node:fs');
 const insights = require('../../main/resources/static/js/historical-election-insights.js');
 const payload = () => JSON.parse(fs.readFileSync(`${__dirname}/../../main/resources/static/data/elections/history.json`));
 
+test('incoming candidates versus elected candidates includes zero winners and respects the election scope', () => {
+    const p = payload();
+    const result = insights.deriveRepeatedNamePartyMovements(p, 2021, 2026, { scope: 'candidates', limit: 100 });
+    for (const [party, incoming, elected] of [['PAM', 9, 8], ['MP', 12, 5], ['UC', 10, 2], ['PPS', 9, 0], ['FFD', 8, 0]]) {
+        const row = result.gains.find(row => row.abbreviation === party);
+        assert.deepEqual([row.count, row.laterElectedCount], [incoming, elected], party);
+    }
+    const older = insights.deriveRepeatedNamePartyMovements(p, 2016, 2021, { scope: 'candidates', limit: 100 });
+    const rni = older.gains.find(row => row.abbreviation === 'RNI');
+    assert.deepEqual([rni.count, rni.laterElectedCount], [19, 17]);
+    const narrow = insights.deriveRepeatedNamePartyMovements(p, 2021, 2026, { scope: 'elected' });
+    const pam = narrow.gains.find(row => row.abbreviation === 'PAM');
+    assert.deepEqual([pam.count, pam.laterElectedCount], [4, 4]);
+});
+
 test('candidate scope includes losing list heads and separates later winners from the four incumbent arrivals', () => {
     const data = payload();
     const broader = insights.deriveRepeatedNamePartyMovements(data, 2021, 2026, { scope: 'candidates', limit: 100 });

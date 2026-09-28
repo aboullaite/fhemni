@@ -104,9 +104,9 @@ test('history page exposes the progressive comparison sections and accessible st
     assert.match(page, /<script src="\/js\/historical-election-insights\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-electoral-quotient\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-elections\.js[^>]*defer/);
-    assert.match(page, /\/css\/dist\.css\?v=20260928-7/);
+    assert.match(page, /\/css\/dist\.css\?v=20260928-8/);
     assert.match(page, /\/js\/historical-election-insights\.js\?v=20260928-5/);
-    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-10/);
+    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-11/);
 });
 
 test('current and historical election heroes cross-link with compact green actions', () => {
