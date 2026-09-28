@@ -19,6 +19,7 @@ const {
     totalMeasureCaveatKey,
     partyBarPercent,
     partyBarMaximum,
+    stackedSeatSeries,
     regionSeatBarPercent,
     seatSharePercent,
     resolveAvailableSelection,
@@ -87,23 +88,23 @@ test('all page copy is complete in Darija, French, and English and states the ev
     assert.match(COPY.ar.quotientWarning, /محاكاة/);
 });
 
-test('URL state accepts all shareable controls, drops invalid values, and serializes deterministically', () => {
+test('URL state accepts active shareable controls, drops retired measure values, and serializes deterministically', () => {
     assert.deepEqual(readUrlState('?from=2016&to=2026&measure=total&sort=name&party=p1&partyq=green&all=1&constituency=c9&region=4&demographic=education&people=amina&different=1&page=2'), {
-        from: '2016', to: '2026', measure: 'total', sort: 'name',
+        from: '2016', to: '2026', sort: 'name',
         party: 'p1', partyQuery: 'green', showAllParties: true, quotientConstituency: 'c9', region: '4',
         demographicDimension: 'education', peopleQuery: 'amina', differentOnly: true, page: 2
     });
     assert.deepEqual(readUrlState('?from=nope&to=2026&measure=votes&sort=random&demographic=unknown&page=-3'), {
-        from: null, to: '2026', measure: 'local', sort: 'delta-desc',
+        from: null, to: '2026', sort: 'delta-desc',
         party: '', partyQuery: '', showAllParties: false, quotientConstituency: '', region: '',
         demographicDimension: 'gender', peopleQuery: '', differentOnly: false, page: 1
     });
     assert.equal(writeUrlState({
-        from: '2016', to: '2026', measure: 'list', sort: 'delta-asc',
+        from: '2016', to: '2026', sort: 'delta-asc',
         party: 'party key', partyQuery: 'search words', showAllParties: true,
         quotientConstituency: 'contest key',
         region: '7', demographicDimension: 'age', peopleQuery: '', differentOnly: true, page: 1
-    }), '?from=2016&to=2026&measure=list&sort=delta-asc&party=party+key&partyq=search+words&all=1&constituency=contest+key&region=7&demographic=age&different=1');
+    }), '?from=2016&to=2026&sort=delta-asc&party=party+key&partyq=search+words&all=1&constituency=contest+key&region=7&demographic=age&different=1');
 });
 
 test('presentation helpers preserve direction, exact values, and zero baselines', () => {
@@ -122,6 +123,18 @@ test('presentation helpers preserve direction, exact values, and zero baselines'
     assert.equal(partyBarPercent(0, 0), 0);
     assert.equal(partyBarPercent(90, 60), 100);
     assert.equal(partyBarMaximum([{ selectedDelta: 2 }, { selectedDelta: -17 }, { selectedDelta: 8 }]), 17);
+    assert.deepEqual(Array.from(stackedSeatSeries(2021,
+        { localSeats: 45, listSeats: 10, totalSeats: 55 }, 2026,
+        { localSeats: 54, listSeats: 6, totalSeats: 60 }, 60), row => ({ ...row })), [
+        { label: '2021', localSeats: 45, listSeats: 10, totalSeats: 55, localPercent: 75, listPercent: 16.67 },
+        { label: '2026', localSeats: 54, listSeats: 6, totalSeats: 60, localPercent: 90, listPercent: 10 }
+    ]);
+    assert.deepEqual(Array.from(stackedSeatSeries('Official 2026',
+        { localSeats: 54, listSeats: 11, totalSeats: 65 }, '2016 rules',
+        { localSeats: 52, listSeats: 10, totalSeats: 62 }, 65), row => ({ ...row })), [
+        { label: 'Official 2026', localSeats: 54, listSeats: 11, totalSeats: 65, localPercent: 83.08, listPercent: 16.92 },
+        { label: '2016 rules', localSeats: 52, listSeats: 10, totalSeats: 62, localPercent: 80, listPercent: 15.38 }
+    ]);
     assert.equal(regionSeatBarPercent(1, 20), 5);
     assert.equal(regionSeatBarPercent(20, 20), 100);
     assert.equal(regionSeatBarPercent(30, 20), 100);
@@ -143,8 +156,6 @@ test('page script renders demographic provenance visibly and restores focus afte
     assert.match(controller, /derive2026LocalSeatCounterfactual\(payload\)/);
     assert.match(controller, /derive2026Full2016SystemCounterfactual\(payload\)/);
     assert.match(controller, /historyQuotientConstituency/);
-    assert.match(controller, /validation\.exactConstituencyMatches/);
-    assert.match(controller, /listValidation\.exactPartyMatches/);
     assert.match(controller, /historyPeopleCount'\)\.focus\(\)/);
     assert.match(controller, /historyPagination.*setAttribute\('aria-label', t\('paginationLabel'\)\)/);
 });
