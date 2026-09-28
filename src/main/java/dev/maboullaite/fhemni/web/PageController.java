@@ -97,6 +97,11 @@ public class PageController {
         return "forward:/election-results.html";
     }
 
+    @GetMapping({"/elections/history", "/elections/history/"})
+    public String historicalElectionResultsPage() {
+        return "forward:/historical-elections.html";
+    }
+
     @GetMapping({"/suggestions", "/suggestions/"})
     public String suggestionsAlias() {
         return "redirect:/community";

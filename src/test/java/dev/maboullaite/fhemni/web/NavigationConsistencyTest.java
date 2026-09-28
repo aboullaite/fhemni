@@ -30,6 +30,7 @@ class NavigationConsistencyTest {
             "community.html",
             "compare-programmes.html",
             "election-results.html",
+            "historical-elections.html",
             "methodology.html",
             "parties.html",
             "party.html",
@@ -50,6 +51,7 @@ class NavigationConsistencyTest {
             "community.html",
             "compare-programmes.html",
             "election-results.html",
+            "historical-elections.html",
             "index.html",
             "login.html",
             "methodology.html",
@@ -140,6 +142,26 @@ class NavigationConsistencyTest {
         assertThat(html("assets/maps/morocco-regions-2026.svg"))
                 .contains("data-region-key=\"MA-01\"")
                 .contains("data-region-key=\"MA-12\"");
+    }
+
+    @Test
+    void electionPagesProvideContextualLinksWithoutChangingTheAtlasTabs() throws IOException {
+        String currentResults = html("election-results.html");
+        String historicalResults = html("historical-elections.html");
+
+        assertThat(currentResults)
+                .contains("id=\"electionHistoryLink\"")
+                .contains("href=\"/elections/history\"");
+        assertThat(historicalResults)
+                .contains("id=\"historyCurrentResultsLink\"")
+                .contains("href=\"/elections/2026\"");
+
+        int tablistStart = currentResults.indexOf("<div class=\"election-tabs\"");
+        int tablistEnd = currentResults.indexOf("</div>", tablistStart);
+        String tablist = currentResults.substring(tablistStart, tablistEnd);
+        assertThat(tablist)
+                .containsPattern("(?s)id=\"electionMapTab\".*id=\"electionNationalTab\".*id=\"electionGraphsTab\".*id=\"electionCoalitionTab\"");
+        assertThat(tablist.split("role=\"tab\"", -1)).hasSize(5);
     }
 
     @Test
@@ -941,6 +963,7 @@ class NavigationConsistencyTest {
                 case "priorities.html" -> "20260917-9";
                 case "404.html" -> "20260917-1";
                 case "election-results.html" -> "20260927-4";
+                case "historical-elections.html" -> "20260927-5";
                 default -> "20260916-22";
             };
             assertThat(html(page))
@@ -1011,7 +1034,9 @@ class NavigationConsistencyTest {
     @Test
     void everyPageUsesCampaignAwarePrivacySafeAnalytics() throws IOException {
         for (String page : ALL_PAGES) {
-            String version = page.equals("election-results.html") ? "20260923-1" : "20260911-1";
+            String version = page.equals("election-results.html") || page.equals("historical-elections.html")
+                    ? "20260923-1"
+                    : "20260911-1";
             assertThat(html(page))
                     .as("analytics asset in %s", page)
                     .contains("/js/analytics.js?v=" + version);

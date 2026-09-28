@@ -129,6 +129,32 @@ class SecurityIntegrationTest {
     }
 
     @Test
+    void servesTheHistoricalElectionComparisonAndItsAssetsAnonymously() throws Exception {
+        mvc.perform(get("/elections/history"))
+                .andExpect(status().isOk())
+                .andExpect(forwardedUrl("/historical-elections.html"));
+        mvc.perform(get("/elections/history/"))
+                .andExpect(status().isOk())
+                .andExpect(forwardedUrl("/historical-elections.html"));
+
+        mvc.perform(get("/historical-elections.html"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("id=\"historyOverview\"")))
+                .andExpect(content().string(containsString("/js/historical-elections.js")));
+        mvc.perform(get("/js/historical-election-insights.js"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("FhemniHistoricalElectionInsights")));
+        mvc.perform(get("/js/historical-elections.js"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("/data/elections/history.json")));
+        mvc.perform(get("/data/elections/history.json"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(content().string(containsString("\"sourceDatasetId\":\"morocco-legislative-2016-2021-2026\"")))
+                .andExpect(content().string(containsString("https://www.elections.ma/")));
+    }
+
+    @Test
     void servesTheBrandedNotFoundPageWithoutHijackingApisOrAssets() throws Exception {
         mvc.perform(get("/this-page-was-never-here").accept(MediaType.TEXT_HTML))
                 .andExpect(status().isNotFound())
