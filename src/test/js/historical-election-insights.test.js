@@ -60,6 +60,12 @@ test('validation fails closed when pinned archive provenance is missing or alter
     assert.equal(digestAudit.available, false);
     assert.ok(digestAudit.diagnostics.includes('source-provenance'));
 
+    const plausibleButWrongDigest = payload();
+    plausibleButWrongDigest.generation.sourceSha256 = '0'.repeat(64);
+    const wrongDigestAudit = auditHistoricalPayload(plausibleButWrongDigest);
+    assert.equal(wrongDigestAudit.available, false);
+    assert.ok(wrongDigestAudit.diagnostics.includes('source-provenance'));
+
     const changedUrl = payload();
     changedUrl.generation.sourceUrls[0] = 'https://example.com/not-elections-ma';
     const urlAudit = auditHistoricalPayload(changedUrl);
@@ -159,21 +165,35 @@ test('list-seat deltas are unavailable when endpoint list ballot types differ', 
     assert.equal(derivePartyDeltas(valid, 2021, 2026, { measure: 'list' }).available, true);
 });
 
-test('source-only alliance observations remain separate and absent observations become zero only after roster validation', () => {
+test('source-only observations are separated from signed party gains and losses', () => {
     const result = derivePartyDeltas(payload(), 2016, 2021, {
         query: 'PSU', showAll: true, sort: 'name'
     });
     assert.equal(result.available, true);
-    assert.equal(result.totalRows, 2);
-    assert.deepEqual(result.rows.map(row => row.comparisonKey), [
+    assert.equal(result.totalRows, 0);
+    assert.deepEqual(result.rows, []);
+    assert.equal(result.notComparableTotalRows, 2);
+    assert.deepEqual(result.notComparableRows.map(row => row.comparisonKey), [
         'source:2021:party_ab8aeb368dd5',
         'source:2016:party_c02711490e0c'
     ]);
-    assert.deepEqual(result.rows.map(row => [row.earlier.status, row.later.status]), [
+    assert.deepEqual(result.notComparableRows.map(row => [row.earlier.status, row.later.status]), [
         ['established_zero_from_complete_roster', 'present_in_complete_roster'],
         ['present_in_complete_roster', 'established_zero_from_complete_roster']
     ]);
-    assert.deepEqual(result.rows.map(row => row.delta.totalSeats), [1, -2]);
+    assert.deepEqual(result.notComparableRows.map(row => row.continuityBasis), [
+        'source_observation_only', 'source_observation_only'
+    ]);
+});
+
+test('default 2021 to 2026 party ranking excludes unresolved alliance lineage', () => {
+    const result = derivePartyDeltas(payload(), 2021, 2026, { showAll: true });
+
+    assert.equal(result.available, true);
+    assert.equal(result.rows.some(row => row.abbreviation === 'AG'), false);
+    assert.ok(result.rows.every(row => row.continuityBasis === 'same_exact_source_label'));
+    assert.ok(result.notComparableRows.some(row => row.abbreviation === 'AG'
+        && row.later.totalSeats === 8));
 });
 
 test('party trajectory spans every election without merging a similarly labelled alliance', () => {

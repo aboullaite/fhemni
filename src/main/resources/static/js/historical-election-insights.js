@@ -13,6 +13,7 @@
     const REPORTED_FACT_STATUS = 'REPORTED_ELECTIONS_MA';
     const ANALYSIS_FACT_STATUS = 'FHEMNI_ANALYSIS_BASED_ON_ELECTIONS_MA';
     const ABBREVIATION_STATUS = 'ARCHIVE_FIELD_NOT_VERIFIED_IDENTITY';
+    const EXPECTED_SOURCE_SHA256 = '13378267af52eecba43d0bab4d3de5330351f48f4c9e3c580107da995f6b7ce1';
     const EXPECTED_SOURCE_URLS = [
         'https://www.elections.ma/elections/legislatives/resultats.aspx?Id=l1Vr5AJaDkA534Qqp+Idqg==&IE=1',
         'https://www.elections.ma/elections/legislatives/resultats.aspx?Id=T1uzm+f7U/WFF+rn+x03Zg==&IE=1',
@@ -114,7 +115,7 @@
         const electionUrls = records(payload?.elections).map(election => election?.sourceUrl);
         if (!generation || generation.sourceArchive !== 'morocco-legislative-results.json'
                 || generation.sourceDatasetId !== 'morocco-legislative-2016-2021-2026'
-                || !/^[a-f0-9]{64}$/.test(generation.sourceSha256 || '')
+                || generation.sourceSha256 !== EXPECTED_SOURCE_SHA256
                 || generation.aggregateFactStatus !== ANALYSIS_FACT_STATUS
                 || !sameValues(sourceUrls, EXPECTED_SOURCE_URLS)
                 || !sameValues(electionUrls, EXPECTED_SOURCE_URLS)) {
@@ -612,10 +613,17 @@
         const query = normalize(options.query);
         const filtered = query ? allRows.filter(row => [row.nameAr, row.abbreviation, row.comparisonKey]
             .some(value => normalize(value).includes(query))) : allRows;
-        const ordered = partyDeltaOrder(filtered, sort, measure);
+        const comparable = filtered.filter(row => row.continuityBasis === 'same_exact_source_label');
+        const notComparable = filtered.filter(row => row.continuityBasis === 'source_observation_only');
+        const ordered = partyDeltaOrder(comparable, sort, measure);
+        const orderedNotComparable = partyDeltaOrder(notComparable, 'name', measure);
         return { available: true, diagnostics: [], pair: pair.pair,
             usedFallback: pair.usedFallback, measure, sort,
-            totalRows: ordered.length, unfilteredTotalRows: allRows.length,
+            totalRows: ordered.length,
+            unfilteredTotalRows: allRows.filter(row =>
+                row.continuityBasis === 'same_exact_source_label').length,
+            notComparableTotalRows: orderedNotComparable.length,
+            notComparableRows: orderedNotComparable,
             rows: options.showAll || query ? ordered : ordered.slice(0, 10) };
     }
 

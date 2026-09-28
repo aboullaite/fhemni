@@ -609,6 +609,14 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .is-gain { color: var(--teal-dark); }
 .is-loss { color: var(--red); }
 .history-show-all { min-height: 44px; margin-block-start: 12px; cursor: pointer; }
+.history-party-not-comparable { margin-block-start: 14px; padding: 16px; border: 1px solid rgba(19,44,43,.12); border-radius: 12px; background: rgba(19,44,43,.035); }
+.history-party-not-comparable > strong { display: block; color: var(--ink); font-size: 13px; }
+.history-party-not-comparable > p { max-width: 720px; margin: 4px 0 12px; color: var(--muted); font-size: 11px; line-height: 1.6; }
+#historyPartyNotComparableRows { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.history-party-not-comparable-row { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 14px; padding: 10px 12px; border: 1px solid rgba(19,44,43,.09); border-radius: 10px; background: rgba(255,255,255,.62); }
+.history-party-not-comparable-values { display: flex; flex: 0 0 auto; gap: 10px; color: var(--muted); font-size: 10px; font-weight: 750; font-variant-numeric: tabular-nums; }
+.history-party-not-comparable-values span { display: grid; gap: 1px; text-align: center; }
+.history-party-not-comparable-values bdi:last-child { color: var(--ink); font-size: 13px; font-weight: 900; }
 .history-exact-figures { min-width: 0; margin-block-start: 14px; padding: 13px 15px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,253,247,.55); }
 .history-exact-figures > summary { width: fit-content; min-height: 44px; padding-block: 10px; color: var(--teal-dark); cursor: pointer; font-weight: 850; }
 .history-table-scroll { width: 100%; min-width: 0; max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-width: thin; }
@@ -755,6 +763,7 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
     .history-ballot-donut::after { width: 52px; height: 52px; }
     .history-ballot-donut bdi { font-size: 15px; }
     .history-party-row, .history-quotient-party-row { grid-template-columns: minmax(0,1fr) auto; gap: 10px; }
+    #historyPartyNotComparableRows { grid-template-columns: 1fr; }
     .history-stacked-bars { grid-column: 1 / -1; grid-row: 2; }
     .history-stacked-bar { grid-template-columns: minmax(72px,auto) minmax(80px,1fr) 38px; }
     .history-party-delta, .history-quotient-party-row > strong { grid-column: 2; grid-row: 1; }

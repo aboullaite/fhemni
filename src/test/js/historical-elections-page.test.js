@@ -73,7 +73,8 @@ test('history page exposes the progressive comparison sections and accessible st
     assert.match(page, /id="historySelectionNotice"[^>]*role="status"/);
     assert.match(page, /id="historyPeopleTable"[\s\S]*?<caption/);
     assert.match(page, /id="historyPeopleCards"/);
-    assert.match(page, /id="historyPeopleCount"[^>]*tabindex="-1"/);
+    assert.match(page, /id="historyPeopleCount"[^>]*class="[^"]*sr-only[^"]*"[^>]*tabindex="-1"/);
+    assert.match(page, /<caption id="historyPeopleCaption" class="sr-only"><\/caption>/);
     assert.match(page, /class="history-pagination"[^>]*aria-label="[^"]+"/);
     assert.match(page, /id="historyExactFigures"/);
     assert.match(page, /id="historyTabs"[^>]*role="tablist"/);
@@ -84,6 +85,7 @@ test('history page exposes the progressive comparison sections and accessible st
     assert.match(page, /id="historyPeopleMovements"/);
     assert.match(page, /id="historyMovementGains"/);
     assert.match(page, /id="historyMovementLosses"/);
+    assert.match(page, /id="historyPartyNotComparable"/);
     assert.match(page, /id="historyMeasureTabs"[^>]*role="group"/);
     assert.match(page, /id="historyMeasureTotal"[^>]*aria-pressed="true"/);
     assert.match(page, /id="historyMeasureLocal"[^>]*aria-pressed="false"/);
@@ -92,6 +94,9 @@ test('history page exposes the progressive comparison sections and accessible st
     assert.match(page, /<script src="\/js\/historical-election-insights\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-electoral-quotient\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-elections\.js[^>]*defer/);
+    assert.match(page, /\/css\/dist\.css\?v=20260927-6/);
+    assert.match(page, /\/js\/historical-election-insights\.js\?v=20260927-2/);
+    assert.match(page, /\/js\/historical-elections\.js\?v=20260927-2/);
 });
 
 test('all page copy is complete in Darija, French, and English and states the evidence limits', () => {
@@ -133,6 +138,38 @@ test('all page copy is complete in Darija, French, and English and states the ev
     assert.match(COPY.fr.quotientWarning, /contrefactuelle/i);
     assert.match(COPY.ar.quotientWarning, /محاكاة/);
     assert.match(COPY.en.fullMethodology, /methodology/i);
+    assert.equal(COPY.ar.overviewTitle, 'الأصوات والتمثيل البرلماني');
+    assert.equal(COPY.fr.overviewTitle, 'Voix et représentation parlementaire');
+    assert.equal(COPY.en.overviewTitle, 'Votes and parliamentary representation');
+    assert.equal(COPY.ar.peopleTitle, 'منتخبون فالجوج الانتخابات');
+    assert.equal(COPY.fr.peopleTitle, 'Élus aux deux élections');
+    assert.equal(COPY.en.peopleTitle, 'Elected in both elections');
+    assert.equal(COPY.ar.peopleCaption, COPY.ar.peopleTitle);
+    assert.equal(COPY.fr.peopleCaption, COPY.fr.peopleTitle);
+    assert.equal(COPY.en.peopleCaption, COPY.en.peopleTitle);
+    assert.match(COPY.ar.measureLocalCaveat, /المجموع.*الافتراضي/);
+    assert.match(COPY.fr.measureLocalCaveat, /total.*défaut/i);
+    assert.match(COPY.en.measureLocalCaveat, /total.*default/i);
+    for (const locale of ['ar', 'fr', 'en']) {
+        assert.equal(Object.hasOwn(COPY[locale], 'quotientFullAssumption'), false);
+        assert.equal(Object.hasOwn(COPY[locale], 'quotientLocalOnly'), false);
+        assert.match(COPY[locale].partyNotComparableTitle, /./);
+        assert.match(COPY[locale].partyNotComparableIntro, /./);
+    }
+});
+
+test('generic section subtitles are removed while evidence and methodology notes remain', () => {
+    const page = fs.readFileSync(pagePath, 'utf8');
+
+    for (const id of ['historyOverviewIntro', 'historyPartiesIntro', 'historyTrajectoryIntro',
+        'historyRegionsIntro', 'historyEvidenceIntro', 'historyPeopleIntro']) {
+        assert.doesNotMatch(page, new RegExp(`id="${id}"`));
+    }
+    for (const id of ['historyMeasureCaveat', 'historyQuotientIntro', 'historyQuotientWarning',
+        'historyRegionCaveat', 'historyDemographicCaveat', 'historyNameMatchCaveat',
+        'historyMovementIntro', 'historyMethodText']) {
+        assert.match(page, new RegExp(`id="${id}"`));
+    }
 });
 
 test('URL state keeps non-default seat tabs shareable and defaults to total seats', () => {
@@ -313,6 +350,10 @@ test('page script renders demographic provenance visibly and restores focus afte
     assert.match(controller, /deriveRepeatedNamePartyMovements\(payload, Number\(state\.from\), Number\(state\.to\)\)/);
     assert.match(controller, /historyMovementGains/);
     assert.match(controller, /historyMovementLosses/);
+    assert.match(controller, /notComparableRows/);
+    assert.match(controller, /historyPartyNotComparable/);
+    assert.match(controller, /result\.totalRows \+ result\.notComparableTotalRows/);
+    assert.match(controller, /result\.rows\.length \+ result\.notComparableRows\.length/);
 });
 
 test('visible demographic evidence wraps inside the mobile viewport', () => {
