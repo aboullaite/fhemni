@@ -5,8 +5,12 @@ const path = require('node:path');
 
 const pagePath = path.join(__dirname,
     '../../main/resources/static/historical-elections.html');
+const currentPagePath = path.join(__dirname,
+    '../../main/resources/static/election-results.html');
 const controllerPath = path.join(__dirname,
     '../../main/resources/static/js/historical-elections.js');
+const currentControllerPath = path.join(__dirname,
+    '../../main/resources/static/js/election-results.js');
 const cssPath = path.join(__dirname,
     '../../main/resources/static/css/app.css');
 
@@ -94,9 +98,34 @@ test('history page exposes the progressive comparison sections and accessible st
     assert.match(page, /<script src="\/js\/historical-election-insights\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-electoral-quotient\.js[^>]*defer/);
     assert.match(page, /<script src="\/js\/historical-elections\.js[^>]*defer/);
-    assert.match(page, /\/css\/dist\.css\?v=20260928-2/);
+    assert.match(page, /\/css\/dist\.css\?v=20260928-3/);
     assert.match(page, /\/js\/historical-election-insights\.js\?v=20260928-1/);
-    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-2/);
+    assert.match(page, /\/js\/historical-elections\.js\?v=20260928-3/);
+});
+
+test('current and historical election heroes cross-link with compact green actions', () => {
+    const currentPage = fs.readFileSync(currentPagePath, 'utf8');
+    const historyPage = fs.readFileSync(pagePath, 'utf8');
+    const currentController = fs.readFileSync(currentControllerPath, 'utf8');
+    const historyController = fs.readFileSync(controllerPath, 'utf8');
+    const css = fs.readFileSync(cssPath, 'utf8');
+
+    assert.match(currentPage,
+        /class="election-hero-copy"[\s\S]*?id="electionHistoryLink"[^>]*class="priority-primary-button button-link election-history-link"/);
+    assert.match(currentPage, /\/css\/dist\.css\?v=20260928-3/);
+    assert.match(currentPage, /\/js\/election-results\.js\?v=20260928-1/);
+    assert.match(currentController, /historyLink: 'قارن مع الانتخابات السابقة'/);
+    assert.match(currentController, /historyLink: 'Comparer avec les élections précédentes'/);
+    assert.match(currentController, /historyLink: 'Compare with previous elections'/);
+
+    assert.match(historyPage,
+        /id="historyCurrentResultsLink" class="priority-primary-button button-link history-current-results-link"/);
+    assert.doesNotMatch(historyPage, /id="historyPairHelp"/);
+    assert.doesNotMatch(historyController, /pairHelp:/);
+    assert.match(css, /\.election-hero \.election-history-link\s*\{[^}]*min-height:\s*40px;/);
+    assert.match(css, /\.history-hero \.history-current-results-link\s*\{[^}]*min-height:\s*40px;/);
+    assert.match(css, /\.history-pair-fields label > span\s*\{[^}]*white-space:\s*nowrap;/);
+    assert.match(css, /\.history-pair-arrow\s*\{[^}]*min-height:\s*44px;[^}]*place-items:\s*center;[^}]*padding:\s*0;/);
 });
 
 test('all page copy is complete in Darija, French, and English and states the evidence limits', () => {

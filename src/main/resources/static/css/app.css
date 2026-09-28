@@ -535,6 +535,7 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 #historyContent { width: 100%; min-width: 0; }
 .history-hero { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(250px,.65fr); align-items: center; gap: clamp(28px,5vw,58px); padding: 12px 0 30px; border-bottom: 1px solid var(--line); }
 .history-hero-copy { display: grid; gap: 14px; }
+.history-hero .history-current-results-link { width: max-content; min-height: 40px; padding: 8px 14px; font-size: 11px; }
 .history-hero h1 { max-width: 760px; margin: 0; font-size: clamp(36px,4.8vw,54px); font-weight: 500; line-height: 1.08; letter-spacing: -.035em; text-wrap: balance; }
 .history-lede { max-width: 720px; margin: 0; color: var(--muted); font-size: clamp(16px,2vw,20px); font-weight: 400; line-height: 1.75; }
 .history-pair-card { display: grid; min-width: 0; gap: 14px; padding: 22px; border: 1px solid rgba(23,107,99,.24); border-radius: var(--radius-panel); background: linear-gradient(135deg,rgba(207,230,220,.48),rgba(255,255,255,.8)); box-shadow: 0 14px 45px rgba(31,57,53,.06); }
@@ -543,9 +544,10 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .history-pair-card > .history-pair-notice { padding: 9px 11px; border-radius: 9px; background: rgba(232,111,60,.1); color: var(--ink); font-weight: 750; }
 .history-pair-fields { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 10px; }
 .history-pair-fields label, .history-field { display: grid; gap: 6px; color: var(--muted); font-size: 12px; font-weight: 800; }
+.history-pair-fields label > span { min-width: 0; white-space: nowrap; }
 .history-pair-fields select, .history-field :is(select,input) { width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid var(--line); border-radius: var(--radius-control); outline: none; background: var(--white); color: var(--ink); }
 .history-pair-fields select:focus-visible, .history-field :is(select,input):focus-visible, .history-check:has(input:focus-visible), .history-pagination button:focus-visible, .history-show-all:focus-visible, .history-measure-tabs button:focus-visible { outline: 3px solid var(--teal-dark); outline-offset: 2px; }
-.history-pair-arrow { padding-block-end: 11px; color: var(--orange); font-size: 22px; font-weight: 900; }
+.history-pair-arrow { display: grid; width: 30px; min-height: 44px; align-self: end; place-items: center; padding: 0; color: var(--orange); font-size: 22px; font-weight: 900; line-height: 1; }
 [dir="rtl"] .history-pair-arrow { transform: scaleX(-1); }
 .history-jumps { width: 100%; min-width: 0; margin: 18px 0 0; }
 .history-jumps a { flex: 0 0 auto; justify-content: center; }
@@ -805,6 +807,7 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .election-state-card p { max-width: 520px; margin: 0; color: var(--muted); font-weight: 650; }
 .election-hero { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(250px,.65fr); align-items: center; gap: clamp(28px,5vw,58px); padding: 12px 0 30px; border-bottom: 1px solid var(--line); }
 .election-hero-copy { display: grid; gap: 14px; }
+.election-hero .election-history-link { width: max-content; min-height: 40px; padding: 8px 14px; font-size: 11px; }
 .election-hero h1 { max-width: 760px; margin: 0; font-size: clamp(36px,4.8vw,54px); font-weight: 500; line-height: 1.08; letter-spacing: -.035em; text-wrap: balance; }
 .election-lead { max-width: 720px; margin: 0; color: var(--muted); font-size: clamp(16px,2vw,20px); font-weight: 400; line-height: 1.75; }
 .election-status-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
