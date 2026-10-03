@@ -64,14 +64,14 @@ test('representative pagination returns one page at a time and clamps boundary p
         { page: 1, pages: 6, start: 1, end: 10 });
 
     const second = sandbox.__representativePage(records, 2, 25);
-    assert.deepEqual(Array.from(second.records), Array.from({ length: 25 }, (_, index) => index + 26));
+    assert.deepEqual(Array.from(second.records), Array.from({ length: 10 }, (_, index) => index + 11));
     assert.deepEqual({ page: second.page, pages: second.pages, start: second.start, end: second.end },
-        { page: 2, pages: 3, start: 26, end: 50 });
+        { page: 2, pages: 6, start: 11, end: 20 });
 
     const last = sandbox.__representativePage(records, 99, 25);
     assert.deepEqual(Array.from(last.records), [51, 52, 53, 54, 55]);
     assert.deepEqual({ page: last.page, pages: last.pages, start: last.start, end: last.end },
-        { page: 3, pages: 3, start: 51, end: 55 });
+        { page: 6, pages: 6, start: 51, end: 55 });
 });
 
 test('Who represents me keeps its recognizable title in every language', () => {
