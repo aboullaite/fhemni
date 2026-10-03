@@ -110,6 +110,19 @@ function completeAtlasSnapshot() {
     return input;
 }
 
+test('regional representatives retain their own list votes without inventing personal votes', () => {
+    const input = completeAtlasSnapshot();
+    const winners = input.regions.flatMap(region => region.parties.flatMap(party => party.regionalListWinners));
+    winners[0].listVotes = 86557;
+    winners[1].listVotes = 0;
+    const result = indexRepresentatives(input, { seatType: 'REGIONAL' });
+    assert.equal(result.available, true);
+    assert.equal(result.records.find(row => row.candidateKey === winners[0].candidateKey).listVotes, 86557);
+    assert.equal(result.records.find(row => row.candidateKey === winners[1].candidateKey).listVotes, 0);
+    assert.equal(result.records.find(row => row.candidateKey === winners[2].candidateKey).listVotes, null);
+    assert.ok(result.records.every(row => row.votes === null));
+});
+
 function constituencyDemographics(input = completeAtlasSnapshot()) {
     const byCode = new Map();
     for (const region of input.regions) {

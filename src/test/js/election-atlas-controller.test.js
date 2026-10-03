@@ -10,6 +10,36 @@ const pagePath = path.join(__dirname, '../../main/resources/static/election-resu
 const source = fs.readFileSync(controllerPath, 'utf8');
 const page = fs.readFileSync(pagePath, 'utf8');
 
+for (const [locale, expected, zero] of [
+    ['ar', 'أصوات اللائحة: 86.557', 'أصوات اللائحة: 0'],
+    ['fr', 'Voix de la liste : 86\u202f557', 'Voix de la liste : 0'],
+    ['en', 'List votes: 86,557', 'List votes: 0']
+]) {
+    test(`${locale} both representative views label regional list votes and preserve missing versus zero`, () => {
+        const script = source.replace("document.addEventListener('DOMContentLoaded', init);", `
+            locale = '${locale}'; copy = COPY[locale];
+            globalThis.cells = row => representativeCells(row, ATLAS_COPY[locale]);
+            globalThis.regionalRow = regionalWinnerRow;
+            globalThis.missing = ATLAS_COPY[locale].representativesNotPublished;`);
+        const node = () => ({ children: [], textContent: '', append(...children) { this.children.push(...children); },
+            get childElementCount() { return this.children.length; } });
+        const sandbox = { document: { addEventListener() {}, createElement: node }, window: {
+            queueMicrotask(callback) { callback(); },
+            FhemniElectionRegionFilters: { SEAT_TYPES: {}, normalizeState() { return {}; }, createDeferredAction() { return {}; } }
+        } };
+        vm.runInNewContext(script, sandbox);
+        const record = { candidateName: 'Candidate', seatType: 'REGIONAL', votes: null, listVotes: 86557 };
+        assert.equal(sandbox.cells(record).at(-1), expected);
+        assert.equal(sandbox.cells({ ...record, listVotes: 0 }).at(-1), zero);
+        assert.equal(sandbox.cells({ ...record, listVotes: null }).at(-1), sandbox.missing);
+        const texts = item => [item.textContent, ...item.children.flatMap(texts)];
+        assert.ok(texts(sandbox.regionalRow(record)).includes(expected));
+        assert.ok(texts(sandbox.regionalRow({ ...record, listVotes: 0 })).includes(zero));
+        assert.ok(!texts(sandbox.regionalRow({ ...record, listVotes: null })).includes(zero));
+        assert.equal(sandbox.cells({ ...record, seatType: 'LOCAL', votes: 123 }).at(-1), '123');
+    });
+}
+
 test('representative pagination returns one page at a time and clamps boundary pages', () => {
     const script = source.replace("document.addEventListener('DOMContentLoaded', init);",
         'globalThis.__representativePage = representativePage;');

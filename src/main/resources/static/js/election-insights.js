@@ -663,7 +663,7 @@
                     records.push({ candidateKey: candidateKey || null, candidateName: winner.candidateName,
                         partyCode: party.code, partyName: party.name, regionCode: region.code, regionName: region.name,
                         constituencyCode: null, constituencyName: null, allocatedSeats: null,
-                        seatType: 'REGIONAL', votes: null });
+                        seatType: 'REGIONAL', votes: null, listVotes: winner.listVotes ?? null });
                 }
             }
         }

@@ -283,6 +283,11 @@
         });
     }
 
+    function regionalListVoteLabel(value) {
+        const label = { ar: 'أصوات اللائحة', fr: 'Voix de la liste', en: 'List votes' }[locale];
+        return `${label}${locale === 'fr' ? ' :' : ':'} ${number(value)}`;
+    }
+
     function coalitionVerdictText(selectedSeats, election) {
         const difference = Math.abs(selectedSeats - election.majoritySeats);
         if (difference === 0) return copy.coalitionExact;
@@ -1366,10 +1371,13 @@
     }
 
     function representativeCells(record, atlas) {
+        const votes = record.seatType === 'REGIONAL'
+            ? (record.listVotes == null ? atlas.representativesNotPublished : regionalListVoteLabel(record.listVotes))
+            : (record.votes == null ? atlas.representativesNotPublished : number(record.votes));
         return [record.candidateName, `${record.partyCode} · ${record.partyName || record.partyCode}`,
             record.seatType === 'LOCAL' ? atlas.representativesLocalSeat : atlas.representativesRegionalSeat,
             record.regionName, record.constituencyName || '—',
-            record.votes === null ? atlas.representativesNotPublished : number(record.votes)];
+            votes];
     }
 
     function representativeTable(records, atlas) {
@@ -2158,6 +2166,7 @@
     function regionalWinnerRow(winner) {
         const row = element('div', 'election-region-winner election-region-winner-regional');
         const meta = element('div', 'election-region-winner-meta');
+        if (winner.listVotes != null) meta.append(element('span', 'election-region-winner-votes', regionalListVoteLabel(winner.listVotes)));
         const status = copy.winnerStatus[winner.status] || winner.status;
         if (status) meta.append(element('span', 'election-region-winner-status', status));
         row.append(
