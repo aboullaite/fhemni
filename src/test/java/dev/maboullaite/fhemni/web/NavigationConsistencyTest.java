@@ -99,8 +99,8 @@ class NavigationConsistencyTest {
                 .contains("role=\"status\" aria-live=\"polite\" aria-atomic=\"true\"")
                 .contains("/js/election-region-filters.js?v=20260925-1")
                 .contains("/data/elections/2026/urban-rural-constituencies.js?v=20260927-1")
-                .contains("/js/election-insights.js?v=20260927-4")
-                .contains("/js/election-results.js?v=20260928-1")
+                .contains("/js/election-insights.js?v=20261003-1")
+                .contains("/js/election-results.js?v=20261003-3")
                 .doesNotContain("style=\"");
         assertThat(html("js/election-region-filters.js"))
                 .contains("function filterRegion(region, state = {})")
@@ -226,7 +226,7 @@ class NavigationConsistencyTest {
                 .contains("[dir=\"rtl\"] .election-graphs-jumps");
         assertThat(styles).containsPattern("(?s)@media \\(max-width: 640px\\).*?\\.election-tabs \\{[^}]*overflow-x: auto;[^}]*grid-template-columns: repeat\\(4,minmax\\(118px,1fr\\)\\)");
         assertThat(compiled).contains(".election-graphs-jumps").contains(".election-atlas-representative-cards");
-        assertThat(page).contains("/css/dist.css?v=20260928-7");
+        assertThat(page).contains("/css/dist.css?v=20261003-1");
     }
 
     @Test
@@ -962,7 +962,7 @@ class NavigationConsistencyTest {
             String version = switch (page) {
                 case "priorities.html" -> "20260917-9";
                 case "404.html" -> "20260917-1";
-                case "election-results.html" -> "20260928-7";
+                case "election-results.html" -> "20261003-1";
                 case "historical-elections.html" -> "20260928-9";
                 default -> "20260916-22";
             };

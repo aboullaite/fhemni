@@ -283,6 +283,11 @@
         });
     }
 
+    function regionalListVoteLabel(value) {
+        const label = { ar: 'أصوات اللائحة', fr: 'Voix de la liste', en: 'List votes' }[locale];
+        return `${label}${locale === 'fr' ? ' :' : ':'} ${number(value)}`;
+    }
+
     function coalitionVerdictText(selectedSeats, election) {
         const difference = Math.abs(selectedSeats - election.majoritySeats);
         if (difference === 0) return copy.coalitionExact;
@@ -593,7 +598,7 @@
     function atlasUnavailable(message) { return element('p', 'election-atlas-unavailable', message); }
 
     function representativePage(records, requestedPage, pageSize = REPRESENTATIVE_PAGE_SIZE) {
-        const size = Math.max(1, Math.trunc(pageSize) || REPRESENTATIVE_PAGE_SIZE);
+        const size = Math.min(REPRESENTATIVE_PAGE_SIZE, Math.max(1, Math.trunc(pageSize) || REPRESENTATIVE_PAGE_SIZE));
         const pages = Math.max(1, Math.ceil(records.length / size));
         const page = Math.min(Math.max(1, Math.trunc(requestedPage) || 1), pages);
         const offset = (page - 1) * size;
@@ -605,6 +610,46 @@
             end: offset + visible.length,
             records: visible
         };
+    }
+
+    function paginatedAtlasTable(table, body, caption) {
+        const atlas = atlasCopy();
+        const rows = Array.from(body.children);
+        const wrapper = element('div', 'election-atlas-paginated-table');
+        const scroll = element('div', 'election-atlas-table-scroll');
+        scroll.append(table);
+        wrapper.append(scroll);
+        if (rows.length <= REPRESENTATIVE_PAGE_SIZE) return wrapper;
+
+        const paging = element('nav', 'election-atlas-representative-paging');
+        paging.setAttribute('aria-label', caption);
+        const previous = element('button', 'election-atlas-control', atlas.representativesPrevious);
+        const next = element('button', 'election-atlas-control', atlas.representativesNext);
+        previous.type = next.type = 'button';
+        const status = element('span', 'election-atlas-representative-page-status');
+        status.setAttribute('role', 'status');
+        status.setAttribute('aria-live', 'polite');
+        status.setAttribute('aria-atomic', 'true');
+        let page = 1;
+        function renderPage() {
+            const visible = representativePage(rows, page);
+            page = visible.page;
+            body.replaceChildren(...visible.records);
+            previous.disabled = page <= 1;
+            next.disabled = page >= visible.pages;
+            status.textContent = format(atlas.representativesPage, {
+                start: number(visible.start), end: number(visible.end), total: number(rows.length),
+                page: number(page), pages: number(visible.pages)
+            });
+            if (document.activeElement === previous && previous.disabled) next.focus();
+            else if (document.activeElement === next && next.disabled) previous.focus();
+        }
+        previous.addEventListener('click', () => { if (!previous.disabled) { page--; renderPage(); } });
+        next.addEventListener('click', () => { if (!next.disabled) { page++; renderPage(); } });
+        paging.append(previous, status, next);
+        wrapper.append(paging);
+        renderPage();
+        return wrapper;
     }
 
     function announceAtlasControls(options, count, state) {
@@ -648,7 +693,6 @@
         const atlas = atlasCopy();
         const details = element('details', 'election-atlas-figures');
         details.append(element('summary', '', atlas.exactFigures));
-        const scroll = element('div', 'election-atlas-table-scroll');
         const table = element('table');
         table.append(element('caption', '', caption));
         const head = element('thead');
@@ -682,8 +726,7 @@
             foot.append(row);
             table.append(foot);
         }
-        scroll.append(table);
-        details.append(scroll);
+        details.append(paginatedAtlasTable(table, body, caption));
         return details;
     }
 
@@ -953,7 +996,7 @@
             body.append(row);
         });
         table.append(head, body);
-        return table;
+        return paginatedAtlasTable(table, body, atlas.geographyMatrixCaption);
     }
 
     function announceGeographySelection(options, atlas) {
@@ -1058,14 +1101,12 @@
                     data.rows.map(row => [row.name || row.code, number(row.seats), number(row.delegationSeats), `${exactPercent(row.share)}%`])));
             }
         } else {
-            const desktop = element('div', 'election-atlas-geography-matrix-desktop election-atlas-table-scroll');
+            const desktop = element('div', 'election-atlas-geography-matrix-desktop');
             desktop.append(geographyMatrixTable(matrix, atlas));
             content.append(desktop);
             const disclosure = element('details', 'election-atlas-figures election-atlas-geography-matrix-mobile');
             disclosure.append(element('summary', '', atlas.exactFigures));
-            const scroll = element('div', 'election-atlas-table-scroll');
-            scroll.append(geographyMatrixTable(matrix, atlas));
-            disclosure.append(scroll);
+            disclosure.append(geographyMatrixTable(matrix, atlas));
             content.append(disclosure);
         }
         replaceAtlasSection('electionGraphGeographyContent', content, options);
@@ -1111,7 +1152,6 @@
         const details = element('details', 'election-atlas-figures election-atlas-urbanization-regions');
         details.setAttribute('open', '');
         details.append(element('summary', '', format(atlas.urbanizationRegions, { party: selected.name || selected.code })));
-        const scroll = element('div', 'election-atlas-table-scroll');
         const table = element('table');
         const head = element('thead');
         const headerRow = element('tr');
@@ -1129,8 +1169,8 @@
             body.append(row);
         });
         table.append(head, body);
-        scroll.append(table);
-        details.append(scroll);
+        details.append(paginatedAtlasTable(table, body,
+            format(atlas.urbanizationRegions, { party: selected.name || selected.code })));
         return details;
     }
 
@@ -1366,10 +1406,13 @@
     }
 
     function representativeCells(record, atlas) {
+        const votes = record.seatType === 'REGIONAL'
+            ? (record.listVotes == null ? atlas.representativesNotPublished : regionalListVoteLabel(record.listVotes))
+            : (record.votes == null ? atlas.representativesNotPublished : number(record.votes));
         return [record.candidateName, `${record.partyCode} · ${record.partyName || record.partyCode}`,
             record.seatType === 'LOCAL' ? atlas.representativesLocalSeat : atlas.representativesRegionalSeat,
             record.regionName, record.constituencyName || '—',
-            record.votes === null ? atlas.representativesNotPublished : number(record.votes)];
+            votes];
     }
 
     function representativeTable(records, atlas) {
@@ -2160,6 +2203,11 @@
         const meta = element('div', 'election-region-winner-meta');
         const status = copy.winnerStatus[winner.status] || winner.status;
         if (status) meta.append(element('span', 'election-region-winner-status', status));
+        if (winner.listVotes != null) {
+            const votes = element('span', 'election-region-winner-votes', voteCountLabel(winner.listVotes));
+            votes.setAttribute('aria-label', regionalListVoteLabel(winner.listVotes));
+            meta.append(votes);
+        }
         row.append(
             element('span', 'sr-only', `${copy.winner}: `),
             element('bdi', 'election-region-winner-name', winner.candidateName)

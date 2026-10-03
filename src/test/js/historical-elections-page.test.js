@@ -136,8 +136,8 @@ test('current and historical election heroes cross-link with compact green actio
 
     assert.match(currentPage,
         /class="election-hero-copy"[\s\S]*?id="electionHistoryLink"[^>]*class="priority-primary-button button-link election-history-link"/);
-    assert.match(currentPage, /\/css\/dist\.css\?v=20260928-7/);
-    assert.match(currentPage, /\/js\/election-results\.js\?v=20260928-1/);
+    assert.match(currentPage, /\/css\/dist\.css\?v=20261003-1/);
+    assert.match(currentPage, /\/js\/election-results\.js\?v=20261003-3/);
     assert.match(currentController, /historyLink: 'قارن مع الانتخابات السابقة'/);
     assert.match(currentController, /historyLink: 'Comparer avec les élections précédentes'/);
     assert.match(currentController, /historyLink: 'Compare with previous elections'/);

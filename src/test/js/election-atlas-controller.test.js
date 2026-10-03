@@ -10,6 +10,42 @@ const pagePath = path.join(__dirname, '../../main/resources/static/election-resu
 const source = fs.readFileSync(controllerPath, 'utf8');
 const page = fs.readFileSync(pagePath, 'utf8');
 
+for (const [locale, expected, zero, compact, compactZero] of [
+    ['ar', 'أصوات اللائحة: 86.557', 'أصوات اللائحة: 0', '86.557 صوتاً', 'لا أصوات'],
+    ['fr', 'Voix de la liste : 86\u202f557', 'Voix de la liste : 0', '86\u202f557 voix', '0 voix'],
+    ['en', 'List votes: 86,557', 'List votes: 0', '86,557 votes', '0 votes']
+]) {
+    test(`${locale} both representative views label regional list votes and preserve missing versus zero`, () => {
+        const script = source.replace("document.addEventListener('DOMContentLoaded', init);", `
+            locale = '${locale}'; copy = COPY[locale];
+            globalThis.cells = row => representativeCells(row, ATLAS_COPY[locale]);
+            globalThis.regionalRow = regionalWinnerRow;
+            globalThis.missing = ATLAS_COPY[locale].representativesNotPublished;`);
+        const node = () => ({ children: [], textContent: '', attributes: {},
+            setAttribute(name, value) { this.attributes[name] = value; },
+            append(...children) { this.children.push(...children); },
+            get childElementCount() { return this.children.length; } });
+        const sandbox = { document: { addEventListener() {}, createElement: node }, window: {
+            queueMicrotask(callback) { callback(); },
+            FhemniElectionRegionFilters: { SEAT_TYPES: {}, normalizeState() { return {}; }, createDeferredAction() { return {}; } }
+        } };
+        vm.runInNewContext(script, sandbox);
+        const record = { candidateName: 'Candidate', seatType: 'REGIONAL', status: 'FINAL', votes: null, listVotes: 86557 };
+        assert.equal(sandbox.cells(record).at(-1), expected);
+        assert.equal(sandbox.cells({ ...record, listVotes: 0 }).at(-1), zero);
+        assert.equal(sandbox.cells({ ...record, listVotes: null }).at(-1), sandbox.missing);
+        const texts = item => [item.textContent, ...item.children.flatMap(texts)];
+        const meta = sandbox.regionalRow(record).children.at(-1);
+        assert.equal(meta.children[0].className, 'election-region-winner-status');
+        assert.equal(meta.children[1].className, 'election-region-winner-votes');
+        assert.equal(meta.children[1].textContent, compact);
+        assert.equal(meta.children[1].attributes['aria-label'], expected);
+        assert.ok(texts(sandbox.regionalRow({ ...record, listVotes: 0 })).includes(compactZero));
+        assert.ok(!texts(sandbox.regionalRow({ ...record, listVotes: null })).includes(compactZero));
+        assert.equal(sandbox.cells({ ...record, seatType: 'LOCAL', votes: 123 }).at(-1), '123');
+    });
+}
+
 test('representative pagination returns one page at a time and clamps boundary pages', () => {
     const script = source.replace("document.addEventListener('DOMContentLoaded', init);",
         'globalThis.__representativePage = representativePage;');
@@ -28,14 +64,14 @@ test('representative pagination returns one page at a time and clamps boundary p
         { page: 1, pages: 6, start: 1, end: 10 });
 
     const second = sandbox.__representativePage(records, 2, 25);
-    assert.deepEqual(Array.from(second.records), Array.from({ length: 25 }, (_, index) => index + 26));
+    assert.deepEqual(Array.from(second.records), Array.from({ length: 10 }, (_, index) => index + 11));
     assert.deepEqual({ page: second.page, pages: second.pages, start: second.start, end: second.end },
-        { page: 2, pages: 3, start: 26, end: 50 });
+        { page: 2, pages: 6, start: 11, end: 20 });
 
     const last = sandbox.__representativePage(records, 99, 25);
     assert.deepEqual(Array.from(last.records), [51, 52, 53, 54, 55]);
     assert.deepEqual({ page: last.page, pages: last.pages, start: last.start, end: last.end },
-        { page: 3, pages: 3, start: 51, end: 55 });
+        { page: 6, pages: 6, start: 51, end: 55 });
 });
 
 test('Who represents me keeps its recognizable title in every language', () => {

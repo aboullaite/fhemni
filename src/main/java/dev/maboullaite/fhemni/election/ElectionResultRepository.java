@@ -84,7 +84,7 @@ class ElectionResultRepository {
                                party.color,
                                party.symbol_asset, party.sort_order,
                                result.local_seats, result.regional_list_seats,
-                               result.total_seats
+                               result.total_seats, result.regional_votes
                           FROM election_region_party_results result
                           JOIN political_parties party ON party.code = result.party_code
                           LEFT JOIN election_party_display_names display
@@ -134,13 +134,17 @@ class ElectionResultRepository {
 
     List<RegionalListWinnerRow> regionalListWinners(UUID electionId) {
         return jdbc.sql("""
-                        SELECT region_code, party_code, candidate_key, candidate_name,
-                               result_status, source_label, source_url,
-                               source_updated_at, sort_order
-                          FROM election_regional_list_winners
-                         WHERE election_id = :electionId
-                           AND party_code <> 'UNKNOWN'
-                         ORDER BY region_code, party_code, sort_order, candidate_key
+                        SELECT winner.region_code, winner.party_code, winner.candidate_key, winner.candidate_name,
+                               winner.result_status, winner.source_label, winner.source_url,
+                               winner.source_updated_at, winner.sort_order, result.regional_votes AS list_votes
+                          FROM election_regional_list_winners winner
+                          LEFT JOIN election_region_party_results result
+                            ON result.election_id = winner.election_id
+                           AND result.region_code = winner.region_code
+                           AND result.party_code = winner.party_code
+                         WHERE winner.election_id = :electionId
+                           AND winner.party_code <> 'UNKNOWN'
+                         ORDER BY winner.region_code, winner.party_code, winner.sort_order, winner.candidate_key
                         """)
                 .param("electionId", electionId)
                 .query(this::mapRegionalListWinner)
@@ -209,7 +213,8 @@ class ElectionResultRepository {
                 result.getInt("sort_order"),
                 result.getInt("local_seats"),
                 result.getInt("regional_list_seats"),
-                result.getInt("total_seats"));
+                result.getInt("total_seats"),
+                nullableLong(result, "regional_votes"));
     }
 
     private ConstituencyWinnerRow mapConstituencyWinner(ResultSet result, int rowNumber) throws SQLException {
@@ -235,6 +240,7 @@ class ElectionResultRepository {
                 result.getString("party_code"),
                 result.getString("candidate_key"),
                 result.getString("candidate_name"),
+                nullableLong(result, "list_votes"),
                 result.getString("result_status"),
                 result.getString("source_label"),
                 result.getString("source_url"),
@@ -315,7 +321,8 @@ class ElectionResultRepository {
             int sortOrder,
             int localSeats,
             int regionalListSeats,
-            int totalSeats) {
+            int totalSeats,
+            Long regionalVotes) {
     }
 
     record ConstituencyWinnerRow(
@@ -339,6 +346,7 @@ class ElectionResultRepository {
             String partyCode,
             String candidateKey,
             String candidateName,
+            Long listVotes,
             String resultStatus,
             String sourceLabel,
             String sourceUrl,

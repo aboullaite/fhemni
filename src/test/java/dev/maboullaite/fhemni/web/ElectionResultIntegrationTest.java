@@ -2,6 +2,7 @@ package dev.maboullaite.fhemni.web;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
@@ -104,6 +105,44 @@ class ElectionResultIntegrationTest {
     }
 
     @Test
+    void exposesTheSpecificRegionalListVotesForEveryWinnerWithoutMultiplyingThem() throws Exception {
+        jdbc.sql("UPDATE election_region_party_results SET regional_votes = 87 WHERE election_id = :id AND party_code = 'RNI'")
+                .param("id", ELECTION_ID).update();
+        insertRegionalListWinner("casablanca-settat", "second-regional", "Second Regional", "RNI",
+                "PRELIMINARY", "Synthetic newsroom", "https://example.test/regional-results");
+        jdbc.sql("UPDATE election_region_party_results SET regional_list_seats = 2, total_seats = 6 WHERE election_id = :id AND party_code = 'RNI'")
+                .param("id", ELECTION_ID).update();
+        mvc.perform(get("/api/catalog/elections/2026/results").param("lang", "en"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.regions[5].parties[0].regionalVotes").value(87))
+                .andExpect(jsonPath("$.regions[5].parties[0].regionalListWinners[0].listVotes").value(87))
+                .andExpect(jsonPath("$.regions[5].parties[0].regionalListWinners[1].listVotes").value(87))
+                .andExpect(jsonPath("$.regions[5].parties[0].winners[0].votes").value(12_345))
+                .andExpect(jsonPath("$.regions[5].parties[1].regionalVotes").doesNotExist());
+        jdbc.sql("UPDATE election_region_party_results SET regional_votes = 0 WHERE election_id = :id AND party_code = 'RNI'")
+                .param("id", ELECTION_ID).update();
+        mvc.perform(get("/api/catalog/elections/2026/results"))
+                .andExpect(jsonPath("$.regions[5].parties[0].regionalListWinners[0].listVotes").value(0));
+    }
+
+    @Test
+    void displaysOnlyTheTwoOfficialElectionSourcesInEveryLanguage() throws Exception {
+        for (String language : java.util.List.of("ar", "fr", "en")) {
+            mvc.perform(get("/api/catalog/elections/2026/results").param("lang", language))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.election.sourceLabel").value(language.equals("ar")
+                            ? "elections.ma، Maroc.ma" : "elections.ma, Maroc.ma"));
+        }
+    }
+
+    @Test
+    void rejectsNegativeRegionalListVotes() {
+        assertThrows(org.springframework.dao.DataIntegrityViolationException.class, () ->
+                jdbc.sql("UPDATE election_region_party_results SET regional_votes = -1 WHERE election_id = :id")
+                        .param("id", ELECTION_ID).update());
+    }
+
+    @Test
     void servesACompletePublicSnapshotInTheRequestedLanguage() throws Exception {
         mvc.perform(get("/api/catalog/elections/2026/results").param("lang", "ar"))
                 .andExpect(status().isOk())
@@ -133,6 +172,8 @@ class ElectionResultIntegrationTest {
                 .andExpect(jsonPath("$.regions[5].parties[0].winners[0].votes").value(12_345))
                 .andExpect(jsonPath("$.regions[5].parties[0].winners[0].allocatedSeats").value(2))
                 .andExpect(jsonPath("$.regions[5].parties[0].regionalListWinners", hasSize(1)))
+                .andExpect(jsonPath("$.regions[5].parties[0].regionalVotes").doesNotExist())
+                .andExpect(jsonPath("$.regions[5].parties[0].regionalListWinners[0].listVotes").doesNotExist())
                 .andExpect(jsonPath("$.regions[5].parties[0].regionalListWinners[0].candidateName")
                         .value("Regional Candidate"))
                 .andExpect(jsonPath("$.regions[5].parties[0].regionalListWinners[0].status")
@@ -205,8 +246,8 @@ class ElectionResultIntegrationTest {
                 .andExpect(content().string(containsString("id=\"electionGraphRepresentatives\"")))
                 .andExpect(content().string(containsString("id=\"electionCoalitionPanel\"")))
                 .andExpect(content().string(containsString("/data/elections/2026/urban-rural-constituencies.js?v=20260927-1")))
-                .andExpect(content().string(containsString("/js/election-insights.js?v=20260927-4")))
-                .andExpect(content().string(containsString("/js/election-results.js?v=20260928-1")));
+                .andExpect(content().string(containsString("/js/election-insights.js?v=20261003-1")))
+                .andExpect(content().string(containsString("/js/election-results.js?v=20261003-3")));
     }
 
     @Test

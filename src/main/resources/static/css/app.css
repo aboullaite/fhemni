@@ -874,6 +874,8 @@ html[dir="rtl"] .not-found-copy h1 { line-height: 1.25; }
 .election-atlas-figures { min-width: 0; max-width: 100%; border: 1px solid var(--line); border-radius: 10px; background: var(--white); }
 .election-atlas-figures summary { min-height: 44px; padding: 12px; cursor: pointer; font-weight: 800; }
 .election-atlas-table-scroll { min-width: 0; max-width: 100%; overflow-x: auto; }
+.election-atlas-paginated-table { min-width: 0; max-width: 100%; }
+.election-atlas-paginated-table > .election-atlas-representative-paging { padding: 12px; }
 .election-atlas-figures table { width: 100%; border-collapse: collapse; font-size: 11px; }
 .election-atlas-figures caption { padding: 10px; text-align: start; font-weight: 800; }
 .election-atlas-figures th, .election-atlas-figures td { padding: 9px; border-block-start: 1px solid var(--line); text-align: start; white-space: nowrap; }

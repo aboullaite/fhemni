@@ -166,7 +166,8 @@ public class ElectionResultService {
                 row.regionalListSeats(),
                 row.totalSeats(),
                 winners,
-                regionalWinners);
+                regionalWinners,
+                row.regionalVotes());
     }
 
     private ConstituencyWinner constituencyWinner(ConstituencyWinnerRow row, String language) {
@@ -189,6 +190,7 @@ public class ElectionResultService {
         return new RegionalListWinner(
                 row.candidateKey(),
                 row.candidateName(),
+                row.listVotes(),
                 row.resultStatus(),
                 row.sourceLabel(),
                 row.sourceUrl(),
@@ -319,7 +321,8 @@ public class ElectionResultService {
             int regionalListSeats,
             int totalSeats,
             List<ConstituencyWinner> winners,
-            List<RegionalListWinner> regionalListWinners) {
+            List<RegionalListWinner> regionalListWinners,
+            Long regionalVotes) {
     }
 
     public record ConstituencyWinner(
@@ -335,6 +338,7 @@ public class ElectionResultService {
     public record RegionalListWinner(
             String candidateKey,
             String candidateName,
+            Long listVotes,
             String status,
             String sourceLabel,
             String sourceUrl,
