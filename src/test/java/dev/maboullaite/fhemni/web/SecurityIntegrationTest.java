@@ -120,7 +120,7 @@ class SecurityIntegrationTest {
                 .andExpect(content().string(containsString(".chat-start")))
                 .andExpect(content().string(containsString(".public-header")));
 
-        mvc.perform(get("/webjars/video.js/8.23.8/dist/video.min.js"))
+        mvc.perform(get("/webjars/video.js/8.24.1/dist/video.min.js"))
                 .andExpect(status().isOk());
 
         mvc.perform(get("/webjars/html-to-image/1.11.13/dist/html-to-image.js"))

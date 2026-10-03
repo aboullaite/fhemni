@@ -34,10 +34,10 @@
     <properties>
         <java.version>26</java.version>
         <spring-ai.version>2.0.1</spring-ai.version>
-        <google-genai.version>1.70.0</google-genai.version>
+        <google-genai.version>1.73.0</google-genai.version>
         <google-auth-library.version>1.53.0</google-auth-library.version>
-        <openai-java.version>4.62.0</openai-java.version>
-        <video-js.version>8.23.8</video-js.version>
+        <openai-java.version>4.69.2</openai-java.version>
+        <video-js.version>8.24.1</video-js.version>
         <html-to-image.version>1.11.13</html-to-image.version>
         <testcontainers.version>2.0.5</testcontainers.version>
     </properties>
