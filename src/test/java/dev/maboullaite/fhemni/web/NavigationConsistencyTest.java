@@ -100,7 +100,7 @@ class NavigationConsistencyTest {
                 .contains("/js/election-region-filters.js?v=20260925-1")
                 .contains("/data/elections/2026/urban-rural-constituencies.js?v=20260927-1")
                 .contains("/js/election-insights.js?v=20261003-1")
-                .contains("/js/election-results.js?v=20261003-1")
+                .contains("/js/election-results.js?v=20261003-2")
                 .doesNotContain("style=\"");
         assertThat(html("js/election-region-filters.js"))
                 .contains("function filterRegion(region, state = {})")

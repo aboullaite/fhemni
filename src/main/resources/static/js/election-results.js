@@ -2166,9 +2166,13 @@
     function regionalWinnerRow(winner) {
         const row = element('div', 'election-region-winner election-region-winner-regional');
         const meta = element('div', 'election-region-winner-meta');
-        if (winner.listVotes != null) meta.append(element('span', 'election-region-winner-votes', regionalListVoteLabel(winner.listVotes)));
         const status = copy.winnerStatus[winner.status] || winner.status;
         if (status) meta.append(element('span', 'election-region-winner-status', status));
+        if (winner.listVotes != null) {
+            const votes = element('span', 'election-region-winner-votes', voteCountLabel(winner.listVotes));
+            votes.setAttribute('aria-label', regionalListVoteLabel(winner.listVotes));
+            meta.append(votes);
+        }
         row.append(
             element('span', 'sr-only', `${copy.winner}: `),
             element('bdi', 'election-region-winner-name', winner.candidateName)
