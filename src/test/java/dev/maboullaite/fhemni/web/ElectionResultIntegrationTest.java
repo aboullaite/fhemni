@@ -126,6 +126,16 @@ class ElectionResultIntegrationTest {
     }
 
     @Test
+    void displaysOnlyTheTwoOfficialElectionSourcesInEveryLanguage() throws Exception {
+        for (String language : java.util.List.of("ar", "fr", "en")) {
+            mvc.perform(get("/api/catalog/elections/2026/results").param("lang", language))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.election.sourceLabel").value(language.equals("ar")
+                            ? "elections.ma، Maroc.ma" : "elections.ma, Maroc.ma"));
+        }
+    }
+
+    @Test
     void rejectsNegativeRegionalListVotes() {
         assertThrows(org.springframework.dao.DataIntegrityViolationException.class, () ->
                 jdbc.sql("UPDATE election_region_party_results SET regional_votes = -1 WHERE election_id = :id")
