@@ -1219,10 +1219,10 @@ class NavigationConsistencyTest {
                 .contains("class=\"programme-overview\"")
                 .contains("id=\"programmeMedia\" class=\"programme-media\"")
                 .contains("class=\"video-js vjs-big-play-centered\"")
-                .contains("/webjars/video.js/8.23.8/dist/video-js.min.css")
+                .contains("/webjars/video.js/8.24.1/dist/video-js.min.css")
                 .contains("/css/dist.css?v=20260916-22")
                 .contains("/js/videojs-config.js?v=20260911-1")
-                .contains("/webjars/video.js/8.23.8/dist/video.min.js")
+                .contains("/webjars/video.js/8.24.1/dist/video.min.js")
                 .contains("/js/i18n.js?v=20260915-1")
                 .contains("/js/party.js?v=20260914-1")
                 .containsOnlyOnce("data-i18n=\"programme.kicker\"")
@@ -1238,7 +1238,7 @@ class NavigationConsistencyTest {
                 partyPage.indexOf("id=\"partyProgramme\""),
                 partyPage.indexOf("id=\"partyPromises\""));
         assertThat(partyPage.indexOf("/js/videojs-config.js"))
-                .isLessThan(partyPage.indexOf("/webjars/video.js/8.23.8/dist/video.min.js"));
+                .isLessThan(partyPage.indexOf("/webjars/video.js/8.24.1/dist/video.min.js"));
         assertThat(html("js/videojs-config.js"))
                 .contains("window.VIDEOJS_NO_DYNAMIC_STYLE = true");
         assertThat(html("js/i18n.js"))
