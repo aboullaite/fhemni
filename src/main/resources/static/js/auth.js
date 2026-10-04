@@ -70,6 +70,7 @@
                 <div class="account-menu">
                     <div class="account-avatar">${avatar}</div>
                     <span class="account-name">${escapeHtml(user.displayName)}</span>
+                    <a class="auth-link compact" href="/following">${escapeHtml(t('common.following'))}</a>
                     ${user.role === 'ADMIN' ? `<a class="auth-link compact" href="/admin">${escapeHtml(t('common.admin'))}</a>` : ''}
                     <button class="auth-link compact" type="button" data-sign-out>${escapeHtml(t('common.signOut'))}</button>
                 </div>`;

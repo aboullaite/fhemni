@@ -38,8 +38,7 @@ public class GovernmentEditorialService {
         if(changed) {
             LocalText title=value instanceof MandateView mandate?mandate.label():value instanceof MeasureView measure?measure.title():((CommitmentView)value).title();
             List<String> topics=value instanceof CommitmentView commitment?commitment.topicCodes():List.of();
-            Scope scope=value instanceof CommitmentView commitment?commitment.geographicScope():value instanceof MeasureView measure?measure.scope():null;
-            List<String> regions=scope!=null&&"REGION".equals(scope.level())?List.of(scope.code()):List.of();
+            List<String> regions=GovernmentPublicationEvents.regionCodes(value);
             String publicId=value instanceof MandateView mandate?mandate.id():value instanceof MeasureView measure?measure.id().toString():((CommitmentView)value).id().toString();
             events.insert(revision.mandateId(),revision.subjectId(),new PublishedUpdate(UUID.randomUUID(),revision.subjectType().name(),publicId,revision.id(),hash,topics,regions,title,null,now));
         }

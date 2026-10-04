@@ -19,6 +19,12 @@ public class GovernmentPublicationEvents {
     public String materialHash(Object value) {
         return GovernmentValidation.sha256(mapper.writeValueAsString(material(mapper.convertValue(value,Object.class))).getBytes(StandardCharsets.UTF_8));
     }
+    public static List<String> regionCodes(Object value) {
+        var scopes=new java.util.ArrayList<Scope>();
+        if(value instanceof CommitmentView commitment){scopes.add(commitment.geographicScope());commitment.observations().forEach(row->scopes.add(row.scope()));}
+        if(value instanceof MeasureView measure)scopes.add(measure.scope());
+        return scopes.stream().filter(scope->scope!=null&&"REGION".equals(scope.level())).map(Scope::code).distinct().sorted().toList();
+    }
     private Object material(Object value) {
         if(value instanceof Map<?,?> map) {
             var result=new TreeMap<String,Object>();

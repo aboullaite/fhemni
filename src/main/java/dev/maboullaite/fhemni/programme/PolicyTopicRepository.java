@@ -71,6 +71,7 @@ public class PolicyTopicRepository {
                 .query(String.class)
                 .list();
     }
+    public void lockPreferenceOwner(UUID userId){jdbc.sql("SELECT id FROM app_users WHERE id=:id FOR UPDATE").param("id",userId).query(UUID.class).single();}
 
     public void replaceUserPreferences(UUID userId, List<String> topicCodes, Instant now) {
         jdbc.sql("DELETE FROM user_policy_topic_preferences WHERE user_id = :userId")

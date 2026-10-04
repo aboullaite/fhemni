@@ -86,6 +86,7 @@
             doc.getElementById('trackerOrigin').value=state.origin;doc.getElementById('trackerTopic').value=state.topic;doc.getElementById('trackerParty').value=state.party;
             doc.getElementById('trackerRegion').value=state.region;
             renderFilterState();
+            const follow=doc.getElementById('trackerFollow'),target=root.FhemniFollowing?.contextTarget(state);follow.hidden=!target;if(target)root.FhemniFollowControls.mount(follow,{...target,label:target.type==='REGION'?regions.find(row=>row.code===target.id)?.label:null});
             restoreTrackerUi(doc,savedUi);
             if(href&&!focused.isConnected)Array.from(doc.querySelectorAll('a[href]')).find(a=>a.getAttribute('href')===href)?.focus();
             root.FhemniUI.announceStatus(doc.getElementById('trackerStatus'),next.loadState==='ready'?(next.page?root.FhemniUI.countPhrase(next.page.totalItems,'result',locale()):model.COPY[locale()][state.tab]):model.COPY[locale()][next.loadState==='error'?'error':'loading']);
