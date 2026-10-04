@@ -103,6 +103,7 @@ public class SecurityConfiguration {
                                 "/api/auth/session", "/api/auth/magic-link", "/healthz")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/catalog/videos/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/catalog/government/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/catalog/parties/*/programme/questions").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/catalog/promises/*/reports").authenticated()
                         .requestMatchers(HttpMethod.GET,
