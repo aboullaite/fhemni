@@ -497,6 +497,7 @@
     };
 
     Object.assign(messages.en, {
+        'shell.report':'Report an issue', 'shell.legalLanguage':'Legal documents are currently available in English.',
         'common.primaryNavigation': 'Primary navigation',
         'common.catalogue': 'Catalogue',
         'common.community': 'Community',
@@ -1203,6 +1204,7 @@
     });
 
     Object.assign(messages.fr, {
+        'shell.report':'Signaler un problème', 'shell.legalLanguage':'Les documents juridiques sont actuellement disponibles en anglais.',
         'common.primaryNavigation': 'Navigation principale',
         'common.catalogue': 'Catalogue',
         'common.community': 'Communauté',
@@ -1909,6 +1911,7 @@
     });
 
     Object.assign(messages.ar, {
+        'shell.report':'بلّغ على مشكل', 'shell.legalLanguage':'الوثائق القانونية متوفرة دابا بالإنجليزية.',
         'common.primaryNavigation': 'المينيو الرئيسي',
         'common.catalogue': 'الكاتالوغ',
         'common.community': 'اقتراحات الناس',
@@ -2614,6 +2617,24 @@
         'promise.verdictDescription.INSUFFICIENT_DATA': 'ما كايناش معطيات كافية باش نعطيو تقييم مسؤول',
     });
 
+    Object.assign(messages.en, {
+        'shell.menu':'Menu', 'shell.home':'Home', 'shell.government':'Government tracker',
+        'shell.analyse':'Analyse a video', 'shell.elections':'Elections', 'shell.electionMenu':'Election sections',
+        'shell.graphs':'Graphs and analysis', 'shell.history':'Compare elections', 'shell.programmes':'Parties and programmes',
+        'shell.representatives':'Who represents me?', 'shell.archive':'Video archive', 'shell.suggest':'Suggest a video'
+    });
+    Object.assign(messages.fr, {
+        'shell.menu':'Menu', 'shell.home':'Accueil', 'shell.government':'Suivi du gouvernement',
+        'shell.analyse':'Analyser une vidéo', 'shell.elections':'Élections', 'shell.electionMenu':'Rubriques électorales',
+        'shell.graphs':'Graphiques et analyses', 'shell.history':'Comparer les élections', 'shell.programmes':'Partis et programmes',
+        'shell.representatives':'Qui me représente ?', 'shell.archive':'Archives vidéo', 'shell.suggest':'Proposer une vidéo'
+    });
+    Object.assign(messages.ar, {
+        'shell.menu':'القائمة', 'shell.home':'الرئيسية', 'shell.government':'تتبع الحكومة',
+        'shell.analyse':'حلّل فيديو', 'shell.elections':'الانتخابات', 'shell.electionMenu':'أقسام الانتخابات',
+        'shell.graphs':'الرسوم والتحليلات', 'shell.history':'مقارنة الانتخابات', 'shell.programmes':'الأحزاب والبرامج',
+        'shell.representatives':'شكون كيمثلني؟', 'shell.archive':'أرشيف الفيديوهات', 'shell.suggest':'اقترح فيديو'
+    });
     let currentLocale = resolveInitialLocale();
 
     function resolveInitialLocale() {
@@ -2698,6 +2719,7 @@
         document.querySelectorAll('[data-site-language]').forEach(select => {
             select.value = currentLocale;
             select.addEventListener('change', event => setLocale(event.currentTarget.value));
+            if (select.hasAttribute('data-shell-language')) return;
             const container = select.closest('.site-language') || select;
             if (container.nextElementSibling?.classList.contains('site-language-options')) return;
 

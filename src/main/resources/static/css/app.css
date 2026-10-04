@@ -2543,3 +2543,5 @@ html[dir="rtl"] .programme-heading h2 { margin-bottom: 18px; line-height: 1.32; 
     .priority-share-actions #priorityShareDownload { grid-column: 1 / -1; }
     .priority-social-shares { grid-template-columns: repeat(5, 38px); }
 }
+
+@import "./public-shell.css";

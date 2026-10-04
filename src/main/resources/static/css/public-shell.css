@@ -1,0 +1,114 @@
+/* One public frame. Specialised election charts retain their own internal layouts. */
+body[data-public-shell] {
+    --page-gutter: 32px;
+    overflow-x: visible;
+    font-size: 16px;
+}
+body[data-public-shell] > .ambient { display: none; }
+body[data-public-shell] > :is(header,main,footer) {
+    width: min(1180px, calc(100% - var(--page-gutter) * 2));
+    margin-inline: auto;
+    min-width: 0;
+}
+body[data-public-shell] main { padding-block: 32px 48px; }
+body[data-public-shell] main > * { min-width: 0; }
+body[data-public-shell] main h1 { font-size: clamp(30px, 3.4vw, 44px) !important; line-height: 1.3; letter-spacing: normal; }
+body[data-public-shell] main :is(h2,h3,p) { overflow-wrap: anywhere; }
+body[data-public-shell] :is(button:not(.vjs-control):not(.vjs-big-play-button),input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=hidden]),select,textarea,.button-link,.auth-link) {
+    min-height: 44px;
+    border-radius: var(--radius-control);
+}
+body[data-public-shell] :is(button:not(.vjs-control):not(.vjs-big-play-button),.button-link,.auth-link) { min-width: 44px; }
+body[data-public-shell] label:has(> input:is([type=checkbox],[type=radio])) { min-height: 44px; }
+body[data-public-shell] :is(button,a,input,select,textarea):focus-visible {
+    outline: 2px solid var(--teal-dark); outline-offset: 3px;
+}
+body[data-public-shell] [hidden] { display: none !important; }
+.shared-header.public-header {
+    position: relative; z-index: 30;
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 16px; padding-block: 16px; border-bottom: 1px solid var(--line);
+}
+.shared-header .brand-logo-full { width: 128px; }
+.shared-header .primary-nav {
+    display: flex; flex: 1; align-items: center; justify-content: center;
+    gap: 4px; min-width: 0; overflow: visible; margin: 0; padding: 0; border: 0;
+}
+.shared-header .primary-nav a {
+    display: flex; align-items: center; min-height: 44px;
+    padding: 8px 12px; font-size: 14px; font-weight: 500;
+    color: var(--ink); white-space: normal; line-height: 1.5; text-decoration: none;
+    border-radius: var(--radius-control);
+}
+.shared-header :is(a[aria-current], [data-active-area] > a) { color: var(--teal-dark); background: var(--mint); }
+.shared-header a:hover { color: var(--teal-dark); background: color-mix(in srgb,var(--mint) 55%,transparent); }
+.shared-header button { border: 1px solid var(--line); background: var(--white); padding: 8px 12px; cursor: pointer; }
+.shell-election-group { position: relative; }
+.shell-election-heading { display: flex; align-items: center; }
+.shell-election-links {
+    display: grid; position: absolute; inset-inline-end: 0; top: calc(100% + 8px);
+    width: min(300px, calc(100vw - 32px)); padding: 8px;
+    background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-panel);
+    box-shadow: 0 8px 24px rgb(19 44 43 / .08);
+}
+/* With scripts unavailable the submenu remains in the document flow. */
+.shell-election-heading:has(button[hidden]) + .shell-election-links { position: static; }
+.shared-header .header-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; min-width: 0; }
+.shared-header .site-language { display: inline-flex; }
+.shared-header .site-language-options { display: none; }
+.shared-header .site-language select { font-size: 14px; font-weight: 400; padding-block: 8px; border-radius: var(--radius-control); }
+.shared-header .account-menu { flex-wrap: wrap; gap: 8px; }
+.shared-header :is(#authNav,.account-menu) { min-width: 0; max-width: 100%; }
+.shared-header .account-name { max-width: 100px; font-size: 14px; font-weight: 400; }
+.shared-header .auth-link { max-width: none; overflow: visible; text-overflow: clip; white-space: normal; font-size: 14px; font-weight: 500; }
+body[data-public-shell] .priority-social-shares { grid-template-columns: repeat(5, minmax(44px,1fr)); }
+.shared-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; padding-block: 32px; border-top: 1px solid var(--line); }
+.shared-footer :is(.footer-navigation,.footer-legal-links) { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.shared-footer a { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; color: var(--muted); text-decoration: none; }
+.shared-footer .footer-logo { width: 96px; }
+.shared-footer a[aria-current] { color: var(--teal-dark); text-decoration: underline; }
+.legal-language-note { color: var(--muted); font-size: 14px; }
+.public-tabs { display: flex; gap: 8px; overflow-x: auto; max-width: 100%; border-bottom: 1px solid var(--line); padding: 4px; }
+.public-tabs [role=tab] { flex: none; background: transparent; border: 0; border-bottom: 3px solid transparent; border-radius: 0; padding: 8px 16px; font-weight: 500; cursor: pointer; }
+.public-tabs [aria-selected=true] { color: var(--teal-dark); border-bottom-color: var(--teal); }
+.public-panel { padding: 24px; border: 1px solid var(--line); border-radius: var(--radius-panel); background: var(--surface); }
+.public-stack { display: grid; gap: 24px; }
+.public-toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; }
+.public-toolbar > * { flex: 1 1 160px; min-width: 0; }
+.public-toolbar label { display: grid; gap: 8px; }
+.public-toolbar :is(input,select) { width: 100%; min-width: 0; padding: 8px 12px; border: 1px solid var(--line); background: var(--white); }
+.public-table-scroll { max-width: 100%; overflow: auto; }
+.public-table-scroll table { width: 100%; border-collapse: collapse; text-align: start; }
+.public-table-scroll :is(td,th) { padding: 12px; border-bottom: 1px solid var(--line); }
+.public-pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-block-start: 16px; }
+.public-pager button { padding: 8px 16px; border: 1px solid var(--line); background: var(--white); cursor: pointer; }
+.public-pager button:disabled { cursor: default; opacity: .5; }
+.public-pager span { font-size: 14px; color: var(--muted); }
+@media (max-width: 1099px) {
+    .shared-header.public-header { display: grid; grid-template-columns: auto minmax(0,1fr) auto; grid-template-rows: auto auto; gap: 12px; }
+    .shared-header .brand { grid-column: 1; grid-row: 1; }
+    .shared-header .header-actions { grid-column: 2; grid-row: 1; justify-self: end; }
+    .shared-header .shell-mobile-toggle { grid-column: 3; grid-row: 1; display: inline-flex; align-items: center; gap: 8px; }
+    .shared-header .primary-nav { grid-column: 1 / -1; grid-row: 2; display: grid; justify-content: stretch; width: 100%; gap: 4px; padding-block-start: 12px; border-top: 1px solid var(--line); overflow: visible; }
+    .shared-header .primary-nav a { flex: initial; }
+    .shell-election-heading { justify-content: space-between; }
+    .shell-election-heading > a { flex: 1; }
+    .shell-election-links { position: static; width: auto; margin-inline-start: 16px; box-shadow: none; }
+    .shared-header .account-name { display: none; }
+}
+@media (min-width: 1100px) { .shared-header .shell-mobile-toggle { display: none; } }
+@media (max-width: 1023px) { body[data-public-shell] { --page-gutter: 24px; } }
+@media (max-width: 599px) {
+    body[data-public-shell] { --page-gutter: 16px; }
+    .shared-header .brand-logo-full { display: none; }
+    .shared-header .brand-logo-icon { display: block; width: 44px; height: 44px; }
+    .shared-header .shell-mobile-toggle > [data-i18n] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .shared-header .account-avatar { display: none; }
+    .public-panel { padding: 16px; }
+    .public-toolbar { flex-direction: column; align-items: stretch; }
+    .public-toolbar > * { flex: auto; }
+    .shared-footer { align-items: flex-start; flex-direction: column; gap: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    body[data-public-shell] :is(*,*::before,*::after) { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}

@@ -28,6 +28,8 @@ jobs:
           node-version: "24"
       - name: Test JavaScript
         run: node --test src/test/js/*.test.js
+      - name: Check public shell
+        run: node scripts/build-public-shell.mjs --check
       - name: Verify
         run: ./mvnw --batch-mode --no-transfer-progress verify
 
