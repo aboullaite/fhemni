@@ -32,4 +32,8 @@ public class GovernmentEvidenceRepository {
     public void require(String mandateId,UUID id) {
         if(id==null||find(mandateId,id).isEmpty())throw new IllegalArgumentException("Evidence must belong to the same mandate.");
     }
+    public java.util.List<Evidence> list(String mandateId) {
+        return jdbc.sql("SELECT id,url,passage,locator,original_language,published_at,retrieved_at,archived_sha256 FROM government_evidence WHERE mandate_id=:mandate ORDER BY retrieved_at DESC LIMIT 100")
+            .param("mandate",mandateId).query(Evidence.class).list();
+    }
 }

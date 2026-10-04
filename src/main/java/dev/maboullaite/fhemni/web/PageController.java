@@ -131,6 +131,8 @@ public class PageController {
     public String adminPage() {
         return "forward:/admin.html";
     }
+    @GetMapping({"/admin/government", "/admin/government/"})
+    public String adminGovernmentPage() { return "forward:/admin-government.html"; }
 
     @GetMapping({"/admin/episodes", "/admin/episodes/"})
     public String adminEpisodesPage() {

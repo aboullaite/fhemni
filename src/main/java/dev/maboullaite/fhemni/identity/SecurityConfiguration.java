@@ -57,6 +57,7 @@ public class SecurityConfiguration {
                 PathPatternRequestMatcher.withDefaults().matcher("/admin-episodes.html"),
                 PathPatternRequestMatcher.withDefaults().matcher("/admin-suggestions.html"),
                 PathPatternRequestMatcher.withDefaults().matcher("/admin-programmes.html"),
+                PathPatternRequestMatcher.withDefaults().matcher("/admin-government.html"),
                 PathPatternRequestMatcher.withDefaults().matcher("/admin-people.html"));
         RequestMatcher publicPageFallback = new PublicPageRequestMatcher();
         AuthorizationManager<RequestAuthorizationContext> administrator = (authentication, context) -> {
@@ -68,7 +69,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
                                 "/admin/**", "/admin.html", "/admin-episodes.html",
-                                "/admin-suggestions.html", "/admin-programmes.html", "/admin-people.html",
+                                "/admin-suggestions.html", "/admin-programmes.html", "/admin-people.html", "/admin-government.html",
                                 "/api/admin/**")
                         .access(administrator)
                         .requestMatchers(HttpMethod.POST, "/api/analyses").access(administrator)

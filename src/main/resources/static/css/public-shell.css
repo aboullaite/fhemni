@@ -5,6 +5,20 @@ body[data-public-shell] .priority-share-heading { padding-inline-end: 48px; }
 body[data-public-shell] .priority-share-close { display: grid; place-items: center; width: 44px; height: 44px; line-height: 1; }
 body[data-public-shell] .party-badge > span { min-width: 0; white-space: normal; overflow-wrap: anywhere; line-height: 1.4; }
 body[data-public-shell] .party-badge > img { flex-shrink: 0; }
+.government-editor-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,260px),1fr)); gap: 16px; }
+.government-editor-field { min-width: 0; }
+.government-editor-field:has(fieldset) { grid-column: 1 / -1; }
+.government-editor-field label { display: flex; flex-direction: column; gap: 8px; }
+.government-editor-field fieldset { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 10px; }
+.government-review-preview { max-height: 400px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; }
+.editorial-header { display: flex; flex-wrap: wrap; gap: 16px; }
+.editorial-header .brand-logo { display: block; width: 140px; max-width: 100%; height: auto; }
+.editorial-header .site-language { display: block; }
+.editorial-header .header-actions { flex-wrap: wrap; gap: 12px; }
+.government-editor-field select[multiple] { min-height: 120px; max-width: 100%; }
+#revisionList :is(dt,dd) { overflow-wrap: anywhere; }
+#revisionList dt { font-weight: 600; margin-block-start: 12px; }
+#revisionList dd { margin-inline-start: 0; white-space: pre-wrap; }
 body[data-public-shell] {
     --page-gutter: 32px;
     overflow-x: visible;
