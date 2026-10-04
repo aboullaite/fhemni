@@ -84,6 +84,32 @@ body[data-public-shell] .priority-social-shares { grid-template-columns: repeat(
 .public-pager button { padding: 8px 16px; border: 1px solid var(--line); background: var(--white); cursor: pointer; }
 .public-pager button:disabled { cursor: default; opacity: .5; }
 .public-pager span { font-size: 14px; color: var(--muted); }
+.accountability-home { gap: 48px; }
+.accountability-hero { display: grid; grid-template-columns: minmax(0,3fr) minmax(0,2fr); gap: 48px; align-items: center; padding-block: 24px; }
+.accountability-hero-copy > p { max-width: 56ch; }
+.home-mandate-label,.mandate-stage { display: block; font-size: 14px; color: var(--teal-dark); margin-block-end: 16px; }
+.home-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 24px; margin-block-start: 24px; }
+.home-reading-note { font-size: 14px; color: var(--muted); margin-block: 16px 0; }
+.mandate-panel { border-inline-start: 3px solid var(--teal); }
+.mandate-panel h2 { font-size: 24px; line-height: 1.5; }
+.mandate-panel p { font-size: 16px; }
+.mandate-panel .home-reading-note { font-size: 14px; }
+.home-topics { display: flex; flex-wrap: wrap; gap: 12px; }
+.home-topic { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 16px; border: 1px solid var(--line); border-radius: var(--radius-control); color: var(--ink); background: var(--white); text-decoration: none; }
+.home-topic:hover { border-color: var(--teal); }
+.home-promise-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; }
+.home-promise { display: flex; flex-direction: column; gap: 16px; min-width: 0; padding-block: 24px; border-top: 2px solid var(--line); }
+.home-promise h3 { font-size: 20px; line-height: 1.5; }
+.home-promise h3 a { color: var(--ink); text-decoration: none; }
+.home-promise p { margin: 0; }
+.home-promise-author,.home-promise-assessment { font-size: 14px; color: var(--muted); }
+.home-promise-author { display: flex; align-items: center; gap: 8px; }
+.home-promise-author img { width: 32px; height: 32px; object-fit: contain; }
+.home-promise > .text-link { margin-block-start: auto; }
+.home-election-archive { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px; border-block-start: 1px solid var(--line); padding-block: 24px; }
+.home-election-archive p { margin: 0; color: var(--muted); }
+.accountability-page-heading { max-width: 72ch; }
+@media (max-width: 799px) { .accountability-hero,.home-promise-grid { grid-template-columns: minmax(0,1fr); gap: 24px; } }
 @media (max-width: 1099px) {
     .shared-header.public-header { display: grid; grid-template-columns: auto minmax(0,1fr) auto; grid-template-rows: auto auto; gap: 12px; }
     .shared-header .brand { grid-column: 1; grid-row: 1; }

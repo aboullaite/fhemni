@@ -19,6 +19,16 @@ public class PageController {
         this.returnTarget = returnTarget;
     }
 
+    @GetMapping({"/government", "/government/"})
+    public String governmentPage() {
+        return "forward:/government.html";
+    }
+
+    @GetMapping({"/analyse", "/analyse/"})
+    public String memberAnalysisPage() {
+        return "forward:/analyse.html";
+    }
+
     @GetMapping("/analyses/{analysisId}")
     public String analysisPage(@PathVariable String analysisId) {
         return "forward:/analysis.html";

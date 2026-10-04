@@ -77,6 +77,8 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/analyses/**").access(administrator)
                         .requestMatchers(
                                 "/", "/index.html", "/videos", "/videos/**",
+                                "/government", "/government/", "/government.html",
+                                "/analyse", "/analyse/", "/analyse.html",
                                 "/analyses/**", "/analysis.html",
                                 "/people/**", "/person.html",
                                 "/parties", "/parties/**", "/parties.html", "/party.html", "/compare-programmes.html",

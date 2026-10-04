@@ -75,8 +75,8 @@ class NavigationConsistencyTest {
     void everyPrimaryNavigationLinksToElectionResults() throws IOException {
         assertThat(html("index.html"))
                 .contains("href=\"/elections/2026\" data-i18n=\"common.electionResults\"")
-                .contains("class=\"primary-button button-link\" href=\"/elections/2026\"")
-                .contains("data-i18n=\"landing.electionResultsCta\"")
+                .contains("class=\"secondary-button button-link\" href=\"/elections/2026\"")
+                .contains("data-i18n=\"home.archiveTitle\"")
                 .contains("/js/i18n.js?v=20261004-1");
         for (String page : SECONDARY_PAGES) {
             assertThat(html(page))
@@ -901,7 +901,7 @@ class NavigationConsistencyTest {
         assertThat(home)
                 .contains("property=\"og:title\"")
                 .contains("property=\"og:description\"")
-                .contains("دقق فوعود الأحزاب المغربية وقارن البرامج والتقييمات والمصادر")
+                .contains("تتبع وعود الأحزاب المغربية، التزامات الحكومة، وشنو تحقق فعلاً بالمصادر")
                 .contains("property=\"og:site_name\"")
                 .contains("name=\"twitter:card\" content=\"summary_large_image\"")
                 .contains("https://fhemni.ma/assets/social/fhemni-og.png?v=20260910-2")
@@ -1012,7 +1012,7 @@ class NavigationConsistencyTest {
                 .doesNotContain("function cleanSummary(value)");
         assertThat(html("index.html"))
                 .contains("/js/catalog-ui.js?v=20260914-1")
-                .contains("/js/landing.js?v=20260914-1");
+                .contains("/js/landing.js?v=20261004-1");
         assertThat(html("promise.html"))
                 .contains("/js/catalog-ui.js?v=20260914-1")
                 .contains("/js/promise.js?v=20260914-1");
@@ -1123,7 +1123,7 @@ class NavigationConsistencyTest {
     @Test
     void homePageUsesOneConciseFactCheckHeading() throws IOException {
         assertThat(html("index.html"))
-                .contains("id=\"factCheckTitle\" data-i18n=\"landing.factCheckTitle\"")
+                .contains("id=\"homePromisesTitle\" data-i18n=\"home.promises\"")
                 .doesNotContain("landing.factCheckKicker")
                 .doesNotContain("landing.factCheckIntro");
         assertThat(html("js/i18n.js"))
