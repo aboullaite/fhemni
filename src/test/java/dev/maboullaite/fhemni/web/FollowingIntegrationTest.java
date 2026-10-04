@@ -24,6 +24,10 @@ class FollowingIntegrationTest {
         mvc.perform(put("/api/account/follows/TOPIC/HEALTH").with(csrf())).andExpect(status().isUnauthorized());
         var auth=oauth2Login().attributes(v->v.put("sub",a));
         mvc.perform(put("/api/account/follows/TOPIC/HEALTH").with(auth)).andExpect(status().isForbidden());
+        mvc.perform(get("/api/account/digest")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/account/digest").with(auth)).andExpect(status().isOk()).andExpect(header().string("Cache-Control","no-store")).andExpect(jsonPath("$.enabled").value(false)).andExpect(jsonPath("$.capable").value(false));
+        mvc.perform(put("/api/account/digest").with(auth).contentType("application/json").content("{\"enabled\":true,\"locale\":\"en\"}")).andExpect(status().isForbidden());
+        mvc.perform(put("/api/account/digest").with(auth).with(csrf()).contentType("application/json").content("{\"enabled\":true,\"locale\":\"en\"}")).andExpect(status().isBadRequest());
         for(int i=0;i<2;i++)mvc.perform(put("/api/account/follows/TOPIC/HEALTH").with(auth).with(csrf())).andExpect(status().isOk()).andExpect(header().string("Cache-Control","no-store"));
         mvc.perform(get("/api/account/follows").with(auth)).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1));
         mvc.perform(get("/api/account/policy-topics").with(auth)).andExpect(jsonPath("$.topicCodes[0]").value("HEALTH"));

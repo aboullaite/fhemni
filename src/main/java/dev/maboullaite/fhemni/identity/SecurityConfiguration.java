@@ -117,6 +117,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/catalog/questionnaires/**").permitAll()
                         .requestMatchers("/api/catalog/elections/**").permitAll()
                         .requestMatchers("/api/account/policy-topics").authenticated()
+                        .requestMatchers("/api/account/digest").authenticated()
                         .requestMatchers("/api/account/follows/**", "/api/account/updates", "/api/account/corrections/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/suggestions").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/suggestions/*/votes").authenticated()
