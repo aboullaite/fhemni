@@ -25,7 +25,7 @@ export function renderPublicShell({pagePath='/'}) {
         ${link('/government','shell.government','تتبع الحكومة',pagePath)}
         ${link('/analyse','shell.analyse','حلّل فيديو',pagePath)}
         <div class="shell-election-group">
-            <div class="shell-election-heading"${electionArea?' data-active-area="true"':''}>${link('/elections/2026','shell.elections','الانتخابات',pagePath)}<button type="button" data-shell-toggle aria-controls="shellElectionLinks" aria-expanded="false" data-i18n-aria-label="shell.electionMenu" aria-label="أقسام الانتخابات" hidden><span aria-hidden="true">⌄</span></button></div>
+            <div class="shell-election-heading"${electionArea?' data-active-area="true"':''}><a href="/elections/2026" data-shell-fallback data-i18n="shell.elections">الانتخابات</a><button class="shell-election-trigger" type="button" data-shell-toggle aria-controls="shellElectionLinks" aria-expanded="false" data-i18n="shell.elections" hidden>الانتخابات</button></div>
             <div id="shellElectionLinks" class="shell-election-links">
                 ${link('/elections/2026','common.electionResults','نتائج الانتخابات')}
                 ${link('/elections/2026#graphs','shell.graphs','الرسوم والتحليلات')}

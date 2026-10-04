@@ -226,7 +226,7 @@ class NavigationConsistencyTest {
                 .contains("[dir=\"rtl\"] .election-graphs-jumps");
         assertThat(styles).containsPattern("(?s)@media \\(max-width: 640px\\).*?\\.election-tabs \\{[^}]*overflow-x: auto;[^}]*grid-template-columns: repeat\\(4,minmax\\(118px,1fr\\)\\)");
         assertThat(compiled).contains(".election-graphs-jumps").contains(".election-atlas-representative-cards");
-        assertThat(page).contains("/css/dist.css?v=20261004-1");
+        assertThat(page).contains("/css/dist.css?v=20261004-2");
     }
 
     @Test
@@ -961,7 +961,7 @@ class NavigationConsistencyTest {
     @Test
     void everyPageUsesThePinnedWebFontStylesheet() throws IOException {
         for (String page : ALL_PAGES) {
-            String version = "20261004-1";
+            String version = "20261004-2";
             assertThat(html(page))
                     .as("stylesheet in %s", page)
                     .containsOnlyOnce("/css/dist.css?v=" + version);
@@ -1140,7 +1140,7 @@ class NavigationConsistencyTest {
         for (String page : ADMIN_PAGES) {
             assertThat(html(page))
                     .as("mobile assets in %s", page)
-                    .contains("/css/dist.css?v=20261004-1")
+                    .contains("/css/dist.css?v=20261004-2")
                     .contains("/js/i18n.js?v=20261004-1");
         }
     }
@@ -1216,7 +1216,7 @@ class NavigationConsistencyTest {
                 .contains("id=\"programmeMedia\" class=\"programme-media\"")
                 .contains("class=\"video-js vjs-big-play-centered\"")
                 .contains("/webjars/video.js/8.24.1/dist/video-js.min.css")
-                .contains("/css/dist.css?v=20261004-1")
+                .contains("/css/dist.css?v=20261004-2")
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.24.1/dist/video.min.js")
                 .contains("/js/i18n.js?v=20261004-1")
@@ -1261,7 +1261,7 @@ class NavigationConsistencyTest {
         if (!ADMIN_PAGES.contains(page)) {
             assertThat(navigation).contains("href=\"/government\"", "href=\"/analyse\"",
                     "href=\"/elections/2026\"", "aria-controls=\"shellElectionLinks\"");
-            assertThat(pageHtml).contains("data-legal-links", "/js/site-shell.js?v=20261004-1");
+            assertThat(pageHtml).contains("data-legal-links", "/js/site-shell.js?v=20261004-2");
             return;
         }
         assertThat(navigation)

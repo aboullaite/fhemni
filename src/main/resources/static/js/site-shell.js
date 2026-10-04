@@ -19,6 +19,33 @@
             };
             panel.addEventListener('keydown',escape);
             toggle.addEventListener('keydown',escape);
+            if (toggle.getAttribute('aria-controls')==='shellElectionLinks') {
+                const group=toggle.closest('.shell-election-group');
+                const fallback=group?.querySelector('[data-shell-fallback]');
+                if(fallback) fallback.hidden=true;
+                const view=doc.defaultView;
+                const hover=view?.matchMedia('(min-width: 1100px) and (hover: hover) and (pointer: fine)');
+                if(group && view) {
+                    let closeTimer;
+                    const cancelClose=()=>view.clearTimeout(closeTimer);
+                    const close=()=>{cancelClose();setOpen(false);};
+                    group.addEventListener('pointerenter',event=>{
+                        cancelClose();
+                        if(hover?.matches && event.pointerType==='mouse') setOpen(true);
+                    });
+                    group.addEventListener('pointerleave',event=>{
+                        if(!hover?.matches || event.pointerType!=='mouse') return;
+                        cancelClose();
+                        closeTimer=view.setTimeout(()=>{if(!panel.contains(doc.activeElement))setOpen(false);},180);
+                    });
+                    group.addEventListener('focusout',event=>{if(!group.contains(event.relatedTarget))close();});
+                    doc.addEventListener('pointerdown',event=>{if(!group.contains(event.target))close();});
+                    hover?.addEventListener('change',()=>{
+                        if(panel.contains(doc.activeElement)) toggle.focus();
+                        close();
+                    });
+                }
+            }
             if (toggle.getAttribute('aria-controls')==='shellPrimaryNav') {
                 const desktop=doc.defaultView?.matchMedia('(min-width: 1100px)');
                 if (desktop) {

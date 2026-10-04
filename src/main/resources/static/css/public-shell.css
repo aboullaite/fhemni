@@ -115,7 +115,7 @@ body[data-public-shell] [hidden] { display: none !important; }
     display: flex; flex: 1; align-items: center; justify-content: center;
     gap: 4px; min-width: 0; overflow: visible; margin: 0; padding: 0; border: 0;
 }
-.shared-header .primary-nav a {
+.shared-header .primary-nav :is(a, .shell-election-trigger) {
     display: flex; align-items: center; min-height: 44px;
     padding: 8px 12px; font-size: 14px; font-weight: 500;
     color: var(--ink); white-space: normal; line-height: 1.5; text-decoration: none;
@@ -124,6 +124,10 @@ body[data-public-shell] [hidden] { display: none !important; }
 .shared-header :is(a[aria-current], [data-active-area] > a) { color: var(--teal-dark); background: var(--mint); }
 .shared-header a:hover { color: var(--teal-dark); background: color-mix(in srgb,var(--mint) 55%,transparent); }
 .shared-header button { border: 1px solid var(--line); background: var(--white); padding: 8px 12px; cursor: pointer; }
+.shared-header button.shell-election-trigger { border: 0; background: transparent; padding: 8px 12px; }
+.shared-header .shell-election-trigger:hover,
+.shared-header .shell-election-trigger[aria-expanded="true"],
+.shared-header [data-active-area] > .shell-election-trigger { color: var(--teal-dark); background: var(--mint); }
 .shell-election-group { position: relative; }
 .shell-election-heading { display: flex; align-items: center; }
 .shell-election-links {
@@ -134,6 +138,10 @@ body[data-public-shell] [hidden] { display: none !important; }
 }
 /* With scripts unavailable the submenu remains in the document flow. */
 .shell-election-heading:has(button[hidden]) + .shell-election-links { position: static; }
+@media (min-width: 1100px) {
+    /* Keep the pointer inside the group while crossing the visual gap. */
+    .shell-election-links::before { content: ''; position: absolute; inset-inline: 0; top: -9px; height: 9px; }
+}
 .shared-header .header-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; min-width: 0; }
 .shared-header .site-language { display: inline-flex; }
 .shared-header .site-language-options { display: none; }
@@ -199,7 +207,7 @@ body[data-public-shell] .priority-social-shares { grid-template-columns: repeat(
     .shared-header .primary-nav { grid-column: 1 / -1; grid-row: 2; display: grid; justify-content: stretch; width: 100%; gap: 4px; padding-block-start: 12px; border-top: 1px solid var(--line); overflow: visible; }
     .shared-header .primary-nav a { flex: initial; }
     .shell-election-heading { justify-content: space-between; }
-    .shell-election-heading > a { flex: 1; }
+    .shell-election-heading > :is(a, button) { flex: 1; text-align: start; }
     .shell-election-links { position: static; width: auto; margin-inline-start: 16px; box-shadow: none; }
     .shared-header .account-name { display: none; }
 }

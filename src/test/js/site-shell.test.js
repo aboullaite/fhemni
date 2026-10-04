@@ -40,6 +40,8 @@ test('all navigation remains real links without JavaScript; elections has a sepa
         assert.ok(header.includes(`href="${href}"`), href);
     }
     assert.match(header, /<button[^>]+aria-controls="shellElectionLinks"[^>]+aria-expanded="false"/);
+    assert.match(header, /<button[^>]+class="shell-election-trigger"[^>]*>الانتخابات<\/button>/);
+    assert.doesNotMatch(header.match(/<div class="shell-election-heading"[\s\S]*?<\/div>/)[0],/⌄/);
     assert.match(header, /id="shellElectionLinks"/);
     assert.match(header, /href="\/elections\/2026#electionGraphRepresentatives"/);
     assert.match(footer, /data-legal-links/);
@@ -96,6 +98,43 @@ test('desktop navigation is exposed; resizing reconciles hidden controls and foc
     assert.equal(panel.hidden,true); assert.equal(toggle.hidden,false); assert.equal(toggle.focusCount,1);
     toggle.listeners.click(); media.matches=true; doc.activeElement=toggle; media.changed();
     assert.equal(panel.hidden,false); assert.equal(first.focusCount,1);
+});
+
+function electionDisclosure(hover=true){
+    const toggle=element({'aria-controls':'shellElectionLinks','aria-expanded':'false'}),panel=element(),group=element(),link=element(),fallback=element();
+    let pending;const media={matches:hover,addEventListener(type,fn){this.changed=fn;}};
+    const doc={querySelectorAll:()=>[toggle],getElementById:()=>panel,activeElement:null,listeners:{},addEventListener(type,fn){this.listeners[type]=fn;},defaultView:{matchMedia:()=>media,setTimeout(fn){pending=fn;return 1;},clearTimeout(){pending=null;}}};
+    toggle.closest=()=>group;group.querySelector=()=>fallback;group.contains=node=>[toggle,panel,link].includes(node);panel.contains=node=>node===link;
+    require(path.join(root,'src/main/resources/static/js/site-shell.js')).initSiteShell(doc);
+    return {toggle,panel,group,link,fallback,doc,media,flush(){const fn=pending;pending=null;fn?.();}};
+}
+test('desktop elections opens on hover and stays open while crossing into its submenu',()=>{
+    const {group,panel,toggle,flush}=electionDisclosure();
+    group.listeners.pointerenter?.({pointerType:'mouse'});
+    assert.equal(panel.hidden,false);assert.equal(toggle.getAttribute('aria-expanded'),'true');
+    group.listeners.pointerleave?.({pointerType:'mouse'});group.listeners.pointerenter?.({pointerType:'mouse'});flush();
+    assert.equal(panel.hidden,false);
+    group.listeners.pointerleave?.({pointerType:'mouse'});flush();assert.equal(panel.hidden,true);
+});
+test('touch and narrow screens retain explicit tap disclosure rather than sticky hover',()=>{
+    for(const [hover,pointerType]of [[false,'mouse'],[true,'touch']]){
+        const {group,panel,toggle,fallback}=electionDisclosure(hover);group.listeners.pointerenter?.({pointerType});
+        assert.equal(fallback.hidden,true);assert.equal(toggle.hidden,false);
+        assert.equal(panel.hidden,true);toggle.listeners.click();assert.equal(panel.hidden,false);
+        toggle.listeners.click();assert.equal(panel.hidden,true);
+    }
+});
+test('hover submenu respects keyboard focus and closes on Escape or leaving the group',()=>{
+    const {group,panel,toggle,doc,link,flush}=electionDisclosure();
+    toggle.listeners.click();doc.activeElement=link;group.listeners.pointerleave?.({pointerType:'mouse'});flush();assert.equal(panel.hidden,false);
+    panel.listeners.keydown({key:'Escape',preventDefault(){},stopPropagation(){}});assert.equal(panel.hidden,true);assert.equal(toggle.focusCount,1);
+    group.listeners.pointerenter?.({pointerType:'mouse'});group.listeners.focusout?.({relatedTarget:{}});assert.equal(panel.hidden,true);
+});
+test('elections closes on outside press and capability changes without leaving focus hidden',()=>{
+    const {group,panel,toggle,doc,media,link}=electionDisclosure();
+    group.listeners.pointerenter?.({pointerType:'mouse'});doc.listeners.pointerdown?.({target:{}});assert.equal(panel.hidden,true);
+    toggle.listeners.click();doc.activeElement=link;media.matches=false;media.changed?.();
+    assert.equal(panel.hidden,true);assert.equal(toggle.focusCount,1);
 });
 
 test('representative bookmark selects graphs and focuses the loaded representative section', () => {
