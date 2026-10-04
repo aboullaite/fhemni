@@ -37,6 +37,7 @@ public class GovernmentRepository {
         if(type==SubjectType.COMMITMENT&&!(payload instanceof CommitmentView))throw new IllegalArgumentException("Expected a typed commitment.");
         if(type==SubjectType.COMMITMENT&&!slug.equals(((CommitmentView)payload).slug()))throw new IllegalArgumentException("Commitment slug must agree.");
         if(type==SubjectType.MEASURE&&(!(payload instanceof MeasureView measure)||!slug.equals(measure.slug())))throw new IllegalArgumentException("Expected a measure with a matching slug.");
+        if(type==SubjectType.LINK&&(!(payload instanceof RelationshipView link)||!slug.equals(link.slug())))throw new IllegalArgumentException("Expected a relationship with a matching slug.");
         ensureMandate(mandateId);
         // Serialize draft numbering for one mandate across application instances.
         jdbc.sql("SELECT id FROM government_mandates WHERE id=:id FOR UPDATE").param("id",mandateId).query(String.class).single();
@@ -137,8 +138,45 @@ public class GovernmentRepository {
             """).param("mandate",mandate).param("type",type.name()).query(String.class).list();
     }
     public List<RevisionSummary> history(UUID subject) {
-        return jdbc.sql("SELECT id,revision_number,published_at FROM government_revisions WHERE subject_id=:subject AND published_at IS NOT NULL ORDER BY revision_number DESC")
-            .param("subject",subject).query((rs,n)->new RevisionSummary(rs.getObject("id",UUID.class),rs.getInt("revision_number"),rs.getObject("published_at",java.time.OffsetDateTime.class).toInstant(),null)).list();
+        var ids=jdbc.sql("SELECT id FROM government_revisions WHERE subject_id=:subject AND published_at IS NOT NULL AND status IN ('PUBLISHED','SUPERSEDED') ORDER BY revision_number")
+            .param("subject",subject).query(UUID.class).list();
+        var summaries=new java.util.ArrayList<RevisionSummary>();
+        tools.jackson.databind.JsonNode previous=null;
+        for(var id:ids) {
+            var row=revision(id).orElseThrow();var current=mapper.readTree(row.payload());
+            LocalText description;
+            if(previous==null)description=new LocalText("أول نسخة منشورة","Première version publiée","Initial published version");
+            else {
+                var changed=new java.util.ArrayList<String>();
+                for(var entry:current.properties())if(!java.util.Objects.equals(entry.getValue(),previous.get(entry.getKey())))changed.add(entry.getKey());
+                var en=new java.util.ArrayList<String>();var fr=new java.util.ArrayList<String>();var ar=new java.util.ArrayList<String>();
+                for(var field:changed){var label=changeLabel(field);en.add(label.en());fr.add(label.fr());ar.add(label.ar());}
+                description=changed.isEmpty()?new LocalText("إعادة نشر بلا تغيير","Republication sans modification","Republished without changes"):
+                    new LocalText("تبدّل: "+String.join("، ",ar),"Modifié : "+String.join(", ",fr),"Changed: "+String.join(", ",en));
+            }
+            summaries.add(new RevisionSummary(id,row.revisionNumber(),row.publishedAt(),description));previous=current;
+        }
+        java.util.Collections.reverse(summaries);return List.copyOf(summaries);
+    }
+    private LocalText changeLabel(String field) {
+        return switch(field) {
+            case "membership"->new LocalText("تشكيلة الحكومة","composition du gouvernement","membership");
+            case "programme"->new LocalText("البرنامج","programme","programme");
+            case "deliveryAssessment"->new LocalText("تقييم الإنجاز","évaluation de réalisation","delivery assessment");
+            case "originalText"->new LocalText("النص الأصلي","texte original","original wording");
+            case "evidence"->new LocalText("المصادر","sources","evidence");
+            case "links","relationship"->new LocalText("الربط بالبرنامج","liens au programme","programme relationship");
+            case "observations"->new LocalText("المعطيات المرصودة","observations","observations");
+            case "reviewCoverage"->new LocalText("تغطية المراجعة","couverture de la revue","review coverage");
+            case "verifiedAt"->new LocalText("تاريخ التحقق","date de vérification","verification date");
+            case "target","deadline"->new LocalText("الهدف أو الأجل","objectif ou échéance","target or deadline");
+            case "title","label"->new LocalText("العنوان","titre","title");
+            case "lifecycle","operationalStatus"->new LocalText("الحالة","état","status");
+            case "geographicScope","scope"->new LocalText("النطاق الجغرافي","périmètre géographique","geographic scope");
+            case "responsibleBody"->new LocalText("الجهة المسؤولة","organisme responsable","responsible body");
+            case "eligibility","steps","officialActionUrl"->new LocalText("شروط وخطوات الاستفادة","conditions et démarches","eligibility and steps");
+            default->new LocalText("تفاصيل المنشور","détails de la publication","publication details");
+        };
     }
     public List<RevisionSummary> publicHistory(SubjectType type,String slug) {
         return jdbc.sql("SELECT id FROM government_subjects WHERE subject_type=:type AND slug=:slug")

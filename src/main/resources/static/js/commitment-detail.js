@@ -41,7 +41,7 @@
             table.append(body);wrapper.append(table);observations.append(wrapper);
         }
         const history=doc.getElementById('commitmentHistory');history.replaceChildren();
-        for(const revision of (view.revisions||[]).slice((revisionPage-1)*10,revisionPage*10)){history.append(el('p',`${copy.publishedRevision} ${model.number(revision.version,locale)} · ${model.date(revision.publishedAt,locale)}${revision.explanation?' · '+local(revision.explanation):''}`));}
+        for(const revision of (view.revisions||[]).slice((revisionPage-1)*10,revisionPage*10)){const item=el('p'),link=el('a',`${copy.publishedRevision} ${model.number(revision.version,locale)} · ${model.date(revision.publishedAt,locale)}`);link.href='/government/revisions/'+encodeURIComponent(revision.id);item.append(link);if(revision.explanation)item.append(el('span',' · '+local(revision.explanation)));history.append(item);}
     }
     function init(){
         const doc=root.document;if(!doc.getElementById('commitmentTitle'))return;

@@ -35,11 +35,11 @@ test('retained history uses its loaded page and eligibility copy gives correctiv
  const ui=require(modulePath);assert.equal(ui.historyPage({page:1},2),1);assert.equal(ui.historyPage(null,2),2);
  for(const lang of ['ar','fr','en'])for(const code of ['VIDEO_TOO_LONG','LIVE_UNSUPPORTED','DURATION_UNAVAILABLE','VIDEO_UNAVAILABLE','VERIFICATION_UNAVAILABLE'])assert.notEqual(ui.errorMessage({code,status:400},lang),ui.COPY[lang].error);
 });
-function resultHarness(){
+function resultHarness(request){
  const fs=require('node:fs'),vm=require('node:vm'),nodes=new Map(),doc={listeners:{},visibilityState:'visible',addEventListener(name,fn){this.listeners[name]=fn}};
  const node=tag=>({tag,children:[],attributes:{},value:'',append(...n){this.children.push(...n)},replaceChildren(...n){this.children=n},setAttribute(k,v){this.attributes[k]=String(v)},getAttribute(k){return this.attributes[k]||null},removeAttribute(k){delete this.attributes[k]},focus(){doc.activeElement=this}});
- doc.createElement=node;doc.getElementById=id=>{if(!nodes.has(id))nodes.set(id,node('div'));return nodes.get(id);};
- let user='owner-a',lang='en';const api={...require(modulePath),loadMemberJob:async()=>({id:'job',title:'Private title',state:'READY',videoId:'abcdefghijk',report:{summary:'Private summary',claims:[]}}),request:async path=>path.endsWith('/questions')?[]:{state:'PRIVATE'}};
+ doc.createElement=tag=>{const value=node(tag);Object.defineProperty(value,'id',{set(id){nodes.set(id,value)}});return value;};doc.getElementById=id=>{if(!nodes.has(id))nodes.set(id,node('div'));return nodes.get(id);};
+ let user='owner-a',lang='en';const api={...require(modulePath),loadMemberJob:async()=>({id:'job',title:'Private title',state:'READY',videoId:'abcdefghijk',report:{summary:'Private summary',claims:[]}}),request:request|| (async path=>path.endsWith('/questions')?[]:{state:path.endsWith('/question-status')?'READY':'PRIVATE'})};
  const root={document:doc,FhemniMember:api,FhemniAuth:{refreshSession:async()=>({authenticated:!!user,user:{id:user}}),loginPage:p=>'/login?continue='+encodeURIComponent(p)},FhemniI18n:{locale:()=>lang,t:k=>k},FhemniUI:{mountTabs:()=>({select(){}}),announceStatus:(n,t)=>n.textContent=t},location:{pathname:'/account/analyses/job',search:'?tab=claims&page=2',href:'http://localhost/account/analyses/job?tab=claims&page=2'},history:{pushState(){}},listeners:{},addEventListener(n,f){this.listeners[n]=f},setTimeout:()=>1,clearTimeout(){},confirm:()=>true};
  vm.runInNewContext(fs.readFileSync(require('node:path').resolve(__dirname,'../../main/resources/static/js/member-analysis-result.js'),'utf8'),{window:root,URL,Promise});doc.listeners.DOMContentLoaded();return {doc,root,setUser:v=>user=v,setLocale:v=>lang=v};
 }
@@ -49,4 +49,39 @@ test('private question draft survives locale and source-tab visits only for the 
  h.doc.visibilityState='hidden';h.doc.listeners.visibilitychange();assert.equal(h.doc.getElementById('memberResultContent').hidden,true);h.doc.visibilityState='visible';h.doc.listeners.visibilitychange();await flush();assert.equal(input.value,'My unsent question');
  h.doc.visibilityState='hidden';h.doc.listeners.visibilitychange();h.setUser('owner-b');h.doc.visibilityState='visible';h.doc.listeners.visibilitychange();await flush();assert.equal(input.value,'');
  h.setUser(null);h.doc.listeners.visibilitychange();await flush();assert.equal(h.doc.getElementById('memberResultContent').hidden,true);assert.equal(h.doc.getElementById('memberSummary').children.length,0);
+});
+test('recovered failed and uncertain questions allow only explicit sends and retain localized drafts',async()=>{
+ for(const recovery of ['FAILED','UNCERTAIN']){
+  let posts=0;const h=resultHarness(async(path,method)=>{if(method==='POST'){posts++;return {question:'Draft',answer:'Answer'};}return path.endsWith('/questions')?[]:{state:path.endsWith('/question-status')?recovery:'PRIVATE'};});await flush();
+  const get=id=>h.doc.getElementById(id),input=get('memberQuestion');input.value='Draft';
+  assert.equal(posts,0);assert.equal(get('memberAsk').disabled,false);
+  assert.match(get('memberQuestionStatus').textContent,/not.*automatically/i);assert.match(get('memberQuestionStatus').textContent,/new question/i);
+  for(const locale of ['ar','fr','en']){h.setLocale(locale);h.doc.listeners['fhemni:localechange']();assert.equal(input.value,'Draft');assert.equal(get('memberQuestionStatus').textContent,h.root.FhemniMember.questionRecovery(recovery,locale).message);}
+  assert.equal(input.getAttribute('aria-describedby'),'memberQuestionStatus');
+  await get('memberQuestionForm').onsubmit({preventDefault(){}});assert.equal(posts,1);assert.equal(input.value,'');assert.equal(h.doc.activeElement,input);
+ }
+});
+test('processing and unavailable status block duplicate questions without losing drafts',async()=>{
+ let recovery='PROCESSING',posts=0;const h=resultHarness(async(path,method)=>{if(method==='POST')posts++;return path.endsWith('/questions')?[]:{state:path.endsWith('/question-status')?recovery:'PRIVATE'};});await flush();
+ const get=id=>h.doc.getElementById(id);get('memberQuestion').value='Next question';assert.equal(get('memberAsk').disabled,true);assert.equal(get('memberQuestion').disabled,false);
+ await get('memberQuestionForm').onsubmit({preventDefault(){}});assert.equal(posts,0);
+ recovery='UNKNOWN';await get('memberQuestionRefresh').onclick();assert.equal(get('memberAsk').disabled,true);assert.equal(get('memberQuestionRefresh').hidden,false);assert.equal(get('memberQuestion').value,'Next question');
+ recovery='FAILED';await get('memberQuestionRefresh').onclick();assert.equal(get('memberAsk').disabled,false);assert.equal(posts,0);
+});
+test('failed send reads recovery status without retry and clears private content on denied status',async()=>{
+ let posts=0,statusReads=0,denied=false;const h=resultHarness(async(path,method)=>{if(method==='POST'){posts++;throw Error('lost response');}if(path.endsWith('/question-status')){statusReads++;if(denied)throw Object.assign(Error('denied'),{status:401});return {state:posts?'UNCERTAIN':'READY'};}return path.endsWith('/questions')?[]:{state:'PRIVATE'};});await flush();
+ const get=id=>h.doc.getElementById(id);get('memberQuestion').value='Keep me';await get('memberQuestionForm').onsubmit({preventDefault(){}});
+ assert.equal(posts,1);assert.equal(statusReads,2);assert.equal(get('memberQuestion').value,'Keep me');assert.match(get('memberQuestionStatus').textContent,/new question/i);
+ denied=true;await get('memberQuestionRefresh').onclick();assert.equal(get('memberResultContent').hidden,true);assert.equal(get('memberQuestion').value,'');assert.equal(get('memberSummary').children.length,0);
+ assert.equal(get('memberSignIn').hidden,false);
+});
+test('status-check completion restores focus and stale answer reads cannot restore another owner’s content',async()=>{
+ let status='FAILED',resolveAnswers,questions=0;const h=resultHarness(async path=>{if(path.endsWith('/questions')){questions++;if(questions===2)return new Promise(resolve=>resolveAnswers=resolve);return [];}return {state:path.endsWith('/question-status')?status:'PRIVATE'};});await flush();
+ const get=id=>h.doc.getElementById(id);get('memberQuestionRefresh').focus();await get('memberQuestionRefresh').onclick();assert.equal(h.doc.activeElement,get('memberQuestion'));
+ status='ANSWERED';const check=get('memberQuestionRefresh').onclick();await flush();h.doc.visibilityState='hidden';h.doc.listeners.visibilitychange();h.setUser('owner-b');h.doc.visibilityState='visible';h.doc.listeners.visibilitychange();await flush();
+ resolveAnswers([{question:'Owner A secret',answer:'Private answer'}]);await check;h.doc.listeners['fhemni:localechange']();assert.equal(get('memberAnswers').children.length,0);
+});
+test('a conversation fetch failure cannot hide confirmed recovery guidance',async()=>{
+ const h=resultHarness(async path=>{if(path.endsWith('/questions'))throw Error('temporarily unavailable');return {state:path.endsWith('/question-status')?'FAILED':'PRIVATE'};});await flush();
+ assert.match(h.doc.getElementById('memberQuestionStatus').textContent,/new question/i);assert.equal(h.doc.getElementById('memberAsk').disabled,false);
 });

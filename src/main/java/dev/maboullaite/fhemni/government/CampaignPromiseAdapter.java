@@ -11,7 +11,8 @@ import org.springframework.stereotype.Component;
 public class CampaignPromiseAdapter {
     private final PartyProgrammeRepository programmes;
     private final PolicyTopicRepository topics;
-    public CampaignPromiseAdapter(PartyProgrammeRepository programmes,PolicyTopicRepository topics){this.programmes=programmes;this.topics=topics;}
+    private final ProgrammeRelationships relationships;
+    public CampaignPromiseAdapter(PartyProgrammeRepository programmes,PolicyTopicRepository topics,ProgrammeRelationships relationships){this.programmes=programmes;this.topics=topics;this.relationships=relationships;}
     public List<CommitmentView> list(String topic,String party) {
         var result=new ArrayList<CommitmentView>();
         for(var programme:programmes.findAll()) {
@@ -27,6 +28,6 @@ public class CampaignPromiseAdapter {
                     new LocalText(programme.partyCode(),programme.partyCode(),programme.partyCode()),promise.id(),codes,null,null,null,null,null,List.of(),List.of(source),List.of(),List.of()));
             }
         }
-        return List.copyOf(result);
+        return relationships.projectAll(result);
     }
 }

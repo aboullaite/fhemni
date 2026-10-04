@@ -22,4 +22,12 @@ class GovernmentIntegrationTest {
         mvc.perform(get("/government/commitments/example")).andExpect(status().isOk()).andExpect(forwardedUrl("/commitment.html"));
         mvc.perform(get("/api/catalog/government/2026-2031/deadlines")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
     }
+    @Test void publishedHistoryHasPublicRoutesButDoesNotExposeUnknownOrDraftRecords() throws Exception {
+        mvc.perform(get("/government/history")).andExpect(status().isOk()).andExpect(forwardedUrl("/government-history.html"));
+        mvc.perform(get("/government/revisions/"+java.util.UUID.randomUUID())).andExpect(status().isOk()).andExpect(forwardedUrl("/government-history.html"));
+        mvc.perform(get("/api/catalog/government/2026-2031/history")).andExpect(status().isOk())
+            .andExpect(jsonPath("$.pageSize").value(10)).andExpect(jsonPath("$.items.length()").value(0));
+        mvc.perform(get("/api/catalog/government/revisions/"+java.util.UUID.randomUUID())).andExpect(status().isNotFound());
+        mvc.perform(get("/api/catalog/government/2026-2031/history?page=0")).andExpect(status().isBadRequest());
+    }
 }

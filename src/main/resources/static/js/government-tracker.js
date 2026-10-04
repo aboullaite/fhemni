@@ -19,6 +19,7 @@
         const coverage=view.mandate?.reviewCoverage;
         if(view.loadState==='ready'&&coverage)panel.append(el('p',`${copy.coverage}: ${model.number(coverage.reviewed,locale)} ${coverage.total==null?'· '+copy.unknownTotal:copy.of+' '+model.number(coverage.total,locale)}`));
         const campaign=el('a',copy.readProgramme,'text-link');campaign.href='/government?tab=programme&origin=CAMPAIGN';panel.append(campaign);overview.append(panel);
+        if(view.loadState==='ready'&&view.mandate?.verifiedAt){const history=el('a',copy.history,'text-link');history.href='/government/history';panel.append(history);}
         const evidenceIds=[...new Set([...(view.mandate?.programme?.evidenceIds||[]),...(view.mandate?.membership||[]).flatMap(member=>member.evidenceIds||[])])];
         if(view.loadState==='ready'&&view.mandate?.verifiedAt&&evidenceIds.length){
             const disclosure=el('details'),body=el('div',null,'public-stack');disclosure.id='trackerSources';disclosure.append(el('summary',copy.sources),body);let loaded=false,pending=false;
@@ -34,7 +35,7 @@
             if(!view.mandate?.recentUpdates?.length)updates.append(el('p',copy.noUpdates));
             for(const update of (view.mandate?.recentUpdates||[]).slice(0,10)){
                 const item=el('article',null,'government-update'),link=el('a',local(update.title));
-                link.href=update.subjectType==='COMMITMENT'?'/government/commitments/'+encodeURIComponent(update.subjectId):update.subjectType==='MEASURE'?'/government/measures/'+encodeURIComponent(update.subjectId):'/government';item.append(link,el('p',model.date(update.publishedAt,locale),'government-meta'));updates.append(item);
+                link.href=['COMMITMENT','LINK'].includes(update.subjectType)?'/government/commitments/'+encodeURIComponent(update.subjectId):update.subjectType==='MEASURE'?'/government/measures/'+encodeURIComponent(update.subjectId):'/government';item.append(link,el('p',model.date(update.publishedAt,locale),'government-meta'));updates.append(item);
             }
             overview.append(updates);
             if(root.FhemniMeasures){const measures=el('section',null,'public-stack'),copy=root.FhemniMeasures.COPY[locale],link=el('a',copy.title,'primary-button');link.href='/government/measures';measures.append(link,el('p',copy.intro));overview.append(measures);}

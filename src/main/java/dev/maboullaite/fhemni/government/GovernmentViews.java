@@ -14,7 +14,7 @@ public final class GovernmentViews {
     public enum DeliveryState { NO_EVIDENCE_FOUND, UNDERWAY, PARTLY_DELIVERED, DELIVERED, WITHDRAWN }
     public enum EvidenceConfidence { GOVERNMENT_REPORTED, CORROBORATED, CONTESTED }
     public enum Relation { ADOPTED, MODIFIED, NOT_IDENTIFIED, UNRESOLVED }
-    public enum SubjectType { MANDATE, COMMITMENT, MEASURE }
+    public enum SubjectType { MANDATE, COMMITMENT, MEASURE, LINK }
     public enum RevisionState { DRAFT, REVIEWED, PUBLISHED, SUPERSEDED }
     public enum OperationalStatus { UNKNOWN, PENDING, AVAILABLE, SUSPENDED }
     public record LocalText(String ar, String fr, String en) {}
@@ -40,6 +40,9 @@ public final class GovernmentViews {
     public record CommitmentLink(UUID campaignPromiseId, UUID governmentCommitmentId, Relation relation,
             UUID programmeVersionId, LocalText explanation, List<UUID> evidenceIds) {}
     public record RevisionSummary(UUID id, int version, Instant publishedAt, LocalText explanation) {}
+    public record RelationshipView(UUID id,String slug,LocalText title,CommitmentLink relationship,List<Evidence> evidence) {}
+    public record PublicRevision(UUID id,SubjectType subjectType,String slug,int version,Instant publishedAt,
+            LocalText explanation,Object snapshot,List<Evidence> evidence) {}
     public record CommitmentView(UUID id, String slug, Origin origin, LocalText title, String originalText,
             String originalLanguage, LocalText author, UUID campaignPromiseId, List<String> topicCodes,
             Scope geographicScope, LocalText responsibleBody, Target target, LocalDate deadline,

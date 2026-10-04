@@ -22,7 +22,33 @@ public class GovernmentService {
         if(!referenced)referenced=repository.publishedVersions(mandate,SubjectType.COMMITMENT).stream().map(json->repository.decode(json,CommitmentView.class))
             .anyMatch(view->view.evidence().stream().anyMatch(source->source.id().equals(id)));
         if(!referenced)referenced=repository.publishedVersions(mandate,SubjectType.MEASURE).stream().map(json->repository.decode(json,MeasureView.class)).anyMatch(view->view.evidence().stream().anyMatch(source->source.id().equals(id)));
+        if(!referenced)referenced=repository.publishedVersions(mandate,SubjectType.LINK).stream().map(json->repository.decode(json,RelationshipView.class)).anyMatch(view->view.evidence().stream().anyMatch(source->source.id().equals(id)));
         if(!referenced)throw new java.util.NoSuchElementException("Published source not found.");
         return evidence.find(mandate,id).orElseThrow();
+    }
+    public Page<RevisionSummary> history(String mandate,SubjectType type,String slug,int page) {
+        if(!"2026-2031".equals(mandate))throw new java.util.NoSuchElementException("Unknown mandate.");
+        if(page<1||page>100000)throw new IllegalArgumentException("Invalid page.");
+        var rows=repository.publicHistory(type,slug);int start=Math.min((page-1)*10,rows.size());
+        return new Page<>(rows.subList(start,Math.min(start+10,rows.size())),page,10,rows.size());
+    }
+    public PublicRevision revision(java.util.UUID id) {
+        var revision=repository.revision(id).filter(row->row.publishedAt()!=null&&java.util.List.of(RevisionState.PUBLISHED,RevisionState.SUPERSEDED).contains(row.status())).orElseThrow(()->new java.util.NoSuchElementException("Published version not found."));
+        Object snapshot=switch(revision.subjectType()) {
+            case MANDATE->repository.decode(revision.payload(),MandateView.class);
+            case COMMITMENT->repository.decode(revision.payload(),CommitmentView.class);
+            case MEASURE->repository.decode(revision.payload(),MeasureView.class);
+            case LINK->repository.decode(revision.payload(),RelationshipView.class);
+        };
+        java.util.List<Evidence> sources;
+        if(snapshot instanceof MandateView mandate) {
+            var ids=new java.util.LinkedHashSet<java.util.UUID>();mandate.membership().forEach(member->ids.addAll(member.evidenceIds()));
+            if(mandate.programme()!=null)ids.addAll(mandate.programme().evidenceIds());
+            sources=ids.stream().map(sourceId->evidence.find(revision.mandateId(),sourceId).orElseThrow()).toList();
+        } else if(snapshot instanceof CommitmentView commitment)sources=commitment.evidence();
+        else if(snapshot instanceof MeasureView measure)sources=measure.evidence();
+        else sources=((RelationshipView)snapshot).evidence();
+        var explanation=repository.history(revision.subjectId()).stream().filter(row->row.id().equals(id)).findFirst().orElseThrow().explanation();
+        return new PublicRevision(id,revision.subjectType(),revision.slug(),revision.revisionNumber(),revision.publishedAt(),explanation,snapshot,sources);
     }
 }

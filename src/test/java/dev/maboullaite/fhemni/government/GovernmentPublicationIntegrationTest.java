@@ -36,6 +36,8 @@ class GovernmentPublicationIntegrationTest {
     static LocalText text(String value){return new LocalText(value,value,value);}
     @BeforeEach void isolatedGovernmentFixtures() {
         for(String table:List.of("government_publication_events","government_membership_history","government_programme_versions","government_publications","government_revisions","government_subjects","government_evidence","government_mandates"))jdbc.sql("DELETE FROM "+table).update();
+        jdbc.sql("DELETE FROM party_promises WHERE programme_id IN (SELECT id FROM party_programmes WHERE source_url='https://example.org/campaign')").update();
+        jdbc.sql("DELETE FROM party_programmes WHERE source_url='https://example.org/campaign'").update();
     }
     @Test void reviewedPublicationIsAtomicImmutableAndOnlyMaterialChangesEmitEvents() throws Exception {
         var pending=GovernmentViews.pending("2026-2031");
@@ -113,6 +115,62 @@ class GovernmentPublicationIntegrationTest {
         assertThatThrownBy(()->editorial.publish(checked.id(),checked.rowVersion(),admin)).isInstanceOf(IllegalStateException.class);
         repository.createDraft(mandate.id(),SubjectType.COMMITMENT,value.slug(),value,admin,"Newer correction");
         assertThatThrownBy(()->editorial.publish(checked.id(),checked.rowVersion(),admin)).isInstanceOf(IllegalStateException.class);
+    }
+    @Test void independentlyReviewedRelationshipsAreVisibleFromBothEndpointsAndAbsenceNeedsFullCoverage() {
+        repository.ensureMandate("2026-2031");
+        var source=evidence.save("2026-2031",new Evidence(UUID.randomUUID(),"https://example.org/review","Reviewed programme passage","p. 2","en",null,Instant.now().minusSeconds(5),null),null);
+        var programme=new ProgrammeVersion(UUID.randomUUID(),1,text("Programme"),java.time.LocalDate.parse("2026-10-01"),List.of(source.id()));
+        var member=new Membership(UUID.randomUUID(),text("Fixture minister"),text("Role"),null,java.time.LocalDate.parse("2026-10-01"),null,List.of(source.id()));
+        var mandate=new MandateView("2026-2031",text("Mandate"),Lifecycle.PROGRAMME_PUBLISHED,Instant.now().minusSeconds(1),List.of(member),programme,new ReviewCoverage(1,2,false),List.of());
+        publish(repository.createDraft(mandate.id(),SubjectType.MANDATE,mandate.id(),mandate,admin,"Internal editorial note"));
+        var promises=campaignFixtures();UUID governmentId=UUID.randomUUID();
+        var target=new CommitmentView(governmentId,"linked-target",Origin.GOVERNMENT,text("Government target"),source.passage(),"en",text("Government"),null,List.of(),new Scope("NATIONAL","MA",text("Morocco")),null,null,null,null,List.of(),List.of(source),List.of(),List.of());
+        publish(repository.createDraft(mandate.id(),SubjectType.COMMITMENT,target.slug(),target,admin,"Target"));
+        var link=new CommitmentLink(promises.getFirst(),governmentId,Relation.ADOPTED,programme.id(),text("Adopted wording"),List.of(source.id()));
+        var relationship=new RelationshipView(UUID.randomUUID(),"link-"+promises.getFirst()+"-"+programme.id(),text("Programme link"),link,List.of(source));
+        publish(repository.createDraft(mandate.id(),SubjectType.LINK,relationship.slug(),relationship,admin,"Reviewed adoption"));
+        assertThat(commitments.detail(promises.getFirst().toString()).links()).containsExactly(link);
+        assertThat(commitments.detail(governmentId.toString()).links()).containsExactly(link);
+        assertThat(commitments.detail(promises.getFirst().toString()).deliveryAssessment()).isNull();
+        var modified=new CommitmentLink(promises.getFirst(),governmentId,Relation.MODIFIED,programme.id(),text("Modified wording"),List.of(source.id()));
+        publish(repository.createDraft(mandate.id(),SubjectType.LINK,relationship.slug(),new RelationshipView(relationship.id(),relationship.slug(),relationship.title(),modified,List.of(source)),admin,"Reviewed modification"));
+        assertThat(commitments.detail(governmentId.toString()).links()).containsExactly(modified);
+        assertThat(commitments.detail(promises.getFirst().toString()).links()).containsExactly(modified);
+        var absent=new RelationshipView(UUID.randomUUID(),"link-"+promises.getLast()+"-"+programme.id(),text("Programme review"),new CommitmentLink(promises.getLast(),null,Relation.NOT_IDENTIFIED,programme.id(),text("Not identified after review"),List.of(source.id())),List.of(source));
+        var incomplete=repository.createDraft(mandate.id(),SubjectType.LINK,absent.slug(),absent,admin,"Cannot establish absence yet");
+        assertThatThrownBy(()->editorial.review(incomplete.id(),1,admin)).isInstanceOf(IllegalArgumentException.class);
+        var complete=new MandateView(mandate.id(),mandate.label(),mandate.lifecycle(),mandate.verifiedAt(),mandate.membership(),programme,new ReviewCoverage(2,2,true),List.of());
+        publish(repository.createDraft(mandate.id(),SubjectType.MANDATE,mandate.id(),complete,admin,"Full review"));
+        publish(repository.createDraft(mandate.id(),SubjectType.LINK,absent.slug(),absent,admin,"Reviewed absence"));
+        assertThat(commitments.detail(promises.getLast().toString()).links()).containsExactly(absent.relationship());
+        assertThat(commitments.list(mandate.id(),"GOVERNMENT",null,null,1).totalItems()).isEqualTo(1);
+    }
+    @Test void publicSnapshotsRetainPriorProgrammeAndAssessmentWithoutPrivateEditorialNotes() {
+        repository.ensureMandate("2026-2031");
+        var source=evidence.save("2026-2031",new Evidence(UUID.randomUUID(),"https://example.org/history","Original source","p. 1","en",null,Instant.now().minusSeconds(5),null),null);
+        var programme=new ProgrammeVersion(UUID.randomUUID(),1,text("First programme"),java.time.LocalDate.parse("2026-10-01"),List.of(source.id()));
+        var member=new Membership(UUID.randomUUID(),text("First minister"),text("Role"),null,java.time.LocalDate.parse("2026-10-01"),null,List.of(source.id()));
+        var first=new MandateView("2026-2031",text("Mandate"),Lifecycle.PROGRAMME_PUBLISHED,Instant.now().minusSeconds(1),List.of(member),programme,new ReviewCoverage(1,1,true),List.of());
+        var initial=repository.createDraft(first.id(),SubjectType.MANDATE,first.id(),first,admin,"SECRET editorial note");publish(initial);
+        var revisedProgramme=new ProgrammeVersion(UUID.randomUUID(),2,text("Amended programme"),programme.publishedAt(),List.of(source.id()));
+        var revisedMember=new Membership(UUID.randomUUID(),text("Replacement minister"),member.role(),null,member.effectiveFrom(),null,List.of(source.id()));
+        var second=new MandateView(first.id(),first.label(),first.lifecycle(),first.verifiedAt(),List.of(revisedMember),revisedProgramme,first.reviewCoverage(),List.of());
+        var amended=repository.createDraft(first.id(),SubjectType.MANDATE,first.id(),second,admin,"SECRET personnel note");publish(amended);
+        var snapshot=government.revision(initial.id());
+        assertThat((MandateView)snapshot.snapshot()).isEqualTo(first);
+        assertThat(snapshot.evidence()).containsExactly(source);
+        assertThat((MandateView)government.revision(amended.id()).snapshot()).isEqualTo(second);
+        assertThat(repository.encode(snapshot)).doesNotContain("SECRET",admin.toString(),"authorId","reviewerId");
+        assertThat(repository.publicHistory(SubjectType.MANDATE,first.id()).getFirst().explanation().en()).contains("membership","programme");
+        var assessment=new DeliveryAssessment(DeliveryState.UNDERWAY,EvidenceConfidence.GOVERNMENT_REPORTED,text("Started"),List.of(source.id()),Instant.now().minusSeconds(1));
+        var target=new CommitmentView(UUID.randomUUID(),"history-target",Origin.GOVERNMENT,text("Target"),source.passage(),"en",text("Government"),null,List.of(),new Scope("NATIONAL","MA",text("Morocco")),null,null,null,assessment,List.of(),List.of(source),List.of(),List.of());
+        var original=repository.createDraft(first.id(),SubjectType.COMMITMENT,target.slug(),target,admin,"Private assessment note");publish(original);
+        var corrected=new CommitmentView(target.id(),target.slug(),target.origin(),target.title(),target.originalText(),target.originalLanguage(),target.author(),null,target.topicCodes(),target.geographicScope(),null,null,null,new DeliveryAssessment(DeliveryState.PARTLY_DELIVERED,EvidenceConfidence.CORROBORATED,text("Corrected finding"),List.of(source.id()),assessment.reviewedAt()),List.of(),List.of(source),List.of(),List.of());
+        publish(repository.createDraft(first.id(),SubjectType.COMMITMENT,target.slug(),corrected,admin,"Correction"));
+        assertThat(((CommitmentView)government.revision(original.id()).snapshot()).deliveryAssessment()).isEqualTo(assessment);
+        var draft=repository.createDraft(first.id(),SubjectType.COMMITMENT,target.slug(),corrected,admin,"Private unpublished draft");
+        assertThatThrownBy(()->government.revision(draft.id())).isInstanceOf(java.util.NoSuchElementException.class);
+        assertThat(repository.publicHistory(SubjectType.COMMITMENT,target.slug())).hasSize(2);
     }
     void publish(GovernmentRepository.Revision draft){var reviewed=editorial.review(draft.id(),1,admin);editorial.publish(reviewed.id(),reviewed.rowVersion(),admin);}
     List<UUID> campaignFixtures() {

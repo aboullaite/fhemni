@@ -15,6 +15,13 @@ test('measure drafts use the practical schema without campaign or delivery field
     const {prepareDraft}=require(modulePath);const draft=prepareDraft('MEASURE','measure',{id:'id',operationalStatus:'PENDING'},'Source review');
     assert.equal(draft.payload.slug,'measure');assert.ok(!('origin' in draft.payload));assert.ok(!('revisions' in draft.payload));
 });
+test('independent relationship draft needs no invented government commitment and derives its unique programme address',()=>{
+    const {prepareDraft}=require(modulePath);
+    const relationship={campaignPromiseId:'campaign',governmentCommitmentId:null,programmeVersionId:'programme',relation:'NOT_IDENTIFIED'};
+    const draft=prepareDraft('LINK','ignored',{id:'id',relationship,evidence:[]},'Complete programme review');
+    assert.equal(draft.slug,'link-campaign-programme');assert.equal(draft.payload.slug,draft.slug);
+    assert.deepEqual(draft.payload.relationship,relationship);assert.ok(!('origin' in draft.payload));
+});
 test('all three locales describe separate save review and publish actions',()=>{
     const {COPY}=require(modulePath);
     for(const lang of ['ar','fr','en']) {

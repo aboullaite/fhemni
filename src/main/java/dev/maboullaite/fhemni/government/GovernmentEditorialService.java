@@ -36,10 +36,10 @@ public class GovernmentEditorialService {
         var result=repository.markPublished(revision,administratorId,hash,now);
         if(value instanceof MandateView mandate)repository.retainMandateHistory(revision,mandate);
         if(changed) {
-            LocalText title=value instanceof MandateView mandate?mandate.label():value instanceof MeasureView measure?measure.title():((CommitmentView)value).title();
+            LocalText title=value instanceof MandateView mandate?mandate.label():value instanceof MeasureView measure?measure.title():value instanceof RelationshipView link?link.title():((CommitmentView)value).title();
             List<String> topics=value instanceof CommitmentView commitment?commitment.topicCodes():List.of();
             List<String> regions=GovernmentPublicationEvents.regionCodes(value);
-            String publicId=value instanceof MandateView mandate?mandate.id():value instanceof MeasureView measure?measure.id().toString():((CommitmentView)value).id().toString();
+            String publicId=value instanceof MandateView mandate?mandate.id():value instanceof MeasureView measure?measure.id().toString():value instanceof RelationshipView link?link.relationship().campaignPromiseId().toString():((CommitmentView)value).id().toString();
             events.insert(revision.mandateId(),revision.subjectId(),new PublishedUpdate(UUID.randomUUID(),revision.subjectType().name(),publicId,revision.id(),hash,topics,regions,title,null,now));
         }
         return result;
@@ -71,6 +71,24 @@ public class GovernmentEditorialService {
             if(repository.publishedPayloads(mandateId,SubjectType.MEASURE).stream().map(json->repository.decode(json,MeasureView.class)).anyMatch(other->other.id().equals(measure.id())&&!other.slug().equals(measure.slug())))throw new IllegalArgumentException("Measure identifier already published.");
             for(var source:measure.evidence())if(!evidence.find(mandateId,source.id()).filter(source::equals).isPresent())throw new IllegalArgumentException("Save the exact source evidence first.");
             return measure;
+        }
+        if(revision.subjectType()==SubjectType.LINK) {
+            var value=repository.decode(revision.payload(),RelationshipView.class);
+            if(value.id()==null)throw new IllegalArgumentException("A relationship needs a stable identifier.");
+            GovernmentValidation.translations(value.title());
+            if(current==null||current.programme()==null||current.lifecycle()!=Lifecycle.PROGRAMME_PUBLISHED)throw new IllegalArgumentException("Publish the sourced programme before reviewing its links.");
+            var link=value.relationship();GovernmentValidation.link(link,current.reviewCoverage());
+            String canonical="link-"+link.campaignPromiseId()+"-"+link.programmeVersionId();
+            if(!canonical.equals(value.slug()))throw new IllegalArgumentException("One relationship per campaign promise and programme version is required.");
+            if(!link.programmeVersionId().equals(current.programme().id()))throw new IllegalArgumentException("Review links against the current programme version.");
+            if(!exists("SELECT COUNT(*) FROM party_promises p JOIN party_programmes g ON p.programme_id=g.id WHERE p.id=:id AND p.editorial_status='PUBLISHED' AND g.editorial_status='PUBLISHED'",link.campaignPromiseId()))throw new IllegalArgumentException("Link only published campaign promises.");
+            if(link.relation()==Relation.NOT_IDENTIFIED&&link.governmentCommitmentId()!=null)throw new IllegalArgumentException("An absent promise has no government commitment target.");
+            if(link.governmentCommitmentId()!=null&&!repository.publishedPayloads(mandateId,SubjectType.COMMITMENT).stream().map(json->repository.decode(json,CommitmentView.class)).anyMatch(row->row.id().equals(link.governmentCommitmentId())))throw new IllegalArgumentException("Link only published government commitments.");
+            var previous=repository.published(SubjectType.LINK,revision.slug(),RelationshipView.class);
+            if(previous.isPresent()&&!previous.get().id().equals(value.id()))throw new IllegalArgumentException("A relationship keeps its stable identifier.");
+            if(value.evidence()==null||!value.evidence().stream().map(Evidence::id).toList().containsAll(link.evidenceIds()))throw new IllegalArgumentException("Attach supporting relationship evidence.");
+            for(var source:value.evidence())if(!evidence.find(mandateId,source.id()).filter(source::equals).isPresent())throw new IllegalArgumentException("Save the exact source evidence first.");
+            return value;
         }
         if(revision.subjectType()!=SubjectType.COMMITMENT)throw new IllegalArgumentException("Unsupported publication type.");
         var value=repository.decode(revision.payload(),CommitmentView.class);
