@@ -16,4 +16,8 @@ public class GovernmentController {
     public ResponseEntity<MandateView> mandate(@PathVariable String mandateId) {
         return ResponseEntity.ok().cacheControl(CacheControl.noCache()).body(service.mandate(mandateId));
     }
+    @GetMapping("/api/catalog/government/{mandateId}/sources/{id}")
+    public ResponseEntity<dev.maboullaite.fhemni.government.GovernmentViews.Evidence> source(@PathVariable String mandateId,@PathVariable java.util.UUID id) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noCache()).body(service.source(mandateId,id));
+    }
 }

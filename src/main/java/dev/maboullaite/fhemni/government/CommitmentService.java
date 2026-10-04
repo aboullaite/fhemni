@@ -10,7 +10,8 @@ import org.springframework.stereotype.Service;
 public class CommitmentService {
     private final CommitmentRepository repository;
     private final CampaignPromiseAdapter campaigns;
-    public CommitmentService(CommitmentRepository repository,CampaignPromiseAdapter campaigns){this.repository=repository;this.campaigns=campaigns;}
+    private final GovernmentRepository revisions;
+    public CommitmentService(CommitmentRepository repository,CampaignPromiseAdapter campaigns,GovernmentRepository revisions){this.repository=repository;this.campaigns=campaigns;this.revisions=revisions;}
     public Page<CommitmentView> list(String mandate,String origin,String topic,String party,int page) {
         if(!"2026-2031".equals(mandate))throw new NoSuchElementException("Unknown mandate.");
         if(page<1||page>100000)throw new IllegalArgumentException("Invalid page.");
@@ -23,8 +24,18 @@ public class CommitmentService {
         return new Page<>(rows.subList(start,Math.min(start+10,rows.size())),page,10,rows.size());
     }
     public CommitmentView detail(String slug) {
-        return (slug.startsWith("campaign-")?campaigns.list(null,null):repository.published("2026-2031")).stream()
-            .filter(row->row.slug().equals(slug)).findFirst().orElseThrow(()->new NoSuchElementException("Commitment not found."));
+        var view=repository.published("2026-2031").stream()
+            .filter(row->row.slug().equals(slug)||row.id().toString().equals(slug)).findFirst()
+            .or(()->campaigns.list(null,null).stream().filter(row->row.slug().equals(slug)||row.id().toString().equals(slug)).findFirst())
+            .orElseThrow(()->new NoSuchElementException("Commitment not found."));
+        return new CommitmentView(view.id(),view.slug(),view.origin(),view.title(),view.originalText(),view.originalLanguage(),view.author(),view.campaignPromiseId(),view.topicCodes(),view.geographicScope(),view.responsibleBody(),view.target(),view.deadline(),view.deliveryAssessment(),view.links(),view.evidence(),view.observations(),revisions.publicHistory(SubjectType.COMMITMENT,view.slug()));
+    }
+    public List<CommitmentView> upcoming(String mandate) {
+        if(!"2026-2031".equals(mandate))throw new NoSuchElementException("Unknown mandate.");
+        var today=java.time.LocalDate.now(java.time.ZoneOffset.UTC);
+        return repository.published(mandate).stream().filter(row->row.deadline()!=null&&!row.deadline().isBefore(today))
+            .filter(row->row.deliveryAssessment()==null||!List.of(DeliveryState.DELIVERED,DeliveryState.WITHDRAWN).contains(row.deliveryAssessment().state()))
+            .sorted(Comparator.comparing(CommitmentView::deadline).thenComparing(CommitmentView::slug)).limit(3).toList();
     }
     private String blank(String value){return value==null||value.isBlank()?null:value;}
 }

@@ -15,6 +15,14 @@ function doc(){
     return {createElement:node,getElementById(id){if(!ids.has(id))ids.set(id,node('div'));return ids.get(id)},ids};
 }
 const text=node=>[node.textContent,...node.children.map(text)].join(' ');
+test('published home links to the reviewed programme and shows only sourced updates and deadlines',()=>{
+    const {renderHome}=load(),document=doc();
+    renderHome({locale:'en',loadState:'ready',mandate:{lifecycle:'PROGRAMME_PUBLISHED',verifiedAt:'2026-10-01T00:00:00Z',programme:{id:'programme'},reviewCoverage:{reviewed:4,total:10,complete:false},recentUpdates:[{subjectType:'COMMITMENT',subjectId:'commitment',title:{en:'Reviewed update'},publishedAt:'2026-10-01T00:00:00Z'}]},deadlines:[{slug:'source-deadline',title:{en:'Sourced target'},deadline:'2027-01-01'}]},document);
+    assert.equal(document.getElementById('homeProgrammeLink').href,'/government?tab=programme&origin=GOVERNMENT');
+    assert.match(text(document.getElementById('mandateCoverage')),/4.*10/);
+    assert.match(text(document.getElementById('homeUpdates')),/Reviewed update/);
+    assert.match(text(document.getElementById('homeDeadlines')),/Sourced target/);
+});
 test('formation and unavailable homes do not render invented membership, dates or delivery scores',()=>{
     const {renderHome}=load();
     for(const locale of ['ar','fr','en']) for(const loadState of ['ready','unavailable']){

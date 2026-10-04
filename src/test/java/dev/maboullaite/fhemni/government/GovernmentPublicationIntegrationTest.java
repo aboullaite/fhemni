@@ -83,10 +83,12 @@ class GovernmentPublicationIntegrationTest {
     @Test void twoCampaignLinksCountOneGovernmentCommitmentAndRegionalEvidenceRemainsScoped() {
         repository.ensureMandate("2026-2031");
         var source=evidence.save("2026-2031",new Evidence(UUID.randomUUID(),"https://example.org/programme","Original passage","p. 1","en",null,Instant.now().minusSeconds(5),null),null);
+        assertThatThrownBy(()->government.source("2026-2031",source.id())).isInstanceOf(java.util.NoSuchElementException.class);
         var programme=new ProgrammeVersion(UUID.randomUUID(),1,text("Programme"),java.time.LocalDate.parse("2026-10-01"),List.of(source.id()));
         var mandate=new MandateView("2026-2031",text("Mandate"),Lifecycle.PROGRAMME_PUBLISHED,Instant.now().minusSeconds(1),
             List.of(new Membership(UUID.randomUUID(),text("Test-only minister"),text("Role"),null,java.time.LocalDate.parse("2026-10-01"),null,List.of(source.id()))),programme,new ReviewCoverage(2,2,true),List.of());
         publish(repository.createDraft(mandate.id(),SubjectType.MANDATE,mandate.id(),mandate,admin,"Test-only programme"));
+        assertThat(government.source("2026-2031",source.id()).passage()).isEqualTo(source.passage());
         var promiseIds=campaignFixtures();
         UUID id=UUID.randomUUID();
         String region=jdbc.sql("SELECT code FROM election_regions ORDER BY code LIMIT 1").query(String.class).single();
@@ -100,6 +102,8 @@ class GovernmentPublicationIntegrationTest {
         assertThat(page.items().getFirst().deliveryAssessment()).isNull();
         assertThat(events.latest(mandate.id(),10).getFirst().regionCodes()).containsExactly(region);
         assertThat(events.latest(mandate.id(),10).getFirst().subjectId()).isEqualTo(value.id().toString());
+        assertThat(commitments.detail(value.id().toString()).revisions()).hasSize(1);
+        assertThat(government.mandate(mandate.id()).recentUpdates()).hasSize(2);
         var campaign=commitments.list(mandate.id(),"CAMPAIGN",null,"RNI",1);
         assertThat(campaign.items()).hasSize(2).allSatisfy(row->assertThat(row.deliveryAssessment()).isNull());
         var stale=repository.createDraft(mandate.id(),SubjectType.COMMITMENT,value.slug(),value,admin,"First correction");

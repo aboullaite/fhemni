@@ -140,6 +140,14 @@ public class GovernmentRepository {
         return jdbc.sql("SELECT id,revision_number,published_at FROM government_revisions WHERE subject_id=:subject AND published_at IS NOT NULL ORDER BY revision_number DESC")
             .param("subject",subject).query((rs,n)->new RevisionSummary(rs.getObject("id",UUID.class),rs.getInt("revision_number"),rs.getObject("published_at",java.time.OffsetDateTime.class).toInstant(),null)).list();
     }
+    public List<RevisionSummary> publicHistory(SubjectType type,String slug) {
+        return jdbc.sql("SELECT id FROM government_subjects WHERE subject_type=:type AND slug=:slug")
+            .param("type",type.name()).param("slug",slug).query(UUID.class).optional().map(this::history).orElse(List.of());
+    }
+    public List<String> publishedVersions(String mandate,SubjectType type) {
+        return jdbc.sql("SELECT r.payload FROM government_revisions r JOIN government_subjects s ON s.id=r.subject_id WHERE s.mandate_id=:mandate AND s.subject_type=:type AND r.published_at IS NOT NULL")
+            .param("mandate",mandate).param("type",type.name()).query(String.class).list();
+    }
     public <T> T decode(String json,Class<T> type) {
         return mapper.readerFor(type).with(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).readValue(json);
     }

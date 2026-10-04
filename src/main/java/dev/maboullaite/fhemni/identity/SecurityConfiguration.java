@@ -79,6 +79,7 @@ public class SecurityConfiguration {
                         .requestMatchers(
                                 "/", "/index.html", "/videos", "/videos/**",
                                 "/government", "/government/", "/government.html",
+                                "/government/commitments/**", "/commitment.html",
                                 "/analyse", "/analyse/", "/analyse.html",
                                 "/analyses/**", "/analysis.html",
                                 "/people/**", "/person.html",

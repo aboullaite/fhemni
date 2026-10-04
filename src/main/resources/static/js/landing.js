@@ -13,11 +13,14 @@
         fr:{feasibility:'Faisabilité sur cinq ans',INSUFFICIENT_DATA:'Données insuffisantes',partyUnknown:'Parti indisponible'},
         en:{feasibility:'Five-year feasibility',INSUFFICIENT_DATA:'Insufficient data',partyUnknown:'Party unavailable'}
     };
-    function renderHome({mandate,topics=[],promises=[],parties=[],loadState='loading',topicsLoading=false,promisesLoading=false,topicsFailed=false,promisesFailed=false,locale='ar'},doc=document){
+    const TRACKING_COPY={ar:{programme:'شوف البرنامج الحكومي',campaign:'الأحزاب والبرامج',coverage:'الالتزامات المراجعة',updates:'آخر المستجدات',deadlines:'أقرب الآجال المعلنة',of:'من',unknown:'العدد الإجمالي ما تحددش بعد'},fr:{programme:'Voir le programme gouvernemental',campaign:'Partis et programmes',coverage:'Engagements examinés',updates:'Dernières mises à jour',deadlines:'Prochaines échéances annoncées',of:'sur',unknown:'Total pas encore établi'},en:{programme:'Read the government programme',campaign:'Parties and programmes',coverage:'Reviewed commitments',updates:'Latest updates',deadlines:'Upcoming announced deadlines',of:'of',unknown:'Total not yet established'}};
+    function renderHome({mandate,topics=[],promises=[],parties=[],deadlines=[],deadlinesFailed=false,loadState='loading',topicsLoading=false,promisesLoading=false,topicsFailed=false,promisesFailed=false,locale='ar'},doc=document){
         const copy={...(COPY[locale]||COPY.ar),...(ASSESSMENT_COPY[locale]||ASSESSMENT_COPY.ar)};
         const text=(id,value)=>{const node=doc.getElementById(id);if(node)node.textContent=value;};
         const element=(tag,value,className)=>{const node=doc.createElement(tag);if(value!=null)node.textContent=value;if(className)node.className=className;return node;};
         const localized=value=>value?.[locale]||value?.ar||value?.fr||value?.en||'';
+        const previousFocus=doc.activeElement,focusHref=previousFocus?.getAttribute?.('href');
+        const tracking=TRACKING_COPY[locale]||TRACKING_COPY.ar;
         let state='pending';
         if(loadState==='loading')state='loading';
         else if(loadState==='unavailable')state='unavailable';
@@ -26,6 +29,16 @@
             if(mandate.lifecycle==='PROGRAMME_PUBLISHED'&&mandate.programme)state='published';
         }
         text('mandateStatus',copy[state]);text('mandateExplanation',copy[state+'Text']||'');
+        if(state==='published'&&!mandate?.reviewCoverage?.reviewed)text('mandateExplanation',copy.empty);
+        const programmeLink=doc.getElementById('homeProgrammeLink');
+        if(programmeLink){programmeLink.href=state==='published'?'/government?tab=programme&origin=GOVERNMENT':'/parties';programmeLink.textContent=tracking[state==='published'?'programme':'campaign'];}
+        const coverage=doc.getElementById('mandateCoverage');if(coverage){coverage.hidden=state!=='published'||!mandate?.reviewCoverage;const value=mandate?.reviewCoverage;coverage.textContent=!coverage.hidden?`${tracking.coverage}: ${value.reviewed} ${value.total==null?'· '+tracking.unknown:tracking.of+' '+value.total}`:'';}
+        for(const [id,rows,key]of [['homeUpdates',loadState==='ready'?mandate?.recentUpdates||[]:[],'updates'],['homeDeadlines',loadState==='ready'?deadlines:[],'deadlines']]){
+            const section=doc.getElementById(id);if(!section)continue;section.replaceChildren();section.hidden=!rows.length&&!(key==='deadlines'&&deadlinesFailed);
+            if(!section.hidden)section.append(element('h2',tracking[key]));
+            if(key==='deadlines'&&deadlinesFailed)section.append(element('p',copy.unavailable));
+            for(const row of rows.slice(0,3)){const item=element('article',null,'government-update'),a=element('a',localized(row.title));a.href=key==='deadlines'?'/government/commitments/'+encodeURIComponent(row.slug):row.subjectType==='COMMITMENT'?'/government/commitments/'+encodeURIComponent(row.subjectId):'/government';item.append(a);const timestamp=row.deadline||row.publishedAt;if(timestamp&&Number.isFinite(Date.parse(timestamp)))item.append(element('p',new Intl.DateTimeFormat(locale,{dateStyle:'medium',timeZone:'UTC'}).format(new Date(timestamp)),'government-meta'));section.append(item);}
+        }
         const verified=doc.getElementById('mandateVerified');
         const verifiedDate=loadState==='ready'&&mandate?.verifiedAt&&Number.isFinite(Date.parse(mandate.verifiedAt))?new Date(mandate.verifiedAt):null;
         if(verified){verified.hidden=!verifiedDate;verified.textContent=verifiedDate?`${copy.verified}: ${new Intl.DateTimeFormat(locale,{dateStyle:'medium',timeZone:'UTC'}).format(verifiedDate)}`:'';}
@@ -59,6 +72,7 @@
             const retry=doc.getElementById(`${key}Retry`);
             if(retry){retry.hidden=key==='topics'?!topicsFailed:!promisesFailed;retry.disabled=key==='topics'?topicsLoading:promisesLoading;}
         }
+        if(focusHref&&previousFocus?.isConnected===false){[...doc.querySelectorAll('main a')].find(link=>link.getAttribute('href')===focusHref)?.focus();}
     }
     function init(doc,win){
         let state={loadState:'loading',topicsLoading:true,promisesLoading:true,topics:[],promises:[],parties:[]};
@@ -79,6 +93,7 @@
         load('/api/catalog/policy-topics','topics',value=>value.topics);
         load('/api/catalog/promises?size=3','promises');
         load('/api/catalog/parties','parties');
+        load('/api/catalog/government/2026-2031/deadlines','deadlines');
         doc.getElementById('topicsRetry').addEventListener('click',()=>load('/api/catalog/policy-topics','topics',value=>value.topics));
         doc.getElementById('promisesRetry').addEventListener('click',()=>load('/api/catalog/promises?size=3','promises'));
     }

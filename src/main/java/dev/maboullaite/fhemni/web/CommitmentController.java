@@ -14,4 +14,6 @@ public class CommitmentController {
     }
     @GetMapping("/commitments/{slug}")
     public ResponseEntity<CommitmentView> detail(@PathVariable String slug){return ResponseEntity.ok().cacheControl(CacheControl.noCache()).body(service.detail(slug));}
+    @GetMapping("/{id}/deadlines")
+    public ResponseEntity<java.util.List<CommitmentView>> deadlines(@PathVariable String id){return ResponseEntity.ok().cacheControl(CacheControl.noCache()).body(service.upcoming(id));}
 }

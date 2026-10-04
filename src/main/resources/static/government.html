@@ -37,7 +37,27 @@
 <!-- public-shell:header:end -->
 <main class="public-stack">
     <header class="accountability-page-heading"><p class="home-mandate-label"><bdi>2026 — 2031</bdi></p><h1 data-i18n="shell.government">تتبع الحكومة</h1><p data-i18n="government.intro">من وعود الأحزاب للبرنامج الحكومي، ومن الالتزام للإنجاز.</p></header>
-    <section class="public-panel"><h2 data-i18n="government.preparing">التتبع قيد الإعداد</h2><p data-i18n="government.pending">المعطيات المؤكدة غادي تبان هنا من بعد المراجعة. برامج الأحزاب متاحة دابا.</p><a class="text-link" href="/parties" data-i18n="shell.programmes">الأحزاب والبرامج</a></section>
+    <div id="trackerTabs" class="public-tabs" role="tablist" aria-label="تتبع الحكومة" data-i18n-aria-label="shell.government">
+        <button type="button" id="tabOverview" role="tab" aria-selected="true" aria-controls="trackerOverview">نظرة عامة</button>
+        <button type="button" id="tabProgramme" role="tab" aria-selected="false" aria-controls="trackerProgramme" tabindex="-1">الوعود والبرنامج</button>
+        <button type="button" id="tabDelivery" role="tab" aria-selected="false" aria-controls="trackerDelivery" tabindex="-1">تتبع الإنجاز</button>
+        <button type="button" id="tabRegions" role="tab" aria-selected="false" aria-controls="trackerRegions" tabindex="-1">فالجهات</button>
+    </div>
+    <p id="trackerStatus" class="sr-only" role="status" aria-live="polite"></p>
+    <button id="trackerRetry" type="button" hidden>عاود المحاولة</button>
+    <details id="trackerFilters" class="government-filters" open hidden><summary id="trackerFilterTitle">تصفية النتائج</summary><div class="public-toolbar">
+        <label id="trackerOriginField"><span id="originLabel">مصدر الالتزام</span><select id="trackerOrigin"><option value="GOVERNMENT">البرنامج الحكومي</option><option value="CAMPAIGN">وعود الأحزاب</option></select></label>
+        <label><span id="topicLabel">الموضوع</span><select id="trackerTopic"><option value="">الكل</option></select></label>
+        <label id="trackerPartyField"><span id="partyLabel">الحزب</span><select id="trackerParty"><option value="">الكل</option></select></label>
+    </div></details>
+    <div id="trackerActiveFilters" class="public-toolbar" hidden></div>
+    <p id="trackerFilterError" role="status" hidden></p><button id="trackerFilterRetry" type="button" hidden>عاود المحاولة</button>
+    <section id="trackerOverview" class="public-stack" role="tabpanel" aria-labelledby="tabOverview"><p data-i18n="government.pending">المعطيات المؤكدة غادي تبان من بعد المراجعة.</p></section>
+    <section id="trackerProgramme" class="public-stack" role="tabpanel" aria-labelledby="tabProgramme" hidden></section>
+    <section id="trackerDelivery" class="public-stack" role="tabpanel" aria-labelledby="tabDelivery" hidden></section>
+    <section id="trackerRegions" class="public-stack" role="tabpanel" aria-labelledby="tabRegions" hidden></section>
+    <div id="trackerPager" hidden></div>
+    <noscript><a href="/parties" data-i18n="shell.programmes">الأحزاب والبرامج</a></noscript>
 </main>
 <!-- public-shell:footer:start -->
 <footer class="shared-footer">
@@ -49,4 +69,5 @@
 <!-- public-shell:footer:end -->
 <script src="/js/i18n.js?v=20261004-1" defer></script><script src="/js/auth.js?v=20260911-2" defer></script>
 <script src="/js/site-shell.js?v=20261004-1" defer></script><script src="/js/public-ui.js?v=20261004-1" defer></script>
+<script src="/js/government-api.js?v=20261004-1" defer></script><script src="/js/government-model.js?v=20261004-1" defer></script><script src="/js/government-tracker.js?v=20261004-1" defer></script>
 </body></html>

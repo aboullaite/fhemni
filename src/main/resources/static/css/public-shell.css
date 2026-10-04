@@ -19,6 +19,35 @@ body[data-public-shell] .party-badge > img { flex-shrink: 0; }
 #revisionList :is(dt,dd) { overflow-wrap: anywhere; }
 #revisionList dt { font-weight: 600; margin-block-start: 12px; }
 #revisionList dd { margin-inline-start: 0; white-space: pre-wrap; }
+.government-filters { border-bottom: 1px solid var(--line); padding-block-end: 16px; }
+.government-filters summary { cursor: pointer; padding-block: 12px; min-height: 44px; }
+.government-commitment-card h2 { margin-block: 0 12px; font-size: 22px; line-height: 1.5; }
+.government-commitment-card h2 a { color: var(--ink); text-decoration: none; }
+.government-status { color: var(--muted); }
+.government-status[data-state="DELIVERED"] { color: var(--teal-dark); }
+.government-status:is([data-state="UNDERWAY"],[data-state="PARTLY_DELIVERED"]) { color: var(--ink); }
+.government-evidence-links { display: inline-flex; flex-wrap: wrap; gap: 8px 16px; }
+.government-evidence-link { display: inline-block; margin-inline-end: 16px; min-height: 44px; padding-block: 10px; }
+.government-filter-chip { max-width: 100%; overflow-wrap: anywhere; }
+.government-meta { font-size: 14px; color: var(--muted); }
+.government-note { border-inline-start: 3px solid var(--teal); padding-inline-start: 16px; }
+.government-update { border-bottom: 1px solid var(--line); padding-block: 12px; }
+.government-update a { color: var(--ink); font-weight: 500; }
+.government-facts { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,2fr); gap: 12px 24px; margin: 0; }
+.government-facts dd { margin: 0; overflow-wrap: anywhere; }
+.government-evidence { border-block-start: 1px solid var(--line); padding-block: 16px; overflow-wrap: anywhere; }
+.government-evidence blockquote,#commitmentOriginal { margin-inline: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.government-chart-row { margin-block: 16px; }
+.government-chart-track { height: 20px; background: var(--mint); border-radius: 6px; overflow: hidden; }
+.government-chart-bar { display: block; height: 100%; background: var(--teal); }
+.government-chart-bar.target { background: var(--orange); }
+.government-timeseries { display: block; width: 100%; max-height: 260px; color: var(--teal); direction: ltr; }
+.government-series-layout { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 8px; direction: ltr; }
+.government-series-layout .government-timeseries { height: 180px; }
+.government-chart-scale,.government-chart-dates { display: flex; justify-content: space-between; gap: 12px; direction: ltr; font-size: 14px; color: var(--muted); }
+.government-chart-scale { flex-direction: column-reverse; padding-block: 10px; text-align: end; }
+#commitmentChart figure { margin-inline: 0; }
+@media (max-width: 599px) { .government-facts { grid-template-columns: minmax(0,1fr); gap: 4px; } .government-facts dd { margin-block-end: 12px; } }
 body[data-public-shell] {
     --page-gutter: 32px;
     overflow-x: visible;

@@ -23,6 +23,8 @@ public class PageController {
     public String governmentPage() {
         return "forward:/government.html";
     }
+    @GetMapping("/government/commitments/{slug}")
+    public String commitmentPage() { return "forward:/commitment.html"; }
 
     @GetMapping({"/analyse", "/analyse/"})
     public String memberAnalysisPage() {
