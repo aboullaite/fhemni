@@ -11,6 +11,28 @@ async function shell() {
     return import(file);
 }
 
+test('party tab selection leaves keyboard focus on the tab instead of stealing it into chat', () => {
+    const source=fs.readFileSync(path.join(root,'src/main/resources/static/js/party.js'),'utf8');
+    const select=source.slice(source.indexOf('    function selectTab('),source.indexOf('    function setupProgrammeMediaPlayer('));
+    let chatFocus=0;
+    const views=['programme','ask','episodes'].map(name=>[name,element(),element(),true]);
+    const sandbox={programmeViews:()=>views,viewFromUrl:()=> 'programme',
+        document:{querySelector:()=>({focus(){chatFocus++;}})},
+        window:{requestAnimationFrame:fn=>fn()}};
+    vm.runInNewContext(select+';selectTab("ask",false);',sandbox);
+    assert.equal(views[1][2].hidden,false);
+    assert.equal(views[1][1].tabIndex,0);
+    assert.equal(chatFocus,0);
+});
+
+test('shared legacy-page rules preserve touch targets, focus clearance and long labels', () => {
+    const css=fs.readFileSync(path.join(root,'src/main/resources/static/css/public-shell.css'),'utf8');
+    assert.match(css,/\.catalog-view-tabs a[^{}]*\.party-compare-action[^{}]*\.election-history-link[^{}]*\{[^}]*min-height:\s*44px/s);
+    assert.match(css,/\.party-tabs[^{}]*\.history-tabs[^{}]*\{[^}]*padding:\s*6px[^}]*scroll-padding:\s*6px/s);
+    assert.match(css,/\.priority-share-heading\s*\{[^}]*padding-inline-end:\s*48px/s);
+    assert.match(css,/\.party-badge\s*>\s*span\s*\{[^}]*white-space:\s*normal[^}]*overflow-wrap:\s*anywhere/s);
+});
+
 test('all navigation remains real links without JavaScript; elections has a separate disclosure', async () => {
     const {renderPublicShell} = await shell();
     const {header, footer} = renderPublicShell({pagePath:'/elections/2026', area:'elections'});

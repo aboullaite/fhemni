@@ -1,4 +1,10 @@
 /* One public frame. Specialised election charts retain their own internal layouts. */
+body[data-public-shell] :is(.catalog-view-tabs a,.party-compare-action,.election-history-link) { min-height: 44px; min-width: 44px; align-items: center; }
+body[data-public-shell] :is(.party-tabs,.history-tabs) { padding: 6px; scroll-padding: 6px; }
+body[data-public-shell] .priority-share-heading { padding-inline-end: 48px; }
+body[data-public-shell] .priority-share-close { display: grid; place-items: center; width: 44px; height: 44px; line-height: 1; }
+body[data-public-shell] .party-badge > span { min-width: 0; white-space: normal; overflow-wrap: anywhere; line-height: 1.4; }
+body[data-public-shell] .party-badge > img { flex-shrink: 0; }
 body[data-public-shell] {
     --page-gutter: 32px;
     overflow-x: visible;
