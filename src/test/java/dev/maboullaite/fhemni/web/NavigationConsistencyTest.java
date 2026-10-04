@@ -769,15 +769,17 @@ class NavigationConsistencyTest {
     }
 
     @Test
-    void everyPrimaryNavigationLinksToThePriorityCompass() throws IOException {
-        assertThat(html("index.html"))
-                .contains("href=\"/priorities\" data-i18n=\"common.prioritiesQuiz\"");
-
-        for (String page : SECONDARY_PAGES) {
-            assertThat(html(page))
-                    .as("priority compass navigation in %s", page)
-                    .contains("href=\"/priorities\"")
-                    .contains("data-i18n=\"common.prioritiesQuiz\"");
+    void publicNavigationNoLongerPromotesTheVotingCompass() throws IOException {
+        for (String page : ALL_PAGES) {
+            if (ADMIN_PAGES.contains(page)) continue;
+            String pageHtml = html(page);
+            int start = pageHtml.indexOf("<nav class=\"primary-nav\"");
+            int end = pageHtml.indexOf("</nav>", start);
+            assertThat(start).as("primary navigation in %s", page).isGreaterThanOrEqualTo(0);
+            assertThat(end).isGreaterThan(start);
+            assertThat(pageHtml.substring(start, end))
+                    .as("public navigation in %s", page)
+                    .doesNotContain("href=\"/priorities\"");
         }
     }
 

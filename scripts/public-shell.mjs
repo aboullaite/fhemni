@@ -32,7 +32,6 @@ export function renderPublicShell({pagePath='/'}) {
                 ${link('/elections/history','shell.history','مقارنة الانتخابات',pagePath)}
                 ${link('/parties','shell.programmes','الأحزاب والبرامج',pagePath)}
                 ${link('/elections/2026#electionGraphRepresentatives','shell.representatives','شكون كيمثلني؟')}
-                ${link('/priorities','common.prioritiesQuiz','الأولويات ديالك',pagePath)}
             </div>
         </div>
     </nav>

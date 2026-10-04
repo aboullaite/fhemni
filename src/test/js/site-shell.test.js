@@ -36,7 +36,7 @@ test('shared legacy-page rules preserve touch targets, focus clearance and long 
 test('all navigation remains real links without JavaScript; elections has a separate disclosure', async () => {
     const {renderPublicShell} = await shell();
     const {header, footer} = renderPublicShell({pagePath:'/elections/2026', area:'elections'});
-    for (const href of ['/', '/government', '/analyse', '/elections/2026', '/elections/history', '/parties', '/priorities']) {
+    for (const href of ['/', '/government', '/analyse', '/elections/2026', '/elections/history', '/parties']) {
         assert.ok(header.includes(`href="${href}"`), href);
     }
     assert.match(header, /<button[^>]+aria-controls="shellElectionLinks"[^>]+aria-expanded="false"/);
@@ -47,6 +47,7 @@ test('all navigation remains real links without JavaScript; elections has a sepa
     assert.match(footer, /data-legal-links/);
     assert.match(footer, /href="\/videos"/);
     assert.doesNotMatch(header, /href="\/videos"/);
+    assert.doesNotMatch(header, /href="\/priorities"/);
 });
 
 test('generation changes only bounded shell regions and is idempotent', async () => {
