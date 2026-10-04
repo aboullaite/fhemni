@@ -1,4 +1,27 @@
 /* One public frame. Specialised election charts retain their own internal layouts. */
+.member-submit { max-width: 720px; }
+.member-submit label,.member-submit form label,#memberQuestionForm label { display: grid; gap: 8px; min-width: 0; }
+.member-submit :is(input,select,button),#memberQuestionForm textarea { max-width: 100%; }
+.member-submit input { width: 100%; }
+body[data-public-shell] main .public-stack label > :is(input:not([type=checkbox]):not([type=radio]),textarea,select),
+body[data-public-shell] #followingPage label > select {
+    display: block; width: 100%; min-width: 0; padding: 10px 12px; margin-block-start: 8px;
+    border: 1px solid var(--line); background: var(--white); color: var(--ink); font: inherit;
+}
+body[data-public-shell] main textarea { resize: vertical; }
+.member-submit select { width: min(100%,260px); }
+.member-submit .primary-button { justify-self: start; }
+.member-player { width: min(100%,850px); aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: var(--mint); }
+.member-player iframe { display: block; width: 100%; height: 100%; border: 0; }
+.member-report-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.member-chapter { border-block-start: 1px solid var(--line); padding-block: 16px; }
+.member-chapter h3 { font-size: 18px; }
+.member-timestamp { color: var(--teal-dark); padding: 8px 12px; border: 1px solid var(--line); background: var(--white); cursor: pointer; font-variant-numeric: tabular-nums; }
+#memberHistory .table-scroll { overflow-x: auto; }
+#memberHistory table { width: 100%; border-collapse: collapse; }
+#memberHistory :is(th,td) { padding: 12px; text-align: start; border-bottom: 1px solid var(--line); vertical-align: top; }
+#memberHistory td:first-child { min-width: 160px; overflow-wrap: anywhere; }
+#memberResult .public-tabs { position: static; }
 body[data-public-shell] :is(.catalog-view-tabs a,.party-compare-action,.election-history-link) { min-height: 44px; min-width: 44px; align-items: center; }
 body[data-public-shell] :is(.party-tabs,.history-tabs) { padding: 6px; scroll-padding: 6px; }
 body[data-public-shell] .priority-share-heading { padding-inline-end: 48px; }
@@ -11,6 +34,14 @@ body[data-public-shell] .party-badge > img { flex-shrink: 0; }
 .government-editor-field label { display: flex; flex-direction: column; gap: 8px; }
 .government-editor-field fieldset { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 10px; }
 .government-review-preview { max-height: 400px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; }
+.government-report-preview { max-height: 480px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; }
+.member-publication-report :is(p,h5) { white-space: pre-wrap; }
+.member-publication-report :is(a,p,h5),#memberPublication a { overflow-wrap: anywhere; }
+.member-publication-report :is(h4,h5,h6) { font-weight: 600; line-height: 1.5; }
+.member-publication-claim { border-block-start: 1px solid var(--line); padding-block-start: 16px; min-width: 0; }
+.member-publication-note { display: grid; gap: 8px; min-width: 0; }
+.member-publication-note textarea { width: 100%; min-height: 100px; padding: 12px; border: 1px solid var(--line); background: var(--white); }
+.member-publication-report a,#memberPublication a { display: inline-flex; align-items: center; min-height: 44px; }
 .editorial-header { display: flex; flex-wrap: wrap; gap: 16px; }
 .editorial-header .brand-logo { display: block; width: 140px; max-width: 100%; height: auto; }
 .editorial-header .site-language { display: block; }

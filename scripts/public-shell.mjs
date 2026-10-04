@@ -2,6 +2,7 @@
 export const PUBLIC_PAGES = {
     'government.html':'/government', 'commitment.html':'/government/commitments/', 'measure.html':'/government/measures', 'analyse.html':'/analyse',
     'following.html':'/following',
+    'my-analyses.html':'/account/analyses', 'member-analysis.html':'/account/analyses/',
     'index.html':'/', '404.html':'/404', 'analysis.html':'/analyses/',
     'community.html':'/community', 'compare-programmes.html':'/parties/compare',
     'election-results.html':'/elections/2026', 'historical-elections.html':'/elections/history',

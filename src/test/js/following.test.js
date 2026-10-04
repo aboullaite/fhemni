@@ -1,4 +1,9 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
+test('following tab and both pages survive URL round trips',()=>{
+ const {readFollowState,followStateUrl}=require('../../main/resources/static/js/following.js');
+ const state={selected:'followItemsTab',page:3,entryPage:2};assert.deepEqual(readFollowState(followStateUrl(state)),state);
+ assert.deepEqual(readFollowState('?tab=bad&page=-1&followingPage=oops'),{selected:'followUpdatesTab',page:1,entryPage:1});
+});
 test('follow targets and material update links are strictly scoped',()=>{
     const {targetPath,updatePath}=require('../../main/resources/static/js/following.js');
     assert.equal(targetPath({type:'TOPIC',id:'HEALTH'}),'/api/account/follows/TOPIC/HEALTH');

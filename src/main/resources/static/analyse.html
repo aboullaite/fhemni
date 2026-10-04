@@ -37,7 +37,17 @@
 <!-- public-shell:header:end -->
 <main class="public-stack">
     <header class="accountability-page-heading"><h1 data-i18n="shell.analyse">حلّل فيديو</h1><p data-i18n="member.intro">فهم الادعاءات والسياق ففيديو يوتيوب، بتحليل خاص بحسابك.</p></header>
-    <section class="public-panel"><h2 data-i18n="member.unavailable">التحليل الشخصي ما متاحش دابا</h2><p data-i18n="member.unavailableText">ما بدينا حتى معالجة مدفوعة. تقدر دابا تقرا التحليلات المنشورة فالأرشيف.</p><a class="text-link" href="/videos" data-i18n="shell.archive">أرشيف الفيديوهات</a></section>
+    <section class="public-panel member-submit" id="memberSubmit">
+      <p id="memberSubmitStatus" role="status" aria-live="polite"></p>
+      <a id="memberSignIn" hidden></a><button id="memberSubmitRetry" type="button" hidden></button>
+      <form id="memberSubmitForm" class="public-stack" hidden>
+        <label><span id="memberUrlLabel"></span><input id="memberUrl" type="url" dir="ltr" required maxlength="2048" placeholder="https://www.youtube.com/watch?v=…" autocomplete="url"></label>
+        <label><span id="memberLanguageLabel"></span><select id="memberLanguage"><option value="ary">الدارجة</option><option value="fr">Français</option><option value="en">English</option></select></label>
+        <p id="memberLimits" class="government-meta"></p>
+        <button id="memberSubmitButton" class="primary-button" type="submit"></button>
+      </form>
+    </section>
+    <nav class="public-toolbar" aria-label="Video navigation"><a href="/account/analyses" id="memberHistoryLink"></a><a href="/videos" data-i18n="shell.archive">أرشيف الفيديوهات</a></nav>
 </main>
 <!-- public-shell:footer:start -->
 <footer class="shared-footer">
@@ -47,6 +57,7 @@
     <a href="https://x.com/laytoun" target="_blank" rel="me noopener noreferrer" data-i18n="common.footer">© 2026 Mohammed Aboullaite</a>
 </footer>
 <!-- public-shell:footer:end -->
-<script src="/js/i18n.js?v=20261004-1" defer></script><script src="/js/auth.js?v=20260911-2" defer></script>
+<script src="/js/i18n.js?v=20261004-1" defer></script><script src="/js/auth.js?v=20261004-1" defer></script>
 <script src="/js/site-shell.js?v=20261004-1" defer></script><script src="/js/public-ui.js?v=20261004-1" defer></script>
+<script src="/js/member-analysis-api.js?v=20261004-1" defer></script><script src="/js/member-analysis-submit.js?v=20261004-1" defer></script>
 </body></html>

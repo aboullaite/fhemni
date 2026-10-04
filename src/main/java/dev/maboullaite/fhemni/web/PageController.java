@@ -35,6 +35,12 @@ public class PageController {
         return "forward:/analyse.html";
     }
 
+    @GetMapping({"/account/analyses", "/account/analyses/"})
+    public String memberHistoryPage() { return "forward:/my-analyses.html"; }
+
+    @GetMapping("/account/analyses/{id}")
+    public String memberAnalysisResultPage() { return "forward:/member-analysis.html"; }
+
     @GetMapping("/analyses/{analysisId}")
     public String analysisPage(@PathVariable String analysisId) {
         return "forward:/analysis.html";

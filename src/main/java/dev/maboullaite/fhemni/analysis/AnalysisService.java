@@ -68,6 +68,7 @@ public class AnalysisService {
     private final int maxProviderConversationTurns;
     private final int maxUserConversations;
     private final Object capacityMonitor = new Object();
+    private final VideoAnalysisRunner runner;
 
     public AnalysisService(
             YouTubeUrlParser urlParser,
@@ -89,6 +90,7 @@ public class AnalysisService {
         }
         this.urlParser = urlParser;
         this.gateway = gateway;
+        this.runner = new VideoAnalysisRunner(gateway,usageGuard);
         this.eventHub = eventHub;
         this.executor = analysisExecutor;
         this.usageGuard = usageGuard;
@@ -318,46 +320,27 @@ public class AnalysisService {
         }
     }
 
+    @Scheduled(initialDelayString="${fhemni.sessions.lease-heartbeat-ms:30000}",fixedDelayString="${fhemni.sessions.lease-heartbeat-ms:30000}")
+    public void renewAnalysisLeases(){revisions.renewOwnedLeases();}
+
     private void analyze(AnalysisSession session, Reservation analysisReservation) {
-        Reservation factCheckReservation = null;
-        AiUsage analysisUsage = AiUsage.empty();
-        AiUsage factCheckUsage = AiUsage.empty();
         try {
             AnalysisSnapshot input = session.snapshot();
-            publish(session, AnalysisStatus.ANALYZING, 12, "Gemini is exploring the video timeline");
-            GatewayAnalysisResult analysis = gateway.analyze(
-                    input.videoUrl(), input.videoId(), input.language());
-            analysisUsage = analysis.usage();
-            usageGuard.succeeded(analysisReservation, analysisUsage);
-            analysisReservation = null;
+            var analysis=runner.run(new VideoAnalysisRunner.RunnerInput(input.id(),input.videoUrl(),input.videoId(),input.language()),event->publish(session,event.status(),event.progress(),event.message()),analysisReservation);
             try {
                 videoContexts.save(
                         input.videoId(), input.language(),
                         gateway.model(), gateway.contextPromptVersion(), gateway.credentialVersion(),
-                        analysis.interactionId());
+                        analysis.providerInteractionId());
             } catch (RuntimeException exception) {
                 log.error("Could not persist the reusable video context for analysis {}", input.id(), exception);
             }
 
-            publish(session, AnalysisStatus.FACT_CHECKING, 68, "Checking factual claims against external evidence");
-            if (gateway.live() && analysis.report().claims().stream()
-                    .anyMatch(claim -> claim.kind() == ClaimKind.FACT)) {
-                factCheckReservation = usageGuard.reserveFactCheck(input.id(), gateway.factCheckModel());
-            }
-            GatewayFactCheckResult factChecks = gateway.factCheck(
-                    analysis.report().claims(), input.language());
-            factCheckUsage = factChecks.usage();
-            usageGuard.succeeded(factCheckReservation, factCheckUsage);
-            factCheckReservation = null;
-            VideoReport report = analysis.report().withClaims(
-                    mergeAssessments(analysis.report().claims(), factChecks.assessments()));
-
-            revisions.complete(input.id(), report, analysis.interactionId());
-            session.complete(report, analysis.interactionId());
+            VideoReport report = analysis.report();
+            revisions.complete(input.id(), report, analysis.providerInteractionId());
+            session.complete(report, analysis.providerInteractionId());
             eventHub.publish(input.id(), new AnalysisEvent(AnalysisStatus.COMPLETED, 100, "Analysis complete"));
         } catch (RuntimeException exception) {
-            usageGuard.failed(analysisReservation, analysisUsage);
-            usageGuard.failed(factCheckReservation, factCheckUsage);
             log.warn("Analysis failed: {}", exception.getMessage());
             String message = friendlyError(exception);
             session.fail(message);

@@ -42,6 +42,7 @@ public class AnalysisRevisionRepository {
 
     private final JdbcClient jdbc;
     private final ObjectMapper mapper;
+    private final String workerInstance=UUID.randomUUID().toString();
 
     public AnalysisRevisionRepository(JdbcClient jdbc, ObjectMapper mapper) {
         this.jdbc = jdbc;
@@ -61,13 +62,13 @@ public class AnalysisRevisionRepository {
                             status, progress, progress_message, demo,
                             model, prompt_version, fact_check_model, fact_check_prompt_version,
                             provider_credential_version,
-                            created_at, updated_at
+                            created_at, updated_at, worker_instance, worker_lease_until
                         ) VALUES (
                             :id, :youtubeVideoId, :videoUrl, :outputLanguage,
                             :status, :progress, :progressMessage, :demo,
                             :model, :promptVersion, :factCheckModel, :factCheckPromptVersion,
                             :credentialVersion,
-                            :createdAt, :updatedAt
+                            :createdAt, :updatedAt, :workerInstance, :workerLeaseUntil
                         )
                         """)
                 .param("id", snapshot.id())
@@ -85,6 +86,8 @@ public class AnalysisRevisionRepository {
                 .param("credentialVersion", normalized(credentialVersion))
                 .param("createdAt", utc(snapshot.createdAt()))
                 .param("updatedAt", utc(snapshot.createdAt()))
+                .param("workerInstance",workerInstance)
+                .param("workerLeaseUntil",utc(Instant.now().plusSeconds(300)))
                 .update();
     }
 
@@ -96,12 +99,15 @@ public class AnalysisRevisionRepository {
                                progress_message = :message,
                                updated_at = :updatedAt
                          WHERE id = :id
+                           AND worker_instance = :workerInstance AND worker_lease_until > :updatedAt
+                           AND status IN ('QUEUED', 'ANALYZING', 'FACT_CHECKING')
                         """)
                 .param("status", status.name())
                 .param("progress", progress)
                 .param("message", message)
                 .param("updatedAt", utc(Instant.now()))
                 .param("id", id)
+                .param("workerInstance", workerInstance)
                 .update();
     }
 
@@ -118,12 +124,15 @@ public class AnalysisRevisionRepository {
                                completed_at = :completedAt,
                                updated_at = :updatedAt
                          WHERE id = :id
+                           AND worker_instance = :workerInstance AND worker_lease_until > :updatedAt
+                           AND status <> 'FAILED'
                         """)
                 .param("interactionId", interactionId, Types.VARCHAR)
                 .param("reportJson", writeReport(report), Types.LONGVARCHAR)
                 .param("completedAt", utc(now))
                 .param("updatedAt", utc(now))
                 .param("id", id)
+                .param("workerInstance", workerInstance)
                 .update();
     }
 
@@ -135,10 +144,13 @@ public class AnalysisRevisionRepository {
                                error = :error,
                                updated_at = :updatedAt
                          WHERE id = :id
+                           AND worker_instance = :workerInstance AND worker_lease_until > :updatedAt
+                           AND status IN ('QUEUED', 'ANALYZING', 'FACT_CHECKING')
                         """)
                 .param("error", error, Types.LONGVARCHAR)
                 .param("updatedAt", utc(Instant.now()))
                 .param("id", id)
+                .param("workerInstance", workerInstance)
                 .update();
     }
 
@@ -151,10 +163,13 @@ public class AnalysisRevisionRepository {
                                error = 'The application restarted before this analysis finished. Start a new analysis to retry.',
                                updated_at = :updatedAt
                          WHERE status IN ('QUEUED', 'ANALYZING', 'FACT_CHECKING')
+                           AND worker_lease_until < :updatedAt
                         """)
                 .param("updatedAt", utc(now))
                 .update();
     }
+
+    public void renewOwnedLeases(){jdbc.sql("UPDATE analysis_revisions SET worker_lease_until=:until WHERE worker_instance=:instance AND worker_lease_until>:now AND status IN ('QUEUED','ANALYZING','FACT_CHECKING')").param("until",utc(Instant.now().plusSeconds(300))).param("now",utc(Instant.now())).param("instance",workerInstance).update();}
 
     public Optional<StoredRevision> find(UUID id) {
         return baseSelect("WHERE ar.id = :id")

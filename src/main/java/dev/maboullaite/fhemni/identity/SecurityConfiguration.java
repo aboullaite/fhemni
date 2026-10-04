@@ -83,6 +83,7 @@ public class SecurityConfiguration {
                                 "/government/measures", "/government/measures/**", "/measure.html",
                                 "/following", "/following/", "/following.html",
                                 "/analyse", "/analyse/", "/analyse.html",
+                                "/account/analyses", "/account/analyses/**", "/my-analyses.html", "/member-analysis.html",
                                 "/analyses/**", "/analysis.html",
                                 "/people/**", "/person.html",
                                 "/parties", "/parties/**", "/parties.html", "/party.html", "/compare-programmes.html",
@@ -118,6 +119,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/catalog/elections/**").permitAll()
                         .requestMatchers("/api/account/policy-topics").authenticated()
                         .requestMatchers("/api/account/digest").authenticated()
+                        .requestMatchers("/api/account/analyses/**").authenticated()
                         .requestMatchers("/api/account/follows/**", "/api/account/updates", "/api/account/corrections/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/suggestions").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/suggestions/*/votes").authenticated()

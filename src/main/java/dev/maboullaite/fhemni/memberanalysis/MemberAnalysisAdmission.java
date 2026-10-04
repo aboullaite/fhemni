@@ -15,7 +15,11 @@ public class MemberAnalysisAdmission {
         var parsed=parser.parse(url);var language=OutputLanguage.fromCode(languageCode);
         var existing=repository.byKey(user,key);if(existing.isPresent())return same(existing.get(),parsed.canonicalUrl(),language);
         var before=policy.forUser(user);if(!before.enabled())throw new IllegalStateException("PROCESSING_UNAVAILABLE");
-        var eligible=videos.inspect(parsed.videoId());if(!eligible.available()||eligible.live()||eligible.durationSeconds()==null||eligible.durationSeconds()<1||eligible.durationSeconds()>before.maxSeconds())throw new IllegalArgumentException("VIDEO_NOT_ELIGIBLE");
+        var eligible=videos.inspect(parsed.videoId());
+        if(eligible.live())throw new IllegalArgumentException("LIVE_UNSUPPORTED");
+        if(!eligible.available())throw new IllegalArgumentException(java.util.Set.of("VIDEO_UNAVAILABLE","VERIFICATION_UNAVAILABLE","DURATION_UNAVAILABLE").contains(java.util.Objects.toString(eligible.reason(),""))?eligible.reason():"VIDEO_UNAVAILABLE");
+        if(eligible.durationSeconds()==null||eligible.durationSeconds()<1)throw new IllegalArgumentException("DURATION_UNAVAILABLE");
+        if(eligible.durationSeconds()>before.maxSeconds())throw new IllegalArgumentException("VIDEO_TOO_LONG");
         usage.lockGlobal();repository.lockOwner(user);
         existing=repository.byKey(user,key);if(existing.isPresent())return same(existing.get(),parsed.canonicalUrl(),language);
         var current=policy.forUser(user);if(!current.enabled())throw new IllegalStateException("PROCESSING_UNAVAILABLE");if(current.active())throw new IllegalStateException("ANALYSIS_ALREADY_ACTIVE");if(current.remaining()<1)throw new IllegalStateException("MONTHLY_ALLOWANCE_REACHED");
