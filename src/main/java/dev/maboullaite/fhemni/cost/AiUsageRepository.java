@@ -16,6 +16,7 @@ public class AiUsageRepository {
     public AiUsageRepository(JdbcClient jdbc) {
         this.jdbc = jdbc;
     }
+    public void lockGlobal(){jdbc.sql("SELECT id FROM ai_budget_locks WHERE id='GLOBAL' FOR UPDATE").query(String.class).single();}
 
     public long countGlobal(Instant fromInclusive, Instant toExclusive, boolean analyses) {
         String operationFilter = analyses
