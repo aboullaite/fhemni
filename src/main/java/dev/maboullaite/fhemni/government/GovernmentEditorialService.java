@@ -36,10 +36,11 @@ public class GovernmentEditorialService {
         var result=repository.markPublished(revision,administratorId,hash,now);
         if(value instanceof MandateView mandate)repository.retainMandateHistory(revision,mandate);
         if(changed) {
-            LocalText title=value instanceof MandateView mandate?mandate.label():((CommitmentView)value).title();
+            LocalText title=value instanceof MandateView mandate?mandate.label():value instanceof MeasureView measure?measure.title():((CommitmentView)value).title();
             List<String> topics=value instanceof CommitmentView commitment?commitment.topicCodes():List.of();
-            List<String> regions=value instanceof CommitmentView commitment&&"REGION".equals(commitment.geographicScope().level())?List.of(commitment.geographicScope().code()):List.of();
-            String publicId=value instanceof MandateView mandate?mandate.id():((CommitmentView)value).id().toString();
+            Scope scope=value instanceof CommitmentView commitment?commitment.geographicScope():value instanceof MeasureView measure?measure.scope():null;
+            List<String> regions=scope!=null&&"REGION".equals(scope.level())?List.of(scope.code()):List.of();
+            String publicId=value instanceof MandateView mandate?mandate.id():value instanceof MeasureView measure?measure.id().toString():((CommitmentView)value).id().toString();
             events.insert(revision.mandateId(),revision.subjectId(),new PublishedUpdate(UUID.randomUUID(),revision.subjectType().name(),publicId,revision.id(),hash,topics,regions,title,null,now));
         }
         return result;
@@ -63,6 +64,14 @@ public class GovernmentEditorialService {
                 }
             }
             return value;
+        }
+        if(revision.subjectType()==SubjectType.MEASURE){
+            var measure=repository.decode(revision.payload(),MeasureView.class);GovernmentValidation.measure(measure);validateScope(measure.scope());
+            var previous=repository.published(SubjectType.MEASURE,revision.slug(),MeasureView.class);
+            if(previous.isPresent()&&!previous.get().id().equals(measure.id()))throw new IllegalArgumentException("A measure keeps its stable identifier.");
+            if(repository.publishedPayloads(mandateId,SubjectType.MEASURE).stream().map(json->repository.decode(json,MeasureView.class)).anyMatch(other->other.id().equals(measure.id())&&!other.slug().equals(measure.slug())))throw new IllegalArgumentException("Measure identifier already published.");
+            for(var source:measure.evidence())if(!evidence.find(mandateId,source.id()).filter(source::equals).isPresent())throw new IllegalArgumentException("Save the exact source evidence first.");
+            return measure;
         }
         if(revision.subjectType()!=SubjectType.COMMITMENT)throw new IllegalArgumentException("Unsupported publication type.");
         var value=repository.decode(revision.payload(),CommitmentView.class);

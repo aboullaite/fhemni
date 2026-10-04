@@ -68,6 +68,7 @@ body[data-public-shell] :is(button:not(.vjs-control):not(.vjs-big-play-button),i
     border-radius: var(--radius-control);
 }
 body[data-public-shell] :is(button:not(.vjs-control):not(.vjs-big-play-button),.button-link,.auth-link) { min-width: 44px; }
+body[data-public-shell] a.primary-button { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; height: auto; padding: 10px 16px; max-width: 100%; white-space: normal; }
 body[data-public-shell] label:has(> input:is([type=checkbox],[type=radio])) { min-height: 44px; }
 body[data-public-shell] :is(button,a,input,select,textarea):focus-visible {
     outline: 2px solid var(--teal-dark); outline-offset: 3px;

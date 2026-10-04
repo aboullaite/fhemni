@@ -16,6 +16,7 @@ public final class GovernmentViews {
     public enum Relation { ADOPTED, MODIFIED, NOT_IDENTIFIED, UNRESOLVED }
     public enum SubjectType { MANDATE, COMMITMENT, MEASURE }
     public enum RevisionState { DRAFT, REVIEWED, PUBLISHED, SUPERSEDED }
+    public enum OperationalStatus { UNKNOWN, PENDING, AVAILABLE, SUSPENDED }
     public record LocalText(String ar, String fr, String en) {}
     public record Page<T>(List<T> items, int page, int pageSize, long totalItems) {
         public Page { items=List.copyOf(items); }
@@ -47,6 +48,11 @@ public final class GovernmentViews {
     public record PublishedUpdate(UUID id, String subjectType, String subjectId, UUID revisionId,
             String materialHash, List<String> topicCodes, List<String> regionCodes, LocalText title,
             LocalText summary, Instant publishedAt) {}
+    public record MeasureView(UUID id,String slug,LocalText title,LocalDate announcement,LocalDate effectiveDate,
+            OperationalStatus operationalStatus,LocalText eligibility,LocalText steps,String officialActionUrl,
+            Scope scope,LocalText responsibleBody,List<Evidence> evidence) {}
+    public record GeographicObservation(UUID commitmentId,String commitmentSlug,LocalText title,
+            LocalText responsibleBody,Observation observation,List<Evidence> evidence) {}
     public static MandateView pending(String id) {
         return new MandateView(id,new LocalText("الحكومة 2026–2031","Gouvernement 2026–2031","Government 2026–2031"),
                 Lifecycle.FORMATION,null,List.of(),null,null,List.of());

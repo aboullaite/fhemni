@@ -11,6 +11,10 @@ test('editor produces typed private drafts and never silently publishes',()=>{
     assert.ok(!('status' in draft));assert.deepEqual(draft.payload.revisions,[]);
     assert.throws(()=>prepareDraft('MANDATE','2026-2031',{},' '),/reason/i);
 });
+test('measure drafts use the practical schema without campaign or delivery fields',()=>{
+    const {prepareDraft}=require(modulePath);const draft=prepareDraft('MEASURE','measure',{id:'id',operationalStatus:'PENDING'},'Source review');
+    assert.equal(draft.payload.slug,'measure');assert.ok(!('origin' in draft.payload));assert.ok(!('revisions' in draft.payload));
+});
 test('all three locales describe separate save review and publish actions',()=>{
     const {COPY}=require(modulePath);
     for(const lang of ['ar','fr','en']) {

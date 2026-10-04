@@ -1,6 +1,7 @@
 (function(root,factory){const api=factory(root,typeof module==='object'?require('./government-model.js'):root.FhemniGovernmentModel,typeof module==='object'?require('./government-charts.js'):root.FhemniGovernmentCharts);if(typeof module==='object'&&module.exports)module.exports=api;else{root.FhemniCommitment=api;document.addEventListener('DOMContentLoaded',api.init);}})(typeof window==='object'?window:globalThis,function(root,model,charts){
     function detailLoadCopy(state,locale='ar'){return model.COPY[locale][state==='notFound'?'notFound':state==='loading'?'loading':'error'];}
     function canonicalCampaignPath(view){return view?.origin==='CAMPAIGN'?'/promises/'+encodeURIComponent(view.slug.replace(/^campaign-/,'')):null;}
+    function observationPageFor(rows,id){const index=rows.findIndex(row=>row.id===id);return index<0?1:Math.floor(index/10)+1;}
     function renderCommitment(view,locale='ar',doc=globalThis.document,{observationPage=1,revisionPage=1,linkedCampaigns={}}={}){
         const copy=model.COPY[locale],local=value=>model.localized(value,locale);
         const el=(tag,text,className)=>{const node=doc.createElement(tag);if(text!=null)node.textContent=text;if(className)node.className=className;return node;};
@@ -34,7 +35,7 @@
             const head=el('thead'),header=el('tr');for(const label of [copy.period,copy.value,copy.unit,copy.scope,copy.sources]){const th=el('th',label);th.setAttribute('scope','col');header.append(th);}head.append(header);table.append(head);
             const body=el('tbody');
             for(const observation of view.observations.slice((observationPage-1)*10,observationPage*10)){
-                const row=el('tr');for(const value of [`${model.date(observation.periodStart,locale)} — ${model.date(observation.periodEnd,locale)}`,model.number(observation.value,locale),observation.unit,local(observation.scope?.label)])row.append(el('td',value));const sourceCell=el('td');
+                const row=el('tr');row.id='observation-'+observation.id;row.tabIndex=-1;for(const value of [`${model.date(observation.periodStart,locale)} — ${model.date(observation.periodEnd,locale)}`,model.number(observation.value,locale),observation.unit,local(observation.scope?.label)])row.append(el('td',value));const sourceCell=el('td');
                 sourceCell.append(evidenceLinks(observation.evidenceIds));row.append(sourceCell);body.append(row);
             }
             table.append(body);wrapper.append(table);observations.append(wrapper);
@@ -54,7 +55,7 @@
             }
         }
         async function load(){loadState='loading';render();
-            try{view=await root.FhemniGovernmentAPI.fetchCommitment(slug);const campaignPath=canonicalCampaignPath(view);if(campaignPath){root.location.replace(campaignPath);return;}loadState='ready';render();doc.getElementById('commitmentContent').hidden=false;
+            try{view=await root.FhemniGovernmentAPI.fetchCommitment(slug);const campaignPath=canonicalCampaignPath(view);if(campaignPath){root.location.replace(campaignPath);return;}const observationId=new URL(root.location.href).searchParams.get('observation');observationPage=observationPageFor(view.observations||[],observationId);loadState='ready';render();doc.getElementById('commitmentContent').hidden=false;const target=doc.getElementById('observation-'+observationId);target?.focus();target?.scrollIntoView({block:'center'});
                 await Promise.all((view.links||[]).map(async link=>{try{linkedCampaigns[link.campaignPromiseId]=await root.FhemniGovernmentAPI.fetchCommitment(link.campaignPromiseId);}catch{/* The original published promise remains reachable through its link. */}}));
                 const focused=doc.activeElement,href=focused?.getAttribute?.('href');render();if(href&&!focused.isConnected)Array.from(doc.querySelectorAll('a[href]')).find(a=>a.getAttribute('href')===href)?.focus();
             }
@@ -62,5 +63,5 @@
         }
         doc.getElementById('commitmentRetry').onclick=load;doc.addEventListener('fhemni:localechange',render);load();
     }
-    return {renderCommitment,detailLoadCopy,canonicalCampaignPath,init};
+    return {renderCommitment,detailLoadCopy,canonicalCampaignPath,observationPageFor,init};
 });

@@ -21,9 +21,12 @@ test('deadline and assessment are independent; absence is not failure and delive
 });
 test('tracker URL validates all filters and preserves a real selected tab and server page',()=>{
     const {readTrackerState,trackerUrl}=require(file);
-    assert.deepEqual(readTrackerState('/government?tab=programme&origin=CAMPAIGN&topic=HEALTH&page=2'),{tab:'programme',origin:'CAMPAIGN',topic:'HEALTH',party:'',page:2});
+    assert.deepEqual(readTrackerState('/government?tab=programme&origin=CAMPAIGN&topic=HEALTH&page=2'),{tab:'programme',origin:'CAMPAIGN',topic:'HEALTH',party:'',region:'',page:2});
     const safe=readTrackerState('/government?tab=hack&origin=HACK&topic=<script>&page=-2');
     assert.equal(safe.tab,'overview');assert.equal(safe.origin,'GOVERNMENT');assert.equal(safe.topic,'');assert.equal(safe.page,1);
     assert.equal(readTrackerState('/government?tab=programme&origin=GOVERNMENT&party=RNI').party,'','inapplicable hidden party filters are removed');
     assert.match(trackerUrl('http://localhost/government?lang=fr',safe),/lang=fr/);
+});
+test('regional filter persists as a canonical code in the tracker URL',()=>{
+    const {readTrackerState,trackerUrl}=require('../../main/resources/static/js/government-model.js');const state=readTrackerState('/government?tab=regions&region=tanger-tetouan-al-hoceima&page=2');assert.equal(state.region,'tanger-tetouan-al-hoceima');assert.match(trackerUrl('/government',state),/region=tanger-tetouan-al-hoceima/);
 });

@@ -21,6 +21,7 @@ public class GovernmentService {
             .anyMatch(view->view.membership().stream().anyMatch(member->member.evidenceIds().contains(id))||view.programme()!=null&&view.programme().evidenceIds().contains(id));
         if(!referenced)referenced=repository.publishedVersions(mandate,SubjectType.COMMITMENT).stream().map(json->repository.decode(json,CommitmentView.class))
             .anyMatch(view->view.evidence().stream().anyMatch(source->source.id().equals(id)));
+        if(!referenced)referenced=repository.publishedVersions(mandate,SubjectType.MEASURE).stream().map(json->repository.decode(json,MeasureView.class)).anyMatch(view->view.evidence().stream().anyMatch(source->source.id().equals(id)));
         if(!referenced)throw new java.util.NoSuchElementException("Published source not found.");
         return evidence.find(mandate,id).orElseThrow();
     }

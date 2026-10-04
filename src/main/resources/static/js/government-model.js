@@ -29,9 +29,10 @@
     }
     function readTrackerState(url){const query=new URL(url,'http://localhost').searchParams;const tab=query.get('tab'),origin=query.get('origin'),page=Number(query.get('page'));
         const code=value=>/^[A-Z0-9_-]{1,48}$/.test(value||'')?value:'';
-        return {tab:['overview','programme','delivery','regions'].includes(tab)?tab:'overview',origin:origin==='CAMPAIGN'?'CAMPAIGN':'GOVERNMENT',topic:code(query.get('topic')),party:tab==='programme'&&origin==='CAMPAIGN'?code(query.get('party')):'',page:Number.isInteger(page)&&page>0&&page<=100000?page:1};
+        const region=/^[a-z0-9-]{1,80}$/.test(query.get('region')||'')?query.get('region'):'';
+        return {tab:['overview','programme','delivery','regions'].includes(tab)?tab:'overview',origin:origin==='CAMPAIGN'?'CAMPAIGN':'GOVERNMENT',topic:code(query.get('topic')),party:tab==='programme'&&origin==='CAMPAIGN'?code(query.get('party')):'',region,page:Number.isInteger(page)&&page>0&&page<=100000?page:1};
     }
-    function trackerUrl(url,state){const next=new URL(url,'http://localhost');for(const key of ['tab','origin','topic','party','page']){if(state[key])next.searchParams.set(key,state[key]);else next.searchParams.delete(key);}return next.pathname+next.search+next.hash;}
+    function trackerUrl(url,state){const next=new URL(url,'http://localhost');for(const key of ['tab','origin','topic','party','region','page']){if(state[key])next.searchParams.set(key,state[key]);else next.searchParams.delete(key);}return next.pathname+next.search+next.hash;}
     function date(value,locale){return value&&Number.isFinite(Date.parse(value))?new Intl.DateTimeFormat(locale,{dateStyle:'medium',timeZone:'UTC'}).format(new Date(value)):COPY[locale].unknown;}
     function number(value,locale){return value==null?COPY[locale].unknown:new Intl.NumberFormat(locale==='ar'?'ar-MA-u-nu-latn':locale).format(value);}
     function sourceUrl(value){try{const url=new URL(value);return ['http:','https:'].includes(url.protocol)&&!url.username&&!url.password?url.href:null;}catch{return null;}}

@@ -69,3 +69,7 @@ test('render orchestration selects tabs before removing their content and retain
     const saved=captureTrackerUi(doc,{select:id=>order.push(id)},'programme');source.open=false;restoreTrackerUi(doc,saved);
     assert.deepEqual(order,['tabProgramme','focus']);assert.equal(source.open,true);
 });
+test('practical-measure updates open the published measure rather than the tracker root',()=>{
+    const {renderTracker}=require('../../main/resources/static/js/government-tracker.js');const doc=document();renderTracker({locale:'en',loadState:'ready',mandate:{recentUpdates:[{subjectType:'MEASURE',subjectId:'measure-id',title:{en:'New access'}}]}},{tab:'overview',origin:'GOVERNMENT'},doc);
+    const walk=node=>[node,...node.children.flatMap(walk)];assert.ok(walk(doc.getElementById('trackerOverview')).some(node=>node.href==='/government/measures/measure-id'));
+});

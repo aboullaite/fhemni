@@ -33,7 +33,7 @@ public class AdminGovernmentController {
         try { value=switch(draft.type()) {
                 case MANDATE->repository.decode(draft.payload().toString(),MandateView.class);
                 case COMMITMENT->repository.decode(draft.payload().toString(),CommitmentView.class);
-                case MEASURE->throw new IllegalArgumentException("Measures are not yet enabled.");
+                case MEASURE->repository.decode(draft.payload().toString(),MeasureView.class);
             };
         } catch(tools.jackson.core.JacksonException invalid) {throw new IllegalArgumentException("Invalid typed draft. Check the field names and values.");}
         return noStore(repository.createDraft(mandate,draft.type(),draft.slug(),value,user,draft.reason()));

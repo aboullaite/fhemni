@@ -36,7 +36,7 @@ public class GovernmentRepository {
             throw new IllegalArgumentException("Mandate identifiers must agree.");
         if(type==SubjectType.COMMITMENT&&!(payload instanceof CommitmentView))throw new IllegalArgumentException("Expected a typed commitment.");
         if(type==SubjectType.COMMITMENT&&!slug.equals(((CommitmentView)payload).slug()))throw new IllegalArgumentException("Commitment slug must agree.");
-        if(type==SubjectType.MEASURE)throw new IllegalArgumentException("Measure editing is not yet available.");
+        if(type==SubjectType.MEASURE&&(!(payload instanceof MeasureView measure)||!slug.equals(measure.slug())))throw new IllegalArgumentException("Expected a measure with a matching slug.");
         ensureMandate(mandateId);
         // Serialize draft numbering for one mandate across application instances.
         jdbc.sql("SELECT id FROM government_mandates WHERE id=:id FOR UPDATE").param("id",mandateId).query(String.class).single();

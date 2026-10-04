@@ -107,4 +107,15 @@ public final class GovernmentValidation {
             text(observation.metric(),"observed metric",120);text(observation.unit(),"observed unit",80);text(observation.methodologyKey(),"observed methodology",160);scope(observation.scope());ids(observation.evidenceIds());
         }
     }
+    public static void measure(MeasureView value){
+        if(value==null||value.id()==null||value.operationalStatus()==null)throw new IllegalArgumentException("Typed measure and status required.");
+        translations(value.title());scope(value.scope());
+        if(value.eligibility()!=null)translations(value.eligibility());if(value.steps()!=null)translations(value.steps());if(value.responsibleBody()!=null)translations(value.responsibleBody());
+        if(value.evidence()==null||value.evidence().isEmpty())throw new IllegalArgumentException("A practical measure needs reviewed evidence.");
+        value.evidence().forEach(GovernmentValidation::evidence);
+        if(value.officialActionUrl()!=null)url(value.officialActionUrl());
+        var today=java.time.LocalDate.now(java.time.ZoneOffset.UTC);
+        if(value.announcement()!=null&&value.announcement().isAfter(today))throw new IllegalArgumentException("An announcement must already have occurred.");
+        if(value.operationalStatus()==OperationalStatus.AVAILABLE&&(value.eligibility()==null||value.steps()==null||value.effectiveDate()!=null&&value.effectiveDate().isAfter(today)))throw new IllegalArgumentException("Operational availability needs documented eligibility and steps, not a future effective date.");
+    }
 }
