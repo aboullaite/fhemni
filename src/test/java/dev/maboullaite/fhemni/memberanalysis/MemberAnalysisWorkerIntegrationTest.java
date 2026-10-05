@@ -12,6 +12,28 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @SpringBootTest(properties={"fhemni.gemini.api-key=","fhemni.member-analysis.enabled=true","fhemni.cost-control.chat-enabled=true","fhemni.cost-control.max-daily-analyses=100","spring.datasource.url=jdbc:h2:mem:member-worker;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"})
 class MemberAnalysisWorkerIntegrationTest {
+    @Test void competingQuestionsForLastAccountSlotHaveOneWinner(){
+        var first=admission.submit(user,url,"en",UUID.randomUUID().toString());service.process(repository.claim(Instant.now()).orElseThrow());
+        var second=admission.submit(user,url,"en",UUID.randomUUID().toString());service.process(repository.claim(Instant.now()).orElseThrow());
+        for(int i=0;i<19;i++)jdbc.sql("INSERT INTO member_allowance_receipts(id,job_id,user_id,kind,charged,requested_at) VALUES(:id,:job,:user,'QUESTION',TRUE,:now)")
+            .param("id",UUID.randomUUID()).param("job",first.id()).param("user",user).param("now",Instant.now().atOffset(ZoneOffset.UTC)).update();
+        when(gateway.ask(any(),any(),any(),any(),any())).thenReturn(new GatewayAnswerResult("answer","Answer",List.of()));
+        var calls=List.of(first.id(),second.id()).stream().map(id->java.util.concurrent.CompletableFuture.supplyAsync(()->{
+            try{questions.ask(id,user,"Last?",QuestionMode.VIDEO);return true;}catch(IllegalStateException exhausted){assertThat(exhausted).hasMessage("MONTHLY_CHAT_ALLOWANCE_REACHED");return false;}
+        })).toList();
+        assertThat(calls.stream().map(java.util.concurrent.CompletableFuture::join).filter(Boolean::booleanValue)).hasSize(1);
+        verify(gateway,times(1)).ask(any(),any(),any(),any(),any());
+    }
+    @Test void twentyQuestionsAreSharedAcrossReportsNotLimitedToTenPerVideo(){
+        var first=admission.submit(user,url,"en",UUID.randomUUID().toString());service.process(repository.claim(Instant.now()).orElseThrow());
+        var second=admission.submit(user,url,"en",UUID.randomUUID().toString());service.process(repository.claim(Instant.now()).orElseThrow());
+        when(gateway.ask(any(),any(),any(),any(),any())).thenReturn(new GatewayAnswerResult("answer","Answer",List.of()));
+        for(int i=0;i<20;i++)questions.ask(i<12?first.id():second.id(),user,"Question "+i,QuestionMode.VIDEO);
+        assertThat(questions.answers(first.id(),user)).hasSize(12);
+        assertThat(questions.answers(second.id(),user)).hasSize(8);
+        assertThatThrownBy(()->questions.ask(second.id(),user,"One too many",QuestionMode.VIDEO)).hasMessage("MONTHLY_CHAT_ALLOWANCE_REACHED");
+        verify(gateway,times(20)).ask(any(),any(),any(),any(),any());
+    }
     @Autowired MemberAnalysisAdmission admission;@Autowired MemberAnalysisRepository repository;@Autowired MemberAnalysisService service;@Autowired UserAccountRepository users;
     @Autowired MemberQuestionService questions;@Autowired dev.maboullaite.fhemni.analysis.AnalysisRevisionRepository revisions;@Autowired dev.maboullaite.fhemni.catalog.CatalogVideoRepository catalog;
     @Autowired org.springframework.jdbc.core.simple.JdbcClient jdbc;

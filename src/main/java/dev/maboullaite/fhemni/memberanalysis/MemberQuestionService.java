@@ -22,9 +22,11 @@ public class MemberQuestionService {
     private final JdbcClient jdbc;
     private final ObjectMapper mapper;
     private final TransactionTemplate tx;
-    public MemberQuestionService(MemberAnalysisAccess access,MemberAnalysisRepository repository,MemberAnalysisService service,AiUsageRepository usageRepository,AiUsageGuard usage,VideoIntelligenceGateway gateway,JdbcClient jdbc,ObjectMapper mapper,PlatformTransactionManager manager) {
+    private final MemberAllowanceRepository allowances;
+    public MemberQuestionService(MemberAnalysisAccess access,MemberAnalysisRepository repository,MemberAnalysisService service,AiUsageRepository usageRepository,AiUsageGuard usage,VideoIntelligenceGateway gateway,JdbcClient jdbc,ObjectMapper mapper,PlatformTransactionManager manager,MemberAllowanceRepository allowances) {
         this.access=access;this.repository=repository;this.service=service;this.usageRepository=usageRepository;
         this.usage=usage;this.gateway=gateway;this.jdbc=jdbc;this.mapper=mapper;tx=new TransactionTemplate(manager);
+        this.allowances=allowances;
     }
     public List<FollowUpAnswer> answers(UUID id,UUID user){access.requireOwner(id,user);return storedAnswers(id);}
     public String status(UUID id,UUID user) {
@@ -55,7 +57,6 @@ public class MemberQuestionService {
                 .param("id",id).param("interaction",repository.interaction(id)).update();
             var row=jdbc.sql("SELECT question_count,lease_token,lease_until FROM member_analysis_conversations WHERE job_id=:id FOR UPDATE")
                 .param("id",id).query((r,n)->new Object[]{r.getInt(1),r.getObject(2),r.getObject(3,OffsetDateTime.class)}).single();
-            if((int)row[0]>=10)throw new IllegalStateException("Conversation limit reached.");
             if(row[1]!=null&&row[2]!=null&&((OffsetDateTime)row[2]).toInstant().isAfter(Instant.now()))
                 throw new IllegalStateException("A question is still processing.");
             String interaction=jdbc.sql("SELECT interaction_id FROM member_analysis_conversations WHERE job_id=:id")
@@ -63,6 +64,7 @@ public class MemberQuestionService {
             if(interaction==null)throw new IllegalStateException("Question context unavailable.");
             // Only this explicit request can replace an expired claim. Its old completion remains fenced out.
             UUID token=UUID.randomUUID();
+            allowances.reserve(token,id,user,"QUESTION",20,Instant.now());
             jdbc.sql("UPDATE member_analysis_conversations SET lease_token=:token,lease_until=:until,last_question_state='PROCESSING',question_count=question_count+1 WHERE job_id=:id")
                 .param("token",token).param("until",Instant.now().plusSeconds(300).atOffset(ZoneOffset.UTC)).param("id",id).update();
             return new Claim(token,usage.reserveQuestion(id,user,resolved==QuestionMode.CHECK?AiOperation.CHAT_CHECK:AiOperation.CHAT_VIDEO,gateway.model()),interaction,job,previous);

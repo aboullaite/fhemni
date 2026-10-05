@@ -24,6 +24,7 @@ public class MemberAnalysisAdmission {
         existing=repository.byKey(user,key);if(existing.isPresent())return same(existing.get(),parsed.canonicalUrl(),language);
         var current=policy.forUser(user);if(!current.enabled())throw new IllegalStateException("PROCESSING_UNAVAILABLE");if(current.active())throw new IllegalStateException("ANALYSIS_ALREADY_ACTIVE");if(current.remaining()<1)throw new IllegalStateException("MONTHLY_ALLOWANCE_REACHED");
         var id=UUID.randomUUID();var reservation=budget.reserveAnalysis(id,gateway.model());
+        repository.chargeVideo(id,user,current.monthlyLimit());
         return repository.create(id,user,key,parsed.canonicalUrl(),parsed.videoId(),language,eligible.durationSeconds(),reservation.id(),gateway);
     }
     private MemberJob same(MemberJob job,String url,OutputLanguage language){if(!job.videoUrl().equals(url)||!job.language().equals(language.code()))throw new IllegalArgumentException("Idempotency key was already used for different input.");return job;}
