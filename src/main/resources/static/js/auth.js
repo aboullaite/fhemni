@@ -1,5 +1,15 @@
 (function () {
     let sessionPromise;
+    let knownIdentity;
+    const changeKey = 'fhemni:auth-change';
+
+    function signalChange() {
+        // An opaque invalidation only: never persist account identifiers or tokens.
+        try { window.localStorage.setItem(changeKey, Date.now() + ':' + Math.random()); } catch (_) { /* Focus revalidation remains available. */ }
+    }
+    window.addEventListener('storage', event => {
+        if (event.key === changeKey) sessionPromise = undefined;
+    });
 
     function t(key, parameters = {}) {
         return window.FhemniI18n?.t(key, parameters) ?? key;
@@ -17,8 +27,14 @@
         return sessionPromise;
     }
 
-    function loadSession() {
-        return fetchJson('/api/auth/session', 10_000);
+    async function loadSession() {
+        const current = await fetchJson('/api/auth/session', 10_000);
+        const identity = current.authenticated ? current.user.id : null;
+        if (identity !== knownIdentity) {
+            knownIdentity = identity;
+            signalChange();
+        }
+        return current;
     }
 
     async function withCsrf(options = {}) {
@@ -41,6 +57,9 @@
         if (!response.ok) {
             throw new Error(t('common.signOutFailed'));
         }
+        sessionPromise = undefined;
+        knownIdentity = null;
+        signalChange();
         window.location.assign('/');
     }
 

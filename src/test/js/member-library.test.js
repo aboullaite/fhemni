@@ -10,6 +10,27 @@ function harness(session={authenticated:false},policy={enabled:true,remaining:10
  return {doc,root,setSession(value){session=value;},calls:()=>calls,get:id=>doc.getElementById(id)};
 }
 const flush=()=>new Promise(r=>setImmediate(r));
+test('another window invalidates a visible library immediately, with focus as a fallback',async()=>{
+ for(const trigger of ['storage','focus']){
+  const h=harness({authenticated:true,user:{id:'one'}},undefined,[{id:'private',title:'Private',state:'READY'}]);await flush();
+  h.setSession({authenticated:false});
+  h.root.listeners[trigger]?.({key:'fhemni:auth-change'});
+  assert.equal(h.get('memberWorkspace').hidden,true);
+  assert.equal(h.get('memberLibraryRows').children.length,0);
+  await flush();assert.equal(h.get('memberPitch').hidden,false);
+ }
+});
+test('failed session verification never reveals the previous owner draft',async()=>{
+ const h=harness({authenticated:true,user:{id:'one'}});await flush();
+ h.get('memberUrl').value='https://youtu.be/abcdefghijk';
+ h.doc.visibilityState='hidden';h.doc.listeners.visibilitychange();
+ h.root.FhemniAuth.refreshSession=async()=>{throw new Error('unavailable');};
+ h.doc.visibilityState='visible';h.doc.listeners.visibilitychange();await flush();
+ assert.equal(h.get('memberWorkspace').hidden,true);
+ assert.equal(h.get('memberPageRetry').hidden,false);
+ h.root.FhemniAuth.refreshSession=async()=>({authenticated:true,user:{id:'two'}});
+ h.get('memberPageRetry').onclick();await flush();assert.equal(h.get('memberUrl').value,'');
+});
 test('visitor sees a selling pitch and return-to-library login without fetching private history',async()=>{
  const h=harness();await flush();assert.equal(h.get('memberPitch').hidden,false);assert.equal(h.get('memberWorkspace').hidden,true);assert.equal(h.get('memberPitchLogin').href,'/login?continue=/analyse');assert.equal(h.calls(),0);
 });
