@@ -24,9 +24,11 @@ public class MemberAnalysisService {
     public record ReviewView(PublicationRequest request,MemberJob report) {}
     public Page<PublicationQueueEntry> requests(int page){
         if(page<1||page>100000)throw new IllegalArgumentException("Invalid page.");
-        long total=jdbc.sql("SELECT COUNT(*) FROM member_analysis_publication_requests").query(Long.class).single();
-        var requests=jdbc.sql("SELECT id,job_id,state,requested_at,review_note,derivative_id FROM member_analysis_publication_requests ORDER BY requested_at DESC,id LIMIT 10 OFFSET :offset")
-            .param("offset",(page-1)*10).query(PublicationRequest.class).list();
+        var now=Instant.now().atOffset(ZoneOffset.UTC);
+        String visible=" FROM member_analysis_publication_requests r WHERE EXISTS (SELECT 1 FROM member_analysis_jobs j WHERE j.id=r.job_id AND j.expires_at>:now)";
+        long total=jdbc.sql("SELECT COUNT(*)"+visible).param("now",now).query(Long.class).single();
+        var requests=jdbc.sql("SELECT id,job_id,state,requested_at,review_note,derivative_id"+visible+" ORDER BY requested_at DESC,id LIMIT 10 OFFSET :offset")
+            .param("now",now).param("offset",(page-1)*10).query(PublicationRequest.class).list();
         var entries=requests.stream().map(value->{
             var identity=repository.identity(value.jobId()).orElseThrow();
             var job=repository.owner(value.jobId(),identity.userId());

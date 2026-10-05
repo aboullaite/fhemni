@@ -76,7 +76,7 @@ public class MemberQuestionService {
             var answer=new FollowUpAnswer(question.strip(),resolved,result.answer(),result.sources(),Instant.now());
             tx.executeWithoutResult(status->{
                 repository.lockOwner(user);var all=new ArrayList<>(claim.previous());all.add(answer);
-                int changed=jdbc.sql("UPDATE member_analysis_conversations SET answers_json=:json,interaction_id=:interaction,lease_token=NULL,lease_until=NULL,last_question_state='ANSWERED' WHERE job_id=:id AND lease_token=:token AND lease_until>:now")
+                int changed=jdbc.sql("UPDATE member_analysis_conversations SET answers_json=:json,interaction_id=:interaction,lease_token=NULL,lease_until=NULL,last_question_state='ANSWERED' WHERE job_id=:id AND lease_token=:token AND lease_until>:now AND EXISTS (SELECT 1 FROM member_analysis_jobs j WHERE j.id=:id AND j.expires_at>:now)")
                     .param("json",mapper.writeValueAsString(all)).param("interaction",result.interactionId()).param("id",id)
                     .param("token",claim.token()).param("now",Instant.now().atOffset(ZoneOffset.UTC)).update();
                 if(changed!=1)throw new IllegalStateException("Question completion could not be confirmed.");
