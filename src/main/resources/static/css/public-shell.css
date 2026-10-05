@@ -1,4 +1,34 @@
 /* One public frame. Specialised election charts retain their own internal layouts. */
+.member-pitch-hero { display: grid; grid-template-columns: minmax(0,1.6fr) minmax(240px,1fr); gap: 48px; align-items: center; padding-block: 16px 32px; }
+.member-pitch-hero header { max-width: 660px; }
+.member-pitch-hero header .button-link { justify-self: start; }
+.member-plan-facts { margin: 0; padding: 12px 28px; border: 1px solid var(--line); border-radius: 20px; background: var(--mint); }
+.member-plan-facts > div { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-block: 16px; }
+.member-plan-facts > div + div { border-top: 1px solid var(--line); }
+.member-plan-facts dd { margin: 0; font-size: 32px; font-weight: 500; color: var(--teal-dark); }
+.member-benefits { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; padding-block: 20px; border-block: 1px solid var(--line); }
+.member-benefits article > span { font-size: 14px; color: var(--teal-dark); }
+.member-benefits h2 { font-size: 21px; margin-block: 12px; }
+.member-benefits p { color: var(--muted); margin: 0; }
+.member-submit-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(160px,220px) auto; gap: 16px; align-items: end; }
+.member-submit-grid label { display: grid; gap: 8px; min-width: 0; }
+.member-allowances { display: flex; flex-wrap: wrap; gap: 8px 32px; color: var(--muted); font-size: 14px; margin-block: 12px 20px; }
+.member-allowances p { margin: 0; flex: 1 1 280px; }
+.member-library-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
+.member-video-card { min-width: 0; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--white); padding-block-end: 16px; }
+.member-video-link { display: block; color: var(--ink); text-decoration: none; }
+.member-video-link img { display: block; width: 100%; height: auto; aspect-ratio: 16/9; object-fit: cover; background: var(--mint); }
+.member-video-link h3 { margin: 16px 16px 12px; font-size: 18px; line-height: 1.5; }
+.member-video-card > p { margin: 8px 16px 0; }
+.member-video-status { color: var(--teal-dark); font-size: 14px; }
+.member-library-empty { text-align: center; padding: 40px 20px; border: 1px dashed var(--line); border-radius: 16px; }
+.member-library-empty h2 { font-size: 22px; }
+.member-library-empty p { color: var(--muted); }
+.member-library-terms { border-block-start: 1px solid var(--line); padding-block: 16px; }
+.member-library-terms summary { cursor: pointer; min-height: 44px; padding-block: 10px; }
+.member-library-terms p { max-width: 75ch; color: var(--muted); }
+@media (max-width: 899px) { .member-pitch-hero { grid-template-columns: minmax(0,1fr); gap: 24px; } .member-library-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .member-submit-grid { grid-template-columns: minmax(0,1fr) minmax(160px,220px); } .member-submit-grid > label:first-child { grid-column: 1 / -1; } }
+@media (max-width: 599px) { .member-benefits,.member-library-grid,.member-submit-grid { grid-template-columns: minmax(0,1fr); } .member-submit-grid > button { width: 100%; } .member-pitch-hero header .button-link { justify-self: stretch; text-align: center; } }
 .member-submit { max-width: 720px; }
 .member-submit label,.member-submit form label,#memberQuestionForm label { display: grid; gap: 8px; min-width: 0; }
 .member-submit :is(input,select,button),#memberQuestionForm textarea { max-width: 100%; }

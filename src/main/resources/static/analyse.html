@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
     <title>حلّل فيديو — فهّمني</title><link rel="canonical" href="https://fhemni.ma/analyse">
-    <link rel="icon" href="/favicon.ico?v=20260911"><link rel="stylesheet" href="/css/dist.css?v=20261004-2">
+    <link rel="icon" href="/favicon.ico?v=20260911"><link rel="stylesheet" href="/css/dist.css?v=20261005-1">
 </head>
 <body data-public-shell data-i18n-page-title="member.pageTitle">
 <!-- public-shell:header:start -->
@@ -34,19 +34,45 @@
     </div>
 </header>
 <!-- public-shell:header:end -->
-<main class="public-stack">
-    <header class="accountability-page-heading"><h1 data-i18n="shell.analyse">حلّل فيديو</h1><p data-i18n="member.intro">فهم الادعاءات والسياق ففيديو يوتيوب، بتحليل خاص بحسابك.</p></header>
-    <section class="public-panel member-submit" id="memberSubmit">
-      <p id="memberSubmitStatus" role="status" aria-live="polite"></p>
-      <a id="memberSignIn" hidden></a><button id="memberSubmitRetry" type="button" hidden></button>
-      <form id="memberSubmitForm" class="public-stack" hidden>
-        <label><span id="memberUrlLabel"></span><input id="memberUrl" type="url" dir="ltr" required maxlength="2048" placeholder="https://www.youtube.com/watch?v=…" autocomplete="url"></label>
-        <label><span id="memberLanguageLabel"></span><select id="memberLanguage"><option value="ary">الدارجة</option><option value="fr">Français</option><option value="en">English</option></select></label>
-        <p id="memberLimits" class="government-meta"></p>
-        <button id="memberSubmitButton" class="primary-button" type="submit"></button>
-      </form>
+<main class="public-stack" id="memberLibraryPage">
+    <p id="memberPageStatus" role="status" aria-live="polite"></p><button id="memberPageRetry" type="button" data-member-copy="retry" hidden></button>
+    <section id="memberPitch" class="public-stack">
+      <div class="member-pitch-hero">
+        <header class="accountability-page-heading public-stack">
+          <h1 data-member-copy="hero">فهم الفيديو، بلا ما يضيع ليك المهم.</h1>
+          <p data-member-copy="pitch">عندك خطاب، حوار ولا تصريح بغيتي تفهمو مزيان؟ زيد رابط يوتيوب وخلي فهّمني يعاونك توصل للمهم، وتراجع الادعاءات وتسول على التفاصيل.</p>
+          <a id="memberPitchLogin" class="primary-button button-link" href="/login?continue=%2Fanalyse" data-member-copy="loginCta">دخل لحسابك وحلّل فيديو</a>
+          <a href="/videos" data-member-copy="archive">أرشيف الفيديوهات</a>
+        </header>
+        <dl class="member-plan-facts">
+          <div><dt data-member-copy="capacityVideos">فيديوهات فالشهر</dt><dd>10</dd></div>
+          <div><dt data-member-copy="capacityChat">سؤال فالشهر</dt><dd>20</dd></div>
+          <div><dt data-member-copy="capacityRetention">يوم لحفظ التحليل</dt><dd>30</dd></div>
+        </dl>
+      </div>
+      <div class="member-benefits">
+        <article><span aria-hidden="true">01</span><h2 data-member-copy="benefitSummary">المهم، بلا تطويل</h2><p data-member-copy="benefitSummaryText">خلاصة منظمة ومقاطع ترجع ليها فالفيديو الأصلي.</p></article>
+        <article><span aria-hidden="true">02</span><h2 data-member-copy="benefitClaims">راجع شنو تقال</h2><p data-member-copy="benefitClaimsText">شوف الادعاءات والسياق والمصادر اللي توفّرات للتحقق.</p></article>
+        <article><span aria-hidden="true">03</span><h2 data-member-copy="benefitChat">كمّل بالسؤال</h2><p data-member-copy="benefitChatText">سول على نقطة ما فهمتيهاش، والجواب يبقى مع التحليل.</p></article>
+      </div>
     </section>
-    <nav class="public-toolbar" aria-label="Video navigation"><a href="/account/analyses" id="memberHistoryLink"></a><a href="/videos" data-i18n="shell.archive">أرشيف الفيديوهات</a></nav>
+    <section id="memberWorkspace" class="public-stack" hidden>
+      <header class="accountability-page-heading"><h1 data-member-copy="libraryTitle">الفيديوهات ديالي</h1><p data-member-copy="retentionNote"></p></header>
+      <section class="public-panel member-library-submit">
+        <h2 data-member-copy="newAnalysis">حلّل فيديو جديد</h2>
+        <div class="member-allowances"><p id="memberLimits"></p><p id="memberChatLimits"></p></div>
+        <form id="memberSubmitForm" class="member-submit-grid public-stack">
+          <label><span data-member-copy="url">رابط فيديو يوتيوب</span><input id="memberUrl" type="url" dir="ltr" required maxlength="2048" placeholder="https://www.youtube.com/watch?v=…" autocomplete="url"></label>
+          <label><span data-member-copy="language">لغة التحليل</span><select id="memberLanguage"><option value="ary">الدارجة</option><option value="fr">Français</option><option value="en">English</option></select></label>
+          <button id="memberSubmitButton" class="primary-button" type="submit" data-member-copy="submit">حلّل الفيديو</button>
+        </form>
+        <p id="memberSubmitStatus" class="government-meta" role="status" aria-live="polite"></p>
+      </section>
+      <div id="memberLibraryEmpty" class="member-library-empty" hidden><h2 data-member-copy="emptyTitle"></h2><p data-member-copy="emptyText"></p></div>
+      <div id="memberLibraryRows" class="member-library-grid"></div><div id="memberLibraryPager"></div>
+    </section>
+    <p class="government-meta" data-member-copy="aiNote">تحليل بالذكاء الاصطناعي، يقدر يخطأ. رجع للفيديو والمصادر قبل ما تعتمد على النتيجة.</p>
+    <details class="member-library-terms"><summary data-member-copy="termsTitle">كيفاش كيخدم الرصيد والحفظ؟</summary><p data-member-copy="termsText"></p></details>
 </main>
 <!-- public-shell:footer:start -->
 <footer class="shared-footer">
@@ -58,5 +84,5 @@
 <!-- public-shell:footer:end -->
 <script src="/js/i18n.js?v=20261004-1" defer></script><script src="/js/auth.js?v=20261004-1" defer></script>
 <script src="/js/site-shell.js?v=20261004-2" defer></script><script src="/js/public-ui.js?v=20261004-1" defer></script>
-<script src="/js/member-analysis-api.js?v=20261004-2" defer></script><script src="/js/member-analysis-submit.js?v=20261004-1" defer></script>
+<script src="/js/member-analysis-api.js?v=20261005-1" defer></script><script src="/js/member-library.js?v=20261005-1" defer></script>
 </body></html>

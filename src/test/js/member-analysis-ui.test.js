@@ -35,15 +35,26 @@ test('retained history uses its loaded page and eligibility copy gives correctiv
  const ui=require(modulePath);assert.equal(ui.historyPage({page:1},2),1);assert.equal(ui.historyPage(null,2),2);
  for(const lang of ['ar','fr','en'])for(const code of ['VIDEO_TOO_LONG','LIVE_UNSUPPORTED','DURATION_UNAVAILABLE','VIDEO_UNAVAILABLE','VERIFICATION_UNAVAILABLE'])assert.notEqual(ui.errorMessage({code,status:400},lang),ui.COPY[lang].error);
 });
-function resultHarness(request){
+function resultHarness(request,policy={chatEnabled:true,chatRemaining:20,chatMonthlyLimit:20}){
  const fs=require('node:fs'),vm=require('node:vm'),nodes=new Map(),doc={listeners:{},visibilityState:'visible',addEventListener(name,fn){this.listeners[name]=fn}};
  const node=tag=>({tag,children:[],attributes:{},value:'',append(...n){this.children.push(...n)},replaceChildren(...n){this.children=n},setAttribute(k,v){this.attributes[k]=String(v)},getAttribute(k){return this.attributes[k]||null},removeAttribute(k){delete this.attributes[k]},focus(){doc.activeElement=this}});
  doc.createElement=tag=>{const value=node(tag);Object.defineProperty(value,'id',{set(id){nodes.set(id,value)}});return value;};doc.getElementById=id=>{if(!nodes.has(id))nodes.set(id,node('div'));return nodes.get(id);};
- let user='owner-a',lang='en';const api={...require(modulePath),loadMemberJob:async()=>({id:'job',title:'Private title',state:'READY',videoId:'abcdefghijk',report:{summary:'Private summary',claims:[]}}),request:request|| (async path=>path.endsWith('/questions')?[]:{state:path.endsWith('/question-status')?'READY':'PRIVATE'})};
+ let user='owner-a',lang='en';const delegate=request|| (async path=>path.endsWith('/questions')?[]:{state:path.endsWith('/question-status')?'READY':'PRIVATE'});const api={...require(modulePath),loadMemberJob:async()=>({id:'job',title:'Private title',state:'READY',videoId:'abcdefghijk',report:{summary:'Private summary',claims:[]}}),request:async(path,...args)=>{if(path==='/api/account/analyses/policy'){if(policy instanceof Error)throw policy;return policy;}return delegate(path,...args);}};
  const root={document:doc,FhemniMember:api,FhemniAuth:{refreshSession:async()=>({authenticated:!!user,user:{id:user}}),loginPage:p=>'/login?continue='+encodeURIComponent(p)},FhemniI18n:{locale:()=>lang,t:k=>k},FhemniUI:{mountTabs:()=>({select(){}}),announceStatus:(n,t)=>n.textContent=t},location:{pathname:'/account/analyses/job',search:'?tab=claims&page=2',href:'http://localhost/account/analyses/job?tab=claims&page=2'},history:{pushState(){}},listeners:{},addEventListener(n,f){this.listeners[n]=f},setTimeout:()=>1,clearTimeout(){},confirm:()=>true};
  vm.runInNewContext(fs.readFileSync(require('node:path').resolve(__dirname,'../../main/resources/static/js/member-analysis-result.js'),'utf8'),{window:root,URL,Promise});doc.listeners.DOMContentLoaded();return {doc,root,setUser:v=>user=v,setLocale:v=>lang=v};
 }
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
+test('private questions fail closed on exhausted or unreadable monthly allowance',async()=>{
+ for(const policy of [{chatEnabled:true,chatRemaining:0,chatMonthlyLimit:20},Error('offline')]){
+  const h=resultHarness(undefined,policy);await flush();assert.equal(h.doc.getElementById('memberAsk').disabled,true);assert.equal(h.doc.getElementById('memberResultContent').hidden,false);
+ }
+});
+test('accepted question refreshes the account allowance before another send',async()=>{
+ const policy={chatEnabled:true,chatRemaining:1,chatMonthlyLimit:20};
+ const h=resultHarness(async(path,method)=>{if(method==='POST'){policy.chatRemaining=0;return {question:'Last',answer:'Answer'};}return path.endsWith('/questions')?[]:{state:path.endsWith('/question-status')?'READY':'PRIVATE'};},policy);
+ await flush();const input=h.doc.getElementById('memberQuestion');input.value='Last';assert.equal(h.doc.getElementById('memberAsk').disabled,false);
+ await h.doc.getElementById('memberQuestionForm').onsubmit({preventDefault(){}});assert.equal(h.doc.getElementById('memberAsk').disabled,true);
+});
 test('private question draft survives locale and source-tab visits only for the same owner',async()=>{
  const h=resultHarness();await flush();const input=h.doc.getElementById('memberQuestion');input.value='My unsent question';h.setLocale('fr');h.doc.listeners['fhemni:localechange']();assert.equal(input.value,'My unsent question');
  h.doc.visibilityState='hidden';h.doc.listeners.visibilitychange();assert.equal(h.doc.getElementById('memberResultContent').hidden,true);h.doc.visibilityState='visible';h.doc.listeners.visibilitychange();await flush();assert.equal(input.value,'My unsent question');

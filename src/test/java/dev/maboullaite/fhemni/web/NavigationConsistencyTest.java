@@ -226,7 +226,7 @@ class NavigationConsistencyTest {
                 .contains("[dir=\"rtl\"] .election-graphs-jumps");
         assertThat(styles).containsPattern("(?s)@media \\(max-width: 640px\\).*?\\.election-tabs \\{[^}]*overflow-x: auto;[^}]*grid-template-columns: repeat\\(4,minmax\\(118px,1fr\\)\\)");
         assertThat(compiled).contains(".election-graphs-jumps").contains(".election-atlas-representative-cards");
-        assertThat(page).contains("/css/dist.css?v=20261004-2");
+        assertThat(page).contains("/css/dist.css?v=20261005-1");
     }
 
     @Test
@@ -963,7 +963,7 @@ class NavigationConsistencyTest {
     @Test
     void everyPageUsesThePinnedWebFontStylesheet() throws IOException {
         for (String page : ALL_PAGES) {
-            String version = "20261004-2";
+            String version = "20261005-1";
             assertThat(html(page))
                     .as("stylesheet in %s", page)
                     .containsOnlyOnce("/css/dist.css?v=" + version);
@@ -1142,7 +1142,7 @@ class NavigationConsistencyTest {
         for (String page : ADMIN_PAGES) {
             assertThat(html(page))
                     .as("mobile assets in %s", page)
-                    .contains("/css/dist.css?v=20261004-2")
+                    .contains("/css/dist.css?v=20261005-1")
                     .contains("/js/i18n.js?v=20261004-1");
         }
     }
@@ -1218,7 +1218,7 @@ class NavigationConsistencyTest {
                 .contains("id=\"programmeMedia\" class=\"programme-media\"")
                 .contains("class=\"video-js vjs-big-play-centered\"")
                 .contains("/webjars/video.js/8.24.1/dist/video-js.min.css")
-                .contains("/css/dist.css?v=20261004-2")
+                .contains("/css/dist.css?v=20261005-1")
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.24.1/dist/video.min.js")
                 .contains("/js/i18n.js?v=20261004-1")
