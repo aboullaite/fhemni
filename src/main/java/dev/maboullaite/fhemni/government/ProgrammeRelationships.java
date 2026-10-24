@@ -33,6 +33,6 @@ public class ProgrammeRelationships {
         var matching=links.stream().filter(row->view.origin()==Origin.CAMPAIGN?row.link().campaignPromiseId().equals(view.id()):view.id().equals(row.link().governmentCommitmentId())).toList();
         var sources=new LinkedHashMap<UUID,Evidence>();view.evidence().forEach(source->sources.put(source.id(),source));
         matching.forEach(row->row.evidence().stream().filter(source->row.link().evidenceIds().contains(source.id())).forEach(source->sources.put(source.id(),source)));
-        return new CommitmentView(view.id(),view.slug(),view.origin(),view.title(),view.originalText(),view.originalLanguage(),view.author(),view.campaignPromiseId(),view.topicCodes(),view.geographicScope(),view.responsibleBody(),view.target(),view.deadline(),view.deliveryAssessment(),matching.stream().map(ReviewedLink::link).toList(),List.copyOf(sources.values()),view.observations(),view.revisions());
+        return new CommitmentView(view.id(),view.slug(),view.origin(),view.title(),view.originalText(),view.originalLanguage(),view.author(),view.campaignPromiseId(),view.topicCodes(),view.geographicScope(),view.responsibleBody(),view.target(),view.deadline(),view.deliveryAssessment(),matching.stream().map(ReviewedLink::link).toList(),List.copyOf(sources.values()),view.observations(),view.revisions(),view.programmeContext());
     }
 }

@@ -1,4 +1,16 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
+test('anonymous follow is a styled sign-in link and keeps the return destination',async()=>{
+    const fs=require('node:fs'),vm=require('node:vm');
+    for(const locale of ['ar','fr','en']){
+        const doc={addEventListener(){}};
+        function element(tag){return {tag,children:[],ownerDocument:doc,isConnected:true,append(...children){this.children.push(...children)},replaceChildren(...children){this.children=children}};}
+        doc.createElement=element;
+        const window={FhemniFollowing:require('../../main/resources/static/js/following.js'),FhemniGovernmentModel:require('../../main/resources/static/js/government-model.js'),FhemniI18n:{locale:()=>locale},FhemniAuth:{refreshSession:async()=>({authenticated:false}),loginPage:path=>'/login?returnTo='+encodeURIComponent(path)},location:{pathname:'/government/commitments/care',search:'?lang='+locale}};
+        vm.runInNewContext(fs.readFileSync(require('node:path').resolve(__dirname,'../../main/resources/static/js/follow-controls.js'),'utf8'),{window});
+        const host=element('section');window.FhemniFollowControls.mount(host,{type:'COMMITMENT',id:'care'});await new Promise(resolve=>setImmediate(resolve));
+        const link=host.children[0];assert.equal(link.tag,'a');assert.equal(link.className,'primary-button');assert.equal(link.href,'/login?returnTo='+encodeURIComponent('/government/commitments/care?lang='+locale));assert.ok(link.textContent);
+    }
+});
 test('following tab and both pages survive URL round trips',()=>{
  const {readFollowState,followStateUrl}=require('../../main/resources/static/js/following.js');
  const state={selected:'followItemsTab',page:3,entryPage:2};assert.deepEqual(readFollowState(followStateUrl(state)),state);

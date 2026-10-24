@@ -1,0 +1,58 @@
+.government-preview{border:1px solid #d5bc82;border-inline-start:4px solid #9b762c;background:#fcf8ed;border-radius:12px;padding:1.25rem;color:#463d28}
+.government-preview h2{font-size:1.1rem;margin:0}
+.government-preview p{margin:0;line-height:1.7}
+.government-overview-actions{display:flex;gap:.75rem;flex-wrap:wrap;margin-block:.5rem}
+.government-search{display:grid;gap:.5rem}
+.government-search label{font-weight:400}
+.government-search>div{display:flex;gap:.75rem}
+.government-search input{min-width:0;flex:1}
+.government-source-status{font-size:.85rem;color:#71531c}
+.government-card-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:1rem;align-items:start}
+.government-card-grid>.government-commitment-card{min-width:0;margin:0;padding:1rem;overflow-wrap:anywhere}
+.government-card-grid .government-commitment-card :is(h2,h3){font-size:1.1rem;line-height:1.6;margin-block:0 .65rem}
+.government-card-grid .government-commitment-card p{margin-block:.3rem;line-height:1.6}
+.government-card-grid .government-commitment-card details{margin-block-start:.65rem}
+@media(min-width:800px){.government-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:1280px){.government-card-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.government-regional-controls{display:flex;gap:1rem;flex-wrap:wrap}
+.government-regional-controls[hidden]{display:none}
+.government-regional-controls label{display:grid;gap:.5rem;flex:1;min-width:0}
+.government-region-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
+.government-region-bar{display:grid;grid-template-columns:1fr auto;gap:.5rem;text-align:start;padding:.75rem 1rem;border:1px solid #d1dbd5;border-radius:10px;background:#fffdf7;font:inherit;color:inherit}
+.government-region-bar[aria-pressed=true]{border-color:#256b55;background:#e7f0e9}
+.government-region-bar .government-chart-track{grid-column:1/-1;width:100%}
+.government-region-bar:focus-visible{outline:3px solid #256b55;outline-offset:2px}
+.government-region-count{font-variant-numeric:tabular-nums}
+.government-region-places{color:#256b55}
+.government-commitment-card blockquote{line-height:1.8;overflow-wrap:anywhere}
+@media(max-width:599px){.government-region-grid{grid-template-columns:1fr}.government-regional-controls{flex-direction:column}}
+.government-commitment-card h2{font-size:1.2rem;line-height:1.7}
+.government-commitment-card h2 a{display:inline-block;overflow-wrap:anywhere}
+#trackerFilters .public-toolbar{align-items:end}
+#trackerFilters select{max-width:100%}
+#trackerActiveFilters{flex-wrap:wrap}
+#trackerActiveFilters button{overflow-wrap:anywhere;max-width:100%}
+#commitmentContent h2{font-size:1.2rem;font-weight:600;line-height:1.6;margin:0}
+#commitmentAssessment{display:grid;gap:.4rem}
+#commitmentAssessment p{margin:0}
+#commitmentFollow{justify-items:start;gap:.75rem}
+#commitmentFollow :is(a,button){max-width:100%;white-space:normal;overflow-wrap:anywhere}
+#commitmentFollow p:empty{display:none}
+#commitmentContent :is(.government-evidence a,.government-evidence-links a,#commitmentHistory a){color:var(--teal-dark);text-decoration:underline;text-underline-offset:3px}
+.commitment-disclosure{border:1px solid var(--line);border-radius:var(--radius-control);background:var(--surface);overflow-wrap:anywhere}
+.commitment-disclosure>summary{display:flex;align-items:center;justify-content:space-between;gap:1rem;min-height:48px;padding:.75rem 1rem;cursor:pointer;list-style:none;color:var(--teal-dark);font-weight:600}
+.commitment-disclosure>summary::-webkit-details-marker{display:none}
+.commitment-disclosure>summary::after{content:'';width:.5rem;height:.5rem;flex:none;border-inline-end:2px solid currentColor;border-block-end:2px solid currentColor;transform:rotate(45deg)}
+.commitment-disclosure:dir(rtl)>summary::after{transform:rotate(-45deg)}
+.commitment-disclosure[open]>summary::after{transform:rotate(225deg)}
+.commitment-disclosure:dir(rtl)[open]>summary::after{transform:rotate(135deg)}
+.commitment-disclosure>summary:hover{background:var(--mint)}
+.commitment-disclosure>summary:focus-visible{outline:2px solid var(--teal-dark);outline-offset:3px;border-radius:var(--radius-control)}
+.commitment-disclosure[open]>summary{border-block-end:1px solid var(--line)}
+.commitment-disclosure>div{padding:1rem}
+.commitment-disclosure p:last-child{margin-block-end:0}
+.government-target-fields{display:grid;grid-template-columns:auto 1fr;gap:.35rem .85rem;margin:0}
+.government-target-fields dt{font-weight:600}
+.government-target-fields dd{margin:0}
+#commitmentTitle{line-height:1.6;overflow-wrap:anywhere}
+@media(max-width:599px){.government-preview{padding:1rem}.government-search>div{gap:.5rem}.government-overview-actions{flex-direction:column}.government-overview-actions a{text-align:center}#trackerFilters label{width:100%;min-width:0}#trackerFilters select{width:100%}}

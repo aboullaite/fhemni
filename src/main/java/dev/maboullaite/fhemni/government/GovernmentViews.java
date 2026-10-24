@@ -43,11 +43,34 @@ public final class GovernmentViews {
     public record RelationshipView(UUID id,String slug,LocalText title,CommitmentLink relationship,List<Evidence> evidence) {}
     public record PublicRevision(UUID id,SubjectType subjectType,String slug,int version,Instant publishedAt,
             LocalText explanation,Object snapshot,List<Evidence> evidence) {}
+    /** Literal extraction context, not an assessment or a normalized measurable target. */
+    public record RelatedEntry(String slug, String relation) {}
+    public record TopicCount(String code, long count) {}
+    public record DiscoveryTopic(String code, LocalText label) {}
+    public record ProgrammePlace(String regionCode, LocalText place, String sourceExcerpt, int printedPage) {}
+    public record RegionalProgrammeEntry(CommitmentView commitment, List<ProgrammePlace> places) {}
+    public record RegionCoverage(Scope region, long count) {}
+    public record RegionalProgrammePage(List<RegionalProgrammeEntry> items, int page, int pageSize, long totalItems,
+            List<RegionCoverage> regionCounts, int linkedEntries, int programmeEntries) {}
+    public record ProgrammeGraphicEntry(String slug, LocalText title, ProgrammeContext programmeContext) {}
+    public record ProgrammeInsights(int totalEntries, List<TopicCount> topics, List<ProgrammeGraphicEntry> entries) {}
+    public record ProgrammeContext(String sourceStatus, List<Integer> printedPages, String kind,
+            String summaryEn, String deadlineText, String targetText, String scopeText,
+            List<String> caveats, List<RelatedEntry> relatedEntries) {}
     public record CommitmentView(UUID id, String slug, Origin origin, LocalText title, String originalText,
             String originalLanguage, LocalText author, UUID campaignPromiseId, List<String> topicCodes,
             Scope geographicScope, LocalText responsibleBody, Target target, LocalDate deadline,
             DeliveryAssessment deliveryAssessment, List<CommitmentLink> links, List<Evidence> evidence,
-            List<Observation> observations, List<RevisionSummary> revisions) {}
+            List<Observation> observations, List<RevisionSummary> revisions, ProgrammeContext programmeContext) {
+        public CommitmentView(UUID id, String slug, Origin origin, LocalText title, String originalText,
+                String originalLanguage, LocalText author, UUID campaignPromiseId, List<String> topicCodes,
+                Scope geographicScope, LocalText responsibleBody, Target target, LocalDate deadline,
+                DeliveryAssessment deliveryAssessment, List<CommitmentLink> links, List<Evidence> evidence,
+                List<Observation> observations, List<RevisionSummary> revisions) {
+            this(id,slug,origin,title,originalText,originalLanguage,author,campaignPromiseId,topicCodes,
+                    geographicScope,responsibleBody,target,deadline,deliveryAssessment,links,evidence,observations,revisions,null);
+        }
+    }
     public record PublishedUpdate(UUID id, String subjectType, String subjectId, UUID revisionId,
             String materialHash, List<String> topicCodes, List<String> regionCodes, LocalText title,
             LocalText summary, Instant publishedAt) {}

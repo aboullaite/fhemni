@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
     <title>تتبع الحكومة — فهّمني</title><link rel="canonical" href="https://fhemni.ma/government">
-    <link rel="icon" href="/favicon.ico?v=20260911"><link rel="stylesheet" href="/css/dist.css?v=20261005-1">
+    <link rel="icon" href="/favicon.ico?v=20260911"><link rel="stylesheet" href="/css/dist.css?v=20261025-2"><link rel="stylesheet" href="/css/government-tracker.css?v=20261024-2"><link rel="stylesheet" href="/css/government-visuals.css?v=20261024-5"><link rel="stylesheet" href="/css/government-cards.css?v=20261024-1">
 </head>
 <body data-public-shell data-i18n-page-title="government.pageTitle">
 <!-- public-shell:header:start -->
@@ -43,21 +43,24 @@
         <button type="button" id="tabRegions" role="tab" aria-selected="false" aria-controls="trackerRegions" tabindex="-1">فالجهات</button>
     </div>
     <p id="trackerStatus" class="sr-only" role="status" aria-live="polite"></p>
-    <button id="trackerRetry" type="button" hidden>عاود المحاولة</button>
+    <button id="trackerRetry" class="secondary-button" type="button" hidden>عاود المحاولة</button>
     <details id="trackerFilters" class="government-filters" open hidden><summary id="trackerFilterTitle">تصفية النتائج</summary><div class="public-toolbar">
         <label id="trackerOriginField"><span id="originLabel">مصدر الالتزام</span><select id="trackerOrigin"><option value="GOVERNMENT">البرنامج الحكومي</option><option value="CAMPAIGN">وعود الأحزاب</option></select></label>
         <label><span id="topicLabel">الموضوع</span><select id="trackerTopic"><option value="">الكل</option></select></label>
         <label id="trackerPartyField"><span id="partyLabel">الحزب</span><select id="trackerParty"><option value="">الكل</option></select></label>
-    </div></details>
+        <label id="trackerAssessmentField"><span id="assessmentLabel">تقييم الإنجاز</span><select id="trackerAssessment"><option value="">الكل</option></select></label>
+    </div><p id="trackerTopicMethod" class="government-meta"></p></details>
+    <form id="trackerSearchForm" class="government-search" role="search" hidden><label for="trackerSearch" id="trackerSearchLabel">قلب فمواد البرنامج</label><div><input id="trackerSearch" type="search" maxlength="200" dir="auto" autocomplete="off"><button id="trackerSearchSubmit" type="submit" class="primary-button">قلب</button></div></form>
     <div id="trackerActiveFilters" class="public-toolbar" hidden></div>
-    <p id="trackerFilterError" role="status" hidden></p><button id="trackerFilterRetry" type="button" hidden>عاود المحاولة</button>
-    <label id="trackerRegionField" hidden><span id="regionLabel">الجهة</span><select id="trackerRegion"><option value="">جميع النطاقات</option></select></label>
+    <p id="trackerFilterError" role="status" hidden></p><button id="trackerFilterRetry" class="secondary-button" type="button" hidden>عاود المحاولة</button>
+    <div id="trackerRegionalControls" class="government-regional-controls" hidden><label><span id="regionalViewLabel">عرض الجهات</span><select id="trackerRegionalView"><option value="programme">مواد البرنامج</option><option value="measurements">قياسات الإنجاز</option></select></label><label id="trackerRegionField" hidden><span id="regionLabel">الجهة</span><select id="trackerRegion"><option value="">جميع النطاقات</option></select></label></div>
     <section id="trackerOverview" class="public-stack" role="tabpanel" aria-labelledby="tabOverview"><p data-i18n="government.pending">المعطيات المؤكدة غادي تبان من بعد المراجعة.</p></section>
     <section id="trackerProgramme" class="public-stack" role="tabpanel" aria-labelledby="tabProgramme" hidden></section>
     <section id="trackerDelivery" class="public-stack" role="tabpanel" aria-labelledby="tabDelivery" hidden></section>
     <section id="trackerRegions" class="public-stack" role="tabpanel" aria-labelledby="tabRegions" hidden></section>
     <div id="trackerPager" hidden></div>
     <section id="trackerFollow" class="public-panel public-stack" hidden></section>
+    <aside id="trackerPreview" class="government-meta" hidden></aside>
     <noscript><a href="/parties" data-i18n="shell.programmes">الأحزاب والبرامج</a></noscript>
 </main>
 <!-- public-shell:footer:start -->
@@ -70,5 +73,5 @@
 <!-- public-shell:footer:end -->
 <script src="/js/i18n.js?v=20261004-1" defer></script><script src="/js/auth.js?v=20261005-1" defer></script>
 <script src="/js/site-shell.js?v=20261004-2" defer></script><script src="/js/public-ui.js?v=20261004-1" defer></script>
-<script src="/js/government-api.js?v=20261004-1" defer></script><script src="/js/government-model.js?v=20261004-1" defer></script><script src="/js/following.js?v=20261004-2" defer></script><script src="/js/follow-controls.js?v=20261004-1" defer></script><script src="/js/measure.js?v=20261004-1" defer></script><script src="/js/government-regions.js?v=20261004-1" defer></script><script src="/js/government-tracker.js?v=20261004-2" defer></script>
+<script src="/js/government-api.js?v=20261023-2" defer></script><script src="/js/government-model.js?v=20261023-5" defer></script><script src="/js/government-visuals.js?v=20261024-4" defer></script><script src="/js/government-cards.js?v=20261024-1" defer></script><script src="/js/following.js?v=20261025-1" defer></script><script src="/js/follow-controls.js?v=20261025-3" defer></script><script src="/js/measure.js?v=20261004-1" defer></script><script src="/js/government-regions.js?v=20261024-1" defer></script><script src="/js/government-tracker.js?v=20261025-1" defer></script>
 </body></html>

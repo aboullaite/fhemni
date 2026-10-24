@@ -77,7 +77,7 @@ class NavigationConsistencyTest {
                 .contains("href=\"/elections/2026\" data-i18n=\"common.electionResults\"")
                 .contains("class=\"secondary-button button-link\" href=\"/elections/2026\"")
                 .contains("data-i18n=\"home.archiveTitle\"")
-                .contains("/js/i18n.js?v=20261004-1");
+                .contains("/js/i18n.js?v=20261024-home2");
         for (String page : SECONDARY_PAGES) {
             assertThat(html(page))
                     .as("election result navigation in %s", page)
@@ -226,7 +226,7 @@ class NavigationConsistencyTest {
                 .contains("[dir=\"rtl\"] .election-graphs-jumps");
         assertThat(styles).containsPattern("(?s)@media \\(max-width: 640px\\).*?\\.election-tabs \\{[^}]*overflow-x: auto;[^}]*grid-template-columns: repeat\\(4,minmax\\(118px,1fr\\)\\)");
         assertThat(compiled).contains(".election-graphs-jumps").contains(".election-atlas-representative-cards");
-        assertThat(page).contains("/css/dist.css?v=20261005-1");
+        assertThat(page).contains("/css/dist.css?v=20261025-2");
     }
 
     @Test
@@ -963,7 +963,7 @@ class NavigationConsistencyTest {
     @Test
     void everyPageUsesThePinnedWebFontStylesheet() throws IOException {
         for (String page : ALL_PAGES) {
-            String version = "20261005-1";
+            String version = ADMIN_PAGES.contains(page) ? "20261005-1" : "20261025-2";
             assertThat(html(page))
                     .as("stylesheet in %s", page)
                     .containsOnlyOnce("/css/dist.css?v=" + version);
@@ -1014,7 +1014,7 @@ class NavigationConsistencyTest {
                 .doesNotContain("function cleanSummary(value)");
         assertThat(html("index.html"))
                 .contains("/js/catalog-ui.js?v=20260914-1")
-                .contains("/js/landing.js?v=20261004-1");
+                .contains("/js/landing.js?v=20261024-3");
         assertThat(html("promise.html"))
                 .contains("/js/catalog-ui.js?v=20260914-1")
                 .contains("/js/promise.js?v=20260914-1");
@@ -1090,7 +1090,7 @@ class NavigationConsistencyTest {
                 .contains("claim.kind === 'FACT'")
                 .contains("t('analysis.nonFactualExplanation')");
         assertThat(html("analysis.html"))
-                .contains("/js/analysis.js?v=20260912-2")
+                .contains("/js/analysis.js?v=20261025-1")
                 .contains("/js/i18n.js?v=20261004-1")
                 .doesNotContain("analysis.evidenceKicker");
         assertThat(html("js/i18n.js"))
@@ -1218,7 +1218,7 @@ class NavigationConsistencyTest {
                 .contains("id=\"programmeMedia\" class=\"programme-media\"")
                 .contains("class=\"video-js vjs-big-play-centered\"")
                 .contains("/webjars/video.js/8.24.1/dist/video-js.min.css")
-                .contains("/css/dist.css?v=20261005-1")
+                .contains("/css/dist.css?v=20261025-2")
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.24.1/dist/video.min.js")
                 .contains("/js/i18n.js?v=20261004-1")

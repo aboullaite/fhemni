@@ -79,6 +79,7 @@ public class SecurityConfiguration {
                         .requestMatchers(
                                 "/", "/index.html", "/videos", "/videos/**",
                                 "/government", "/government/", "/government.html",
+                                "/government/ministers", "/government/ministers/", "/government-ministers.html",
                                 "/government/commitments/**", "/commitment.html",
                                 "/government/measures", "/government/measures/**", "/measure.html",
                                 "/following", "/following/", "/following.html",
@@ -109,6 +110,8 @@ public class SecurityConfiguration {
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/catalog/videos/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/catalog/government/**").permitAll()
+                        // This controller exists only in the isolated, loopback-only research profile. CSRF remains enabled.
+                        .requestMatchers(HttpMethod.POST, "/api/catalog/government/2026-2031/preview/session").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/catalog/parties/*/programme/questions").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/catalog/promises/*/reports").authenticated()
                         .requestMatchers(HttpMethod.GET,

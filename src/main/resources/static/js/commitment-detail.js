@@ -1,18 +1,32 @@
-(function(root,factory){const api=factory(root,typeof module==='object'?require('./government-model.js'):root.FhemniGovernmentModel,typeof module==='object'?require('./government-charts.js'):root.FhemniGovernmentCharts);if(typeof module==='object'&&module.exports)module.exports=api;else{root.FhemniCommitment=api;document.addEventListener('DOMContentLoaded',api.init);}})(typeof window==='object'?window:globalThis,function(root,model,charts){
+(function(root,factory){const api=factory(root,typeof module==='object'?require('./government-model.js'):root.FhemniGovernmentModel,typeof module==='object'?require('./government-charts.js'):root.FhemniGovernmentCharts,typeof module==='object'?require('./government-visuals.js'):root.FhemniGovernmentVisuals);if(typeof module==='object'&&module.exports)module.exports=api;else{root.FhemniCommitment=api;document.addEventListener('DOMContentLoaded',api.init);}})(typeof window==='object'?window:globalThis,function(root,model,charts,visuals){
     function detailLoadCopy(state,locale='ar'){return model.COPY[locale][state==='notFound'?'notFound':state==='loading'?'loading':'error'];}
     function canonicalCampaignPath(view){return view?.origin==='CAMPAIGN'?'/promises/'+encodeURIComponent(view.slug.replace(/^campaign-/,'')):null;}
     function observationPageFor(rows,id){const index=rows.findIndex(row=>row.id===id);return index<0?1:Math.floor(index/10)+1;}
+    const DETAIL_COPY={
+        ar:{unassessed:'ما زال ما نشرناش معطيات موثقة باش نقيّمو تنفيذ هاد الالتزام.',history:'سجل التحديثات',noHistory:'ما كاين حتى تحديث منشور بعد.'},
+        fr:{unassessed:'Nous n’avons pas encore publié de données documentées permettant d’évaluer la réalisation de cet engagement.',history:'Historique des mises à jour',noHistory:'Aucune mise à jour publiée pour le moment.'},
+        en:{unassessed:'We have not yet published documented data to assess delivery of this commitment.',history:'Update history',noHistory:'No updates have been published yet.'}
+    };
     function renderCommitment(view,locale='ar',doc=globalThis.document,{observationPage=1,revisionPage=1,linkedCampaigns={}}={}){
-        const copy=model.COPY[locale],local=value=>model.localized(value,locale);
+        const copy=model.COPY[locale],detail=DETAIL_COPY[locale],local=value=>model.localized(value,locale);
         const el=(tag,text,className)=>{const node=doc.createElement(tag);if(text!=null)node.textContent=text;if(className)node.className=className;return node;};
         for(const [id,key]of Object.entries({commitmentBack:'back',originalTitle:'original',evidenceTitle:'sources',observationsTitle:'observations',revisionsTitle:'history'}))doc.getElementById(id).textContent=copy[key];
-        doc.getElementById('commitmentTitle').textContent=local(view.title);
+        doc.getElementById('revisionsTitle').textContent=detail.history;
+        const title=doc.getElementById('commitmentTitle'),titleLanguage=model.titleLanguage(view,locale);title.textContent=local(view.title);title.setAttribute('lang',titleLanguage);title.setAttribute('dir',titleLanguage==='ar'?'rtl':'auto');
+        const languageNote=doc.getElementById('commitmentLanguage');languageNote.textContent=copy.originalArabic;languageNote.hidden=titleLanguage!=='ar'||locale==='ar';
+        const ambition=doc.getElementById('commitmentAmbition');ambition.replaceChildren();ambition.hidden=!visuals.baselineComparison(view);
+        if(!ambition.hidden){const chart=el('div'),v=visuals.COPY[locale];ambition.append(el('h2',v.ambitions),el('p',v.ambitionNote,'government-meta'));if(view.programmeContext?.sourceStatus==='MIRROR_UNAUTHENTICATED')ambition.append(el('p',v.sourceNote,'government-source-status'));visuals.renderBaseline(chart,view,{locale,document:doc,showTitle:false});ambition.append(chart);const source=el('a',v.details);source.href='#commitmentSources';source.onclick=()=>{doc.getElementById('commitmentSources').open=true;};ambition.append(source);}
+        const context=view.programmeContext;
         function evidenceLinks(ids){const group=el('span',null,'government-evidence-links');for(const [index,id]of (ids||[]).entries()){const source=view.evidence?.find(item=>item.id===id),link=el('a',source?.locator||`${copy.evidenceLink} ${index+1}`);link.href='#evidence-'+id;link.onclick=()=>{doc.getElementById('commitmentSources').open=true;doc.getElementById('evidence-'+id)?.focus?.();};group.append(link);}return group;}
         const original=doc.getElementById('commitmentOriginal');original.textContent=view.originalText||copy.unknown;original.setAttribute('lang',view.originalLanguage||'ar');original.setAttribute('dir','auto');
-        const assessment=doc.getElementById('commitmentAssessment'),badge=el('p',copy[model.assessmentState(view)]||copy.UNASSESSED,'government-status');badge.setAttribute('data-state',model.assessmentState(view));assessment.replaceChildren(el('h2',copy.assessment),badge);
+        const normalized=value=>String(value||'').normalize('NFC').trim().replace(/\s+/g,' ');
+        const excerptInSources=!!context&&(view.evidence||[]).some(source=>normalized(source.passage)===normalized(view.originalText));
+        doc.getElementById('commitmentOriginalSection').hidden=!normalized(view.originalText)||excerptInSources||Object.values(view.title||{}).some(value=>normalized(value)===normalized(view.originalText));
+        const assessment=doc.getElementById('commitmentAssessment'),badge=el(view.deliveryAssessment?'p':'h2',copy[model.assessmentState(view)]||copy.UNASSESSED,'government-status');badge.setAttribute('data-state',model.assessmentState(view));assessment.replaceChildren(...(view.deliveryAssessment?[el('h2',copy.assessment),badge]:[badge]));
+        if(!view.deliveryAssessment)assessment.append(el('p',view.observations?.length?copy.deliveryNote:detail.unassessed,'government-meta'));
         if(view.deliveryAssessment){assessment.append(el('p',copy[view.deliveryAssessment.evidenceConfidence]||copy.unknown),el('p',local(view.deliveryAssessment.explanation)),el('p',`${copy.reviewed}: ${model.date(view.deliveryAssessment.reviewedAt,locale)}`,'government-meta'),evidenceLinks(view.deliveryAssessment.evidenceIds));}
         const facts=doc.getElementById('commitmentFacts');facts.replaceChildren();
-        for(const [key,value]of [['author',local(view.author)||copy.unknown],['responsible',local(view.responsibleBody)||copy.unknown],['scope',local(view.geographicScope?.label)||copy.unknown],['deadline',view.deadline?`${model.date(view.deadline,locale)} · ${copy[model.deriveDeadline(view.deadline,view.deliveryAssessment)]}`:copy.UNKNOWN]])facts.append(el('dt',copy[key]),el('dd',value));
+        for(const [key,value]of [['author',local(view.author)||copy.unknown],['responsible',local(view.responsibleBody)||copy.unknown],['scope',local(view.geographicScope?.label)||copy.unknown],['deadline',view.deadline?`${model.date(view.deadline,locale)} · ${copy[model.deriveDeadline(view.deadline,view.deliveryAssessment)]}`:context?.deadlineText||copy.UNKNOWN]])if(value!=null)facts.append(el('dt',copy[key]),el('dd',value));
         const links=doc.getElementById('commitmentLinks');links.replaceChildren();links.hidden=!view.links?.length;
         if(view.links?.length)links.append(el('h2',copy.links));
         for(const relationship of view.links||[]){const campaign=linkedCampaigns[relationship.campaignPromiseId],article=el('article',null,'public-panel public-stack'),link=el('a',campaign?local(campaign.title):copy.readProgramme);link.href='/government/commitments/'+encodeURIComponent(relationship.campaignPromiseId);article.append(el('h3',copy[relationship.relation]||copy.UNRESOLVED),el('p',local(relationship.explanation)),link);
@@ -29,8 +43,8 @@
             item.append(el('p',`${copy.sourceDate}: ${model.date(source.publishedAt,locale)} · ${copy.retrieved}: ${model.date(source.retrievedAt,locale)}`,'government-meta'));sources.append(item);
         }
         const observations=doc.getElementById('commitmentObservations');observations.replaceChildren();
-        if(!view.observations?.length)observations.append(el('p',copy.noObservations));
-        else {
+        doc.getElementById('commitmentObservationSection').hidden=!view.observations?.length;
+        if(view.observations?.length){
             const wrapper=el('div',null,'public-table-scroll'),table=el('table',null,'public-table');table.append(el('caption',copy.observations));
             const head=el('thead'),header=el('tr');for(const label of [copy.period,copy.value,copy.unit,copy.scope,copy.sources]){const th=el('th',label);th.setAttribute('scope','col');header.append(th);}head.append(header);table.append(head);
             const body=el('tbody');
@@ -41,6 +55,7 @@
             table.append(body);wrapper.append(table);observations.append(wrapper);
         }
         const history=doc.getElementById('commitmentHistory');history.replaceChildren();
+        if(!view.revisions?.length)history.append(el('p',detail.noHistory,'government-meta'));
         for(const revision of (view.revisions||[]).slice((revisionPage-1)*10,revisionPage*10)){const item=el('p'),link=el('a',`${copy.publishedRevision} ${model.number(revision.version,locale)} · ${model.date(revision.publishedAt,locale)}`);link.href='/government/revisions/'+encodeURIComponent(revision.id);item.append(link);if(revision.explanation)item.append(el('span',' · '+local(revision.explanation)));history.append(item);}
     }
     function init(){

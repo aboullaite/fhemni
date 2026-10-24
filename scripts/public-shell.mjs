@@ -1,7 +1,7 @@
 // Canonical public shell. Page bodies and administrative controls are not generated here.
 export const PUBLIC_PAGES = {
     'government.html':'/government', 'commitment.html':'/government/commitments/', 'measure.html':'/government/measures', 'analyse.html':'/analyse',
-    'following.html':'/following', 'government-history.html':'/government/history',
+    'following.html':'/following', 'government-history.html':'/government/history', 'government-ministers.html':'/government/ministers',
     'my-analyses.html':'/account/analyses', 'member-analysis.html':'/account/analyses/',
     'index.html':'/', '404.html':'/404', 'analysis.html':'/analyses/',
     'community.html':'/community', 'compare-programmes.html':'/parties/compare',

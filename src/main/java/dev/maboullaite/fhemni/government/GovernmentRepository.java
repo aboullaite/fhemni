@@ -24,7 +24,7 @@ public class GovernmentRepository {
 
     public void ensureMandate(String id) {
         if(!"2026-2031".equals(id))throw new IllegalArgumentException("Unknown mandate.");
-        jdbc.sql("INSERT INTO government_mandates(id,created_at) SELECT :id,:now WHERE NOT EXISTS (SELECT 1 FROM government_mandates WHERE id=:id)")
+        jdbc.sql("INSERT INTO government_mandates(id,created_at) VALUES(:id,:now) ON CONFLICT DO NOTHING")
             .param("id",id).param("now",Instant.now().atOffset(ZoneOffset.UTC)).update();
     }
     @Transactional

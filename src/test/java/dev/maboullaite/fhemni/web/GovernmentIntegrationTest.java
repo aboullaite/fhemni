@@ -20,6 +20,8 @@ class GovernmentIntegrationTest {
             .andExpect(jsonPath("$.programme").value(nullValue()));
         mvc.perform(get("/api/catalog/government/9999-9999")).andExpect(status().isNotFound());
         mvc.perform(get("/government/commitments/example")).andExpect(status().isOk()).andExpect(forwardedUrl("/commitment.html"));
+        mvc.perform(get("/government/ministers")).andExpect(status().isOk()).andExpect(forwardedUrl("/government-ministers.html"));
+        mvc.perform(get("/api/catalog/government/2026-2031/preview")).andExpect(status().isNotFound());
         mvc.perform(get("/api/catalog/government/2026-2031/deadlines")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
     }
     @Test void publishedHistoryHasPublicRoutesButDoesNotExposeUnknownOrDraftRecords() throws Exception {

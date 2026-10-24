@@ -5,8 +5,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class CommitmentRepository {
     private final GovernmentRepository repository;
-    public CommitmentRepository(GovernmentRepository repository){this.repository=repository;}
+    private final ProgrammeDiscovery discovery;
+    public CommitmentRepository(GovernmentRepository repository,ProgrammeDiscovery discovery){this.repository=repository;this.discovery=discovery;}
     public List<CommitmentView> published(String mandate) {
-        return repository.publishedPayloads(mandate,SubjectType.COMMITMENT).stream().map(json->repository.decode(json,CommitmentView.class)).toList();
+        return repository.publishedPayloads(mandate,SubjectType.COMMITMENT).stream().map(json->repository.decode(json,CommitmentView.class)).map(discovery::project).toList();
     }
 }

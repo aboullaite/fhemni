@@ -86,9 +86,10 @@ public final class GovernmentValidation {
         translations(value.explanation());ids(value.evidenceIds());
     }
     public static void scope(Scope value) {
-        if(value==null||!List.of("NATIONAL","REGION","PROVINCE","COMMUNE").contains(value.level()))throw new IllegalArgumentException("A geographic scope is required.");
+        if(value==null||!List.of("UNSPECIFIED","NATIONAL","REGION","PROVINCE","COMMUNE").contains(value.level()))throw new IllegalArgumentException("A geographic scope is required.");
         text(value.code(),"scope code",80);translations(value.label());
         if(value.level().equals("NATIONAL")&&!value.code().equals("MA"))throw new IllegalArgumentException("National scope must use MA.");
+        if(value.level().equals("UNSPECIFIED")&&!value.code().equals("UNSPECIFIED"))throw new IllegalArgumentException("Unclassified scope must not assert a geographic code.");
     }
     public static void commitment(CommitmentView value) {
         if(value==null||value.id()==null||value.origin()!=Origin.GOVERNMENT)throw new IllegalArgumentException("Government entries must be typed government commitments; campaign records are read-only.");

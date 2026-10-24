@@ -33,11 +33,18 @@
 .member-submit label,.member-submit form label,#memberQuestionForm label { display: grid; gap: 8px; min-width: 0; }
 .member-submit :is(input,select,button),#memberQuestionForm textarea { max-width: 100%; }
 .member-submit input { width: 100%; }
-body[data-public-shell] main .public-stack label > :is(input:not([type=checkbox]):not([type=radio]),textarea,select),
-body[data-public-shell] #followingPage label > select {
-    display: block; width: 100%; min-width: 0; padding: 10px 12px; margin-block-start: 8px;
-    border: 1px solid var(--line); background: var(--white); color: var(--ink); font: inherit;
+/* Shared fields must also work when main itself is the public stack.
+   Composite search/chat controls already provide their own outer surface. */
+body[data-public-shell] main :where(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=hidden]):not([type=file]):not([type=submit]):not([type=button]):not([type=reset]):not([type=color]):not(.url-input-wrap input):not(.search-control input),select:not(.filter-control select),textarea:not(.programme-question-form textarea):not(#questionInput)) {
+    box-sizing: border-box; display: block; width: 100%; min-width: 0; max-width: 100%;
+    min-height: 44px; padding: 10px 12px; margin: 0;
+    border: 1px solid var(--line); border-radius: var(--radius-control);
+    background: var(--white); color: var(--ink); font: inherit; line-height: 1.5;
 }
+body[data-public-shell] main :is(input,select,textarea):disabled { opacity: .6; cursor: not-allowed; }
+body[data-public-shell] main :is(input,textarea)::placeholder { color: var(--muted); opacity: 1; }
+body[data-public-shell] main .secondary-button { font: inherit; padding: 10px 16px; box-shadow: none; }
+body[data-public-shell] main .secondary-button:disabled { opacity: .6; cursor: not-allowed; transform: none; }
 body[data-public-shell] main textarea { resize: vertical; }
 .member-submit select { width: min(100%,260px); }
 .member-submit .primary-button { justify-self: start; }
@@ -135,6 +142,37 @@ body[data-public-shell] :is(button,a,input,select,textarea):focus-visible {
     outline: 2px solid var(--teal-dark); outline-offset: 3px;
 }
 body[data-public-shell] [hidden] { display: none !important; }
+/* Restore hierarchy where reset styles leave generated headings unstyled.
+   Low specificity preserves intentional card/chart heading sizes. */
+:where(body[data-public-shell] main) h2 { font-size: 24px; font-weight: 600; line-height: 1.5; }
+:where(body[data-public-shell] main) h3 { font-size: 20px; font-weight: 600; line-height: 1.5; }
+body[data-public-shell] .programme-heading h2 { font-size: clamp(24px, 2.5vw, 30px); line-height: 1.5; }
+body[data-public-shell] .priority-comparison-promise > strong { display: block; font-size: 16px; line-height: 1.6; -webkit-line-clamp: unset; overflow: visible; }
+body[data-public-shell] :is(.priority-comparison-topic-heading span,.priority-comparison-promise > span,.priority-more-count,.priority-comparison-error,.catalog-card-topline,.catalog-card-meta,.catalog-status,.catalog-view-tabs a,.catalog-result-heading span,.filter-control,.suggestion-copy p,.suggestion-feedback,.suggestion-community .section-heading > span,.suggestion-board-gate p,.suggestion-board-copy span) { font-size: 14px; line-height: 1.6; letter-spacing: normal; }
+body[data-public-shell] .priority-comparison-topic-heading span { white-space: normal; text-align: end; }
+body[data-public-shell] :is(.catalog-card-topline,.catalog-view-tabs) { flex-wrap: wrap; }
+body[data-public-shell] .catalog-status { width: auto; max-width: 100%; white-space: normal; }
+body[data-public-shell] .suggestion-board-copy a { font-size: 16px; line-height: 1.5; }
+body[data-public-shell] .suggestion-voting { grid-template-columns: 44px minmax(44px,auto) 44px; overflow: visible; }
+body[data-public-shell] .vote-button { width: 44px; height: 44px; font-size: 14px; }
+body[data-public-shell] .suggestion-score { min-width: 44px; font-size: 14px; }
+body[data-public-shell] .filter-control { min-width: 0; }
+body[data-public-shell] .filter-control select { min-width: 0; max-width: 100%; flex: 1; font: inherit; }
+body[data-public-shell] main summary { min-height: 44px; padding-block: 10px; cursor: pointer; }
+body[data-public-shell] main summary:focus-visible { outline: 2px solid var(--teal-dark); outline-offset: 3px; border-radius: var(--radius-control); }
+body[data-public-shell] :is(.government-evidence a,.government-evidence-links a,.government-evidence-link,.government-update a,#governmentHistoryContent a,#followingItems a,#followingUpdates a,#memberResult > a:not(.primary-button)) { color: var(--teal-dark); text-decoration: underline; text-underline-offset: 3px; }
+body[data-public-shell] .government-filter-chip { padding: 8px 12px; border: 1px solid var(--line); background: var(--mint); color: var(--teal-dark); font: inherit; cursor: pointer; }
+body[data-public-shell] .government-filter-chip:hover { border-color: var(--teal); }
+body[data-public-shell] .legal-document { max-width: 80ch; margin-inline: auto; }
+body[data-public-shell] main :lang(ar),
+body[data-public-shell] main :lang(ary) { font-family: "Tajawal", Tahoma, Arial, "Segoe UI", sans-serif; }
+body[data-public-shell] main h1:lang(ar),
+body[data-public-shell] main h1:lang(ary) { font-family: "Tajawal Heading Numerals", "Arabswell", "Tajawal", Tahoma, Arial, "Segoe UI", sans-serif; }
+body[data-public-shell] .back-link-icon { display: inline-block; }
+body[data-public-shell] :is(.text-link,.back-link) { font-size: 14px; line-height: 1.6; }
+body[data-public-shell] .back-link:dir(rtl) .back-link-icon { transform: scaleX(-1); }
+body[data-public-shell] .election-map-region:focus-visible path { stroke: var(--orange); stroke-width: 4; filter: drop-shadow(0 0 3px var(--ink)); }
+.methodology-step { display: inline-grid; place-items: center; justify-self: start; min-width: 36px; min-height: 36px; padding: 4px 8px; border-radius: var(--radius-control); background: var(--mint); color: var(--teal-dark); font-size: 14px; font-weight: 600; }
 .shared-header.public-header {
     position: relative; z-index: 30;
     display: flex; flex-wrap: wrap; align-items: center;
@@ -195,7 +233,6 @@ body[data-public-shell] .priority-social-shares { grid-template-columns: repeat(
 .public-toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; }
 .public-toolbar > * { flex: 1 1 160px; min-width: 0; }
 .public-toolbar label { display: grid; gap: 8px; }
-.public-toolbar :is(input,select) { width: 100%; min-width: 0; padding: 8px 12px; border: 1px solid var(--line); background: var(--white); }
 .public-table-scroll { max-width: 100%; overflow: auto; }
 .public-table-scroll table { width: 100%; border-collapse: collapse; text-align: start; }
 .public-table-scroll :is(td,th) { padding: 12px; border-bottom: 1px solid var(--line); }

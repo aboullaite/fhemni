@@ -17,6 +17,7 @@ const state = {
 
 const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
 const QUESTION_REQUEST_TIMEOUT_MS = 40_000;
+let analysisTabs;
 
 function t(key, parameters = {}) {
     return window.FhemniI18n?.t(key, parameters) ?? key;
@@ -94,8 +95,8 @@ function bindEvents() {
             elements.questionForm.requestSubmit();
         }
     });
-    document.querySelectorAll('.tab[data-tab]').forEach(button => {
-        button.addEventListener('click', () => activateTab(button.dataset.tab));
+    analysisTabs = window.FhemniUI.mountTabs(document.querySelector('#analysisTabs'), {
+        selected: 'analysisOverviewTab'
     });
     document.querySelectorAll('.filter').forEach(button => {
         button.addEventListener('click', () => filterClaims(button.dataset.filter));
@@ -653,8 +654,9 @@ function selectQuestionMode(mode) {
     document.querySelectorAll('.mode-option').forEach(button => {
         const selected = button.dataset.mode === mode;
         button.classList.toggle('active', selected);
-        button.classList.toggle('tab-active', selected);
-        button.setAttribute('aria-selected', String(selected));
+        button.classList.toggle('btn-primary', selected);
+        button.classList.toggle('btn-ghost', !selected);
+        button.setAttribute('aria-pressed', String(selected));
     });
     if (mode === 'VIDEO') {
         elements.modeExplanationTitle.textContent = t('analysis.videoAnswerTitle');
@@ -666,17 +668,8 @@ function selectQuestionMode(mode) {
 }
 
 function activateTab(name) {
-    document.querySelectorAll('.tab[data-tab]').forEach(button => {
-        const selected = button.dataset.tab === name;
-        button.classList.toggle('active', selected);
-        button.classList.toggle('tab-active', selected);
-        button.setAttribute('aria-selected', String(selected));
-    });
-    document.querySelectorAll('.tab-panel').forEach(panel => {
-        const selected = panel.id === `${name}Tab`;
-        panel.classList.toggle('active', selected);
-        panel.classList.toggle('hidden', !selected);
-    });
+    const tab = document.querySelector(`#analysisTabs [data-tab="${name}"]`);
+    if (tab) analysisTabs.select(tab.id);
 }
 
 function filterClaims(filter) {

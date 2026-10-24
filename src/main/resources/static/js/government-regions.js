@@ -8,5 +8,32 @@
         const wrap=el('div',null,'public-table-scroll'),table=el('table',null,'public-table'),head=el('thead'),tr=el('tr');table.append(el('caption',copy.title));for(const title of [common.open,common.scope,common.value,common.period,common.responsible]){const th=el('th',title);th.scope='col';tr.append(th);}head.append(tr);table.append(head);const body=el('tbody');
         for(const row of rows.slice(0,10)){const r=row.observation,line=el('tr'),cell=el('td'),link=el('a',model.localized(row.title,locale));link.href=observationLink(row);cell.append(link,el('p',r.metric,'government-meta'));line.append(cell,el('td',`${common[r.scope.level]} · ${model.localized(r.scope.label,locale)}`),el('td',`${model.number(r.value,locale)} ${r.unit}`),el('td',`${model.date(r.periodStart,locale)} — ${model.date(r.periodEnd,locale)}`),el('td',model.localized(row.responsibleBody,locale)||common.unknown));body.append(line);}table.append(body);wrap.append(table);container.append(wrap);
     }
-    return {COPY,comparisonRows,observationLink,render};
+    const PROGRAMME_COPY={
+        ar:{title:'شنو ذكر البرنامج فكل جهة؟',mode:'عرض الجهات',programme:'مواد البرنامج',measurements:'قياسات الإنجاز',note:'هاد الربط كيعتمد على الأماكن المذكورة صراحة فالبرنامج، ماشي قياس للإنجاز ولا توزيع للميزانية. المواد الوطنية ما كنوزعوهاش تلقائياً على الجهات. المادة تقدر تذكر أكثر من جهة.',counts:'مواد مرتبطة بأماكن مسماة',empty:'ما لقيناش مواد مرتبطة بأماكن مسماة بهاد التصفية. هادشي ما كيعنيش غياب مشاريع أو التزامات وطنية فالجهة.',source:'المقطع فالبرنامج',page:'الصفحة',open:'شوف المادة ومصدرها',all:'جميع الجهات'},
+        fr:{title:'Que mentionne le programme dans chaque région ?',mode:'Vue régionale',programme:'Contenu du programme',measurements:'Mesures de réalisation',note:'Ces liens reposent sur les lieux explicitement nommés, pas sur la réalisation ou les budgets. Les engagements nationaux ne sont pas répartis artificiellement entre régions. Une entrée peut mentionner plusieurs régions.',counts:'Entrées liées à des lieux nommés',empty:'Aucune entrée liée à un lieu nommé pour ces filtres. Cela ne signifie pas une absence de projets ou d’engagements nationaux dans la région.',source:'Passage du programme',page:'Page',open:'Voir l’entrée et sa source',all:'Toutes les régions'},
+        en:{title:'What does the programme mention in each region?',mode:'Regional view',programme:'Programme entries',measurements:'Delivery measurements',note:'These links use explicitly named places, not delivery or budget measurements. National commitments are not assigned artificially to every region. An entry may mention several regions.',counts:'Entries linked to named places',empty:'No entries linked to named places for these filters. This does not mean there are no projects or national commitments in the region.',source:'Programme passage',page:'Page',open:'View entry and source',all:'All regions'}
+    };
+    function renderProgramme(container,page,{locale='ar',document:doc=globalThis.document,state={},onFilter}={}){
+        const copy=PROGRAMME_COPY[locale],common=model.COPY[locale],el=(tag,text,cls)=>{const n=doc.createElement(tag);if(text!=null)n.textContent=text;if(cls)n.className=cls;return n;};
+        container.replaceChildren(el('h2',copy.title),el('p',copy.note,'government-note'));
+        const chart=el('section',null,'government-region-coverage');chart.append(el('h3',copy.counts));
+        const grid=el('div',null,'government-region-grid'),counts=page?.regionCounts||[],max=Math.max(1,...counts.map(row=>row.count));
+        for(const row of counts){const code=row.region.code,button=el('button',null,'government-region-bar');button.id='trackerRegionBar-'+code;button.type='button';button.setAttribute('aria-pressed',String(state.region===code));
+            button.append(el('span',model.localized(row.region.label,locale)),el('span',model.number(row.count,locale),'government-region-count'));
+            const track=el('span',null,'government-chart-track'),bar=el('span',null,'government-chart-bar');track.setAttribute('aria-hidden','true');bar.style.width=(row.count/max*100)+'%';track.append(bar);button.append(track);
+            button.onclick=()=>onFilter?.({...state,region:state.region===code?'':code,page:1});grid.append(button);
+        }chart.append(grid);container.append(chart);
+        if(!page?.items?.length){container.append(el('p',copy.empty));return;}
+        const cards=el('div',null,'government-card-grid');
+        for(const item of page.items.slice(0,10)){
+            const row=item.commitment,card=el('article',null,'public-panel government-commitment-card'),heading=el('h3'),link=el('a',model.localized(row.title,locale));link.href='/government/commitments/'+encodeURIComponent(row.slug);link.setAttribute('lang',model.titleLanguage(row,locale));link.setAttribute('dir','auto');heading.append(link);card.append(heading);
+            const places=item.places.filter(place=>!state.region||place.regionCode===state.region);card.append(el('p',[...new Set(places.map(place=>model.localized(place.place,locale)))].join(' · '),'government-region-places'));
+            if(row.programmeContext?.sourceStatus==='MIRROR_UNAUTHENTICATED')card.append(el('p',common.sourceUnverified,'government-source-status'));
+            const detail=el('details');detail.append(el('summary',copy.source));const seen=new Set();
+            for(const place of places){const key=place.printedPage+'|'+place.sourceExcerpt;if(seen.has(key))continue;seen.add(key);const quote=el('blockquote',place.sourceExcerpt);quote.setAttribute('lang','ar');quote.setAttribute('dir','rtl');detail.append(quote,el('p',`${copy.page} ${model.number(place.printedPage,locale)}`,'government-meta'));}
+            card.append(detail);cards.append(card);
+        }
+        container.append(cards);
+    }
+    return {COPY,PROGRAMME_COPY,comparisonRows,observationLink,render,renderProgramme};
 });

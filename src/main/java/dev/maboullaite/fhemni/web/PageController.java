@@ -27,6 +27,8 @@ public class PageController {
     public String commitmentPage() { return "forward:/commitment.html"; }
     @GetMapping({"/government/history","/government/revisions/{id}"})
     public String governmentHistoryPage() { return "forward:/government-history.html"; }
+    @GetMapping({"/government/ministers","/government/ministers/"})
+    public String governmentMinistersPage() { return "forward:/government-ministers.html"; }
     @GetMapping({"/government/measures","/government/measures/","/government/measures/{slug}"})
     public String measurePage() { return "forward:/measure.html"; }
     @GetMapping({"/following","/following/"})

@@ -32,7 +32,10 @@
     <title>فهّمني — من الوعد للواقع</title>
     <link rel="icon" href="/favicon.ico?v=20260911" sizes="32x32">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/brand/apple-touch-icon.png?v=20260911">
-    <link rel="stylesheet" href="/css/dist.css?v=20261005-1">
+    <link rel="stylesheet" href="/css/dist.css?v=20261025-2">
+    <link rel="stylesheet" href="/css/home.css?v=20261024-2">
+    <link rel="stylesheet" href="/css/government-visuals.css?v=20261024-5">
+    <link rel="stylesheet" href="/css/government-cards.css?v=20261024-1">
 </head>
 <body data-public-shell class="public-page" data-i18n-page-title="landing.pageTitle">
 <div class="ambient ambient-one"></div>
@@ -70,8 +73,8 @@
 <main class="accountability-home public-stack">
     <section class="accountability-hero" aria-labelledby="homeTitle">
         <div class="accountability-hero-copy">
-            <p class="home-mandate-label"><bdi>2026 — 2031</bdi></p>
-            <h1 id="homeTitle" data-i18n="home.title">من الوعد للواقع</h1>
+            <p class="home-mandate-label"><span data-i18n="home.eyebrow">فهم. قارن. تتبّع.</span><bdi>2026 — 2031</bdi></p>
+            <h1 id="homeTitle" data-i18n="home.title">الانتخابات سالات، الحكومة تشكّلات، والمحاسبة بدات.</h1>
             <p data-i18n="home.intro">نتبعو وعود الأحزاب، التزامات الحكومة، وشنو تحقق فعلاً — بالمصادر.</p>
             <div class="home-actions">
                 <a class="primary-button button-link" href="/government" data-i18n="home.track">تتبع الوعود</a>
@@ -83,19 +86,40 @@
             <span class="mandate-stage" data-i18n="home.mandate">الحكومة وبرنامجها</span>
             <h2 id="mandateStatus" aria-live="polite">كنحمّلو آخر المعطيات…</h2>
             <p id="mandateExplanation"></p>
-            <p id="mandateVerified" class="home-reading-note" hidden></p>
             <p id="mandateCoverage" class="home-reading-note" hidden></p>
             <a id="homeProgrammeLink" class="text-link" href="/parties">الأحزاب والبرامج</a>
             <button id="homeRetry" class="secondary-button" type="button" data-i18n="home.retry" hidden>عاود المحاولة</button>
         </aside>
     </section>
+    <section class="home-section" aria-labelledby="homeProgrammeTitle">
+        <div class="home-section-heading programme-feature-heading"><h2 id="homeProgrammeTitle" data-i18n="home.programmePreview">من البرنامج الحكومي</h2><button type="button" id="homeShuffle">شوف اختيارات أخرى</button></div>
+        <div id="homeProgrammeCards" class="programme-feature-grid" aria-live="polite" aria-describedby="homeProgrammeNote"></div>
+        <p id="homeProgrammeNote" class="home-reading-note" hidden></p>
+        <a class="text-link" href="/government?tab=programme&origin=GOVERNMENT" data-i18n="home.exploreProgramme">استكشف البرنامج</a>
+        <button id="programmeRetry" class="secondary-button" type="button" data-i18n="home.retry" hidden>عاود المحاولة</button>
+    </section>
     <section class="home-section" aria-labelledby="homeTopicsTitle">
-        <h2 id="homeTopicsTitle" data-i18n="home.topics">شنو كيهمّك؟</h2>
+        <div class="home-section-heading"><h2 id="homeTopicsTitle" data-i18n="home.topics">شنو كيهمّك؟</h2><span class="home-reading-note" data-i18n="home.topicsHint">بدا بموضوع قريب ليك</span></div>
         <div id="homeTopics" class="home-topics"></div>
+        <details id="homeTopicsDisclosure" class="home-topics-disclosure" hidden><summary id="homeMoreTopicsLabel">جميع المواضيع</summary><div id="homeMoreTopics" class="home-topics"></div></details>
         <button id="topicsRetry" class="secondary-button" type="button" data-i18n="home.retry" hidden>عاود المحاولة</button>
     </section>
+    <section class="home-discovery-grid" aria-label="استكشف فهّمني" data-i18n-aria-label="home.discover">
+        <article class="home-discovery-card">
+            <span class="home-discovery-mark" aria-hidden="true">↗</span>
+            <h2 data-i18n="home.teamTitle">شكون فالحكومة؟</h2>
+            <p data-i18n="home.teamText">الأسماء، المسؤوليات، ومدة العضوية. تعرّف على الفريق اللي كيسير الحكومة.</p>
+            <a class="text-link" href="/government/ministers" data-i18n="home.teamAction">تعرّف على أعضاء الحكومة</a>
+        </article>
+        <article class="home-discovery-card home-discovery-video">
+            <span class="home-discovery-mark" aria-hidden="true">▷</span>
+            <h2 data-i18n="home.videoTitle">من فيديو طويل لفكرة واضحة</h2>
+            <p data-i18n="home.videoText">عندك تصريح بغيتي تفهمو؟ زيد رابط الفيديو، قرا التحليل وسول على التفاصيل.</p>
+            <a class="secondary-button button-link" href="/analyse" data-i18n="home.videoAction">جرّب تحليل فيديو</a>
+        </article>
+    </section>
     <section class="home-section" aria-labelledby="homePromisesTitle">
-        <div class="section-heading"><h2 id="homePromisesTitle" data-i18n="home.promises">وعود الأحزاب تحت المجهر</h2><a class="text-link" href="/parties" data-i18n="home.allProgrammes">جميع البرامج</a></div>
+        <div class="home-section-heading"><h2 id="homePromisesTitle" data-i18n="home.promises">وعود الأحزاب تحت المجهر</h2><a class="text-link" href="/parties" data-i18n="home.allProgrammes">جميع البرامج</a></div>
         <div id="featuredPromises" class="home-promise-grid" aria-live="polite"></div>
         <button id="promisesRetry" class="secondary-button" type="button" data-i18n="home.retry" hidden>عاود المحاولة</button>
     </section>
@@ -116,11 +140,14 @@
 </footer>
 <!-- public-shell:footer:end -->
 
-<script src="/js/i18n.js?v=20261004-1" defer></script>
+<script src="/js/i18n.js?v=20261024-home2" defer></script>
 <script src="/js/auth.js?v=20261005-1" defer></script>
-<script src="/js/government-api.js?v=20261004-1" defer></script>
+<script src="/js/government-api.js?v=20261024-1" defer></script>
 <script src="/js/catalog-ui.js?v=20260914-1" defer></script>
-<script src="/js/landing.js?v=20261004-1" defer></script>
+<script src="/js/government-model.js?v=20261023-5" defer></script>
+<script src="/js/government-visuals.js?v=20261024-4" defer></script>
+<script src="/js/government-cards.js?v=20261024-1" defer></script>
+<script src="/js/landing.js?v=20261024-3" defer></script>
 <script src="/js/site-shell.js?v=20261004-2" defer></script>
 </body>
 </html>
