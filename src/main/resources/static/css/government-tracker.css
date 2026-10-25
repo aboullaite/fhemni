@@ -17,6 +17,12 @@
 .government-delivery-dot{width:9px;height:9px;border-radius:50%}
 .government-delivery-total{margin-block:12px 4px;font-weight:600;font-size:.9rem}
 .government-delivery-summary .government-meta{font-size:.8rem}
+.government-delivery-snapshot{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:2rem;align-items:center}
+.government-delivery-snapshot h3{font-size:1.3rem;font-weight:700;margin:0}
+.government-delivery-snapshot .government-delivery-layout{grid-column:2;grid-row:1/4}
+.government-delivery-snapshot .government-delivery-total{grid-column:1}
+.government-delivery-snapshot>.government-meta{grid-column:1;max-width:45ch}
+@media(max-width:800px){.government-delivery-snapshot{grid-template-columns:minmax(0,1fr);gap:.75rem}.government-delivery-snapshot .government-delivery-layout{grid-column:1;grid-row:auto;max-width:480px}}
 @media(max-width:1000px){.government-overview-summary{grid-template-columns:minmax(0,1fr)}.government-delivery-summary{border-inline-start:0;padding-inline-start:0;border-block-start:1px solid var(--line);padding-block-start:1.5rem}.government-delivery-layout{max-width:480px}}
 @media(max-width:440px){.government-delivery-layout{flex-direction:column;align-items:stretch}.government-delivery-ring{align-self:center}.government-delivery-key{min-height:44px}}
 .government-search{display:grid;gap:.5rem}

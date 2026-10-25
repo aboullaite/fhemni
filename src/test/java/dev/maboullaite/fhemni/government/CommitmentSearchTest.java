@@ -15,14 +15,18 @@ class CommitmentSearchTest {
             rows.add(new CommitmentView(UUID.randomUUID(),"entry-"+i,Origin.GOVERNMENT,new LocalText("عنوان","Titre","Title"),"text","ar",null,null,List.of("HEALTH"),null,null,null,null,assessment,List.of(),List.of(),List.of(),List.of()));
         }
         when(repository.published("2026-2031")).thenReturn(rows);
-        var service=new CommitmentService(repository,mock(CampaignPromiseAdapter.class),mock(GovernmentRepository.class),mock(ProgrammeRelationships.class));
+        var service=new CommitmentService(repository,mock(CampaignPromiseAdapter.class),mock(GovernmentRepository.class),mock(ProgrammeRelationships.class),new ProgrammeBudgetEvidence(new tools.jackson.databind.json.JsonMapper()));
         var json=new tools.jackson.databind.json.JsonMapper().valueToTree(service.insights("2026-2031","GOVERNMENT",null,null,null,null));
         assertEquals(3,json.path("deliveryCounts").path("DELIVERED").asInt());
         assertEquals(1,json.path("deliveryCounts").path("UNDERWAY").asInt());
         assertEquals(10,json.path("deliveryCounts").path("UNASSESSED").asInt());
         assertEquals(0,json.path("deliveryCounts").path("NO_EVIDENCE_FOUND").asInt());
+        var reviewed=service.list("2026-2031","GOVERNMENT",null,null,null,"REVIEWED",1);
+        assertEquals(4,reviewed.totalItems());
+        assertTrue(reviewed.items().stream().allMatch(row->row.deliveryAssessment()!=null));
+        assertEquals(0,service.list("2026-2031","GOVERNMENT","OTHER",null,null,"REVIEWED",1).totalItems());
     }
-    @Test void filtersBeforePaginationAndPreservesProgrammeContextOnDetail() {
+    @Test void filtersBeforePaginationAndPreservesProgrammeContextOnDetail() throws Exception {
         var repository=mock(CommitmentRepository.class);var campaigns=mock(CampaignPromiseAdapter.class);
         var revisions=mock(GovernmentRepository.class);var relationships=mock(ProgrammeRelationships.class);
         var context=new ProgrammeContext("MIRROR_UNAUTHENTICATED",List.of(60),"service","health coverage",null,null,null,List.of(),List.of());
@@ -30,7 +34,7 @@ class CommitmentSearchTest {
         for(int i=0;i<15;i++)rows.add(new CommitmentView(UUID.randomUUID(),"health-"+i,Origin.GOVERNMENT,new LocalText("الصحة","Santé","Health"),"original","ar",null,null,List.of("HEALTH"),null,null,null,null,null,List.of(),List.of(),List.of(),List.of(),context));
         when(repository.published("2026-2031")).thenReturn(rows);
         when(relationships.project(any())).thenAnswer(call->call.getArgument(0));
-        var service=new CommitmentService(repository,campaigns,revisions,relationships);
+        var service=new CommitmentService(repository,campaigns,revisions,relationships,new ProgrammeBudgetEvidence(new tools.jackson.databind.json.JsonMapper()));
         var first=service.list("2026-2031","GOVERNMENT",null,null,"الصحة","UNASSESSED",1);
         assertEquals(15,first.totalItems());assertEquals(10,first.items().size());
         assertEquals(5,service.list("2026-2031","GOVERNMENT",null,null,"health","UNASSESSED",2).items().size());

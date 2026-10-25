@@ -19,7 +19,10 @@
     Object.assign(COPY.ar,{topicMethod:'تصنيف المواضيع من إعداد فهّمني للمساعدة على البحث، وماشي تصنيف رسمي ديال البرنامج.',sourceResearchNote:'ملاحظة بحثية على المصدر — ماشي اقتباس حرفي',condition:'صيغة الهدف'});
     Object.assign(COPY.fr,{topicMethod:'Les thèmes sont des classifications éditoriales de Fhemni pour faciliter la recherche, et non des catégories officielles du programme.',sourceResearchNote:'Note de recherche sur la source — pas une citation',condition:'Formulation de l’objectif'});
     Object.assign(COPY.en,{topicMethod:'Topic labels are Fhemni editorial classifications for browsing, not official programme categories.',sourceResearchNote:'Research note about the source — not a quotation',condition:'Target qualifier'});
-    function localized(value,locale='ar'){return typeof value==='string'?value:value?.[locale]||value?.ar||value?.fr||value?.en||'';}
+    function localized(value,locale='ar'){
+        const text=typeof value==='string'?value:value?.[locale]||value?.ar||value?.fr||value?.en||'';
+        return text==='النطاق الجغرافي ما تصنّفش بعد'?'النطاق الجغرافي ما متصنّفش':text;
+    }
     function programmeTopicLabel(row,locale='ar'){return row?.code==='OTHER'?{ar:'ما تصنفش بعد',fr:'Pas encore classé',en:'Not yet classified'}[locale]:localized(row?.label,locale)||row?.code||'';}
     function validDate(value){return typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value))&&new Date(value).toISOString().slice(0,10)===value;}
     function deriveDeadline(deadline,assessment,now=new Date().toISOString().slice(0,10)){
@@ -37,10 +40,11 @@
         // A measured quantity is not a delivery percentage. Leave judgement to the sourced assessment.
         return {available:true,rows,progress:null,reason:null};
     }
-    function readTrackerState(url){const query=new URL(url,'http://localhost').searchParams;const tab=query.get('tab'),origin=query.get('origin'),page=Number(query.get('page'));
+    function readTrackerState(url){const query=new URL(url,'http://localhost').searchParams;let tab=query.get('tab');const origin=query.get('origin'),page=Number(query.get('page'));
         const code=value=>/^[A-Z0-9_-]{1,48}$/.test(value||'')?value:'';
         const region=/^[a-z0-9-]{1,80}$/.test(query.get('region')||'')?query.get('region'):'';
         const assessment=['UNASSESSED','NO_EVIDENCE_FOUND','UNDERWAY','PARTLY_DELIVERED','DELIVERED','WITHDRAWN'].includes(query.get('assessment'))?query.get('assessment'):'';
+        if(tab==='delivery'&&assessment==='UNASSESSED')tab='programme';
         return {tab:['overview','programme','delivery','regions'].includes(tab)?tab:'overview',origin:origin==='CAMPAIGN'?'CAMPAIGN':'GOVERNMENT',topic:code(query.get('topic')),party:tab==='programme'&&origin==='CAMPAIGN'?code(query.get('party')):'',region,regionalView:query.get('regionalView')==='measurements'?'measurements':'programme',q:(query.get('q')||'').trim().slice(0,200),assessment,page:Number.isInteger(page)&&page>0&&page<=100000?page:1};
     }
     function trackerUrl(url,state){const next=new URL(url,'http://localhost');for(const key of ['tab','origin','topic','party','region','regionalView','q','assessment','page']){if(state[key])next.searchParams.set(key,state[key]);else next.searchParams.delete(key);}return next.pathname+next.search+next.hash;}

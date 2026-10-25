@@ -1,6 +1,7 @@
 @config "../../../../../tailwind.config.js";
 /* Tailwind CSS 4 replaces the three legacy @tailwind directives with this import. */
 @import "tailwindcss" source(none);
+@import "./card-layout.css";
 @source "../**/*.html";
 @source "../**/*.js";
 @plugin "../../../../../.tailwind/daisyui.mjs" {

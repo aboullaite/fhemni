@@ -1,0 +1,219 @@
+{
+  "source": "commitments-049-095.json",
+  "sourceSha256": "2759a170141a2e64219b2f00a89a31d177d74bd71632bd9850a5fa0a3a1e698c",
+  "commitments": [
+    {
+      "id": "p052-electricity-bill-compensation",
+      "pages": [
+        52
+      ],
+      "titleAr": "تعويض تلقائي لفواتير الكهرباء الصغيرة",
+      "summaryEn": "Compensate the full eligible monthly electricity bill through a distributor bill discount, without paper applications, for the principal residence of households eligible on actual income.",
+      "kind": "finance",
+      "target": {
+        "value": 100,
+        "unit": "MAD monthly bill eligibility ceiling",
+        "operator": "at-most",
+        "periodText": "الفاتورة الشهرية",
+        "baseline": null
+      },
+      "deadlineText": null,
+      "responsibleBody": null,
+      "beneficiaries": "Income-eligible households for their principal residence",
+      "scopeText": "Compensate the full eligible monthly electricity bill through a distributor bill discount, without paper applications, for the principal residence of households eligible on actual income.",
+      "sourceAnchor": "تعويضا اجتماعيا تلقائيا",
+      "sourceStatus": "MIRROR_UNAUTHENTICATED",
+      "deliveryStatus": "UNASSESSED",
+      "caveats": [
+        "100 MAD is an eligibility ceiling, not a universal flat payment or a cap on total electricity prices."
+      ]
+    },
+    {
+      "id": "p052-ir-brackets",
+      "pages": [
+        52
+      ],
+      "titleAr": "تبسيط أشطر الضريبة على الدخل",
+      "summaryEn": "Reduce taxable income brackets from five to three, with progressive rates of 10%, 20% and 30%, and lower the top marginal rate from 37% to 30% while widening the base and combating evasion.",
+      "kind": "finance",
+      "target": null,
+      "deadlineText": "على مدى خمس سنوات (2027-2031)",
+      "responsibleBody": null,
+      "beneficiaries": null,
+      "scopeText": "Reduce taxable income brackets from five to three, with progressive rates of 10%, 20% and 30%, and lower the top marginal rate from 37% to 30% while widening the base and combating evasion.",
+      "sourceAnchor": "تقليص عدد الأشطر الخاضعة للضريبة",
+      "sourceStatus": "MIRROR_UNAUTHENTICATED",
+      "deliveryStatus": "UNASSESSED",
+      "caveats": [
+        "The excerpt does not define the future boundaries of the three taxable brackets; do not invent them."
+      ]
+    },
+    {
+      "id": "p052-ir-exempt-threshold",
+      "pages": [
+        52
+      ],
+      "titleAr": "رفع حد الدخل الصافي المعفى",
+      "summaryEn": "Progressively raise the first net-income exemption threshold from MAD 40,000 to MAD 60,000 after assessing household and public-revenue effects.",
+      "kind": "finance",
+      "target": {
+        "value": 60000,
+        "unit": "MAD net-income exemption threshold",
+        "operator": "equal",
+        "periodText": "على مدى خمس سنوات (2027-2031)",
+        "baseline": {
+          "value": 40000,
+          "unit": "MAD net-income exemption threshold",
+          "source": "programme-reported"
+        }
+      },
+      "deadlineText": "على مدى خمس سنوات (2027-2031)",
+      "responsibleBody": null,
+      "beneficiaries": null,
+      "scopeText": "Progressively raise the first net-income exemption threshold from MAD 40,000 to MAD 60,000 after assessing household and public-revenue effects.",
+      "sourceAnchor": "من 40.000 إلى 60.000 درهم",
+      "sourceStatus": "MIRROR_UNAUTHENTICATED",
+      "deliveryStatus": "UNASSESSED",
+      "caveats": [
+        "The paragraph does not explicitly restate annual periodicity for the threshold."
+      ]
+    },
+    {
+      "id": "p057-minimum-pensions",
+      "pages": [
+        53,
+        57,
+        58
+      ],
+      "titleAr": "رفع المعاشات الرئيسية الدنيا",
+      "summaryEn": "Progressively raise minimum principal pensions across schemes to MAD 3,000 monthly through a clear financed timetable and periodic reviews.",
+      "kind": "finance",
+      "target": {
+        "value": 3000,
+        "unit": "MAD per month main pension minimum",
+        "operator": "equal",
+        "periodText": "الرفع التدريجي",
+        "baseline": null
+      },
+      "deadlineText": null,
+      "responsibleBody": null,
+      "beneficiaries": null,
+      "scopeText": "Progressively raise minimum principal pensions across schemes to MAD 3,000 monthly through a clear financed timetable and periodic reviews.",
+      "sourceAnchor": "الحد الأدنى للمعاشات الرئيسية",
+      "sourceStatus": "MIRROR_UNAUTHENTICATED",
+      "deliveryStatus": "UNASSESSED",
+      "caveats": [
+        "No completion date is specified in the operative paragraph; do not treat it as an already applicable entitlement."
+      ]
+    },
+    {
+      "id": "p055-assistance-minimum",
+      "pages": [
+        55
+      ],
+      "titleAr": "رفع الحد الأدنى للدعم الشهري",
+      "summaryEn": "Progressively raise the monthly minimum direct assistance from MAD 500 to MAD 1,000 with financed programming, periodic review and impact measurement.",
+      "kind": "finance",
+      "target": {
+        "value": 1000,
+        "unit": "MAD per month",
+        "operator": "equal",
+        "periodText": "الرفع التدريجي",
+        "baseline": {
+          "value": 500,
+          "unit": "MAD per month",
+          "source": "programme-reported"
+        }
+      },
+      "deadlineText": null,
+      "responsibleBody": null,
+      "beneficiaries": null,
+      "scopeText": "Progressively raise the monthly minimum direct assistance from MAD 500 to MAD 1,000 with financed programming, periodic review and impact measurement.",
+      "sourceAnchor": "الرفع التدريجي للحد الأدنى للدعم الشهري",
+      "sourceStatus": "MIRROR_UNAUTHENTICATED",
+      "deliveryStatus": "UNASSESSED",
+      "caveats": [
+        "This full-programme paragraph does not independently date completion; the declaration reports an end-of-term target."
+      ]
+    },
+    {
+      "id": "p057-widow-pensions",
+      "pages": [
+        57,
+        58
+      ],
+      "titleAr": "معاش كامل للأرامل مع حماية بقية الحقوق",
+      "summaryEn": "Enable widows to receive 100% rather than 50% of the deceased spouse's principal pension while preserving orphan and other beneficiary rights and fair rules for multiple beneficiaries.",
+      "kind": "finance",
+      "target": {
+        "value": 100,
+        "unit": "percent of deceased spouse main pension",
+        "operator": "equal",
+        "periodText": "إصلاح معاشات ذوي الحقوق",
+        "baseline": {
+          "value": 50,
+          "unit": "percent of deceased spouse main pension",
+          "source": "programme-reported"
+        }
+      },
+      "deadlineText": null,
+      "responsibleBody": null,
+      "beneficiaries": null,
+      "scopeText": "Enable widows to receive 100% rather than 50% of the deceased spouse's principal pension while preserving orphan and other beneficiary rights and fair rules for multiple beneficiaries.",
+      "sourceAnchor": "معاش كامل يعادل 100%",
+      "sourceStatus": "MIRROR_UNAUTHENTICATED",
+      "deliveryStatus": "UNASSESSED",
+      "caveats": []
+    },
+    {
+      "id": "p063-hospital-rehabilitation",
+      "pages": [
+        63
+      ],
+      "titleAr": "تأهيل تسعين مستشفى إقليميا وجهويا",
+      "summaryEn": "Accelerate rehabilitation of 90 provincial and regional hospitals.",
+      "kind": "infrastructure",
+      "target": {
+        "value": 90,
+        "unit": "provincial and regional hospitals",
+        "operator": "equal",
+        "periodText": "تسريع برنامج التأهيل",
+        "baseline": null
+      },
+      "deadlineText": null,
+      "responsibleBody": null,
+      "beneficiaries": null,
+      "scopeText": "Accelerate rehabilitation of 90 provincial and regional hospitals.",
+      "sourceAnchor": "تأهيل 90 مستشفى",
+      "sourceStatus": "MIRROR_UNAUTHENTICATED",
+      "deliveryStatus": "UNASSESSED",
+      "caveats": []
+    },
+    {
+      "id": "p063-primary-care-1600",
+      "pages": [
+        63
+      ],
+      "titleAr": "تأهيل ألف وستمائة مؤسسة إضافية للرعاية الأولية",
+      "summaryEn": "Continue primary-care rehabilitation covering 1,600 additional facilities.",
+      "kind": "infrastructure",
+      "target": {
+        "value": 1600,
+        "unit": "additional primary healthcare facilities",
+        "operator": "equal",
+        "periodText": "مواصلة برنامج إعادة التأهيل",
+        "baseline": null
+      },
+      "deadlineText": null,
+      "responsibleBody": null,
+      "beneficiaries": null,
+      "scopeText": "Continue primary-care rehabilitation covering 1,600 additional facilities.",
+      "sourceAnchor": "1.600 مؤسسة إضافية",
+      "sourceStatus": "MIRROR_UNAUTHENTICATED",
+      "deliveryStatus": "UNASSESSED",
+      "caveats": [
+        "The same page first says new institutions within a rehabilitation programme, then explicitly says 1600 additional institutions to rehabilitate; counted once, not 3200."
+      ]
+    }
+  ]
+}

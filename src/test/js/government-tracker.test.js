@@ -2,7 +2,7 @@ const {test}=require('node:test'),assert=require('node:assert/strict');
 const {readFileSync}=require('node:fs');
 const path=require('node:path');
 function document(){
-    const nodes=new Map();function node(tag){return {tag,children:[],hidden:false,textContent:'',attributes:{},append(...children){this.children.push(...children)},replaceChildren(...children){this.children=children;this.textContent=''},setAttribute(key,val){this.attributes[key]=val},addEventListener(name,handler){this[name]=handler}};}
+    const nodes=new Map();function node(tag){return {tag,children:[],hidden:false,textContent:'',style:{},attributes:{},append(...children){this.children.push(...children)},replaceChildren(...children){this.children=children;this.textContent=''},setAttribute(key,val){this.attributes[key]=val},addEventListener(name,handler){this[name]=handler}};}
     return {createElement:node,getElementById(id){if(!nodes.has(id))nodes.set(id,node('div'));return nodes.get(id)},nodes};
 }
 const text=node=>[node.textContent,...node.children.map(text)].join(' ');
@@ -167,12 +167,54 @@ test('Arabic programme entries keep their language and source status in translat
         assert.ok(!cards[0].children.some(node=>node.className==='government-source-status'));
     }
 });
-test('programme and delivery cards use the same bounded grid in all locales',()=>{
+test('programme and reviewed delivery cards use the same bounded grid in all locales',()=>{
     const {renderTracker}=require('../../main/resources/static/js/government-tracker.js');
     for(const tab of ['programme','delivery'])for(const locale of ['ar','fr','en']){
-        const doc=document();renderTracker({locale,loadState:'ready',page:{items:Array.from({length:12},(_,i)=>({slug:'entry-'+i,origin:'GOVERNMENT',title:{ar:'الصحة',fr:'Santé',en:'Health'}}))}},{tab,origin:'GOVERNMENT'},doc);
+        const doc=document();renderTracker({locale,loadState:'ready',page:{items:Array.from({length:12},(_,i)=>({slug:'entry-'+i,origin:'GOVERNMENT',title:{ar:'الصحة',fr:'Santé',en:'Health'},deliveryAssessment:{state:'UNDERWAY',explanation:{en:'Documented implementation'}}}))}},{tab,origin:'GOVERNMENT'},doc);
         const panel=doc.getElementById(tab==='programme'?'trackerProgramme':'trackerDelivery'),grid=panel.children.find(node=>node.className==='government-card-grid');
         assert.ok(grid);assert.equal(grid.children.length,10);assert.ok(grid.children.every(node=>node.tag==='article'));
+    }
+});
+test('proposal expansion and toggle focus survive metadata and locale rerenders',()=>{
+    const {renderTracker,captureTrackerUi,restoreTrackerUi}=require('../../main/resources/static/js/government-tracker.js'),walk=n=>[n,...n.children.flatMap(walk)],doc=document(),originalGet=doc.getElementById.bind(doc);
+    doc.getElementById=id=>walk(originalGet('trackerDelivery')).find(n=>n.id===id)||originalGet(id);
+    const view={locale:'en',loadState:'ready',insights:{budgetEntries:[{slug:'proposal',title:{en:'Health',fr:'Santé'}}]},page:{items:[]}},state={tab:'delivery',origin:'GOVERNMENT'};
+    renderTracker(view,state,doc);
+    const button=walk(doc.getElementById('trackerDelivery')).find(n=>n.tag==='button');button.onclick();doc.activeElement=button;
+    const saved=captureTrackerUi(doc,{select(){}},'delivery');
+    renderTracker({...view,locale:'fr'},state,doc);
+    const next=doc.getElementById('trackerBudgetToggle');next.focus=()=>{doc.activeElement=next};restoreTrackerUi(doc,saved);
+    assert.equal(doc.getElementById('budget-proposals').hidden,false);assert.equal(doc.activeElement,next);
+    next.onclick();renderTracker(view,state,doc);assert.equal(doc.getElementById('budget-proposals').hidden,true);
+});
+test('delivery loads reviewed records but keeps proposals and counts independent of assessment filters',async()=>{
+    const {loadTrackerView}=require('../../main/resources/static/js/government-tracker.js'),calls=[];
+    const api={fetchMandate:async()=>({}),fetchPreview:async()=>null,
+        fetchCommitments:async state=>{calls.push(['rows',state]);return {items:[],totalItems:0}},
+        fetchInsights:async state=>{calls.push(['summary',state]);return {totalEntries:595,deliveryCounts:{UNASSESSED:595},budgetEntries:[{slug:'proposal'}]}}};
+    for(const assessment of ['', 'DELIVERED']){
+        calls.length=0;
+        const view=await loadTrackerView(api,{tab:'delivery',origin:'CAMPAIGN',party:'PAM',topic:'HEALTH',q:'care',assessment,page:1},{});
+        assert.equal(calls[0][1].assessment,assessment||'REVIEWED');
+        assert.equal(calls[1][1].assessment,'');
+        for(const [,state]of calls){assert.equal(state.origin,'GOVERNMENT');assert.equal(state.party,'');assert.equal(state.topic,'HEALTH');assert.equal(state.q,'care');}
+        assert.equal(view.insights.budgetEntries.length,1);
+    }
+});
+test('delivery replaces the programme timeline with proposal discovery and assessed evidence',()=>{
+    const {renderTracker}=require('../../main/resources/static/js/government-tracker.js'),walk=n=>[n,...n.children.flatMap(walk)];
+    for(const locale of ['ar','fr','en']){
+        const doc=document(),insights={totalEntries:2,deliveryCounts:{UNASSESSED:1,UNDERWAY:1},entries:[{slug:'undated',title:{en:'Only a programme promise'},programmeContext:{deadlineText:'2031'}}],budgetEntries:[{slug:'proposal',title:{ar:'الصحة',fr:'Santé',en:'Health'},summary:{ar:'تمويل مقترح',fr:'Financement proposé',en:'Proposed funding'}}]};
+        renderTracker({locale,loadState:'ready',insights,page:{items:[{slug:'reviewed',origin:'GOVERNMENT',title:{en:'Reviewed item'},deliveryAssessment:{state:'UNDERWAY',reviewedAt:'2026-10-25',explanation:{ar:'دليل منشور',fr:'Preuve publiée',en:'Published evidence'}}},{slug:'unassessed',origin:'GOVERNMENT',title:{en:'Only a programme promise'}}]}},{tab:'delivery',origin:'GOVERNMENT'},doc);
+        const host=doc.getElementById('trackerDelivery'),nodes=walk(host);
+        assert.ok(nodes.some(n=>n.className==='government-delivery-ring'));
+        assert.ok(!nodes.some(n=>n.className==='government-visuals'));
+        assert.doesNotMatch(text(host),/Only a programme promise/);
+        assert.ok(nodes.some(n=>n.href==='/government/commitments/reviewed'));
+        assert.match(text(host),/دليل منشور|Preuve publiée|Published evidence/);
+        assert.equal(doc.getElementById('trackerAssessmentField').hidden,false);
+        renderTracker({locale,loadState:'ready',page:{items:[]}},{tab:'programme',origin:'GOVERNMENT'},doc);
+        assert.equal(doc.getElementById('trackerAssessmentField').hidden,true);
     }
 });
 test('detail omits internal research context while retaining original text, sources and unassessed delivery',()=>{

@@ -2,12 +2,25 @@ const {test}=require('node:test'),assert=require('node:assert/strict');
 let visuals={};try{visuals=require('../../main/resources/static/js/government-visuals.js');}catch(e){if(e.code!=='MODULE_NOT_FOUND')throw e;}
 function document(){const nodes=new Map();const make=tag=>({tag,children:[],attributes:{},style:{},textContent:'',append(...xs){this.children.push(...xs)},replaceChildren(...xs){this.children=xs;this.textContent=''},setAttribute(k,v){this.attributes[k]=String(v)},focus(){},addEventListener(k,v){this[k]=v}});return {createElement:make,getElementById(id){if(!nodes.has(id))nodes.set(id,make('section'));return nodes.get(id)}};}
 const walk=n=>[n,...n.children.flatMap(walk)],text=n=>walk(n).map(x=>x.textContent).join(' ');
+test('delivery ring keeps proposals outside its results and leaves their discovery to the milestone card',()=>{
+    for(const locale of ['ar','fr','en']){
+        const doc=document(),host=doc.createElement('section');
+        const budgetEntries=Array.from({length:8},(_,i)=>({slug:'budget-'+i,title:{ar:'وعد '+i,fr:'Engagement '+i,en:'Commitment '+i},summary:{ar:'600 درهم مقترحة',fr:'600 DH proposés',en:'DH 600 proposed'}}));
+        visuals.renderDeliverySummary(host,{totalEntries:595,deliveryCounts:{UNASSESSED:595},budgetEntries},{locale,document:doc});
+        assert.ok(!walk(host).some(n=>n.tag==='details'));
+        assert.ok(!walk(host).some(n=>n.href==='/government/commitments/budget-0'));
+        assert.equal(walk(host).find(n=>n.className==='government-delivery-ring').style.background,'conic-gradient(#dce3de 0% 100%)');
+        assert.doesNotMatch(text(host),/0%|NaN|undefined/);
+        visuals.renderDeliverySummary(host,{totalEntries:595,deliveryCounts:{UNASSESSED:595},budgetEntries:[]},{locale,document:doc});
+        assert.equal(walk(host).filter(n=>n.tag==='details').length,0);
+    }
+});
 test('delivery ring keeps unknown evidence separate and links every status to its filtered list',()=>{
     const doc=document(),host=doc.createElement('section');
     visuals.renderDeliverySummary(host,{totalEntries:10,deliveryCounts:{DELIVERED:3,UNDERWAY:2,PARTLY_DELIVERED:1,NO_EVIDENCE_FOUND:1,WITHDRAWN:1,UNASSESSED:2}},{locale:'en',document:doc});
     assert.match(text(host),/30%/);
     assert.equal(walk(host).filter(n=>n.tag==='a').length,6);
-    assert.ok(walk(host).some(n=>n.href==='/government?tab=delivery&origin=GOVERNMENT&assessment=UNASSESSED'));
+    assert.ok(walk(host).some(n=>n.href==='/government?tab=programme&origin=GOVERNMENT&assessment=UNASSESSED'));
     assert.match(walk(host).find(n=>n.className==='government-delivery-ring').style.background,/conic-gradient/);
 });
 test('unassessed, empty and unavailable delivery totals never claim zero percent delivery',()=>{
@@ -151,16 +164,16 @@ test('timelines paginate ten at a time and cabinet dates refer to membership wit
 test('tracker loads matching insights with effective delivery filters, and isolates a chart failure from results',async()=>{
     const tracker=require('../../main/resources/static/js/government-tracker.js');assert.equal(typeof tracker.loadTrackerView,'function');
     const calls=[],api={fetchMandate:async()=>({}),fetchPreview:async()=>null,fetchCommitments:async state=>{calls.push(['rows',state]);return {items:[],totalItems:79};},fetchInsights:async state=>{calls.push(['insights',state]);return {totalEntries:79,topics:[{code:'HEALTH',count:79}],entries:[]};}};
-    const state={tab:'delivery',origin:'CAMPAIGN',party:'PAM',topic:'HEALTH',q:'care',assessment:'UNASSESSED',page:8};
+    const state={tab:'delivery',origin:'CAMPAIGN',party:'PAM',topic:'HEALTH',q:'care',assessment:'DELIVERED',page:8};
     const view=await tracker.loadTrackerView(api,state,{});assert.equal(view.insights.totalEntries,79);
-    assert.deepEqual(calls[0][1],calls[1][1]);assert.equal(calls[0][1].origin,'GOVERNMENT');assert.equal(calls[0][1].party,'');
+    assert.equal(calls[0][1].assessment,'DELIVERED');assert.equal(calls[1][1].assessment,'');assert.equal(calls[0][1].origin,'GOVERNMENT');assert.equal(calls[0][1].party,'');
     api.fetchInsights=async()=>{throw new Error('offline')};const partial=await tracker.loadTrackerView(api,state,{});assert.equal(partial.page.totalItems,79);assert.equal(partial.insightsFailed,true);
 });
 test('actual tracker and detail renderers mount graphics, with the baseline warning adjacent in each locale',()=>{
     const tracker=require('../../main/resources/static/js/government-tracker.js'),detail=require('../../main/resources/static/js/commitment-detail.js');
     for(const locale of ['ar','fr','en']){const doc=document(),r={...row(),origin:'GOVERNMENT',evidence:[],observations:[],revisions:[]};
-        tracker.renderTracker({locale,loadState:'ready',mandate:{membership:[],recentUpdates:[]},page:{items:[r],totalItems:1},insights:{totalEntries:1,topics:[{code:'HEALTH',count:1}],entries:[r]}},{tab:'delivery',origin:'GOVERNMENT'},doc);
-        assert.match(text(doc.getElementById('trackerDelivery')),new RegExp(visuals.COPY[locale].ambitions));
+        tracker.renderTracker({locale,loadState:'ready',mandate:{membership:[],recentUpdates:[]},page:{items:[r],totalItems:1},insights:{totalEntries:1,topics:[{code:'HEALTH',count:1}],entries:[r]}},{tab:'programme',origin:'GOVERNMENT'},doc);
+        assert.match(text(doc.getElementById('trackerProgramme')),new RegExp(visuals.COPY[locale].ambitions));
         detail.renderCommitment(r,locale,doc);assert.match(text(doc.getElementById('commitmentAmbition')),new RegExp(visuals.COPY[locale].ambitionNote));assert.match(text(doc.getElementById('commitmentAmbition')),/500/);
     }
 });

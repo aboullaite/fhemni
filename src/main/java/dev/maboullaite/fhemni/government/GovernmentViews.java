@@ -53,16 +53,35 @@ public final class GovernmentViews {
     public record RegionalProgrammePage(List<RegionalProgrammeEntry> items, int page, int pageSize, long totalItems,
             List<RegionCoverage> regionCounts, int linkedEntries, int programmeEntries) {}
     public record ProgrammeGraphicEntry(String slug, LocalText title, ProgrammeContext programmeContext) {}
+    public record BudgetProgrammeEntry(String slug, LocalText title, LocalText summary) {}
     public record ProgrammeInsights(int totalEntries, List<TopicCount> topics, List<ProgrammeGraphicEntry> entries,
-            java.util.Map<String, Long> deliveryCounts) {}
+            java.util.Map<String, Long> deliveryCounts, List<BudgetProgrammeEntry> budgetEntries) {}
     public record ProgrammeContext(String sourceStatus, List<Integer> printedPages, String kind,
             String summaryEn, String deadlineText, String targetText, String scopeText,
             List<String> caveats, List<RelatedEntry> relatedEntries) {}
+    /** A reviewed proposal in a budget document, never an observed delivery outcome. */
+    public record BudgetSource(LocalText title, String url, String sha256, LocalDate publishedOn,
+            List<Integer> printedPages, List<Integer> pdfPages) {}
+    public record BudgetProposal(String kind, LocalDate reviewedOn, LocalText summary,
+            LocalText detail, BudgetSource source) {}
     public record CommitmentView(UUID id, String slug, Origin origin, LocalText title, String originalText,
             String originalLanguage, LocalText author, UUID campaignPromiseId, List<String> topicCodes,
             Scope geographicScope, LocalText responsibleBody, Target target, LocalDate deadline,
             DeliveryAssessment deliveryAssessment, List<CommitmentLink> links, List<Evidence> evidence,
-            List<Observation> observations, List<RevisionSummary> revisions, ProgrammeContext programmeContext) {
+            List<Observation> observations, List<RevisionSummary> revisions, ProgrammeContext programmeContext,
+            List<BudgetProposal> budgetProposals) {
+        public CommitmentView {
+            budgetProposals = budgetProposals == null ? List.of() : List.copyOf(budgetProposals);
+        }
+        public CommitmentView(UUID id, String slug, Origin origin, LocalText title, String originalText,
+                String originalLanguage, LocalText author, UUID campaignPromiseId, List<String> topicCodes,
+                Scope geographicScope, LocalText responsibleBody, Target target, LocalDate deadline,
+                DeliveryAssessment deliveryAssessment, List<CommitmentLink> links, List<Evidence> evidence,
+                List<Observation> observations, List<RevisionSummary> revisions, ProgrammeContext programmeContext) {
+            this(id,slug,origin,title,originalText,originalLanguage,author,campaignPromiseId,topicCodes,
+                    geographicScope,responsibleBody,target,deadline,deliveryAssessment,links,evidence,observations,
+                    revisions,programmeContext,List.of());
+        }
         public CommitmentView(UUID id, String slug, Origin origin, LocalText title, String originalText,
                 String originalLanguage, LocalText author, UUID campaignPromiseId, List<String> topicCodes,
                 Scope geographicScope, LocalText responsibleBody, Target target, LocalDate deadline,

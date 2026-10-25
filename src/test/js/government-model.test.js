@@ -1,6 +1,10 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const file='../../main/resources/static/js/government-model.js';
 const scope={level:'REGION',code:'R01'};
+test('legacy unassessed delivery links open the programme catalogue instead of an empty delivery list',()=>{
+    const {readTrackerState}=require(file),state=readTrackerState('/government?tab=delivery&origin=GOVERNMENT&assessment=UNASSESSED&topic=HEALTH');
+    assert.equal(state.tab,'programme');assert.equal(state.assessment,'UNASSESSED');assert.equal(state.topic,'HEALTH');
+});
 const target={metric:'beds',unit:'beds',targetValue:200,baseline:null,methodologyKey:'hospital-bed-v1',scope};
 const row={metric:'beds',unit:'beds',value:0,periodStart:'2026-01-01',periodEnd:'2026-09-30',methodologyKey:'hospital-bed-v1',scope,evidenceIds:['source']};
 test('only compatible metric unit scope and methodology observations enter a comparison',()=>{

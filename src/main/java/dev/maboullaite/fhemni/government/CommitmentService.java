@@ -12,7 +12,8 @@ public class CommitmentService {
     private final CampaignPromiseAdapter campaigns;
     private final GovernmentRepository revisions;
     private final ProgrammeRelationships relationships;
-    public CommitmentService(CommitmentRepository repository,CampaignPromiseAdapter campaigns,GovernmentRepository revisions,ProgrammeRelationships relationships){this.repository=repository;this.campaigns=campaigns;this.revisions=revisions;this.relationships=relationships;}
+    private final ProgrammeBudgetEvidence budgetEvidence;
+    public CommitmentService(CommitmentRepository repository,CampaignPromiseAdapter campaigns,GovernmentRepository revisions,ProgrammeRelationships relationships,ProgrammeBudgetEvidence budgetEvidence){this.repository=repository;this.campaigns=campaigns;this.revisions=revisions;this.relationships=relationships;this.budgetEvidence=budgetEvidence;}
     public Page<CommitmentView> list(String mandate,String origin,String topic,String party,int page) {
         return list(mandate,origin,topic,party,null,null,page);
     }
@@ -37,20 +38,25 @@ public class CommitmentService {
             String state=row.deliveryAssessment()==null?"UNASSESSED":row.deliveryAssessment().state().name();
             deliveryCounts.merge(state,1L,Long::sum);
         }
-        return new ProgrammeInsights(rows.size(),topics,entries,java.util.Map.copyOf(deliveryCounts));
+        var budgetEntries=rows.stream().filter(row->row.origin()==Origin.GOVERNMENT&&!row.budgetProposals().isEmpty())
+                .map(row->new BudgetProgrammeEntry(row.slug(),row.title(),row.budgetProposals().getFirst().summary()))
+                .distinct().toList();
+        return new ProgrammeInsights(rows.size(),topics,entries,java.util.Map.copyOf(deliveryCounts),budgetEntries);
     }
     List<CommitmentView> selected(String mandate,String origin,String topic,String party,String query,String assessment) {
         if(!"2026-2031".equals(mandate))throw new NoSuchElementException("Unknown mandate.");
         if(query!=null&&query.length()>200)throw new IllegalArgumentException("Search must be at most 200 characters.");
-        if(blank(assessment)!=null&&!assessment.equals("UNASSESSED"))DeliveryState.valueOf(assessment);
+        if(blank(assessment)!=null&&!List.of("UNASSESSED","REVIEWED").contains(assessment))DeliveryState.valueOf(assessment);
         Origin filter=origin==null||origin.isBlank()?null:Origin.valueOf(origin);
         var rows=new ArrayList<CommitmentView>();
         if(filter!=Origin.GOVERNMENT)rows.addAll(campaigns.list(blank(topic),blank(party)));
         if(filter!=Origin.CAMPAIGN&&blank(party)==null)rows.addAll(repository.published(mandate).stream().filter(row->blank(topic)==null||row.topicCodes().contains(topic)).toList());
         String needle=normalize(query);
         rows.removeIf(row->!needle.isEmpty()&&!searchText(row).contains(needle)
-                ||blank(assessment)!=null&&!assessment.equals(row.deliveryAssessment()==null?"UNASSESSED":row.deliveryAssessment().state().name()));
+                ||blank(assessment)!=null&&("REVIEWED".equals(assessment)?row.deliveryAssessment()==null
+                    :!assessment.equals(row.deliveryAssessment()==null?"UNASSESSED":row.deliveryAssessment().state().name())));
         rows.sort(Comparator.comparing(CommitmentView::slug));
+        rows.replaceAll(budgetEvidence::project);
         return rows;
     }
     public CommitmentView detail(String slug) {
@@ -59,14 +65,14 @@ public class CommitmentService {
             .or(()->campaigns.list(null,null).stream().filter(row->row.slug().equals(slug)||row.id().toString().equals(slug)).findFirst())
             .orElseThrow(()->new NoSuchElementException("Commitment not found."));
         view=relationships.project(view);
-        return new CommitmentView(view.id(),view.slug(),view.origin(),view.title(),view.originalText(),view.originalLanguage(),view.author(),view.campaignPromiseId(),view.topicCodes(),view.geographicScope(),view.responsibleBody(),view.target(),view.deadline(),view.deliveryAssessment(),view.links(),view.evidence(),view.observations(),revisions.publicHistory(SubjectType.COMMITMENT,view.slug()),view.programmeContext());
+        return budgetEvidence.project(new CommitmentView(view.id(),view.slug(),view.origin(),view.title(),view.originalText(),view.originalLanguage(),view.author(),view.campaignPromiseId(),view.topicCodes(),view.geographicScope(),view.responsibleBody(),view.target(),view.deadline(),view.deliveryAssessment(),view.links(),view.evidence(),view.observations(),revisions.publicHistory(SubjectType.COMMITMENT,view.slug()),view.programmeContext()));
     }
     public List<CommitmentView> upcoming(String mandate) {
         if(!"2026-2031".equals(mandate))throw new NoSuchElementException("Unknown mandate.");
         var today=java.time.LocalDate.now(java.time.ZoneOffset.UTC);
         return repository.published(mandate).stream().filter(row->row.deadline()!=null&&!row.deadline().isBefore(today))
             .filter(row->row.deliveryAssessment()==null||!List.of(DeliveryState.DELIVERED,DeliveryState.WITHDRAWN).contains(row.deliveryAssessment().state()))
-            .sorted(Comparator.comparing(CommitmentView::deadline).thenComparing(CommitmentView::slug)).limit(3).toList();
+            .sorted(Comparator.comparing(CommitmentView::deadline).thenComparing(CommitmentView::slug)).limit(3).map(budgetEvidence::project).toList();
     }
     private String blank(String value){return value==null||value.isBlank()?null:value;}
     private String searchText(CommitmentView row){return normalize(row.slug()+" "+row.title().ar()+" "+row.title().fr()+" "+row.title().en()+" "+row.originalText()+" "+(row.programmeContext()==null?"":row.programmeContext().summaryEn()));}

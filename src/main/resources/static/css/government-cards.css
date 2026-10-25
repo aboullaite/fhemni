@@ -7,8 +7,6 @@
 .programme-feature-card.tone-2{--card-accent:#416b84;--card-tint:#e7eff3}
 .programme-feature-top{display:flex;align-items:center;justify-content:space-between;gap:.75rem;color:var(--card-accent)}
 .programme-feature-topic{font-size:.8rem;line-height:1.5}
-.programme-feature-mark{display:grid;place-items:center;flex:none;width:2rem;height:2rem;border-radius:50%;border:1px solid color-mix(in srgb,var(--card-accent) 25%,transparent);font-size:1.1rem}
-[dir=rtl] .programme-feature-mark{transform:scaleX(-1)}
 .programme-feature-card h3{font-size:1.15rem;line-height:1.6;margin:0}
 .programme-feature-card h3 a{color:var(--ink);text-decoration:none}
 .programme-feature-card p{margin:0}

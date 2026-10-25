@@ -153,7 +153,7 @@
         en:{title:'Where does delivery stand?',delivered:'Delivered',pending:'Not yet assessed',entries:'programme entries',note:'Based on published assessments, not an overall programme completion score.',empty:'No published entries to assess yet.',unavailable:'Delivery summary is currently unavailable.'}
     };
     const DELIVERY_SEGMENTS=[['DELIVERED','#0d7667'],['PARTLY_DELIVERED','#69a995'],['UNDERWAY','#c68c3e'],['NO_EVIDENCE_FOUND','#839293'],['WITHDRAWN','#b87365'],['UNASSESSED','#dce3de']];
-    function renderDeliverySummary(host,insights,{locale='ar',document:doc=globalThis.document}={}){
+    function renderDeliverySummary(host,insights,{locale='ar',document:doc=globalThis.document,state={}}={}){
         const el=elements(doc),copy=DELIVERY_COPY[locale],common=model.COPY[locale];host.replaceChildren();
         host.append(el('h3',copy.title));
         const counts=insights?.deliveryCounts,total=insights?.totalEntries;
@@ -165,7 +165,7 @@
         const center=el('div',null,'government-delivery-center');center.append(el('strong',assessed?new Intl.NumberFormat(locale,{style:'percent',maximumFractionDigits:0}).format(delivered/total):'—'),el('span',assessed?copy.delivered:copy.pending));ring.append(center);
         const legend=el('div',null,'government-delivery-legend');
         for(const [key,color]of DELIVERY_SEGMENTS){
-            const link=el('a',null,'government-delivery-key');link.href='/government?tab=delivery&origin=GOVERNMENT&assessment='+key;
+            const link=el('a',null,'government-delivery-key');link.href=model.trackerUrl('/government',{tab:key==='UNASSESSED'?'programme':'delivery',origin:'GOVERNMENT',topic:state.topic,q:state.q,assessment:key});
             const dot=el('span',null,'government-delivery-dot');dot.style.background=color;dot.setAttribute('aria-hidden','true');
             link.append(dot,el('span',key==='UNASSESSED'&&copy.unassessed?copy.unassessed:common[key]),el('strong',model.number(counts[key]||0,locale)));legend.append(link);
         }

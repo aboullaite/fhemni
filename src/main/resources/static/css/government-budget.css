@@ -1,0 +1,29 @@
+.government-budget{border-inline-start:3px solid #8b602b;background:var(--surface,#fffdf7)}
+.government-budget h2{font-size:1.3rem;margin:0;line-height:1.6}
+.government-budget h3{font-size:1.1rem;line-height:1.7;margin:.35rem 0}
+.government-budget-item{min-width:0;overflow-wrap:anywhere}
+.government-budget-label{color:#78501d;font-size:.8rem;font-weight:600;margin:0}
+.government-budget-detail{line-height:1.9;max-width:85ch;margin-block:.75rem}
+.government-budget-reference{border-block-start:1px solid var(--line);padding-block-start:.75rem;font-size:.8rem;color:var(--muted);line-height:1.7}
+.government-budget-reference p{margin-block:.35rem}
+.government-budget-reference a{display:inline-flex;align-items:center;min-height:44px;text-decoration:underline;text-underline-offset:3px;color:var(--teal-dark)}
+.government-budget-reference a:focus-visible{outline:2px solid var(--teal-dark);outline-offset:3px}
+.government-budget-compact{border-inline-start:2px solid #8b602b;padding-inline-start:.65rem;margin-block:.5rem;min-width:0}
+.government-budget-compact .government-budget-summary{font-size:.88rem;line-height:1.7;margin-block:.2rem 0}
+.government-budget[hidden],.government-budget-compact[hidden]{display:none}
+.government-budget-milestone{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1rem;align-items:center;padding:1.25rem;border:1px solid #d8c4a4;border-radius:var(--radius-card,14px);background:#faf5ec;min-width:0}
+.government-budget-milestone[hidden]{display:none}
+.government-budget-intro{display:flex;align-items:center;gap:1.25rem;min-width:0}
+.government-budget-intro>div{min-width:0}
+.government-budget-milestone h3{font-size:1.15rem;font-weight:700;margin:0;line-height:1.6}
+.government-budget-milestone p{margin-block:.2rem;line-height:1.7}
+.government-budget-count{font-size:3rem;line-height:1;font-weight:700;font-variant-numeric:tabular-nums;color:#78501d}
+.government-budget-milestone>.government-card-grid{grid-column:1/-1;margin-block-start:.5rem}
+.government-budget-milestone .government-commitment-card{display:flex;flex-direction:column}
+.government-budget-milestone .government-commitment-card>.text-link{margin-block-start:auto;padding-block-start:.75rem}
+.government-budget-milestone>.text-link,.government-budget-milestone>button{min-height:44px;align-content:center;white-space:normal}
+.government-budget-milestone :is(a,button):focus-visible{outline:2px solid var(--teal-dark);outline-offset:3px}
+.government-delivery-summary .government-budget-milestone{grid-template-columns:minmax(0,1fr);padding:1rem;margin-block-end:1.5rem;gap:.5rem}
+.government-delivery-summary .government-budget-milestone>.text-link{justify-self:start}
+.government-delivery-summary .government-budget-count{font-size:2.5rem}
+@media(max-width:599px){.government-budget-milestone{grid-template-columns:minmax(0,1fr);padding:1rem}.government-budget-milestone>button{justify-self:start}.government-budget-intro{gap:1rem}.government-budget-count{font-size:2.5rem}}
