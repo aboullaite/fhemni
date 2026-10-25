@@ -53,7 +53,8 @@ public final class GovernmentViews {
     public record RegionalProgrammePage(List<RegionalProgrammeEntry> items, int page, int pageSize, long totalItems,
             List<RegionCoverage> regionCounts, int linkedEntries, int programmeEntries) {}
     public record ProgrammeGraphicEntry(String slug, LocalText title, ProgrammeContext programmeContext) {}
-    public record ProgrammeInsights(int totalEntries, List<TopicCount> topics, List<ProgrammeGraphicEntry> entries) {}
+    public record ProgrammeInsights(int totalEntries, List<TopicCount> topics, List<ProgrammeGraphicEntry> entries,
+            java.util.Map<String, Long> deliveryCounts) {}
     public record ProgrammeContext(String sourceStatus, List<Integer> printedPages, String kind,
             String summaryEn, String deadlineText, String targetText, String scopeText,
             List<String> caveats, List<RelatedEntry> relatedEntries) {}

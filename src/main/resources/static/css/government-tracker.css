@@ -2,6 +2,23 @@
 .government-preview h2{font-size:1.1rem;margin:0}
 .government-preview p{margin:0;line-height:1.7}
 .government-overview-actions{display:flex;gap:.75rem;flex-wrap:wrap;margin-block:.5rem}
+.government-overview-summary{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,1fr);gap:2rem;align-items:center}
+.government-delivery-summary{min-width:0;border-inline-start:1px solid var(--line);padding-inline-start:2rem}
+.government-delivery-summary h3{font-size:1.2rem;font-weight:700;margin-block-end:1rem}
+.government-delivery-layout{display:flex;align-items:center;gap:1.25rem}
+.government-delivery-ring{width:156px;aspect-ratio:1;border-radius:50%;padding:16px;flex-shrink:0}
+.government-delivery-center{border-radius:50%;background:var(--surface,#fffdf7);width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center}
+.government-delivery-center strong{font-size:2rem;line-height:1.2}
+.government-delivery-center span{font-size:.8rem}
+.government-delivery-legend{display:grid;gap:2px;flex:1;min-width:0}
+.government-delivery-key{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:8px;align-items:center;min-height:36px;font-size:.85rem;border-radius:6px;padding:4px}
+.government-delivery-key:hover{background:var(--bg,#f4f2ea);text-decoration:underline}
+.government-delivery-key:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.government-delivery-dot{width:9px;height:9px;border-radius:50%}
+.government-delivery-total{margin-block:12px 4px;font-weight:600;font-size:.9rem}
+.government-delivery-summary .government-meta{font-size:.8rem}
+@media(max-width:1000px){.government-overview-summary{grid-template-columns:minmax(0,1fr)}.government-delivery-summary{border-inline-start:0;padding-inline-start:0;border-block-start:1px solid var(--line);padding-block-start:1.5rem}.government-delivery-layout{max-width:480px}}
+@media(max-width:440px){.government-delivery-layout{flex-direction:column;align-items:stretch}.government-delivery-ring{align-self:center}.government-delivery-key{min-height:44px}}
 .government-search{display:grid;gap:.5rem}
 .government-search label{font-weight:400}
 .government-search>div{display:flex;gap:.75rem}

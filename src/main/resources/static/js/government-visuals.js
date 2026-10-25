@@ -147,5 +147,29 @@
         const details=el('details',null,'government-timeline'),body=el('div');details.append(el('summary',copy.changes),el('p',copy.membershipNote,'government-meta'),el('p',copy.asOf+': '+model.date(asOf,locale),'government-meta'));
         paginated(body,events,({member,date,type})=>{const li=el('li'),time=el('time',model.date(date,locale),'government-date-year'),description=el('div'),name=model.localized(member.name,locale),a=el('a',name);time.dateTime=date;a.href='/government/ministers?status=all&q='+encodeURIComponent(name);a.setAttribute('dir','auto');description.append(a,el('p',copy[type],'government-meta'));li.append(time,description);return li;},{locale,doc});details.append(body);host.append(details);
     }
-    return {COPY,baselineComparison,programmeDates,renderBaseline,renderProgramme,renderCabinet};
+    const DELIVERY_COPY={
+        ar:{title:'فين وصل الإنجاز؟',delivered:'تنجز',pending:'مزال ماتقيم',unassessed:'وعود البرنامج',entries:'مادة فالبرنامج',note:'حسب التقييمات المنشورة، ماشي نسبة إنجاز البرنامج كامل.',empty:'ما كايناش مواد منشورة للتقييم دابا.',unavailable:'ملخص الإنجاز ما متوفرش دابا.'},
+        fr:{title:'Où en est la réalisation ?',delivered:'Réalisé',pending:'Pas encore évalué',entries:'entrées du programme',note:'Selon les évaluations publiées, pas un taux de réalisation du programme entier.',empty:'Aucune entrée publiée à évaluer.',unavailable:'Le bilan est indisponible pour le moment.'},
+        en:{title:'Where does delivery stand?',delivered:'Delivered',pending:'Not yet assessed',entries:'programme entries',note:'Based on published assessments, not an overall programme completion score.',empty:'No published entries to assess yet.',unavailable:'Delivery summary is currently unavailable.'}
+    };
+    const DELIVERY_SEGMENTS=[['DELIVERED','#0d7667'],['PARTLY_DELIVERED','#69a995'],['UNDERWAY','#c68c3e'],['NO_EVIDENCE_FOUND','#839293'],['WITHDRAWN','#b87365'],['UNASSESSED','#dce3de']];
+    function renderDeliverySummary(host,insights,{locale='ar',document:doc=globalThis.document}={}){
+        const el=elements(doc),copy=DELIVERY_COPY[locale],common=model.COPY[locale];host.replaceChildren();
+        host.append(el('h3',copy.title));
+        const counts=insights?.deliveryCounts,total=insights?.totalEntries;
+        const valid=counts&&Number.isSafeInteger(total)&&total>=0&&DELIVERY_SEGMENTS.every(([key])=>Number.isSafeInteger(counts[key]??0)&&(counts[key]??0)>=0)&&Object.values(counts).reduce((sum,n)=>sum+n,0)===total;
+        if(!valid||!total){host.append(el('p',valid?copy.empty:copy.unavailable,'government-meta'));return;}
+        const delivered=counts.DELIVERED||0,assessed=total-(counts.UNASSESSED||0),layout=el('div',null,'government-delivery-layout'),ring=el('div',null,'government-delivery-ring');
+        let cursor=0;const segments=DELIVERY_SEGMENTS.filter(([key])=>counts[key]>0).map(([key,color])=>{const start=cursor;cursor+=counts[key]/total*100;return `${color} ${start}% ${cursor}%`;});
+        ring.style.background=`conic-gradient(${segments.join(',')})`;ring.setAttribute('aria-hidden','true');
+        const center=el('div',null,'government-delivery-center');center.append(el('strong',assessed?new Intl.NumberFormat(locale,{style:'percent',maximumFractionDigits:0}).format(delivered/total):'—'),el('span',assessed?copy.delivered:copy.pending));ring.append(center);
+        const legend=el('div',null,'government-delivery-legend');
+        for(const [key,color]of DELIVERY_SEGMENTS){
+            const link=el('a',null,'government-delivery-key');link.href='/government?tab=delivery&origin=GOVERNMENT&assessment='+key;
+            const dot=el('span',null,'government-delivery-dot');dot.style.background=color;dot.setAttribute('aria-hidden','true');
+            link.append(dot,el('span',key==='UNASSESSED'&&copy.unassessed?copy.unassessed:common[key]),el('strong',model.number(counts[key]||0,locale)));legend.append(link);
+        }
+        layout.append(ring,legend);host.append(layout,el('p',`${model.number(total,locale)} ${copy.entries}`,'government-delivery-total'),el('p',copy.note,'government-meta'));
+    }
+    return {COPY,baselineComparison,programmeDates,renderBaseline,renderProgramme,renderCabinet,renderDeliverySummary};
 });

@@ -30,7 +30,14 @@ public class CommitmentService {
                 .sorted(Comparator.comparingLong(TopicCount::count).reversed().thenComparing(TopicCount::code)).toList();
         var entries=rows.stream().filter(row->row.origin()==Origin.GOVERNMENT&&row.programmeContext()!=null)
                 .map(row->new ProgrammeGraphicEntry(row.slug(),row.title(),row.programmeContext())).toList();
-        return new ProgrammeInsights(rows.size(),topics,entries);
+        var deliveryCounts=new java.util.TreeMap<String,Long>();
+        deliveryCounts.put("UNASSESSED",0L);
+        for(var state:DeliveryState.values())deliveryCounts.put(state.name(),0L);
+        for(var row:rows)if(row.origin()==Origin.GOVERNMENT) {
+            String state=row.deliveryAssessment()==null?"UNASSESSED":row.deliveryAssessment().state().name();
+            deliveryCounts.merge(state,1L,Long::sum);
+        }
+        return new ProgrammeInsights(rows.size(),topics,entries,java.util.Map.copyOf(deliveryCounts));
     }
     List<CommitmentView> selected(String mandate,String origin,String topic,String party,String query,String assessment) {
         if(!"2026-2031".equals(mandate))throw new NoSuchElementException("Unknown mandate.");

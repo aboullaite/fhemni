@@ -12,6 +12,7 @@ test('overview delivery summary always loads government-wide counts regardless o
     const view=await loadTrackerView(api,{tab:'overview',origin:'CAMPAIGN',topic:'HEALTH',assessment:'DELIVERED'},{});
     assert.ok(calls.some(state=>state.origin==='GOVERNMENT'&&!state.topic&&!state.assessment&&!state.party&&!state.q));
     assert.deepEqual(view.deliveryInsights.deliveryCounts,{});
+    assert.equal(calls.length,1,'the summary and discovery cards share one global insights request');
 });
 test('commitment detail hides repeated source labels and empty measurements without hiding sources or assessment',()=>{
     const {renderCommitment}=require('../../main/resources/static/js/commitment-detail.js');

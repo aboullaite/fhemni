@@ -33,6 +33,11 @@
         if(view.loadState==='ready'){const actions=el('div',null,'government-overview-actions');for(const [label,href]of [[copy.browseProgramme,'/government?tab=programme&origin=GOVERNMENT'],[copy.ministers,'/government/ministers']]){const link=el('a',label,'primary-button');link.href=href;actions.append(link);}panel.append(actions);}
         const campaign=el('a',copy.readProgramme,'text-link');campaign.href='/government?tab=programme&origin=CAMPAIGN';panel.append(campaign);overview.append(panel);
         if(view.loadState==='ready'&&view.mandate?.verifiedAt){const history=el('a',copy.history,'text-link');history.href='/government/history';panel.append(history);}
+        if(view.loadState==='ready'){
+            const content=el('div',null,'public-stack'),summary=el('section',null,'government-delivery-summary');
+            content.append(...Array.from(panel.children));panel.replaceChildren(content,summary);panel.className='public-panel government-overview-summary';
+            visuals.renderDeliverySummary(summary,view.deliveryInsights,{locale,document:doc});
+        }
         const evidenceIds=[...new Set([...(view.mandate?.programme?.evidenceIds||[]),...(view.mandate?.membership||[]).flatMap(member=>member.evidenceIds||[])])];
         if(view.loadState==='ready'&&view.mandate?.verifiedAt&&evidenceIds.length){
             const disclosure=el('details'),body=el('div',null,'public-stack');disclosure.id='trackerSources';disclosure.append(el('summary',copy.sources),body);let loaded=false,pending=false;
@@ -102,8 +107,9 @@
         const [mandate,page,preview,graphic]=await Promise.all([api.fetchMandate(options),state.tab==='regions'?api.request('/api/catalog/government/2026-2031/'+regionalPath,options):listTab?api.fetchCommitments(filtered,options):null,api.fetchPreview(options),listTab&&filtered.origin!=='CAMPAIGN'?api.fetchInsights(filtered,options).then(insights=>({insights})).catch(error=>{if(error.name==='AbortError')throw error;return {insightsFailed:true};}):{}]);
         let discovery={};
         if(state.tab==='overview'){
-            const [picks,publications]=await Promise.all([cards.loadProgramme(api,options).then(programmePicks=>({programmePicks})).catch(error=>{if(error.name==='AbortError')throw error;return {picksFailed:true};}),cards.loadUpdates(api,mandate.recentUpdates||[],{...options,limit:6})]);
-            discovery={...picks,publications};
+            const insightsRequest=api.fetchInsights({origin:'GOVERNMENT'},options);
+            const [picks,publications,deliveryInsights]=await Promise.all([cards.loadProgramme({...api,fetchInsights:()=>insightsRequest},options).then(programmePicks=>({programmePicks})).catch(error=>{if(error.name==='AbortError')throw error;return {picksFailed:true};}),cards.loadUpdates(api,mandate.recentUpdates||[],{...options,limit:6}),insightsRequest.catch(error=>{if(error.name==='AbortError')throw error;return null;})]);
+            discovery={...picks,publications,deliveryInsights};
         }
         return {mandate,page,preview,...graphic,...discovery};
     }

@@ -26,6 +26,16 @@ require an explicit retry rather than automatically repeating paid work.
 Rejected progress stops the worker before its next provider stage; a provider
 request already in flight cannot be cancelled by this check.
 
+Live analysis updates use an independent virtual-thread writer per browser and
+one pending progress snapshot per listener. A newer snapshot replaces queued
+progress; terminal results remain final and replayable. Network sends and final
+flushes never run on the analysis worker or under the channel lock. After
+`fhemni.sessions.sse-send-timeout-ms` (default 30000), the listener stops accepting
+updates and its writer is interrupted. This is not a guaranteed socket-close
+deadline: servlet transports can ignore interruption. The listener continues to
+count against the per-analysis limit until its writer and final flush actually
+exit, preventing repeated reconnects from bypassing the resource cap.
+
 Digest delivery commits its consent check and `SENDING` transition before
 contacting the email provider, then releases the database lock. Unsubscribing
 before that transition cancels the attempt; unsubscribing afterwards stops
