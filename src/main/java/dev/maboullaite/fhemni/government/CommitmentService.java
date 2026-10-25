@@ -51,12 +51,12 @@ public class CommitmentService {
         var rows=new ArrayList<CommitmentView>();
         if(filter!=Origin.GOVERNMENT)rows.addAll(campaigns.list(blank(topic),blank(party)));
         if(filter!=Origin.CAMPAIGN&&blank(party)==null)rows.addAll(repository.published(mandate).stream().filter(row->blank(topic)==null||row.topicCodes().contains(topic)).toList());
+        rows.replaceAll(budgetEvidence::project);
         String needle=normalize(query);
         rows.removeIf(row->!needle.isEmpty()&&!searchText(row).contains(needle)
                 ||blank(assessment)!=null&&("REVIEWED".equals(assessment)?row.deliveryAssessment()==null
                     :!assessment.equals(row.deliveryAssessment()==null?"UNASSESSED":row.deliveryAssessment().state().name())));
         rows.sort(Comparator.comparing(CommitmentView::slug));
-        rows.replaceAll(budgetEvidence::project);
         return rows;
     }
     public CommitmentView detail(String slug) {
@@ -75,6 +75,18 @@ public class CommitmentService {
             .sorted(Comparator.comparing(CommitmentView::deadline).thenComparing(CommitmentView::slug)).limit(3).map(budgetEvidence::project).toList();
     }
     private String blank(String value){return value==null||value.isBlank()?null:value;}
-    private String searchText(CommitmentView row){return normalize(row.slug()+" "+row.title().ar()+" "+row.title().fr()+" "+row.title().en()+" "+row.originalText()+" "+(row.programmeContext()==null?"":row.programmeContext().summaryEn()));}
+    private String searchText(CommitmentView row) {
+        var text = new StringBuilder(row.slug()).append(' ').append(searchText(row.title()))
+                .append(' ').append(row.originalText());
+        if (row.programmeContext() != null) text.append(' ').append(row.programmeContext().summaryEn());
+        for (var proposal : row.budgetProposals()) {
+            text.append(' ').append(searchText(proposal.summary()))
+                    .append(' ').append(searchText(proposal.detail()));
+        }
+        return normalize(text.toString());
+    }
+    private String searchText(LocalText value) {
+        return value == null ? "" : value.ar() + " " + value.fr() + " " + value.en();
+    }
     private String normalize(String value){return value==null?"":java.text.Normalizer.normalize(value,java.text.Normalizer.Form.NFKD).replaceAll("\\p{M}","").replace("ـ","").toLowerCase(java.util.Locale.ROOT).strip();}
 }

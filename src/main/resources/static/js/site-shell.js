@@ -21,8 +21,6 @@
             toggle.addEventListener('keydown',escape);
             if (toggle.getAttribute('aria-controls')==='shellElectionLinks') {
                 const group=toggle.closest('.shell-election-group');
-                const fallback=group?.querySelector('[data-shell-fallback]');
-                if(fallback) fallback.hidden=true;
                 const view=doc.defaultView;
                 const hover=view?.matchMedia('(min-width: 1100px) and (hover: hover) and (pointer: fine)');
                 if(group && view) {

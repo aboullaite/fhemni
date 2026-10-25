@@ -5,11 +5,72 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 import tools.jackson.databind.json.JsonMapper;
 
 class ProgrammeBudgetEvidenceTest {
+    @Test void budgetOnlyTextIsSearchableInEveryLanguageWithoutClaimingDelivery() throws Exception {
+        var repository = mock(CommitmentRepository.class);
+        var original = row("programme-p063-primary-care-1600", Origin.GOVERNMENT);
+        var assistance = row("programme-p055-assistance-minimum", Origin.GOVERNMENT);
+        when(repository.published("2026-2031")).thenReturn(List.of(original, assistance));
+        var service = new CommitmentService(repository, mock(CampaignPromiseAdapter.class),
+                mock(GovernmentRepository.class), mock(ProgrammeRelationships.class),
+                new ProgrammeBudgetEvidence(new JsonMapper()));
+        // These phrases occur only in the proposal summaries/details, not the original rows.
+        for (String query : List.of("1.8 billion", "1,8 milliard", "مليار درهم مقترحة",
+                "not completed renovations", "rénovations achevées", "ما كنجمعوش المرحلتين")) {
+            var page = service.list("2026-2031", "GOVERNMENT", "HEALTH", null, query, null, 1);
+            assertEquals(List.of(original.slug()), page.items().stream().map(CommitmentView::slug).toList(), query);
+            var insights = service.insights("2026-2031", "GOVERNMENT", "HEALTH", null, query, null);
+            assertEquals(List.of(original.slug()), insights.budgetEntries().stream().map(BudgetProgrammeEntry::slug).toList(), query);
+            assertEquals(1L, insights.deliveryCounts().get("UNASSESSED"));
+            assertEquals(0, service.list("2026-2031", "GOVERNMENT", null, null, query, "REVIEWED", 1).totalItems());
+            assertEquals(0, service.list("2026-2031", "GOVERNMENT", "OTHER", null, query, null, 1).totalItems());
+        }
+        assertTrue(service.list("2026-2031", "GOVERNMENT", null, null, "600", null, 1).items()
+                .stream().anyMatch(item -> item.slug().equals(assistance.slug())));
+        assertTrue(original.budgetProposals().isEmpty());
+    }
+
+    @Test void everyEvidenceSlugResolvesToAnIndependentPublishedProgrammeRecord() throws Exception {
+        var mapper = new JsonMapper();
+        var repository = mock(CommitmentRepository.class);
+        var relationships = mock(ProgrammeRelationships.class);
+        when(relationships.project(any())).thenAnswer(call -> call.getArgument(0));
+        var rows = new ArrayList<CommitmentView>();
+        // Independent programme extract, not fixtures synthesized from evidence-file identifiers.
+        try (var input = new ClassPathResource("government/budget-programme-records.json").getInputStream()) {
+            for (var record : mapper.readTree(input).path("commitments")) {
+                rows.add(ProgrammePreviewData.commitment(record, List.of(), List.of()));
+            }
+        }
+        when(repository.published("2026-2031")).thenReturn(rows);
+        var service = new CommitmentService(repository, mock(CampaignPromiseAdapter.class),
+                mock(GovernmentRepository.class), relationships, new ProgrammeBudgetEvidence(mapper));
+        try (var input = new ClassPathResource("government/plf-2027-evidence.json").getInputStream()) {
+            var entries = mapper.readTree(input).path("entries");
+            assertTrue(entries.size() > 0);
+            for (var entry : entries) assertResolves(service, entry);
+            // Prove this guard catches a typo even when that row otherwise remains valid.
+            var typo = (ObjectNode) entries.get(0).deepCopy();
+            typo.put("slug", "programme-p055-assistance-minimun");
+            assertThrows(AssertionError.class, () -> assertResolves(service, typo));
+        }
+    }
+
+    private void assertResolves(CommitmentService service, JsonNode entry) {
+        String slug = entry.path("slug").asText();
+        var detail = assertDoesNotThrow(() -> service.detail(slug), "Unresolved budget evidence: " + slug);
+        assertEquals(Origin.GOVERNMENT, detail.origin());
+        assertFalse(detail.budgetProposals().isEmpty(), slug);
+    }
+
     @Test void proposedFundingIsVisibleInListsAndDetailsWithoutBecomingDelivery() throws Exception {
         var budget = new ProgrammeBudgetEvidence(new JsonMapper());
         var repository = mock(CommitmentRepository.class);

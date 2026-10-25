@@ -6,7 +6,7 @@ let drift=false;
 for (const [file,pagePath] of Object.entries(PUBLIC_PAGES)) {
     const path=fileURLToPath(new URL(`../src/main/resources/static/${file}`,import.meta.url));
     const source=readFileSync(path,'utf8');
-    if (!source.includes('/js/site-shell.js?v=20261004-2')) {
+    if (!source.includes('/js/site-shell.js?v=20261025-1')) {
         throw new Error(`Missing shell enhancer: ${file}`);
     }
     const result=replaceShell(source,renderPublicShell({pagePath}));

@@ -40,7 +40,8 @@ test('all navigation remains real links without JavaScript; elections has a sepa
         assert.ok(header.includes(`href="${href}"`), href);
     }
     assert.match(header, /<button[^>]+aria-controls="shellElectionLinks"[^>]+aria-expanded="false"/);
-    assert.match(header, /<button[^>]+class="shell-election-trigger"[^>]*>الانتخابات<\/button>/);
+    assert.match(header, /<button[^>]+class="shell-election-trigger"[^>]*aria-label="أقسام الانتخابات"/);
+    assert.match(header, /<a href="\/elections\/2026"[^>]*data-i18n="shell.elections">الانتخابات<\/a>/);
     assert.doesNotMatch(header.match(/<div class="shell-election-heading"[\s\S]*?<\/div>/)[0],/⌄/);
     assert.match(header, /id="shellElectionLinks"/);
     assert.match(header, /href="\/elections\/2026#electionGraphRepresentatives"/);
@@ -120,7 +121,7 @@ test('desktop elections opens on hover and stays open while crossing into its su
 test('touch and narrow screens retain explicit tap disclosure rather than sticky hover',()=>{
     for(const [hover,pointerType]of [[false,'mouse'],[true,'touch']]){
         const {group,panel,toggle,fallback}=electionDisclosure(hover);group.listeners.pointerenter?.({pointerType});
-        assert.equal(fallback.hidden,true);assert.equal(toggle.hidden,false);
+        assert.equal(fallback.hidden,false,'the Elections label remains a navigable link');assert.equal(toggle.hidden,false);
         assert.equal(panel.hidden,true);toggle.listeners.click();assert.equal(panel.hidden,false);
         toggle.listeners.click();assert.equal(panel.hidden,true);
     }

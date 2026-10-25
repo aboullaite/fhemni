@@ -192,7 +192,7 @@ body[data-public-shell] .election-map-region:focus-visible path { stroke: var(--
 .shared-header :is(a[aria-current], [data-active-area] > a) { color: var(--teal-dark); background: var(--mint); }
 .shared-header a:hover { color: var(--teal-dark); background: color-mix(in srgb,var(--mint) 55%,transparent); }
 .shared-header button { border: 1px solid var(--line); background: var(--white); padding: 8px 12px; cursor: pointer; }
-.shared-header button.shell-election-trigger { border: 0; background: transparent; padding: 8px 12px; }
+.shared-header button.shell-election-trigger { border: 0; background: transparent; padding: 8px; min-width: 44px; }
 .shared-header .shell-election-trigger:hover,
 .shared-header .shell-election-trigger[aria-expanded="true"],
 .shared-header [data-active-area] > .shell-election-trigger { color: var(--teal-dark); background: var(--mint); }
@@ -274,7 +274,8 @@ body[data-public-shell] .priority-social-shares { grid-template-columns: repeat(
     .shared-header .primary-nav { grid-column: 1 / -1; grid-row: 2; display: grid; justify-content: stretch; width: 100%; gap: 4px; padding-block-start: 12px; border-top: 1px solid var(--line); overflow: visible; }
     .shared-header .primary-nav a { flex: initial; }
     .shell-election-heading { justify-content: space-between; }
-    .shell-election-heading > :is(a, button) { flex: 1; text-align: start; }
+    .shell-election-heading > a { flex: 1; text-align: start; }
+    .shell-election-heading > button { flex: 0 0 44px; }
     .shell-election-links { position: static; width: auto; margin-inline-start: 16px; box-shadow: none; }
     .shared-header .account-name { display: none; }
 }
