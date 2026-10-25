@@ -17,7 +17,7 @@ import dev.maboullaite.fhemni.gemini.*;
 import dev.maboullaite.fhemni.model.*;
 
 @Testcontainers
-@SpringBootTest(properties={"fhemni.gemini.api-key=","fhemni.member-analysis.enabled=true","fhemni.member-analysis.worker-enabled=false","fhemni.cost-control.chat-enabled=true","fhemni.cost-control.max-daily-analyses=100"})
+@SpringBootTest(properties={"fhemni.gemini.api-key=","fhemni.member-analysis.enabled=true","fhemni.member-analysis.worker-enabled=true","fhemni.member-analysis.worker-initial-delay-ms=3600000","fhemni.cost-control.chat-enabled=true","fhemni.cost-control.max-daily-analyses=100"})
 class MemberRetentionIntegrationTest {
     @Container static final PostgreSQLContainer DB=new PostgreSQLContainer("postgres:17-alpine");
     @DynamicPropertySource static void db(DynamicPropertyRegistry r){r.add("spring.datasource.url",DB::getJdbcUrl);r.add("spring.datasource.username",DB::getUsername);r.add("spring.datasource.password",DB::getPassword);}

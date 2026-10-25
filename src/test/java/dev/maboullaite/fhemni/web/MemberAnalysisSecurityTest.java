@@ -13,7 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-@SpringBootTest(properties={"fhemni.gemini.api-key=","fhemni.member-analysis.enabled=true","fhemni.auth.admin-identities=test:editor","spring.datasource.url=jdbc:h2:mem:member-security;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"}) @AutoConfigureMockMvc
+@SpringBootTest(properties={"fhemni.gemini.api-key=","fhemni.member-analysis.enabled=true","fhemni.member-analysis.worker-enabled=true","fhemni.member-analysis.worker-initial-delay-ms=3600000","fhemni.auth.admin-identities=test:editor","spring.datasource.url=jdbc:h2:mem:member-security;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"}) @AutoConfigureMockMvc
 class MemberAnalysisSecurityTest {
     @Autowired MockMvc mvc;@Autowired UserAccountRepository users;@Autowired MemberAnalysisAdmission admission;
     @MockitoBean VideoEligibilityGateway videos;@MockitoBean VideoIntelligenceGateway gateway;

@@ -42,7 +42,7 @@ public class AnalysisRevisionRepository {
 
     private final JdbcClient jdbc;
     private final ObjectMapper mapper;
-    private final String workerInstance=UUID.randomUUID().toString();
+    private final String workerInstance = UUID.randomUUID().toString();
 
     public AnalysisRevisionRepository(JdbcClient jdbc, ObjectMapper mapper) {
         this.jdbc = jdbc;
@@ -86,20 +86,24 @@ public class AnalysisRevisionRepository {
                 .param("credentialVersion", normalized(credentialVersion))
                 .param("createdAt", utc(snapshot.createdAt()))
                 .param("updatedAt", utc(snapshot.createdAt()))
-                .param("workerInstance",workerInstance)
-                .param("workerLeaseUntil",utc(Instant.now().plusSeconds(300)))
+                .param("workerInstance", workerInstance)
+                .param("workerLeaseUntil", utc(Instant.now().plusSeconds(300)))
                 .update();
     }
 
-    public void updateProgress(UUID id, AnalysisStatus status, int progress, String message) {
-        jdbc.sql("""
+    public int updateProgress(UUID id, AnalysisStatus status, int progress, String message) {
+        if (status == AnalysisStatus.COMPLETED || status == AnalysisStatus.FAILED) {
+            throw new IllegalArgumentException("Terminal states require complete or fail");
+        }
+        return jdbc.sql("""
                         UPDATE analysis_revisions
                            SET status = :status,
                                progress = :progress,
                                progress_message = :message,
                                updated_at = :updatedAt
                          WHERE id = :id
-                           AND worker_instance = :workerInstance AND worker_lease_until > :updatedAt
+                           AND worker_instance = :workerInstance
+                           AND worker_lease_until > :updatedAt
                            AND status IN ('QUEUED', 'ANALYZING', 'FACT_CHECKING')
                         """)
                 .param("status", status.name())
@@ -111,9 +115,9 @@ public class AnalysisRevisionRepository {
                 .update();
     }
 
-    public void complete(UUID id, VideoReport report, String interactionId) {
+    public int complete(UUID id, VideoReport report, String interactionId) {
         Instant now = Instant.now();
-        jdbc.sql("""
+        return jdbc.sql("""
                         UPDATE analysis_revisions
                            SET status = 'COMPLETED',
                                progress = 100,
@@ -124,8 +128,9 @@ public class AnalysisRevisionRepository {
                                completed_at = :completedAt,
                                updated_at = :updatedAt
                          WHERE id = :id
-                           AND worker_instance = :workerInstance AND worker_lease_until > :updatedAt
-                           AND status <> 'FAILED'
+                           AND worker_instance = :workerInstance
+                           AND worker_lease_until > :updatedAt
+                           AND status IN ('QUEUED', 'ANALYZING', 'FACT_CHECKING')
                         """)
                 .param("interactionId", interactionId, Types.VARCHAR)
                 .param("reportJson", writeReport(report), Types.LONGVARCHAR)
@@ -136,15 +141,16 @@ public class AnalysisRevisionRepository {
                 .update();
     }
 
-    public void fail(UUID id, String error) {
-        jdbc.sql("""
+    public int fail(UUID id, String error) {
+        return jdbc.sql("""
                         UPDATE analysis_revisions
                            SET status = 'FAILED',
                                progress_message = 'Analysis failed',
                                error = :error,
                                updated_at = :updatedAt
                          WHERE id = :id
-                           AND worker_instance = :workerInstance AND worker_lease_until > :updatedAt
+                           AND worker_instance = :workerInstance
+                           AND worker_lease_until > :updatedAt
                            AND status IN ('QUEUED', 'ANALYZING', 'FACT_CHECKING')
                         """)
                 .param("error", error, Types.LONGVARCHAR)
@@ -163,13 +169,41 @@ public class AnalysisRevisionRepository {
                                error = 'The application restarted before this analysis finished. Start a new analysis to retry.',
                                updated_at = :updatedAt
                          WHERE status IN ('QUEUED', 'ANALYZING', 'FACT_CHECKING')
-                           AND worker_lease_until < :updatedAt
+                           AND (worker_lease_until IS NULL OR worker_lease_until <= :updatedAt)
                         """)
                 .param("updatedAt", utc(now))
                 .update();
     }
 
-    public void renewOwnedLeases(){jdbc.sql("UPDATE analysis_revisions SET worker_lease_until=:until WHERE worker_instance=:instance AND worker_lease_until>:now AND status IN ('QUEUED','ANALYZING','FACT_CHECKING')").param("until",utc(Instant.now().plusSeconds(300))).param("now",utc(Instant.now())).param("instance",workerInstance).update();}
+    public void renewOwnedLeases(List<UUID> activeIds) {
+        if (activeIds.isEmpty()) {
+            return;
+        }
+        Instant now = Instant.now();
+        jdbc.sql("""
+                        UPDATE analysis_revisions
+                           SET worker_lease_until = :until
+                         WHERE worker_instance = :instance
+                           AND id IN (:activeIds)
+                           AND worker_lease_until > :now
+                           AND status IN ('QUEUED', 'ANALYZING', 'FACT_CHECKING')
+                        """)
+                .param("until", utc(now.plusSeconds(300)))
+                .param("now", utc(now))
+                .param("instance", workerInstance)
+                .param("activeIds", activeIds)
+                .update();
+    }
+
+    public List<StoredRevision> findFailed(List<UUID> ids) {
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return baseSelect("WHERE ar.id IN (:ids) AND ar.status = 'FAILED'")
+                .param("ids", ids)
+                .query(this::mapRevision)
+                .list();
+    }
 
     public Optional<StoredRevision> find(UUID id) {
         return baseSelect("WHERE ar.id = :id")

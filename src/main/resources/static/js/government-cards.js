@@ -33,7 +33,6 @@
             if(summary&&summary!==link.textContent){const excerpt=el('p',summary.length>180?summary.slice(0,177).trimEnd()+'…':summary,'programme-feature-excerpt');excerpt.setAttribute('dir','auto');if(/[\u0600-\u06ff]/.test(excerpt.textContent))excerpt.setAttribute('lang','ar');card.append(excerpt);}
             if(visuals.baselineComparison(row)){const metric=el('div',null,'programme-feature-metric'),chart=el('div');metric.append(el('p',copy.target,'programme-feature-caption'));visuals.renderBaseline(chart,row,{locale,document:doc,showTitle:false});metric.append(chart);card.append(metric);}
             if(context?.deadlineText){const timing=el('div',null,'programme-feature-timing'),literal=el('span',context.deadlineText);literal.setAttribute('dir','auto');if(/[\u0600-\u06ff]/.test(literal.textContent))literal.setAttribute('lang','ar');timing.append(el('span',copy.timing),literal);card.append(timing);}
-            if(context?.sourceStatus==='MIRROR_UNAUTHENTICATED')card.append(el('p',words.sourceUnverified,'programme-feature-note'));
             const footer=el('div',null,'programme-feature-footer');
             if(update&&Number.isFinite(Date.parse(update.publishedAt))){const time=el('time',copy.publication+' · '+model.date(update.publishedAt,locale));time.dateTime=update.publishedAt;footer.append(time);}
             else if(!update)footer.append(el('span',words[model.assessmentState(row)]||words.UNASSESSED));

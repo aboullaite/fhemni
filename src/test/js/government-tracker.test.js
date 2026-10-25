@@ -6,6 +6,13 @@ function document(){
     return {createElement:node,getElementById(id){if(!nodes.has(id))nodes.set(id,node('div'));return nodes.get(id)},nodes};
 }
 const text=node=>[node.textContent,...node.children.map(text)].join(' ');
+test('overview delivery summary always loads government-wide counts regardless of retained filters',async()=>{
+    const {loadTrackerView}=require('../../main/resources/static/js/government-tracker.js'),calls=[];
+    const api={fetchMandate:async()=>({recentUpdates:[]}),fetchPreview:async()=>null,fetchInsights:async state=>{calls.push(state);return {totalEntries:0,entries:[],deliveryCounts:{}};}};
+    const view=await loadTrackerView(api,{tab:'overview',origin:'CAMPAIGN',topic:'HEALTH',assessment:'DELIVERED'},{});
+    assert.ok(calls.some(state=>state.origin==='GOVERNMENT'&&!state.topic&&!state.assessment&&!state.party&&!state.q));
+    assert.deepEqual(view.deliveryInsights.deliveryCounts,{});
+});
 test('commitment detail hides repeated source labels and empty measurements without hiding sources or assessment',()=>{
     const {renderCommitment}=require('../../main/resources/static/js/commitment-detail.js');
     for(const locale of ['ar','fr','en']){
@@ -140,7 +147,8 @@ test('preview metadata is a collapsed source disclosure without a large heading 
     renderTracker({locale:'en',loadState:'ready',preview:{localPreview:true,entryCount:595,publicSourceUrl:'https://www.chambredesrepresentants.ma/ar/node/467708',pdfUrl:'/api/catalog/government/2026-2031/preview/pdf'},mandate:{lifecycle:'FORMATION',recentUpdates:[]}}, {tab:'overview',origin:'GOVERNMENT'},doc);
     assert.doesNotMatch(text(doc.getElementById('trackerPreview')),/local research preview|595/i);
     const disclosure=doc.getElementById('trackerPreview').children.find(node=>node.tag==='details');assert.ok(disclosure);assert.ok(!disclosure.open);
-    assert.match(text(doc.getElementById('trackerPreview')),/not.*matched.*official/i);
+    assert.doesNotMatch(text(doc.getElementById('trackerPreview')),/not.*matched.*official/i);
+    assert.match(text(doc.getElementById('trackerPreview')),/not unique promises or evidence of delivery/);
     assert.doesNotMatch(text(doc.getElementById('trackerOverview')),/Government formation/);
     const walk=node=>[node,...node.children.flatMap(walk)],links=walk(doc.getElementById('trackerOverview'));
     assert.ok(links.some(node=>node.href==='/government?tab=programme&origin=GOVERNMENT'));
@@ -155,6 +163,7 @@ test('Arabic programme entries keep their language and source status in translat
         const heading=cards[0].children.find(node=>node.tag==='h2');assert.equal(heading.children[0].attributes.lang,'ar');
         assert.ok(text(cards[0]).includes(require('../../main/resources/static/js/government-model.js').COPY[locale].UNASSESSED));
         assert.match(text(cards[0]),/12/);
+        assert.ok(!cards[0].children.some(node=>node.className==='government-source-status'));
     }
 });
 test('programme and delivery cards use the same bounded grid in all locales',()=>{

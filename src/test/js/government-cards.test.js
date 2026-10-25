@@ -30,6 +30,7 @@ test('shared cards show source targets as targets, never measured delivery, and 
         assert.equal(host.children.length,1);assert.match(text(host),/2027–2031/);assert.match(text(host),/90/);assert.match(text(host),/50/);
         assert.ok(walk(host).some(n=>n.href==='/government/commitments/capacity'&&n.attributes.lang==='ar'));
         assert.ok(!walk(host).some(n=>n.tag==='progress'||n.attributes.role==='progressbar'));
+        assert.ok(!walk(host).some(n=>n.className==='programme-feature-note'));
         assert.doesNotMatch(text(host),/value:|baseline:|undefined|NaN/);
     }
 });

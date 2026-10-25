@@ -66,27 +66,39 @@ final class AnalysisSession {
         return session;
     }
 
-    synchronized void progress(AnalysisStatus status, int progress, String message) {
+    synchronized boolean progress(AnalysisStatus status, int progress, String message) {
+        if (terminal()) {
+            return false;
+        }
         this.status = status;
         this.progress = progress;
         this.progressMessage = message;
         touch();
+        return true;
     }
 
-    synchronized void complete(VideoReport report, String interactionId) {
+    synchronized boolean complete(VideoReport report, String interactionId) {
+        if (terminal()) {
+            return false;
+        }
         this.report = report;
         this.analysisInteractionId = interactionId;
         this.status = AnalysisStatus.COMPLETED;
         this.progress = 100;
         this.progressMessage = "Analysis complete";
         touch();
+        return true;
     }
 
-    synchronized void fail(String message) {
+    synchronized boolean fail(String message) {
+        if (terminal()) {
+            return false;
+        }
         this.status = AnalysisStatus.FAILED;
         this.progressMessage = "Analysis failed";
         this.error = message;
         touch();
+        return true;
     }
 
     synchronized String analysisInteractionId() {

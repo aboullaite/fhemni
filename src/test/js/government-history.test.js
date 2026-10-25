@@ -30,7 +30,31 @@ test('measure and relationship snapshots render readable archived facts in all l
     history.renderRevision(host,revision('LINK',{title:{en:'Promise relationship'},relationship:{relation:'ADOPTED',explanation:{en:'The programme adopted it'},campaignPromiseId:'campaign-id',governmentCommitmentId:'commitment-id'}}),locale,doc);assert.match(text(host),/The programme adopted it/);assert.doesNotMatch(text(host),/campaign-id|commitment-id/);}
 });
 test('long archived lists expose later entries through native pagination buttons',()=>{
-    const doc=document(),host=doc.createElement('section');history.renderRevision(host,revision('MANDATE',{label:{en:'Government'},membership:Array.from({length:12},(_,i)=>({name:{en:'Member '+i},role:{en:'Role'}}))}),'en',doc);assert.match(text(host),/Member 9/);assert.doesNotMatch(text(host),/Member 10/);const next=walk(host).find(n=>n.tag==='button'&&n.textContent==='Next');assert.ok(next);next.click();assert.match(text(host),/Member 10/);assert.doesNotMatch(text(host),/Member 9/);
+    const doc=document(),host=doc.createElement('section');history.renderRevision(host,revision('MANDATE',{label:{en:'Government'},membership:Array.from({length:12},(_,i)=>({name:{en:'Member '+i},role:{en:'Role'}}))}),'en',doc);assert.match(text(host),/Member 8/);assert.doesNotMatch(text(host),/Member 9/);const next=walk(host).find(n=>n.tag==='button'&&n.textContent==='Next');assert.ok(next);next.click();assert.match(text(host),/Member 9/);assert.match(text(host),/Member 11/);assert.doesNotMatch(text(host),/Member 8/);
+});
+test('archived ministers share directory cards and logos without changing historical membership',async()=>{
+    for(const locale of ['ar','fr','en']){
+        const doc=document(),host=doc.createElement('section');
+        const data=revision('MANDATE',{label:{en:'Government'},membership:[{name:{en:'Archived minister'},role:{en:'Archived role'},partyCode:'PI',effectiveFrom:'2026-09-01',effectiveUntil:'2026-10-10',evidenceIds:['archived-source']},{name:{en:'Unknown affiliation'},partyCode:null}]});
+        data.evidence=[{id:'archived-source',url:'https://example.org/archive',passage:'Archived evidence'}];
+        history.renderRevision(host,data,locale,doc,{parties:[{code:'PI',nameAr:'حزب الاستقلال',nameFr:'Istiqlal',symbolAsset:'/assets/parties/pi-display.png'}]});
+        const cards=walk(host).filter(n=>n.className==='public-panel minister-card');
+        assert.equal(cards.length,2);
+        assert.ok(walk(host).some(n=>n.className==='ministers-directory'));
+        assert.ok(walk(cards[0]).some(n=>n.tag==='h4'&&n.textContent==='Archived minister'));
+        assert.ok(walk(cards[0]).some(n=>n.tag==='img'&&n.src==='/assets/parties/pi-display.png'));
+        assert.match(text(cards[0]),new RegExp({ar:'الأعضاء الحاليون',fr:'Membres actuels',en:'Current members'}[locale]),'status must use publication date, not today');
+        assert.match(text(cards[1]),new RegExp({ar:'الانتماء الحزبي غير موثق',fr:'Affiliation politique non documentée',en:'Party affiliation not documented'}[locale]));
+        const sources=walk(cards[0]).find(n=>n.tag==='details');sources.open=true;await sources.toggle();
+        assert.match(text(sources),/Archived evidence/);
+    }
+});
+test('revision navigation loads party presentation metadata without fetching current membership',async()=>{
+    const requests=[],renders=[],data=revision('MANDATE',{membership:[]});
+    const nav=history.createNavigation({request:async path=>{requests.push(path);return path==='/api/catalog/parties'?[{code:'PI'}]:data;},render:value=>renders.push(value)});
+    await nav.go('/government/revisions/example');
+    assert.deepEqual(requests,['/api/catalog/government/revisions/example','/api/catalog/parties']);
+    assert.deepEqual(renders.at(-1).parties,[{code:'PI'}]);
 });
 test('late history responses cannot replace a newer navigation result and back navigation never pushes state',async()=>{
     const pending=[],renders=[],pushes=[];const nav=history.createNavigation({request:path=>new Promise((resolve,reject)=>pending.push({path,resolve,reject})),render:value=>renders.push(value),push:url=>pushes.push(url)});

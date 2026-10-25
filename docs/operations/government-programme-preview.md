@@ -34,6 +34,29 @@ The 595 extracted entries are **not 595 unique promises**. Overview/detail repet
 
 Both indexes are applied only when the published slug, Arabic title and literal source anchor match. Geography additionally requires matching printed pages. Source payloads, revision hashes, geographic scope and delivery assessments remain unchanged. Run `node scripts/validate-programme-topics.mjs` with the local research archive to validate both indexes against all source records.
 
+## Minister affiliations
+
+`src/main/resources/government/cabinet-affiliations.json` supplies sourced affiliation
+metadata for the October 2026 cabinet. The public mandate response fills missing
+affiliations only when the exact Arabic name and both membership dates match.
+An explicitly published conflicting party always takes precedence. Original
+revision payloads, hashes and history remain unchanged; this is public-read-model
+enrichment, not a silent rewrite of the archived cabinet snapshot.
+
+The production directory already corroborates several of these affiliations;
+the roster supplement also covers members absent from that video-guest directory.
+Its evidence is available through the existing public source endpoint only when
+referenced by the displayed membership. `INDEPENDENT` means explicitly documented
+non-affiliation, never a default for missing data. Current coverage is 31 members
+(25 affiliated, six independent), plus one former PI minister. Jalal Charaf is
+classified by PI's publicly declared affiliation; the linked evidence retains
+the dispute about his earlier organizational membership. Youns Bjijou is USFP,
+corroborated by the party newspaper on 20 October. Hassan Tariq's former USFP
+activity is not treated as current membership.
+
+The minister cards fetch names and `symbolAsset` from `/api/catalog/parties`,
+sharing the election page's party assets rather than a second logo mapping.
+
 `/government?tab=regions` defaults to programme references: counts represent distinct entries per region, not money, implementation or independent promises. Entries may mention multiple regions. Region/topic/search filters and pagination operate on the full indexed publication set. The separate `regionalView=measurements` view still requires actual published observations. New policy-topic codes are registered by V73 so readers can follow them; this does not retroactively rewrite historical publication events.
 
 All programme entries begin unassessed. Literal target operators, baselines and periods are retained as research context rather than converted into precise deadlines or observed outcomes. Programme-reported baselines are not independent measurements. Arabic original titles remain visibly labelled when translations are unavailable. Subsequent delivery observations, party-programme matches and practical eligibility information require independent editorial review before publication.

@@ -78,7 +78,7 @@
                 }
                 card.append(heading);
                 if(titleLanguage==='ar'&&locale!=='ar')card.append(el('p',copy.originalArabic,'government-meta'));
-                if(row.programmeContext){const context=row.programmeContext;if(context.sourceStatus==='MIRROR_UNAUTHENTICATED')card.append(el('p',copy.sourceUnverified,'government-source-status'));if(context.printedPages?.length)card.append(el('p',`${copy.printedPages}: ${context.printedPages.join('، ')}`,'government-meta'));}
+                if(row.programmeContext){const context=row.programmeContext;if(context.printedPages?.length)card.append(el('p',`${copy.printedPages}: ${context.printedPages.join('، ')}`,'government-meta'));}
                 if(row.origin==='GOVERNMENT'){
                     const badge=el('p',copy[model.assessmentState(row)]||copy.UNASSESSED,'government-status');badge.setAttribute('data-state',model.assessmentState(row));card.append(badge);
                     if(row.deliveryAssessment?.evidenceConfidence)card.append(el('p',copy[row.deliveryAssessment.evidenceConfidence],'government-meta'));

@@ -17,6 +17,24 @@ class ProgrammePreviewDataTest {
         assertThrows(IllegalStateException.class, () -> ProgrammePreviewData.requireLocal("jdbc:h2:file:./data/government-preview", "127.0.0.1", List.of("programme-preview", "prod")));
     }
 
+    @Test
+    void incompatibleProfilesAbortPreviewConstructionBeforeReadingFilesOrUsingRepositories() {
+        for (String[] profiles : List.of(
+                new String[]{"prod", "programme-preview"},
+                new String[]{"programme-preview", "prod"})) {
+            var environment = new org.springframework.mock.env.MockEnvironment()
+                    .withProperty("spring.datasource.url", "jdbc:h2:file:./data/government-preview")
+                    .withProperty("server.address", "127.0.0.1");
+            environment.setActiveProfiles(profiles);
+
+            // Dependencies are deliberately absent: the safety gate must reject before any use.
+            var failure = assertThrows(IllegalStateException.class,
+                    () -> new ProgrammePreview(environment, null, null, null, null, null, null, null));
+
+            assertTrue(failure.getMessage().contains("never enable it in production"));
+        }
+    }
+
     @Test void provenanceChecksActualBytesNotJustADeclaredDigest() {
         byte[] original = "source bytes".getBytes(StandardCharsets.UTF_8);
         assertDoesNotThrow(() -> ProgrammePreviewData.verify(original, GovernmentValidation.sha256(original), "fixture"));

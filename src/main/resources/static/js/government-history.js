@@ -1,7 +1,7 @@
 (function(root,factory){
-    const api=factory(root,typeof module==='object'?require('./government-model.js'):root.FhemniGovernmentModel,typeof module==='object'?require('./public-ui.js'):root.FhemniUI,typeof module==='object'?require('./measure.js'):root.FhemniMeasures);
+    const api=factory(root,typeof module==='object'?require('./government-model.js'):root.FhemniGovernmentModel,typeof module==='object'?require('./public-ui.js'):root.FhemniUI,typeof module==='object'?require('./measure.js'):root.FhemniMeasures,typeof module==='object'?require('./government-ministers.js'):root.FhemniGovernmentMinisters);
     if(typeof module==='object'&&module.exports)module.exports=api;else{root.FhemniGovernmentHistory=api;document.addEventListener('DOMContentLoaded',api.init);}
-})(typeof window==='object'?window:globalThis,function(root,model,ui,measures){
+})(typeof window==='object'?window:globalThis,function(root,model,ui,measures,ministers){
     const COPY={
         ar:{title:'سجل النسخ المنشورة',intro:'شوف شنو كان منشور، وفاش تنشر، وعلاش تبدّل.',archived:'هادي نسخة سبق نشرها، ماشي العرض الحالي. المعطيات والخطوات اللي فيها ممكن تكون تبدّلات.',current:'شوف العرض الحالي',open:'قرا النسخة المنشورة',explanation:'توضيح النشر',empty:'ما كاينة حتى نسخة منشورة لهاد السجل.',missing:'هاد النسخة ما كايناش ضمن النسخ المنشورة.',publishedAt:'تاريخ النشر',snapshot:'المعطيات وقت النشر',allHistory:'جميع النسخ المنشورة لهاد السجل',role:'المهمة',from:'بداية المهمة',until:'نهاية المهمة',lifecycle:'مرحلة الحكومة',complete:'المراجعة كاملة',incomplete:'المراجعة غير مكتملة',metric:'المؤشر',targetDate:'تاريخ الهدف',baselineDate:'تاريخ المرجع',programmeRecorded:'العلاقة مربوطة بنسخة البرنامج المراجعة.',originalPromise:'شوف الوعد الأصلي',linkedCommitment:'شوف الالتزام الحكومي',recordedProcess:'رابط المسطرة وقت النشر',MANDATE:'الحكومة',COMMITMENT:'الالتزام',MEASURE:'التدبير',LINK:'العلاقة بين الوعد والبرنامج'},
         fr:{title:'Historique des publications',intro:'Consultez les versions publiées, leurs dates et les explications des changements.',archived:'Ceci est une version précédemment publiée, pas la version actuelle. Les données et démarches peuvent avoir changé.',current:'Voir la version actuelle',open:'Lire la version publiée',explanation:'Explication de la publication',empty:'Aucune version publiée pour cette fiche.',missing:'Cette version ne figure pas parmi les publications.',publishedAt:'Publié le',snapshot:'Données au moment de la publication',allHistory:'Toutes les versions de cette fiche',role:'Fonction',from:'Début de fonction',until:'Fin de fonction',lifecycle:'Étape du gouvernement',complete:'Examen complet',incomplete:'Examen incomplet',metric:'Indicateur',targetDate:'Date de l’objectif',baselineDate:'Date de référence',programmeRecorded:'Lien établi avec la version du programme examinée.',originalPromise:'Voir la promesse originale',linkedCommitment:'Voir l’engagement gouvernemental',recordedProcess:'Lien vers la démarche lors de la publication',MANDATE:'Gouvernement',COMMITMENT:'Engagement',MEASURE:'Mesure',LINK:'Lien entre promesse et programme'},
@@ -31,7 +31,7 @@
             link.href='/government/revisions/'+encodeURIComponent(row.id);heading.append(link);article.append(heading,el('p',`${copy.publishedAt}: ${model.date(row.publishedAt,locale)}`,'government-meta'),el('p',model.localized(row.explanation,locale)||common.unknown));host.append(article);
         }
     }
-    function renderRevision(host,revision,locale='ar',doc=globalThis.document){
+    function renderRevision(host,revision,locale='ar',doc=globalThis.document,{parties=[]}={}){
         const el=elements(doc),copy=COPY[locale],common=model.COPY[locale],view=revision.snapshot||{},local=value=>model.localized(value,locale)||common.unknown,date=value=>model.date(value,locale),number=value=>model.number(value,locale);
         host.replaceChildren();host.append(el('p',copy.archived,'government-note'));
         const current=el('a',copy.current,'text-link');current.href=currentPath(revision.subjectType,revision.slug,view);host.append(current);
@@ -54,7 +54,17 @@
             facts(host,[[copy.lifecycle,common[{FORMATION:'pending',FORMED_PROGRAMME_PENDING:'formed',PROGRAMME_PUBLISHED:'published'}[view.lifecycle]]||common.unknown],[common.verified,date(view.verifiedAt)]]);
             if(view.reviewCoverage){const coverage=view.reviewCoverage;facts(host,[[common.coverage,`${number(coverage.reviewed)} ${coverage.total==null?common.unknownTotal:common.of+' '+number(coverage.total)} · ${coverage.complete?copy.complete:copy.incomplete}`]]);}
             if(view.programme){const programme=section(common.programmeVersion);facts(programme,[[common.programmeVersion,number(view.programme.version)],[common.programme,local(view.programme.title)],[copy.publishedAt,date(view.programme.publishedAt)]]);}
-            bounded(common.membership,view.membership,row=>{const article=el('article',null,'public-panel public-stack');article.append(el('h4',local(row.name)));facts(article,[[copy.role,local(row.role)],[common.party,row.partyCode],[copy.from,date(row.effectiveFrom)],[copy.until,date(row.effectiveUntil)]]);return article;});
+            if(view.membership?.length){
+                const group=section(common.membership),content=el('div',null,'ministers-directory'),rows=view.membership,pageSize=ministers.PAGE_SIZE;
+                const evidence=new Map([...(revision.evidence||[]),...(view.evidence||[])].map(source=>[source.id,source]));
+                // Archive cards use the same presentation, but never substitute today's membership or evidence.
+                const request=async path=>{const source=evidence.get(decodeURIComponent(path.split('/').pop()));if(!source)throw new Error('Source absent from archived revision');return source;};
+                const asOf=String(revision.publishedAt||view.verifiedAt||'').slice(0,10);
+                let page=1;group.append(content);
+                const draw=()=>ministers.renderMembers(content,rows.slice((page-1)*pageSize,page*pageSize),{locale,asOf,parties,headingTag:'h4',document:doc,request});
+                draw();
+                if(rows.length>pageSize){const options={pages:Math.ceil(rows.length/pageSize),total:rows.length,pageSize,locale};const pager=ui.createPager({...options,page,document:doc,onChange:next=>{page=next;draw();pager.update({...options,page});}});group.append(pager);}
+            }
         }else if(revision.subjectType==='COMMITMENT'){
             section(common.original).append(quote(view.originalText,view.originalLanguage));
             facts(host,[[common.origin,view.origin==='CAMPAIGN'?common.campaign:common.government],[common.author,local(view.author)],[common.responsible,local(view.responsibleBody)],[common.scope,local(view.geographicScope?.label)],[common.deadline,date(view.deadline)]]);
@@ -76,7 +86,11 @@
         return {async go(url,shouldPush=false){const ticket=++sequence,state=readHistoryState(url);if(shouldPush)push(url);render({state,data:null,loadState:'loading'});
             try{let data=await request(historyApiPath(state));if(ticket!==sequence)return;
                 if(!state.revision){const last=Math.max(1,Math.ceil(data.totalItems/10));if(state.page>last){state.page=last;const normalized=new URL(url,'http://localhost');normalized.searchParams.set('page',last);replace(normalized.pathname+normalized.search);data=await request(historyApiPath(state));}}
-                if(ticket===sequence)render({state,data,loadState:'ready'});}
+                let parties=[];
+                if(state.revision&&data.subjectType==='MANDATE'){
+                    try{const catalog=await request('/api/catalog/parties');if(Array.isArray(catalog))parties=catalog;}catch{/* Historical facts remain readable without party artwork. */}
+                }
+                if(ticket===sequence)render({state,data,parties,loadState:'ready'});}
             catch(error){if(ticket===sequence)render({state,data:null,loadState:error.status===404?'missing':'error'});}
         }};
     }
@@ -89,7 +103,7 @@
             content.setAttribute('aria-busy',String(view.loadState==='loading'));pagerHost.setAttribute('aria-busy',String(view.loadState==='loading'));for(const button of pagerHost.querySelectorAll('button'))button.disabled=view.loadState!=='ready';
             if(view.loadState!=='ready'){content.replaceChildren();return;}
             pagerHost.hidden=!!view.state.revision;
-            if(view.state.revision){renderRevision(content,view.data,lang,doc);return;}
+            if(view.state.revision){renderRevision(content,view.data,lang,doc,{parties:view.parties});return;}
             const subject=doc.createElement('p');subject.className='government-meta';subject.textContent=copy[view.state.type];renderHistory(content,view.data,lang,doc);content.prepend(subject);
             const options={page:view.data.page,pages:Math.max(1,Math.ceil(view.data.totalItems/10)),total:view.data.totalItems,locale:lang};
             if(!pager){pager=ui.createPager({...options,document:doc,onChange:page=>{const url=new URL(root.location.href);url.searchParams.set('page',page);nav.go(url.pathname+url.search,true);}});pagerHost.append(pager);}else pager.update(options);

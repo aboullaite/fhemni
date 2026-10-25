@@ -3,6 +3,7 @@ package dev.maboullaite.fhemni.analysis;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -65,13 +66,16 @@ class AnalysisPartialUsageTest {
                 .thenThrow(new GeminiApiException("Fact checking failed"));
         when(revisions.publication(any())).thenAnswer(invocation ->
                 new PublicationState(invocation.getArgument(0), false, false, null));
+        when(revisions.updateProgress(any(), any(), anyInt(), anyString())).thenReturn(1);
+        when(revisions.fail(any(), anyString())).thenReturn(1);
         doAnswer(invocation -> {
             invocation.<Runnable>getArgument(0).run();
             return null;
         }).when(executor).execute(any());
 
         AnalysisService service = new AnalysisService(
-                new YouTubeUrlParser(), gateway, events, executor, usageGuard, revisions,
+                new YouTubeUrlParser(), gateway, new VideoAnalysisRunner(gateway, usageGuard),
+                events, executor, usageGuard, revisions,
                 mock(VideoContextRepository.class),
                 10, Duration.ofHours(1), 10, 4, 10);
 

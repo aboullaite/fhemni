@@ -2,6 +2,21 @@ const {test}=require('node:test'),assert=require('node:assert/strict');
 let visuals={};try{visuals=require('../../main/resources/static/js/government-visuals.js');}catch(e){if(e.code!=='MODULE_NOT_FOUND')throw e;}
 function document(){const nodes=new Map();const make=tag=>({tag,children:[],attributes:{},style:{},textContent:'',append(...xs){this.children.push(...xs)},replaceChildren(...xs){this.children=xs;this.textContent=''},setAttribute(k,v){this.attributes[k]=String(v)},focus(){},addEventListener(k,v){this[k]=v}});return {createElement:make,getElementById(id){if(!nodes.has(id))nodes.set(id,make('section'));return nodes.get(id)}};}
 const walk=n=>[n,...n.children.flatMap(walk)],text=n=>walk(n).map(x=>x.textContent).join(' ');
+test('delivery ring keeps unknown evidence separate and links every status to its filtered list',()=>{
+    const doc=document(),host=doc.createElement('section');
+    visuals.renderDeliverySummary(host,{totalEntries:10,deliveryCounts:{DELIVERED:3,UNDERWAY:2,PARTLY_DELIVERED:1,NO_EVIDENCE_FOUND:1,WITHDRAWN:1,UNASSESSED:2}},{locale:'en',document:doc});
+    assert.match(text(host),/30%/);
+    assert.equal(walk(host).filter(n=>n.tag==='a').length,6);
+    assert.ok(walk(host).some(n=>n.href==='/government?tab=delivery&origin=GOVERNMENT&assessment=UNASSESSED'));
+    assert.match(walk(host).find(n=>n.className==='government-delivery-ring').style.background,/conic-gradient/);
+});
+test('unassessed, empty and unavailable delivery totals never claim zero percent delivery',()=>{
+    for(const locale of ['ar','fr','en'])for(const insights of [null,{totalEntries:0,deliveryCounts:{}},{totalEntries:595,deliveryCounts:{UNASSESSED:595}},{totalEntries:595}]){
+        const doc=document(),host=doc.createElement('section');visuals.renderDeliverySummary(host,insights,{locale,document:doc});
+        assert.doesNotMatch(text(host),/0%|NaN|undefined/);
+        if(insights?.deliveryCounts?.UNASSESSED)assert.match(text(host),/595/);
+    }
+});
 const row=(slug='assistance',extra={})=>({slug,title:{ar:'الدعم',fr:'الدعم',en:'الدعم'},topicCodes:['HEALTH'],programmeContext:{sourceStatus:'MIRROR_UNAUTHENTICATED',printedPages:[55],targetText:'value: 1000 · unit: MAD per month · operator: equal · baseline: {"value":500,"unit":"MAD per month","source":"programme-reported"}',deadlineText:null},...extra});
 test('unclassified entries are not disguised as a policy topic',()=>{
     for(const locale of ['ar','fr','en']){const doc=document(),host=doc.createElement('section');visuals.renderProgramme(host,{topics:[{code:'OTHER',count:210}],entries:[]},{locale,document:doc,topics:[{code:'OTHER',label:{ar:'مواضيع أخرى',en:'Other topics',fr:'Autres thèmes'}}]});
@@ -35,7 +50,7 @@ test('interactive dates expand exact year groups without assigning periods or un
         assert.equal(walk(panel).filter(n=>n.tag==='li').length,10);
         assert.ok(!walk(panel).some(n=>n.href?.endsWith('/period')));
         assert.match(text(panel),/Starting in 2027/);
-        assert.ok(text(panel).includes(visuals.COPY[locale].sourceNote));
+        assert.ok(!walk(panel).some(n=>n.className==='government-source-status'));
         walk(panel).find(n=>n.tag==='button'&&n.textContent===visuals.COPY[locale].next).onclick();
         assert.equal(walk(panel).filter(n=>n.tag==='li').length,2);
         const period=walk(host).find(n=>n.id==='programme-dates-multi-2027-2031');period.onclick();

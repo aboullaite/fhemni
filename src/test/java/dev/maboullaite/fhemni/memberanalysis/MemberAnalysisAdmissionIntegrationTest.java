@@ -9,7 +9,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import dev.maboullaite.fhemni.identity.*;
 import dev.maboullaite.fhemni.gemini.VideoIntelligenceGateway;
-@SpringBootTest(properties={"fhemni.gemini.api-key=","fhemni.member-analysis.enabled=true","fhemni.cost-control.analysis-enabled=true","fhemni.cost-control.max-daily-analyses=100","spring.datasource.url=jdbc:h2:mem:member-admission;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"})
+@SpringBootTest(properties={"fhemni.gemini.api-key=","fhemni.member-analysis.enabled=true","fhemni.member-analysis.worker-enabled=true","fhemni.member-analysis.worker-initial-delay-ms=3600000","fhemni.cost-control.analysis-enabled=true","fhemni.cost-control.max-daily-analyses=100","spring.datasource.url=jdbc:h2:mem:member-admission;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"})
 class MemberAnalysisAdmissionIntegrationTest {
     @Autowired MemberAnalysisPolicy policy;
     @Test void oldMonthReceiptsDoNotConsumeNewMonthAndOtherAccountsStayIsolated(){

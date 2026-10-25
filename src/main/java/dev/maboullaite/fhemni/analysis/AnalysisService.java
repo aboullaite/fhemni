@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -54,6 +55,8 @@ public class AnalysisService {
     private static final Logger log = LoggerFactory.getLogger(AnalysisService.class);
 
     private final Map<UUID, AnalysisSession> sessions = new ConcurrentHashMap<>();
+    // Admitted executor tasks, including queued work; never restored cached sessions.
+    private final Set<UUID> liveAnalyses = ConcurrentHashMap.newKeySet();
     private final Map<ConversationKey, UserConversationState> conversations = new ConcurrentHashMap<>();
     private final YouTubeUrlParser urlParser;
     private final VideoIntelligenceGateway gateway;
@@ -73,6 +76,7 @@ public class AnalysisService {
     public AnalysisService(
             YouTubeUrlParser urlParser,
             VideoIntelligenceGateway gateway,
+            VideoAnalysisRunner runner,
             AnalysisEventHub eventHub,
             @Qualifier("analysisExecutor") ExecutorService analysisExecutor,
             AiUsageGuard usageGuard,
@@ -90,7 +94,7 @@ public class AnalysisService {
         }
         this.urlParser = urlParser;
         this.gateway = gateway;
-        this.runner = new VideoAnalysisRunner(gateway,usageGuard);
+        this.runner = runner;
         this.eventHub = eventHub;
         this.executor = analysisExecutor;
         this.usageGuard = usageGuard;
@@ -153,8 +157,10 @@ public class AnalysisService {
             revisionCreated = true;
             publish(session, AnalysisStatus.QUEUED, 2, "Video accepted");
             Reservation admittedReservation = reservation;
+            liveAnalyses.add(id);
             executor.execute(() -> analyze(session, admittedReservation));
         } catch (RejectedExecutionException exception) {
+            liveAnalyses.remove(id);
             usageGuard.failed(reservation);
             if (revisionCreated) {
                 revisions.fail(id, "The analysis queue is full. Please retry later.");
@@ -162,6 +168,7 @@ public class AnalysisService {
             removeIf(id, candidate -> candidate == session);
             throw new IllegalStateException("The analysis queue is full. Please retry later.");
         } catch (RuntimeException exception) {
+            liveAnalyses.remove(id);
             usageGuard.failed(reservation);
             if (revisionCreated) {
                 try {
@@ -304,10 +311,37 @@ public class AnalysisService {
     }
 
     @PostConstruct
+    @Scheduled(
+            initialDelayString = "${fhemni.sessions.lease-recovery-ms:30000}",
+            fixedDelayString = "${fhemni.sessions.lease-recovery-ms:30000}")
     void markInterruptedAnalysesFailed() {
         int interrupted = revisions.failInterrupted();
         if (interrupted > 0) {
-            log.warn("Marked {} interrupted analysis revisions as failed after application startup", interrupted);
+            log.warn("Marked {} interrupted analysis revisions as failed", interrupted);
+        }
+        reconcileInterruptedSessions();
+    }
+
+    private void reconcileInterruptedSessions() {
+        for (StoredRevision stored : revisions.findFailed(List.copyOf(sessions.keySet()))) {
+            AnalysisSession session = sessions.get(stored.snapshot().id());
+            if (session != null) {
+                reconcileInterruptedSession(session, stored);
+            }
+        }
+    }
+
+    private void reconcileInterruptedSession(AnalysisSession session) {
+        revisions.find(session.snapshot().id())
+                .filter(stored -> stored.snapshot().status() == AnalysisStatus.FAILED)
+                .ifPresent(stored -> reconcileInterruptedSession(session, stored));
+    }
+
+    private void reconcileInterruptedSession(AnalysisSession session, StoredRevision stored) {
+        String error = stored.snapshot().error();
+        if (session.fail(error)) {
+            eventHub.publish(stored.snapshot().id(), new AnalysisEvent(
+                    AnalysisStatus.FAILED, stored.snapshot().progress(), error));
         }
     }
 
@@ -320,13 +354,28 @@ public class AnalysisService {
         }
     }
 
-    @Scheduled(initialDelayString="${fhemni.sessions.lease-heartbeat-ms:30000}",fixedDelayString="${fhemni.sessions.lease-heartbeat-ms:30000}")
-    public void renewAnalysisLeases(){revisions.renewOwnedLeases();}
+    @Scheduled(
+            scheduler = "analysisLeaseScheduler",
+            initialDelayString = "${fhemni.sessions.lease-heartbeat-ms:30000}",
+            fixedDelayString = "${fhemni.sessions.lease-heartbeat-ms:30000}")
+    public void renewAnalysisLeases() {
+        revisions.renewOwnedLeases(List.copyOf(liveAnalyses));
+    }
 
     private void analyze(AnalysisSession session, Reservation analysisReservation) {
+        UUID id = session.snapshot().id();
         try {
             AnalysisSnapshot input = session.snapshot();
-            var analysis=runner.run(new VideoAnalysisRunner.RunnerInput(input.id(),input.videoUrl(),input.videoId(),input.language()),event->publish(session,event.status(),event.progress(),event.message()),analysisReservation);
+            var analysis = runner.run(
+                    new VideoAnalysisRunner.RunnerInput(
+                            input.id(), input.videoUrl(), input.videoId(), input.language()),
+                    event -> publish(session, event.status(), event.progress(), event.message()),
+                    analysisReservation);
+            VideoReport report = analysis.report();
+            if (revisions.complete(input.id(), report, analysis.providerInteractionId()) != 1) {
+                reconcileInterruptedSession(session);
+                return;
+            }
             try {
                 videoContexts.save(
                         input.videoId(), input.language(),
@@ -335,22 +384,26 @@ public class AnalysisService {
             } catch (RuntimeException exception) {
                 log.error("Could not persist the reusable video context for analysis {}", input.id(), exception);
             }
-
-            VideoReport report = analysis.report();
-            revisions.complete(input.id(), report, analysis.providerInteractionId());
-            session.complete(report, analysis.providerInteractionId());
-            eventHub.publish(input.id(), new AnalysisEvent(AnalysisStatus.COMPLETED, 100, "Analysis complete"));
+            if (session.complete(report, analysis.providerInteractionId())) {
+                eventHub.publish(input.id(), new AnalysisEvent(AnalysisStatus.COMPLETED, 100, "Analysis complete"));
+            }
+        } catch (AnalysisLeaseLostException exception) {
+            log.info("Stopping analysis {} after losing its lease", id);
         } catch (RuntimeException exception) {
             log.warn("Analysis failed: {}", exception.getMessage());
             String message = friendlyError(exception);
-            session.fail(message);
             try {
-                revisions.fail(session.snapshot().id(), message);
+                if (revisions.fail(id, message) == 1 && session.fail(message)) {
+                    AnalysisSnapshot failed = session.snapshot();
+                    eventHub.publish(id, new AnalysisEvent(AnalysisStatus.FAILED, failed.progress(), message));
+                } else {
+                    reconcileInterruptedSession(session);
+                }
             } catch (RuntimeException persistenceException) {
-                log.error("Could not persist failure state for analysis {}", session.snapshot().id(), persistenceException);
+                log.error("Could not persist failure state for analysis {}", id, persistenceException);
             }
-            AnalysisSnapshot failed = session.snapshot();
-            eventHub.publish(failed.id(), new AnalysisEvent(AnalysisStatus.FAILED, failed.progress(), message));
+        } finally {
+            liveAnalyses.remove(id);
         }
     }
 
@@ -381,10 +434,15 @@ public class AnalysisService {
     }
 
     private void publish(AnalysisSession session, AnalysisStatus status, int progress, String message) {
-        session.progress(status, progress, message);
-        AnalysisSnapshot snapshot = session.snapshot();
-        revisions.updateProgress(snapshot.id(), status, progress, message);
-        eventHub.publish(snapshot.id(), new AnalysisEvent(status, progress, message));
+        UUID id = session.snapshot().id();
+        if (revisions.updateProgress(id, status, progress, message) != 1 || !session.progress(status, progress, message)) {
+            reconcileInterruptedSession(session);
+            throw new AnalysisLeaseLostException();
+        }
+        eventHub.publish(id, new AnalysisEvent(status, progress, message));
+    }
+
+    private static final class AnalysisLeaseLostException extends RuntimeException {
     }
 
     private AnalysisSession session(UUID id) {

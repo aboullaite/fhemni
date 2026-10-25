@@ -4,6 +4,8 @@
     if(commonJS)module.exports=api;else{root.FhemniGovernmentMinisters=api;root.document.addEventListener('DOMContentLoaded',api.init);}
 })(typeof window==='object'?window:globalThis,function(root,model,ui,visuals){
     const BASE='/api/catalog/government/2026-2031';
+    const PAGE_SIZE=9;
+    const UNAFFILIATED={ar:'لا منتمي',fr:'Sans affiliation partisane',en:'Unaffiliated'};
     const RESEARCH_NOTE={ar:'ملاحظة بحثية — ماشي اقتباس من المصدر',fr:'Note de recherche — pas une citation de la source',en:'Research note — not a source quotation'};
     const COPY={
         ar:{title:'شكون فالحكومة؟',intro:'تعرّف على أعضاء الحكومة، المسؤوليات ديالهم وفترة العضوية الموثقة، مع المصادر.',search:'قلب بالاسم أو المسؤولية',status:'العضوية',current:'الأعضاء الحاليون',former:'الأعضاء السابقون',all:'جميع الأعضاء',future:'تعيين مرتقب',role:'المسؤولية',from:'بداية العضوية',until:'نهاية العضوية',ongoing:'مستمرة حسب السجل',partyUnknown:'الانتماء الحزبي غير موثق',periodNote:'التواريخ كتخص العضوية فالحكومة، وماشي بالضرورة بداية نفس الحقيبة الوزارية.',originalNote:'بعض الأسماء والمسؤوليات كتظهر بلغة المصدر إذا ما توفرتش الترجمة.',asOf:'التشكيلة حسب معطيات',preview:'معاينة محلية — تشكيلة حقيقية موثقة، وماشي إعلان على حكومة 2026–2031.',empty:'ما كاين حتى عضو مطابق لهاد البحث.',clear:'مسح البحث',noSources:'ما كاينش مصدر مرتبط بهاد السجل.',unavailable:'ما كايناش تشكيلة منشورة دابا.'},
@@ -18,7 +20,7 @@
     function selectMembers(rows=[],state={},asOf=new Date().toISOString().slice(0,10)){
         const query=normalize(state.q),status=state.status||'current';
         const matches=rows.filter(row=>(status==='all'||membershipStatus(row,asOf)===status)&&(!query||normalize([...Object.values(row.name||{}),...Object.values(row.role||{})].join(' ')).includes(query)));
-        return ui.paginate(matches,state.page||1);
+        return ui.paginate(matches,state.page||1,PAGE_SIZE);
     }
     function readState(url){
         const query=new URL(url,'http://localhost').searchParams,page=Number(query.get('page')),status=query.get('status');
@@ -26,22 +28,31 @@
     }
     function stateUrl(state){const query=new URLSearchParams();if(state.q)query.set('q',state.q);if(state.status!=='current')query.set('status',state.status);if(state.page>1)query.set('page',state.page);return '/government/ministers'+(query.size?'?'+query:'');}
     async function loadDirectory(request){
-        const [mandate,preview]=await Promise.allSettled([request(BASE),request(BASE+'/preview')]);
+        const [mandate,preview,parties]=await Promise.allSettled([request(BASE),request(BASE+'/preview'),request('/api/catalog/parties')]);
         if(mandate.status==='rejected')throw mandate.reason;
         if(preview.status==='rejected'&&preview.reason?.status!==404)throw preview.reason;
-        return {mandate:mandate.value,preview:preview.status==='fulfilled'&&preview.value?.localPreview?preview.value:null};
+        return {mandate:mandate.value,preview:preview.status==='fulfilled'&&preview.value?.localPreview?preview.value:null,parties:parties.status==='fulfilled'&&Array.isArray(parties.value)?parties.value:[]};
     }
-    function renderMembers(host,rows,{locale='ar',asOf=new Date().toISOString().slice(0,10),document:doc=root.document,request=path=>root.FhemniGovernmentAPI.request(path)}={}){
+    function renderMembers(host,rows,{locale='ar',asOf=new Date().toISOString().slice(0,10),parties=[],headingTag='h2',document:doc=root.document,request=path=>root.FhemniGovernmentAPI.request(path)}={}){
         const copy=COPY[locale],common=model.COPY[locale];
         const el=(tag,text,className)=>{const node=doc.createElement(tag);if(text!=null)node.textContent=text;if(className)node.className=className;return node;};
         host.replaceChildren();
-        for(const row of rows.slice(0,10)){
-            const article=el('article',null,'public-panel minister-card'),heading=el('h2',model.localized(row.name,locale)||common.unknown),status=membershipStatus(row,asOf);
+        for(const row of rows.slice(0,PAGE_SIZE)){
+            const article=el('article',null,'public-panel minister-card'),heading=el(headingTag,model.localized(row.name,locale)||common.unknown,'minister-name'),status=membershipStatus(row,asOf);
             heading.setAttribute('dir','auto');article.append(el('p',copy[status],'minister-status'),heading);
             const role=el('p',model.localized(row.role,locale)||common.unknown,'minister-role');role.setAttribute('dir','auto');article.append(role);
             const facts=el('dl',null,'minister-facts');
-            function fact(label,value){const dd=el('dd',value);dd.setAttribute('dir','auto');facts.append(el('dt',label),dd);}
-            fact(common.party,row.partyCode||copy.partyUnknown);fact(copy.from,model.date(row.effectiveFrom,locale));fact(copy.until,row.effectiveUntil?model.date(row.effectiveUntil,locale):copy.ongoing);article.append(facts);
+            function fact(label,value){const dd=el('dd',value);dd.setAttribute('dir','auto');facts.append(el('dt',label),dd);return dd;}
+            const independent=row.partyCode==='INDEPENDENT',affiliation=fact(common.party,independent?UNAFFILIATED[locale]:copy.partyUnknown);
+            if(row.partyCode&&!independent){
+                const party=parties.find(party=>party.code===row.partyCode),name=(locale==='ar'?party?.nameAr||party?.nameFr:party?.nameFr||party?.nameAr)||row.partyCode;
+                const link=el('a',null,'minister-party');link.href='/parties/'+encodeURIComponent(row.partyCode);link.setAttribute('dir',locale==='ar'?'rtl':'ltr');
+                if(/^\/assets\/parties\/[a-zA-Z0-9][a-zA-Z0-9_-]*\.(?:svg|png|jpe?g|webp)$/.test(party?.symbolAsset||'')){
+                    const logo=el('img',null,'minister-party-logo');logo.src=party.symbolAsset;logo.alt='';logo.width=logo.height=32;logo.loading='lazy';link.append(logo);
+                }
+                const label=el('span',name);label.setAttribute('dir','auto');link.append(label);affiliation.replaceChildren(link);
+            }
+            fact(copy.from,model.date(row.effectiveFrom,locale));fact(copy.until,row.effectiveUntil?model.date(row.effectiveUntil,locale):copy.ongoing);article.append(facts);
             const ids=[...new Set(row.evidenceIds||[])];
             if(ids.length){
                 const details=el('details',null,'minister-sources'),body=el('div',null,'minister-evidence');details.append(el('summary',common.sources),body);let loaded=false,pending=false;
@@ -52,7 +63,7 @@
                         for(const source of sources){
                             const section=el('section',null,'government-evidence'),url=model.sourceUrl(source.url);
                             if(url){const link=el('a',source.locator?common.evidenceLink+' · '+source.locator:common.evidenceLink);link.href=url;link.rel='noopener noreferrer';section.append(link);}else if(source.locator)section.append(el('p',source.locator));
-                            const researchNote=source.passage?.startsWith('Research summary —');
+                            const researchNote=source.passage?.startsWith('Research summary —')||source.passage?.startsWith('ملاحظة توثيقية من فهّمني:');
                             if(researchNote)section.append(el('p',RESEARCH_NOTE[locale],'government-meta'));
                             const passage=el(researchNote?'p':'blockquote',source.passage||common.unknown);passage.setAttribute('dir','auto');if(source.originalLanguage)passage.setAttribute('lang',source.originalLanguage);
                             section.append(passage,el('p',`${common.sourceDate}: ${model.date(source.publishedAt,locale)} · ${common.retrieved}: ${model.date(source.retrievedAt,locale)}`,'government-meta'));body.append(section);
@@ -84,9 +95,9 @@
             if(state.page!==page.page){state.page=page.page;root.history.replaceState({},'',stateUrl(state));}
             snapshot.textContent=copy.asOf+': '+model.date(asOf,lang);
             visuals.renderCabinet(get('ministersChanges'),rows,{locale:lang,document:doc,asOf});
-            renderMembers(content,page.items,{locale:lang,asOf,document:doc});
+            renderMembers(content,page.items,{locale:lang,asOf,parties:data.parties,document:doc});
             ui.announceStatus(status,page.total?ui.countPhrase(page.total,'result',lang):rows.length?copy.empty:copy.unavailable);
-            const options={page:page.page,pages:page.pages,total:page.total,locale:lang};
+            const options={page:page.page,pages:page.pages,total:page.total,pageSize:PAGE_SIZE,locale:lang};
             if(!pager){pager=ui.createPager({...options,document:doc,onChange:page=>{state.page=page;root.history.pushState({},'',stateUrl(state));render();get('ministersTitle').focus();}});pagerHost.append(pager);}else pager.update(options);
             pagerHost.hidden=page.pages<=1;
         }
@@ -96,5 +107,5 @@
         get('ministersClear').addEventListener('click',()=>{state.q='';state.page=1;root.history.replaceState({},'',stateUrl(state));render();get('ministersSearch').focus();});
         get('ministersRetry').addEventListener('click',load);doc.addEventListener('fhemni:localechange',render);root.addEventListener('popstate',()=>{state=readState(root.location.href);render();});load();
     }
-    return {COPY,selectMembers,readState,stateUrl,loadDirectory,renderMembers,init};
+    return {COPY,PAGE_SIZE,selectMembers,readState,stateUrl,loadDirectory,renderMembers,init};
 });

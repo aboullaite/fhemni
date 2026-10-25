@@ -33,7 +33,7 @@
     <link rel="icon" href="/favicon.ico?v=20260911" sizes="32x32">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/brand/apple-touch-icon.png?v=20260911">
     <link rel="stylesheet" href="/css/dist.css?v=20261025-2">
-    <link rel="stylesheet" href="/css/home.css?v=20261024-2">
+    <link rel="stylesheet" href="/css/home.css?v=20261025-1">
     <link rel="stylesheet" href="/css/government-visuals.css?v=20261024-5">
     <link rel="stylesheet" href="/css/government-cards.css?v=20261024-1">
 </head>
@@ -77,8 +77,7 @@
             <h1 id="homeTitle" data-i18n="home.title">الانتخابات سالات، الحكومة تشكّلات، والمحاسبة بدات.</h1>
             <p data-i18n="home.intro">نتبعو وعود الأحزاب، التزامات الحكومة، وشنو تحقق فعلاً — بالمصادر.</p>
             <div class="home-actions">
-                <a class="primary-button button-link" href="/government" data-i18n="home.track">تتبع الوعود</a>
-                <a class="text-link" href="/analyse" data-i18n="shell.analyse">حلّل فيديو</a>
+                <a class="primary-button button-link" href="/government?tab=delivery&origin=GOVERNMENT" data-i18n="home.track">تتبع الوعود</a>
             </div>
             <p class="home-reading-note" data-i18n="landing.publicReading">القراية بلا حساب.</p>
         </div>
@@ -87,23 +86,25 @@
             <h2 id="mandateStatus" aria-live="polite">كنحمّلو آخر المعطيات…</h2>
             <p id="mandateExplanation"></p>
             <p id="mandateCoverage" class="home-reading-note" hidden></p>
-            <a id="homeProgrammeLink" class="text-link" href="/parties">الأحزاب والبرامج</a>
             <button id="homeRetry" class="secondary-button" type="button" data-i18n="home.retry" hidden>عاود المحاولة</button>
         </aside>
     </section>
-    <section class="home-section" aria-labelledby="homeProgrammeTitle">
-        <div class="home-section-heading programme-feature-heading"><h2 id="homeProgrammeTitle" data-i18n="home.programmePreview">من البرنامج الحكومي</h2><button type="button" id="homeShuffle">شوف اختيارات أخرى</button></div>
-        <div id="homeProgrammeCards" class="programme-feature-grid" aria-live="polite" aria-describedby="homeProgrammeNote"></div>
-        <p id="homeProgrammeNote" class="home-reading-note" hidden></p>
-        <a class="text-link" href="/government?tab=programme&origin=GOVERNMENT" data-i18n="home.exploreProgramme">استكشف البرنامج</a>
+    <section class="home-section home-programme-hub" aria-labelledby="homeProgrammeTitle">
+        <div class="home-programme-heading">
+            <div><h2 id="homeProgrammeTitle" data-i18n="home.programmePreview">من البرنامج الحكومي</h2><p data-i18n="home.programmeIntro">شنو واعدات به الحكومة؟ اكتشف البرنامج وبدا بالمواضيع اللي كتعنيك.</p></div>
+            <a class="primary-button button-link home-programme-cta" href="/government?tab=programme&origin=GOVERNMENT"><span data-i18n="home.exploreProgramme">استكشف البرنامج</span><span class="home-programme-arrow" aria-hidden="true">→</span></a>
+        </div>
+        <div id="homeProgrammeCards" class="programme-feature-grid" aria-live="polite"></div>
+        <div class="home-programme-tools"><button type="button" class="secondary-button" id="homeShuffle" hidden>شوف اختيارات أخرى</button></div>
         <button id="programmeRetry" class="secondary-button" type="button" data-i18n="home.retry" hidden>عاود المحاولة</button>
-    </section>
-    <section class="home-section" aria-labelledby="homeTopicsTitle">
+        <section class="home-programme-topics" aria-labelledby="homeTopicsTitle">
         <div class="home-section-heading"><h2 id="homeTopicsTitle" data-i18n="home.topics">شنو كيهمّك؟</h2><span class="home-reading-note" data-i18n="home.topicsHint">بدا بموضوع قريب ليك</span></div>
         <div id="homeTopics" class="home-topics"></div>
         <details id="homeTopicsDisclosure" class="home-topics-disclosure" hidden><summary id="homeMoreTopicsLabel">جميع المواضيع</summary><div id="homeMoreTopics" class="home-topics"></div></details>
         <button id="topicsRetry" class="secondary-button" type="button" data-i18n="home.retry" hidden>عاود المحاولة</button>
+        </section>
     </section>
+    <section id="homeDeadlines" class="home-section" hidden></section>
     <section class="home-discovery-grid" aria-label="استكشف فهّمني" data-i18n-aria-label="home.discover">
         <article class="home-discovery-card">
             <span class="home-discovery-mark" aria-hidden="true">↗</span>
@@ -118,13 +119,7 @@
             <a class="secondary-button button-link" href="/analyse" data-i18n="home.videoAction">جرّب تحليل فيديو</a>
         </article>
     </section>
-    <section class="home-section" aria-labelledby="homePromisesTitle">
-        <div class="home-section-heading"><h2 id="homePromisesTitle" data-i18n="home.promises">وعود الأحزاب تحت المجهر</h2><a class="text-link" href="/parties" data-i18n="home.allProgrammes">جميع البرامج</a></div>
-        <div id="featuredPromises" class="home-promise-grid" aria-live="polite"></div>
-        <button id="promisesRetry" class="secondary-button" type="button" data-i18n="home.retry" hidden>عاود المحاولة</button>
-    </section>
     <section id="homeUpdates" class="home-section" hidden></section>
-    <section id="homeDeadlines" class="home-section" hidden></section>
     <section class="home-election-archive">
         <div><h2 data-i18n="home.archiveTitle">الانتخابات، بالأرقام</h2><p data-i18n="home.archiveText">النتائج، المنتخبون، والمقارنة مع السنوات السابقة.</p></div>
         <a class="secondary-button button-link" href="/elections/2026" data-i18n="common.electionResults">نتائج الانتخابات</a>
@@ -140,14 +135,14 @@
 </footer>
 <!-- public-shell:footer:end -->
 
-<script src="/js/i18n.js?v=20261024-home2" defer></script>
+<script src="/js/i18n.js?v=20261025-home1" defer></script>
 <script src="/js/auth.js?v=20261005-1" defer></script>
 <script src="/js/government-api.js?v=20261024-1" defer></script>
 <script src="/js/catalog-ui.js?v=20260914-1" defer></script>
-<script src="/js/government-model.js?v=20261023-5" defer></script>
-<script src="/js/government-visuals.js?v=20261024-4" defer></script>
-<script src="/js/government-cards.js?v=20261024-1" defer></script>
-<script src="/js/landing.js?v=20261024-3" defer></script>
+<script src="/js/government-model.js?v=20261025-warnings1" defer></script>
+<script src="/js/government-visuals.js?v=20261025-warnings1" defer></script>
+<script src="/js/government-cards.js?v=20261025-warnings1" defer></script>
+<script src="/js/landing.js?v=20261025-links1" defer></script>
 <script src="/js/site-shell.js?v=20261004-2" defer></script>
 </body>
 </html>

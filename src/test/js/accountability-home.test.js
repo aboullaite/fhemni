@@ -15,6 +15,44 @@ function doc(){
     return {createElement:node,getElementById(id){if(!ids.has(id))ids.set(id,node('div'));return ids.get(id)},ids};
 }
 const text=node=>[node.textContent,...node.children.map(text)].join(' ');
+test('homepage has one programme browse link and the hero links only to delivery tracking',()=>{
+    const html=fs.readFileSync(path.resolve(__dirname,'../../main/resources/static/index.html'),'utf8');
+    const hero=html.slice(html.indexOf('<section class="accountability-hero"'),html.indexOf('<section class="home-section home-programme-hub"'));
+    assert.equal((html.match(/href="\/government\?tab=programme&origin=GOVERNMENT"/g)||[]).length,1);
+    assert.doesNotMatch(hero,/href="\/government\?tab=programme/);
+    assert.match(hero,/class="primary-button button-link" href="\/government\?tab=delivery&origin=GOVERNMENT"/);
+});
+test('programme picks survive a mandate refresh while their request is in flight',async()=>{
+    const {init}=load(),document=doc();
+    const get=document.getElementById;
+    document.getElementById=id=>{const node=get(id);node.addEventListener=()=>{};return node;};
+    document.addEventListener=()=>{};
+    let finishInsights;
+    const api=require('../../main/resources/static/js/government-api.js');
+    init(document,{FhemniGovernmentAPI:{
+        createLatestRequest:api.createLatestRequest,
+        fetchMandate:async()=>({recentUpdates:[]}),
+        request:async path=>path.includes('topics')?{topics:[]}:[],
+        fetchInsights:()=>new Promise(resolve=>{finishInsights=resolve;}),
+        fetchCommitment:async slug=>({slug,title:{en:'Real programme entry'}})
+    },FhemniI18n:{locale:()=> 'en'}});
+    await new Promise(resolve=>setImmediate(resolve));
+    finishInsights({entries:[{slug:'real-entry'}]});
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.match(text(document.getElementById('homeProgrammeCards')),/Real programme entry/);
+});
+test('shuffle is absent for empty and failed previews and available for loaded picks',()=>{
+    const {renderHome}=load(),document=doc();
+    for(const state of [{programme:[]},{programmeFailed:true},{programmeLoading:true}]){
+        renderHome(state,document);
+        assert.equal(document.getElementById('homeShuffle').hidden,true);
+    }
+    renderHome({programme:[{slug:'p',title:{en:'Entry'}}]},document);
+    assert.equal(document.getElementById('homeShuffle').hidden,false);
+    renderHome({programmeLoading:true,programme:[{slug:'p',title:{en:'Entry'}}]},document);
+    assert.equal(document.getElementById('homeShuffle').hidden,false);
+    assert.equal(document.getElementById('homeShuffle').disabled,true);
+});
 test('home uses rich publication cards without disguising catalogue dates as delivery',()=>{
     const {renderHome}=load(),document=doc();
     renderHome({locale:'en',loadState:'ready',publications:[{title:{en:'A published entry'},subjectType:'COMMITMENT',subjectId:'entry',publishedAt:'2026-10-23T00:00:00Z',entry:{slug:'entry',originalText:'A source excerpt',programmeContext:{deadlineText:'2027'}}}]},document);
@@ -34,7 +72,7 @@ test('home offers six topic previews and keeps every remaining topic in the disc
     renderHome({locale:'en',topics:topics.slice(0,2)},document);
     assert.equal(document.getElementById('homeTopicsDisclosure').hidden,true);
 });
-test('programme snippets are bounded, linked and keep unverified source and unassessed delivery honest',()=>{
+test('programme snippets retain detail links and unassessed delivery without repeated archive warnings',()=>{
     const {renderHome}=load();
     for(const locale of ['ar','fr','en']){
         const document=doc();
@@ -44,7 +82,7 @@ test('programme snippets are bounded, linked and keep unverified source and unas
         const walk=n=>[n,...n.children.flatMap(walk)];
         assert.ok(walk(cards[0]).some(n=>n.href==='/government/commitments/entry-0'));
         assert.ok(!text(cards[0]).includes('x'.repeat(200)));
-        assert.ok(text(document.getElementById('homeProgrammeNote')).trim().length>0);
+        assert.equal(text(document.getElementById('homeProgrammeNote')).trim(),'');
         assert.ok(!text(cards[0]).includes('Delivered'));
         renderHome({locale,programmeFailed:true},document);
         assert.equal(document.getElementById('programmeRetry').hidden,false);
@@ -59,10 +97,10 @@ test('untranslated programme titles retain their source language in a French int
     assert.equal(title.attributes.dir,'auto');
     assert.equal(title.attributes.lang,'ar');
 });
-test('published home links to the reviewed programme and shows only sourced updates and deadlines',()=>{
+test('published home shows only sourced updates and deadlines',()=>{
     const {renderHome}=load(),document=doc();
     renderHome({locale:'en',loadState:'ready',mandate:{lifecycle:'PROGRAMME_PUBLISHED',verifiedAt:'2026-10-01T00:00:00Z',programme:{id:'programme'},reviewCoverage:{reviewed:4,total:10,complete:false},recentUpdates:[{subjectType:'COMMITMENT',subjectId:'commitment',title:{en:'Reviewed update'},publishedAt:'2026-10-01T00:00:00Z'}]},deadlines:[{slug:'source-deadline',title:{en:'Sourced target'},deadline:'2027-01-01'}]},document);
-    assert.equal(document.getElementById('homeProgrammeLink').href,'/government?tab=programme&origin=GOVERNMENT');
+    assert.equal(document.ids.has('homeProgrammeLink'),false);
     assert.match(text(document.getElementById('mandateCoverage')),/4.*10/);
     assert.match(text(document.getElementById('homeUpdates')),/Reviewed update/);
     assert.match(text(document.getElementById('homeDeadlines')),/Sourced target/);
@@ -73,7 +111,7 @@ test('home omits the verification timestamp while retaining the verified program
         renderHome({locale,loadState:'ready',mandate:{lifecycle:'PROGRAMME_PUBLISHED',verifiedAt:'2026-10-23T00:00:00Z',programme:{id:'programme'}}},document);
         const output=[...document.ids.values()].map(text).join(' ');
         assert.doesNotMatch(output,/آخر تحقق|Dernière vérification|Last verified/);
-        assert.equal(document.getElementById('homeProgrammeLink').href,'/government?tab=programme&origin=GOVERNMENT');
+        assert.equal(document.ids.has('homeProgrammeLink'),false);
     }
 });
 test('formation and unavailable homes do not render invented membership, dates or delivery scores',()=>{
@@ -87,12 +125,13 @@ test('formation and unavailable homes do not render invented membership, dates o
         if(loadState==='unavailable')assert.equal(document.getElementById('homeRetry').hidden,false);
     }
 });
-test('published promises remain campaign feasibility, never government delivery',()=>{
-    const {renderHome}=load();const document=doc();
-    renderHome({locale:'en',loadState:'ready',mandate:null,topics:[],promises:[{slug:'test',partyCode:'P',title:{en:'<script>unsafe</script>'},verdict:'HARD',assessmentSummary:{en:'A feasibility review'}}]},document);
-    const output=text(document.getElementById('featuredPromises'));
-    assert.match(output,/feasibility/i);assert.match(output,/difficult/i);assert.ok(!output.includes('Delivered'));
-    assert.match(output,/<script>unsafe<\/script>/,'source wording remains text, not HTML');
+test('homepage renders programme content without the removed party-promises section',()=>{
+    for(const locale of ['ar','fr','en']){
+        const {renderHome}=load(),document=doc(),get=document.getElementById;
+        document.getElementById=id=>['featuredPromises','promisesRetry'].includes(id)?null:get(id);
+        assert.doesNotThrow(()=>renderHome({locale,programme:[{slug:'programme',title:{en:'Government programme'}}]},document));
+        assert.match(text(document.getElementById('homeProgrammeCards')),/Government programme/);
+    }
 });
 test('unverified programme metadata cannot override a pending home state',()=>{
     const {renderHome}=load();const document=doc();
@@ -100,29 +139,13 @@ test('unverified programme metadata cannot override a pending home state',()=>{
     assert.ok(!text(document.getElementById('mandateStatus')).includes('UNVERIFIED DATE'));
 });
 
-test('real party names and verified logos are reused rather than code badges',()=>{
-    const {renderHome}=load();const document=doc();
-    renderHome({locale:'ar',loadState:'ready',topics:[],parties:[{code:'P',nameAr:'اسم الحزب',nameFr:'Le parti',symbolAsset:'/assets/parties/p.png',symbolVerified:true}],promises:[{slug:'test',partyCode:'P',title:{ar:'وعد'},verdict:'HARD'}]},document);
-    const card=document.getElementById('featuredPromises').children[0];
-    assert.match(text(card),/اسم الحزب/);
-    const walk=node=>[node,...node.children.flatMap(walk)];
-    assert.equal(walk(card).find(node=>node.tag==='img')?.src,'/assets/parties/p.png');
-});
 test('pending fetches are loading rather than empty; homepage uses top-level selectable topics',()=>{
     const {renderHome}=load();const document=doc();
-    renderHome({locale:'en',promisesLoading:true,topicsLoading:true},document);
-    assert.match(text(document.getElementById('featuredPromises')),/Loading/);
+    renderHome({locale:'en',topicsLoading:true},document);
     assert.match(text(document.getElementById('homeTopics')),/Loading/);
     renderHome({locale:'en',topics:[{code:'health',label:{en:'Health'},selectable:true,parentCode:null},{code:'schools',label:{en:'Schools'},parentCode:'education',selectable:true},{code:'other',label:{en:'Other'},selectable:false,parentCode:null}]},document);
     assert.equal(document.getElementById('homeTopics').children.length,1);
     assert.match(text(document.getElementById('homeTopics')),/Health/);
-});
-test('every feasibility verdict is meaningful in all locales, including insufficient evidence',()=>{
-    const {renderHome}=load();
-    for(const locale of ['ar','fr','en'])for(const verdict of ['POSSIBLE','HARD','NOT_ACHIEVABLE','INSUFFICIENT_DATA']){
-        const document=doc();renderHome({locale,promises:[{slug:'p',title:{en:'Promise'},verdict}]},document);
-        assert.ok(!text(document.getElementById('featuredPromises')).includes('—'));
-    }
 });
 test('latest request wins and failures are reported instead of inventing a mandate',async()=>{
     const {createLatestRequest}=require('../../main/resources/static/js/government-api.js');

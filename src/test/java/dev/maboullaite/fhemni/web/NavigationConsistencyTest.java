@@ -77,7 +77,7 @@ class NavigationConsistencyTest {
                 .contains("href=\"/elections/2026\" data-i18n=\"common.electionResults\"")
                 .contains("class=\"secondary-button button-link\" href=\"/elections/2026\"")
                 .contains("data-i18n=\"home.archiveTitle\"")
-                .contains("/js/i18n.js?v=20261024-home2");
+                .contains("/js/i18n.js?v=");
         for (String page : SECONDARY_PAGES) {
             assertThat(html(page))
                     .as("election result navigation in %s", page)
@@ -1005,16 +1005,11 @@ class NavigationConsistencyTest {
                 .contains("DIFFICILE")
                 .contains("DONN[ÉE]ES\\s+INSUFFISANTES")
                 .contains("المعطيات\\s+ما\\s+كافياش");
-        assertThat(html("js/landing.js"))
-                .contains("FhemniCatalog.assessmentSummary(");
         assertThat(html("js/party.js"))
                 .contains("FhemniCatalog.assessmentSummary(");
         assertThat(html("js/promise.js"))
                 .contains("FhemniCatalog.assessmentSummary(")
                 .doesNotContain("function cleanSummary(value)");
-        assertThat(html("index.html"))
-                .contains("/js/catalog-ui.js?v=20260914-1")
-                .contains("/js/landing.js?v=20261024-3");
         assertThat(html("promise.html"))
                 .contains("/js/catalog-ui.js?v=20260914-1")
                 .contains("/js/promise.js?v=20260914-1");
@@ -1123,9 +1118,10 @@ class NavigationConsistencyTest {
     }
 
     @Test
-    void homePageUsesOneConciseFactCheckHeading() throws IOException {
+    void homePagePrioritizesTheGovernmentProgrammeWithoutPartyPromiseCards() throws IOException {
         assertThat(html("index.html"))
-                .contains("id=\"homePromisesTitle\" data-i18n=\"home.promises\"")
+                .contains("id=\"homeProgrammeTitle\"")
+                .doesNotContain("homePromisesTitle", "featuredPromises")
                 .doesNotContain("landing.factCheckKicker")
                 .doesNotContain("landing.factCheckIntro");
         assertThat(html("js/i18n.js"))

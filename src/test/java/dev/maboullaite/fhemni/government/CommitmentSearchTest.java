@@ -6,6 +6,22 @@ import java.util.*;
 import org.junit.jupiter.api.Test;
 
 class CommitmentSearchTest {
+    @Test void deliveryCountsCoverAllPublishedGovernmentRowsAndKeepUnknownSeparate() throws Exception {
+        var repository=mock(CommitmentRepository.class);
+        var rows=new ArrayList<CommitmentView>();
+        for(int i=0;i<14;i++) {
+            var assessment=i<3?new DeliveryAssessment(DeliveryState.DELIVERED,null,null,List.of(),null)
+                    :i==3?new DeliveryAssessment(DeliveryState.UNDERWAY,null,null,List.of(),null):null;
+            rows.add(new CommitmentView(UUID.randomUUID(),"entry-"+i,Origin.GOVERNMENT,new LocalText("عنوان","Titre","Title"),"text","ar",null,null,List.of("HEALTH"),null,null,null,null,assessment,List.of(),List.of(),List.of(),List.of()));
+        }
+        when(repository.published("2026-2031")).thenReturn(rows);
+        var service=new CommitmentService(repository,mock(CampaignPromiseAdapter.class),mock(GovernmentRepository.class),mock(ProgrammeRelationships.class));
+        var json=new tools.jackson.databind.json.JsonMapper().valueToTree(service.insights("2026-2031","GOVERNMENT",null,null,null,null));
+        assertEquals(3,json.path("deliveryCounts").path("DELIVERED").asInt());
+        assertEquals(1,json.path("deliveryCounts").path("UNDERWAY").asInt());
+        assertEquals(10,json.path("deliveryCounts").path("UNASSESSED").asInt());
+        assertEquals(0,json.path("deliveryCounts").path("NO_EVIDENCE_FOUND").asInt());
+    }
     @Test void filtersBeforePaginationAndPreservesProgrammeContextOnDetail() {
         var repository=mock(CommitmentRepository.class);var campaigns=mock(CampaignPromiseAdapter.class);
         var revisions=mock(GovernmentRepository.class);var relationships=mock(ProgrammeRelationships.class);

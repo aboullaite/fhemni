@@ -1,11 +1,11 @@
 package dev.maboullaite.fhemni.analysis;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import dev.maboullaite.fhemni.model.AnalysisStatus;
@@ -63,23 +63,25 @@ public class AnalysisEventHub {
 
     public void publish(UUID analysisId, AnalysisEvent event) {
         Channel channel = channels.computeIfAbsent(analysisId, ignored -> new Channel());
-        List<Subscriber> recipients;
         boolean terminal = terminal(event.status());
 
         synchronized (channel) {
+            if (channel.latest != null && terminal(channel.latest.status())) {
+                return;
+            }
             channel.latest = event;
-            recipients = List.copyOf(channel.subscribers);
+            List<Subscriber> recipients = List.copyOf(channel.subscribers);
             if (terminal) {
                 channel.subscribers.clear();
             }
-        }
-
-        for (Subscriber subscriber : recipients) {
-            if (!send(subscriber, event)) {
-                unsubscribe(analysisId, channel, subscriber);
-            }
-            if (terminal) {
-                subscriber.complete();
+            // Keep per-channel delivery ordered without holding an analysis session lock.
+            for (Subscriber subscriber : recipients) {
+                if (!send(subscriber, event)) {
+                    unsubscribe(analysisId, channel, subscriber);
+                }
+                if (terminal) {
+                    subscriber.complete();
+                }
             }
         }
     }
@@ -126,9 +128,9 @@ public class AnalysisEventHub {
         if (channel != expectedChannel) {
             return;
         }
-        synchronized (channel) {
-            channel.subscribers.remove(subscriber);
-        }
+        // Emitter callbacks may already hold Spring's write lock. Never acquire
+        // the channel monitor here: publication holds it while sending events.
+        channel.subscribers.remove(subscriber);
     }
 
     private boolean terminal(AnalysisStatus status) {
@@ -137,7 +139,7 @@ public class AnalysisEventHub {
 
     private static final class Channel {
         private AnalysisEvent latest;
-        private final List<Subscriber> subscribers = new ArrayList<>();
+        private final List<Subscriber> subscribers = new CopyOnWriteArrayList<>();
     }
 
     private static final class Subscriber {

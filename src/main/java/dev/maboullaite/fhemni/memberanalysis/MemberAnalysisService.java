@@ -42,5 +42,32 @@ public class MemberAnalysisService {
     public ReviewView reviewView(UUID requestId){var request=request(requestId,false);var identity=repository.identity(request.jobId()).orElseThrow();return new ReviewView(request,repository.owner(request.jobId(),identity.userId()));}
     private PublicationRequest request(UUID id,boolean lock){return jdbc.sql("SELECT id,job_id,state,requested_at,review_note,derivative_id FROM member_analysis_publication_requests WHERE id=:id"+(lock?" FOR UPDATE":"")).param("id",id).query(PublicationRequest.class).optional().orElseThrow(()->new NoSuchElementException("Publication request not found."));}
     @Transactional public void review(UUID id,UUID actor,boolean accept,String note){var value=request(id,true);if(!value.state().equals("REQUESTED"))throw new IllegalStateException("Request is no longer awaiting review.");if(note==null||note.isBlank()||note.length()>4000)throw new IllegalArgumentException("Write a review note under 4000 characters.");jdbc.sql("UPDATE member_analysis_publication_requests SET state=:state,reviewer_id=:actor,review_note=:note,reviewed_at=:now WHERE id=:id").param("state",accept?"REVIEWED":"REJECTED").param("actor",actor).param("note",note).param("now",Instant.now().atOffset(ZoneOffset.UTC)).param("id",id).update();}
-    @Transactional public UUID publish(UUID id,UUID actor){var value=request(id,true);if(!value.state().equals("REVIEWED"))throw new IllegalStateException("Review the requested report before publication.");var identity=repository.identity(value.jobId()).orElseThrow();var job=repository.owner(value.jobId(),identity.userId());if(!job.state().equals("READY")||job.report()==null)throw new IllegalStateException("Completed report unavailable.");UUID derivative=UUID.randomUUID();var snapshot=new AnalysisSnapshot(derivative,job.videoUrl(),job.videoId(),OutputLanguage.fromCode(job.language()),AnalysisStatus.COMPLETED,100,"Editorially reviewed member submission",false,Instant.now(),job.report(),null,List.of(),false,null);revisions.create(snapshot,identity.model(),identity.promptVersion(),identity.factCheckModel(),identity.factCheckPromptVersion(),identity.credentialVersion());revisions.complete(derivative,job.report(),null);revisions.publish(derivative,actor);jdbc.sql("UPDATE member_analysis_publication_requests SET state='PUBLISHED',derivative_id=:derivative WHERE id=:id").param("id",id).param("derivative",derivative).update();return derivative;}
+    @Transactional
+    public UUID publish(UUID id, UUID actor) {
+        var value = request(id, true);
+        if (!value.state().equals("REVIEWED")) {
+            throw new IllegalStateException("Review the requested report before publication.");
+        }
+        var identity = repository.identity(value.jobId()).orElseThrow();
+        var job = repository.owner(value.jobId(), identity.userId());
+        if (!job.state().equals("READY") || job.report() == null) {
+            throw new IllegalStateException("Completed report unavailable.");
+        }
+        UUID derivative = UUID.randomUUID();
+        var snapshot = new AnalysisSnapshot(
+                derivative, job.videoUrl(), job.videoId(), OutputLanguage.fromCode(job.language()),
+                AnalysisStatus.QUEUED, 0, "Editorially reviewed member submission", false,
+                Instant.now(), null, null, List.of(), false, null);
+        revisions.create(snapshot, identity.model(), identity.promptVersion(), identity.factCheckModel(),
+                identity.factCheckPromptVersion(), identity.credentialVersion());
+        if (revisions.complete(derivative, job.report(), null) != 1) {
+            throw new IllegalStateException("Could not persist the reviewed report.");
+        }
+        revisions.publish(derivative, actor);
+        jdbc.sql("UPDATE member_analysis_publication_requests SET state='PUBLISHED',derivative_id=:derivative WHERE id=:id")
+                .param("id", id)
+                .param("derivative", derivative)
+                .update();
+        return derivative;
+    }
 }

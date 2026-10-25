@@ -3,10 +3,12 @@
     if(typeof module==='object'&&module.exports) module.exports=api;
     else root.FhemniUI=api;
 })(typeof window==='object'?window:globalThis,function(){
-    function paginate(items,requested=1){
-        const pages=Math.max(1,Math.ceil(items.length/10));
+    function boundedPageSize(value){return Number.isInteger(value)&&value>0?Math.min(10,value):10;}
+    function paginate(items,requested=1,pageSize=10){
+        pageSize=boundedPageSize(pageSize);
+        const pages=Math.max(1,Math.ceil(items.length/pageSize));
         const page=Number.isInteger(Number(requested))&&Number(requested)>0?Math.min(pages,Number(requested)):1;
-        return {items:items.slice((page-1)*10,page*10),page,pages,total:items.length};
+        return {items:items.slice((page-1)*pageSize,page*pageSize),page,pages,total:items.length};
     }
     const FORMS={
         promise:{ar:['لا وعود','وعد واحد','وعدان','{n} وعود','{n} وعداً','{n} وعد'],dual:'وعدين',en:['promise','promises'],fr:['promesse','promesses']},
@@ -60,7 +62,7 @@
         });
         select(selected);return {select,destroy(){removers.forEach(remove=>remove());}};
     }
-    function createPager({page,pages,total,onChange,locale='ar',document:doc=globalThis.document}){
+    function createPager({page,pages,total,onChange,pageSize=10,locale='ar',document:doc=globalThis.document}){
         const nav=doc.createElement('nav');nav.className='public-pager';
         const previous=doc.createElement('button'),next=doc.createElement('button'),status=doc.createElement('span');
         previous.type=next.type='button';
@@ -68,11 +70,12 @@
         status.setAttribute('aria-atomic','true');
         nav.update=state=>{
             ({page,pages,total,locale}=state);
+            pageSize=boundedPageSize(state.pageSize??pageSize);
             const copy={ar:['السابق','التالي','الصفحة','من'],fr:['Précédent','Suivant','Page','sur'],en:['Previous','Next','Page','of']}[locale]||['Previous','Next','Page','of'];
             const isolate=value=>locale==='ar'?`\u2068${value}\u2069`:String(value);
             previous.textContent=copy[0];next.textContent=copy[1];nav.setAttribute('aria-label',copy[2]);
             previous.disabled=page<=1;next.disabled=page>=pages;
-            const range=`${total?(page-1)*10+1:0}–${Math.min(page*10,total)} ${copy[3]} ${total}`;
+            const range=`${total?(page-1)*pageSize+1:0}–${Math.min(page*pageSize,total)} ${copy[3]} ${total}`;
             announceStatus(status,`${isolate(range)} · ${copy[2]} ${isolate(`${page} / ${pages}`)} · ${countPhrase(total,'result',locale)}`);
         };
         previous.addEventListener('click',()=>{if(!previous.disabled)onChange(page-1);});

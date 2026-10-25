@@ -22,6 +22,23 @@ test('Arabic counts use all plural categories; other languages retain their own 
     assert.equal(countPhrase(2,'promise','en'),'2 promises');
     assert.equal(countPhrase(2,'promise','fr'),'2 promesses');
 });
+test('card pagination supports nine items without changing the default table limit',()=>{
+    const {paginate}=ui(), values=Array.from({length:31},(_,i)=>i);
+    assert.deepEqual(paginate(values,2,9).items,[9,10,11,12,13,14,15,16,17]);
+    assert.equal(paginate(values,1).items.length,10);
+    for(const size of [0,-1,NaN,Infinity,'bad',100]) assert.equal(paginate(values,1,size).items.length,10);
+});
+test('card pager reports nine-item ranges across navigation and locale updates',()=>{
+    const {createPager}=ui();
+    const doc={createElement(tag){return {...node(tag),children:[],append(...children){this.children.push(...children)}};}};
+    const pager=createPager({page:1,pages:4,total:31,pageSize:9,locale:'en',onChange(){},document:doc});
+    assert.match(pager.children[1].textContent,/1–9 of 31/);
+    pager.update({page:2,pages:4,total:31,locale:'fr'});
+    assert.match(pager.children[1].textContent,/10–18 sur 31/);
+    pager.update({page:4,pages:4,total:31,locale:'en'});
+    assert.match(pager.children[1].textContent,/28–31 of 31/);
+    assert.equal(pager.children[2].disabled,true);
+});
 test('repeat announcements clear and restore but cannot overwrite a newer status',()=>{
     const {announceStatus}=ui(); const node={textContent:'Ready'};const callbacks=[];
     announceStatus(node,'Ready',fn=>callbacks.push(fn)); assert.equal(node.textContent,'');

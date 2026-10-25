@@ -10,7 +10,7 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-@SpringBootTest(properties={"fhemni.gemini.api-key=","fhemni.member-analysis.enabled=true","fhemni.cost-control.chat-enabled=true","fhemni.cost-control.max-daily-analyses=100","spring.datasource.url=jdbc:h2:mem:member-worker;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"})
+@SpringBootTest(properties={"fhemni.gemini.api-key=","fhemni.member-analysis.enabled=true","fhemni.member-analysis.worker-enabled=true","fhemni.member-analysis.worker-initial-delay-ms=3600000","fhemni.cost-control.chat-enabled=true","fhemni.cost-control.max-daily-analyses=100","spring.datasource.url=jdbc:h2:mem:member-worker;MODE=PostgreSQL;DB_CLOSE_DELAY=-1"})
 class MemberAnalysisWorkerIntegrationTest {
     @Test void competingQuestionsForLastAccountSlotHaveOneWinner(){
         var first=admission.submit(user,url,"en",UUID.randomUUID().toString());service.process(repository.claim(Instant.now()).orElseThrow());

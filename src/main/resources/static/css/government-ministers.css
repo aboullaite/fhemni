@@ -4,15 +4,18 @@
 .ministers-filters { display: grid; grid-template-columns: minmax(0,2fr) minmax(180px,1fr) auto; gap: 16px; align-items: end; margin: 0; min-width: 0; }
 .ministers-filters label { display: grid; gap: 8px; min-width: 0; }
 .ministers-filters input, .ministers-filters select, .ministers-filters button { min-height: 44px; }
-.ministers-directory { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; align-items: start; }
-.minister-card { min-width: 0; display: grid; gap: 8px; padding: 16px; overflow-wrap: anywhere; }
-.minister-card h2 { font-size: clamp(1.125rem,1.5vw,1.3rem); line-height: 1.5; margin: 0; }
+.ministers-directory { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; align-items: stretch; }
+.minister-card { min-width: 0; display: flex; flex-direction: column; gap: 8px; padding: 16px; overflow-wrap: anywhere; }
+.minister-card .minister-name { font-size: clamp(1.125rem,1.5vw,1.3rem); line-height: 1.5; margin: 0; }
 .minister-card p { margin: 0; }
 .minister-status { color: var(--muted); font-size: .875rem; }
 .minister-role { line-height: 1.6; }
-.minister-facts { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.5fr); gap: 6px 12px; margin: 0; padding-block: 8px; font-size: .9rem; line-height: 1.5; }
+.minister-facts { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.5fr); grid-template-rows: minmax(44px,auto) auto auto; align-items: center; gap: 6px 12px; margin: auto 0 0; padding-block: 8px; font-size: .9rem; line-height: 1.5; }
 .minister-facts dt { color: var(--muted); }
 .minister-facts dd { margin: 0; overflow-wrap: anywhere; }
+.minister-party { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; min-height: 44px; }
+.minister-party span { min-width: 0; }
+.minister-party-logo { width: 32px; height: 32px; flex: 0 0 32px; object-fit: contain; }
 .minister-sources { border-block-start: 1px solid var(--line); padding-block-start: 0; }
 .minister-sources summary { cursor: pointer; min-height: 44px; padding-block: 8px; }
 .minister-evidence { display: grid; gap: 20px; padding-block-start: 12px; }
@@ -28,6 +31,6 @@
     .minister-role { min-height: 0; }
 }
 @media (max-width: 380px) {
-    .minister-facts { grid-template-columns: minmax(0,1fr); gap: 4px; }
+    .minister-facts { grid-template-columns: minmax(0,1fr); grid-template-rows: none; gap: 4px; }
     .minister-facts dd { margin-block-end: 8px; }
 }

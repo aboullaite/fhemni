@@ -6,6 +6,10 @@ spring:
   threads:
     virtual:
       enabled: true
+  task:
+    scheduling:
+      pool:
+        size: 3
   servlet:
     multipart:
       max-file-size: 25MB

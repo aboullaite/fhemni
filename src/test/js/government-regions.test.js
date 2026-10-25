@@ -9,7 +9,7 @@ test('regional programme links are distinct from measured delivery, bounded and 
         assert.equal(walk(host).filter(n=>n.tag==='article').length,10);assert.ok(!text(host).includes('undefined'));assert.ok(!text(host).includes('0%'));
         assert.ok(walk(host).some(n=>n.href==='/government/commitments/entry-0'));
         const filter=walk(host).find(n=>n.id==='trackerRegionBar-oriental');filter.onclick();assert.equal(changes[0].page,1);assert.equal(changes[0].region,'oriental');
-        assert.ok(text(host).includes(require('../../main/resources/static/js/government-model.js').COPY[locale].sourceUnverified));
+        assert.ok(!walk(host).some(n=>n.className==='government-source-status'));
     }
 });
 test('regional comparison requires matching level metric unit method period and unique scopes',()=>{

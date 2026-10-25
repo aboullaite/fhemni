@@ -28,7 +28,6 @@
         for(const item of page.items.slice(0,10)){
             const row=item.commitment,card=el('article',null,'public-panel government-commitment-card'),heading=el('h3'),link=el('a',model.localized(row.title,locale));link.href='/government/commitments/'+encodeURIComponent(row.slug);link.setAttribute('lang',model.titleLanguage(row,locale));link.setAttribute('dir','auto');heading.append(link);card.append(heading);
             const places=item.places.filter(place=>!state.region||place.regionCode===state.region);card.append(el('p',[...new Set(places.map(place=>model.localized(place.place,locale)))].join(' · '),'government-region-places'));
-            if(row.programmeContext?.sourceStatus==='MIRROR_UNAUTHENTICATED')card.append(el('p',common.sourceUnverified,'government-source-status'));
             const detail=el('details');detail.append(el('summary',copy.source));const seen=new Set();
             for(const place of places){const key=place.printedPage+'|'+place.sourceExcerpt;if(seen.has(key))continue;seen.add(key);const quote=el('blockquote',place.sourceExcerpt);quote.setAttribute('lang','ar');quote.setAttribute('dir','rtl');detail.append(quote,el('p',`${copy.page} ${model.number(place.printedPage,locale)}`,'government-meta'));}
             card.append(detail);cards.append(card);
