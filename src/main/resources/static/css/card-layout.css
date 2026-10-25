@@ -1,0 +1,32 @@
+/* Shared public card rhythm. Keep reading order and pagination intact.
+ * Three-column tails: 10 => 3/3/2/2, 8 => 3/3/2, 4 => 2/2.
+ * Two-column tails fill the row; narrow screens retain a single column.
+ * Count visible children so collapsed/hidden cards cannot create holes. */
+body :is(.government-card-grid, .ministers-directory, .programme-feature-grid, .catalog-grid:where(#catalogVideos, #partiesGrid, #personEpisodes, #partyEpisodes), .member-library-grid, .featured-promise-grid, .home-programme-grid, .accountability-home .home-topics, .promise-grid, .government-baseline-grid, .government-date-results, .home-discovery-grid, .history-overview-grid, .history-method-grid, .history-movement-grid) {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    align-items: stretch;
+}
+body :is(.government-card-grid, .ministers-directory, .programme-feature-grid, .catalog-grid:where(#catalogVideos, #partiesGrid, #personEpisodes, #partyEpisodes), .member-library-grid, .featured-promise-grid, .home-programme-grid, .accountability-home .home-topics, .promise-grid, .government-baseline-grid, .government-date-results, .home-discovery-grid, .history-overview-grid, .history-method-grid, .history-movement-grid) > :not([hidden]) {
+    grid-column: span 6;
+    min-width: 0;
+    align-self: stretch;
+}
+@media (min-width: 700px) {
+    body :is(.government-card-grid, .ministers-directory, .programme-feature-grid, .catalog-grid:where(#catalogVideos, #partiesGrid, #personEpisodes, #partyEpisodes), .member-library-grid, .featured-promise-grid, .home-programme-grid, .accountability-home .home-topics, .promise-grid, .government-baseline-grid, .government-date-results, .home-discovery-grid, .history-overview-grid, .history-method-grid, .history-movement-grid) > :not([hidden]) { grid-column: span 3; }
+    body :is(.promise-grid, .government-baseline-grid, .government-date-results, .home-discovery-grid, .history-overview-grid, .history-method-grid, .history-movement-grid) > :nth-child(odd of :not([hidden])):nth-last-child(1 of :not([hidden])) { grid-column: 1 / -1; }
+}
+@media (min-width: 700px) and (max-width: 1099px) {
+    body :is(.government-card-grid, .ministers-directory, .programme-feature-grid, .catalog-grid:where(#catalogVideos, #partiesGrid, #personEpisodes, #partyEpisodes), .member-library-grid, .featured-promise-grid, .home-programme-grid, .accountability-home .home-topics) > :nth-child(odd of :not([hidden])):nth-last-child(1 of :not([hidden])) { grid-column: 1 / -1; }
+}
+@media (min-width: 1100px) {
+    body :is(.government-card-grid, .ministers-directory, .programme-feature-grid, .catalog-grid:where(#catalogVideos, #partiesGrid, #personEpisodes, #partyEpisodes), .member-library-grid, .featured-promise-grid, .home-programme-grid, .accountability-home .home-topics) > :not([hidden]) { grid-column: span 2; }
+    body :is(.government-card-grid, .ministers-directory, .programme-feature-grid, .catalog-grid:where(#catalogVideos, #partiesGrid, #personEpisodes, #partyEpisodes), .member-library-grid, .featured-promise-grid, .home-programme-grid, .accountability-home .home-topics):has(> :nth-child(3n + 2 of :not([hidden])):nth-last-child(1 of :not([hidden])))
+        > :nth-last-child(-n + 2 of :not([hidden])),
+    body :is(.government-card-grid, .ministers-directory, .programme-feature-grid, .catalog-grid:where(#catalogVideos, #partiesGrid, #personEpisodes, #partyEpisodes), .member-library-grid, .featured-promise-grid, .home-programme-grid, .accountability-home .home-topics):has(> :nth-child(3n + 1 of :not([hidden])):nth-last-child(1 of :not([hidden])))
+        > :nth-last-child(-n + 4 of :not([hidden])) { grid-column: span 3; }
+}
+body :is(.government-card-grid, .ministers-directory, .programme-feature-grid, .catalog-grid:where(#catalogVideos, #partiesGrid, #personEpisodes, #partyEpisodes), .member-library-grid, .featured-promise-grid, .home-programme-grid, .accountability-home .home-topics, .promise-grid, .government-baseline-grid, .government-date-results, .home-discovery-grid, .history-overview-grid, .history-method-grid, .history-movement-grid) > :nth-child(1 of :not([hidden])):nth-last-child(1 of :not([hidden])) { grid-column: 1 / -1; }
+
+/* The team card no longer has a decorative icon occupying its first column. */
+.home-discovery-card:not(:has(.home-discovery-mark)) { grid-template-columns: minmax(0, 1fr); }
+.home-discovery-card:not(:has(.home-discovery-mark)) > :is(h2, p, a) { grid-column: 1; }

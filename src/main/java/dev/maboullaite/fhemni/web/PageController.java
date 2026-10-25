@@ -19,6 +19,32 @@ public class PageController {
         this.returnTarget = returnTarget;
     }
 
+    @GetMapping({"/government", "/government/"})
+    public String governmentPage() {
+        return "forward:/government.html";
+    }
+    @GetMapping("/government/commitments/{slug}")
+    public String commitmentPage() { return "forward:/commitment.html"; }
+    @GetMapping({"/government/history","/government/revisions/{id}"})
+    public String governmentHistoryPage() { return "forward:/government-history.html"; }
+    @GetMapping({"/government/ministers","/government/ministers/"})
+    public String governmentMinistersPage() { return "forward:/government-ministers.html"; }
+    @GetMapping({"/government/measures","/government/measures/","/government/measures/{slug}"})
+    public String measurePage() { return "forward:/measure.html"; }
+    @GetMapping({"/following","/following/"})
+    public String followingPage() { return "forward:/following.html"; }
+
+    @GetMapping({"/analyse", "/analyse/"})
+    public String memberAnalysisPage() {
+        return "forward:/analyse.html";
+    }
+
+    @GetMapping({"/account/analyses", "/account/analyses/"})
+    public String memberHistoryPage() { return "forward:/my-analyses.html"; }
+
+    @GetMapping("/account/analyses/{id}")
+    public String memberAnalysisResultPage() { return "forward:/member-analysis.html"; }
+
     @GetMapping("/analyses/{analysisId}")
     public String analysisPage(@PathVariable String analysisId) {
         return "forward:/analysis.html";
@@ -121,6 +147,8 @@ public class PageController {
     public String adminPage() {
         return "forward:/admin.html";
     }
+    @GetMapping({"/admin/government", "/admin/government/"})
+    public String adminGovernmentPage() { return "forward:/admin-government.html"; }
 
     @GetMapping({"/admin/episodes", "/admin/episodes/"})
     public String adminEpisodesPage() {

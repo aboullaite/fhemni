@@ -75,9 +75,9 @@ class NavigationConsistencyTest {
     void everyPrimaryNavigationLinksToElectionResults() throws IOException {
         assertThat(html("index.html"))
                 .contains("href=\"/elections/2026\" data-i18n=\"common.electionResults\"")
-                .contains("class=\"primary-button button-link\" href=\"/elections/2026\"")
-                .contains("data-i18n=\"landing.electionResultsCta\"")
-                .contains("/js/i18n.js?v=20260923-1");
+                .contains("class=\"secondary-button button-link\" href=\"/elections/2026\"")
+                .contains("data-i18n=\"home.archiveTitle\"")
+                .contains("/js/i18n.js?v=");
         for (String page : SECONDARY_PAGES) {
             assertThat(html(page))
                     .as("election result navigation in %s", page)
@@ -100,7 +100,7 @@ class NavigationConsistencyTest {
                 .contains("/js/election-region-filters.js?v=20260925-1")
                 .contains("/data/elections/2026/urban-rural-constituencies.js?v=20260927-1")
                 .contains("/js/election-insights.js?v=20261003-1")
-                .contains("/js/election-results.js?v=20261003-3")
+                .contains("/js/election-results.js?v=20261004-1")
                 .doesNotContain("style=\"");
         assertThat(html("js/election-region-filters.js"))
                 .contains("function filterRegion(region, state = {})")
@@ -226,7 +226,7 @@ class NavigationConsistencyTest {
                 .contains("[dir=\"rtl\"] .election-graphs-jumps");
         assertThat(styles).containsPattern("(?s)@media \\(max-width: 640px\\).*?\\.election-tabs \\{[^}]*overflow-x: auto;[^}]*grid-template-columns: repeat\\(4,minmax\\(118px,1fr\\)\\)");
         assertThat(compiled).contains(".election-graphs-jumps").contains(".election-atlas-representative-cards");
-        assertThat(page).contains("/css/dist.css?v=20261003-1");
+        assertThat(page).contains("/css/dist.css?v=20261025-5");
     }
 
     @Test
@@ -313,6 +313,7 @@ class NavigationConsistencyTest {
                             id, hidden: true, attrs: {}, listeners: {},
                             setAttribute(key, value) { this.attrs[key] = value; },
                             addEventListener(type, listener) { this.listeners[type] = listener; },
+                            focus() { this.focused = true; },
                             scrollIntoView() { scrolled.push(id); }
                         });
                         return elements.get(id);
@@ -351,6 +352,7 @@ class NavigationConsistencyTest {
                     assert.deepEqual(page.scrolled, []);
                     page.show('content');
                     assert.deepEqual(page.scrolled, [id], `must scroll to ${id} after reveal`);
+                    assert.equal(page.node(id).focused, true);
                     page.show('content');
                     assert.deepEqual(page.scrolled, [id], `must not scroll twice to ${id}`);
                     assert.equal(page.location.hash, `#${id}`);
@@ -767,15 +769,17 @@ class NavigationConsistencyTest {
     }
 
     @Test
-    void everyPrimaryNavigationLinksToThePriorityCompass() throws IOException {
-        assertThat(html("index.html"))
-                .contains("href=\"/priorities\" data-i18n=\"common.prioritiesQuiz\"");
-
-        for (String page : SECONDARY_PAGES) {
-            assertThat(html(page))
-                    .as("priority compass navigation in %s", page)
-                    .contains("href=\"/priorities\"")
-                    .contains("data-i18n=\"common.prioritiesQuiz\"");
+    void publicNavigationNoLongerPromotesTheVotingCompass() throws IOException {
+        for (String page : ALL_PAGES) {
+            if (ADMIN_PAGES.contains(page)) continue;
+            String pageHtml = html(page);
+            int start = pageHtml.indexOf("<nav class=\"primary-nav\"");
+            int end = pageHtml.indexOf("</nav>", start);
+            assertThat(start).as("primary navigation in %s", page).isGreaterThanOrEqualTo(0);
+            assertThat(end).isGreaterThan(start);
+            assertThat(pageHtml.substring(start, end))
+                    .as("public navigation in %s", page)
+                    .doesNotContain("href=\"/priorities\"");
         }
     }
 
@@ -899,7 +903,7 @@ class NavigationConsistencyTest {
         assertThat(home)
                 .contains("property=\"og:title\"")
                 .contains("property=\"og:description\"")
-                .contains("دقق فوعود الأحزاب المغربية وقارن البرامج والتقييمات والمصادر")
+                .contains("تتبع وعود الأحزاب المغربية، التزامات الحكومة، وشنو تحقق فعلاً بالمصادر")
                 .contains("property=\"og:site_name\"")
                 .contains("name=\"twitter:card\" content=\"summary_large_image\"")
                 .contains("https://fhemni.ma/assets/social/fhemni-og.png?v=20260910-2")
@@ -959,13 +963,7 @@ class NavigationConsistencyTest {
     @Test
     void everyPageUsesThePinnedWebFontStylesheet() throws IOException {
         for (String page : ALL_PAGES) {
-            String version = switch (page) {
-                case "priorities.html" -> "20260917-9";
-                case "404.html" -> "20260917-1";
-                case "election-results.html" -> "20261003-1";
-                case "historical-elections.html" -> "20260928-9";
-                default -> "20260916-22";
-            };
+            String version = "20261025-5";
             assertThat(html(page))
                     .as("stylesheet in %s", page)
                     .containsOnlyOnce("/css/dist.css?v=" + version);
@@ -1007,16 +1005,11 @@ class NavigationConsistencyTest {
                 .contains("DIFFICILE")
                 .contains("DONN[ÉE]ES\\s+INSUFFISANTES")
                 .contains("المعطيات\\s+ما\\s+كافياش");
-        assertThat(html("js/landing.js"))
-                .contains("FhemniCatalog.assessmentSummary(");
         assertThat(html("js/party.js"))
                 .contains("FhemniCatalog.assessmentSummary(");
         assertThat(html("js/promise.js"))
                 .contains("FhemniCatalog.assessmentSummary(")
                 .doesNotContain("function cleanSummary(value)");
-        assertThat(html("index.html"))
-                .contains("/js/catalog-ui.js?v=20260914-1")
-                .contains("/js/landing.js?v=20260914-1");
         assertThat(html("promise.html"))
                 .contains("/js/catalog-ui.js?v=20260914-1")
                 .contains("/js/promise.js?v=20260914-1");
@@ -1092,8 +1085,8 @@ class NavigationConsistencyTest {
                 .contains("claim.kind === 'FACT'")
                 .contains("t('analysis.nonFactualExplanation')");
         assertThat(html("analysis.html"))
-                .contains("/js/analysis.js?v=20260912-2")
-                .contains("/js/i18n.js?v=20260915-1")
+                .contains("/js/analysis.js?v=20261025-1")
+                .contains("/js/i18n.js?v=20261004-1")
                 .doesNotContain("analysis.evidenceKicker");
         assertThat(html("js/i18n.js"))
                 .doesNotContain("analysis.evidenceKicker")
@@ -1125,9 +1118,10 @@ class NavigationConsistencyTest {
     }
 
     @Test
-    void homePageUsesOneConciseFactCheckHeading() throws IOException {
+    void homePagePrioritizesTheGovernmentProgrammeWithoutPartyPromiseCards() throws IOException {
         assertThat(html("index.html"))
-                .contains("id=\"factCheckTitle\" data-i18n=\"landing.factCheckTitle\"")
+                .contains("id=\"homeProgrammeTitle\"")
+                .doesNotContain("homePromisesTitle", "featuredPromises")
                 .doesNotContain("landing.factCheckKicker")
                 .doesNotContain("landing.factCheckIntro");
         assertThat(html("js/i18n.js"))
@@ -1144,8 +1138,8 @@ class NavigationConsistencyTest {
         for (String page : ADMIN_PAGES) {
             assertThat(html(page))
                     .as("mobile assets in %s", page)
-                    .contains("/css/dist.css?v=20260916-22")
-                    .contains("/js/i18n.js?v=20260915-1");
+                    .contains("/css/dist.css?v=20261025-5")
+                    .contains("/js/i18n.js?v=20261004-1");
         }
     }
 
@@ -1220,10 +1214,10 @@ class NavigationConsistencyTest {
                 .contains("id=\"programmeMedia\" class=\"programme-media\"")
                 .contains("class=\"video-js vjs-big-play-centered\"")
                 .contains("/webjars/video.js/8.24.1/dist/video-js.min.css")
-                .contains("/css/dist.css?v=20260916-22")
+                .contains("/css/dist.css?v=20261025-5")
                 .contains("/js/videojs-config.js?v=20260911-1")
                 .contains("/webjars/video.js/8.24.1/dist/video.min.js")
-                .contains("/js/i18n.js?v=20260915-1")
+                .contains("/js/i18n.js?v=20261004-1")
                 .contains("/js/party.js?v=20260914-1")
                 .containsOnlyOnce("data-i18n=\"programme.kicker\"")
                 .doesNotContain("data-i18n=\"programme.mediaPowered\"")
@@ -1262,6 +1256,12 @@ class NavigationConsistencyTest {
         assertThat(start).as("primary navigation start in %s", page).isGreaterThanOrEqualTo(0);
         assertThat(end).as("primary navigation end in %s", page).isGreaterThan(start);
         String navigation = pageHtml.substring(start, end);
+        if (!ADMIN_PAGES.contains(page)) {
+            assertThat(navigation).contains("href=\"/government\"", "href=\"/analyse\"",
+                    "href=\"/elections/2026\"", "aria-controls=\"shellElectionLinks\"");
+            assertThat(pageHtml).contains("data-legal-links", "/js/site-shell.js?v=20261025-1");
+            return;
+        }
         assertThat(navigation)
                 .as("primary navigation in %s", page)
                 .contains("href=\"/elections/2026\"")

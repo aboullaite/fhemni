@@ -1,0 +1,74 @@
+.government-visuals{display:grid;gap:1.75rem;min-width:0;margin-block-end:1.5rem}
+.government-visuals[hidden],.government-baseline[hidden]{display:none}
+.government-visuals h2{font-size:1.3rem;margin:0 0 .5rem;line-height:1.6}
+.government-topic-bars{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem 1.5rem;margin-block:1rem}
+.government-topic-bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.35rem .75rem;padding:.65rem .75rem;background:transparent;border:1px solid transparent;border-radius:8px;color:inherit;text-align:start;font:inherit;cursor:pointer;min-width:0}
+.government-topic-bar[aria-pressed=true]{background:#e6eee7;border-color:#397867}
+.government-topic-bar:hover{background:#edf1e9}
+.government-topic-bar:focus-visible,.government-visual-pager button:focus-visible{outline:3px solid #276b58;outline-offset:3px}
+.government-topic-bar>span:first-child{overflow-wrap:anywhere}
+.government-topic-count{font-size:.8rem;align-self:center;color:#4d625e}
+.government-bar-track{display:block;block-size:.5rem;border-radius:4px;background:#e4e9e2;overflow:hidden;min-width:0}
+.government-topic-bar>.government-bar-track{grid-column:1/-1}
+.government-bar-fill{display:block;height:100%;border-radius:4px}
+.government-bar-fill.target{background:#176d5d}
+.government-bar-fill.baseline{background:#7e918a}
+.government-baseline-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-block:1rem}
+.government-baseline{min-width:0;padding:1rem;border:1px solid #d7dfd7;border-radius:12px;background:#fffdf8}
+.government-baseline h3{font-size:1.05rem;line-height:1.65;margin:0 0 .4rem;overflow-wrap:anywhere}
+.government-baseline p{margin:.35rem 0 .75rem}
+.government-value-row{margin-block:.8rem}
+.government-value-label{display:flex;gap:.6rem;justify-content:space-between;align-items:baseline;font-size:.85rem;margin-block-end:.35rem}
+.government-value{font-size:1rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.government-timeline{padding:1rem;border-block:1px solid #d7dfd7;min-width:0}
+.government-timeline>summary{font-size:1.05rem;font-weight:600;cursor:pointer}
+.government-date-list{padding:0;margin:1rem 0;list-style:none}
+.government-date-list>li{position:relative;display:grid;grid-template-columns:8rem minmax(0,1fr);gap:1.25rem;padding:0 0 1.2rem 0;min-width:0}
+.government-date-list>li>div{border-inline-start:2px solid #b5c9bd;padding-inline-start:1rem;overflow-wrap:anywhere}
+.government-date-year{font-size:.9rem;color:#176d5d;font-variant-numeric:tabular-nums}
+.government-visual-pager{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:.7rem;font-size:.85rem;margin-block:1rem}
+.government-visual-pager button{font:inherit;padding:.5rem .85rem;border:1px solid #b9c9c0;border-radius:8px;background:#fffdf8;color:#153c32;cursor:pointer}
+.government-visual-pager button:disabled{opacity:.45;cursor:default}
+.government-date-explorer{min-width:0;padding-block:1.25rem;border-block:1px solid var(--line)}
+.government-date-header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:.5rem 1.5rem}
+.government-date-header>h2{margin:0;font-size:1.2rem}
+.government-date-guide{font-size:.85rem;max-width:42ch;color:var(--muted)}
+.government-date-guide>summary{padding-block:.6rem;min-height:44px;cursor:pointer;color:var(--teal-dark);width:fit-content}
+.government-date-guide p{margin-block:.5rem;line-height:1.7}
+.government-date-guide>summary:focus-visible{outline:2px solid var(--teal-dark);outline-offset:3px}
+.government-date-agenda{position:relative;margin-block:1rem;margin-inline-start:.4rem;padding-block-end:.8rem;border-inline-start:2px solid var(--line);min-width:0}
+.government-date-agenda:empty{display:none}
+.government-date-agenda:not(:empty)::after{content:'';position:absolute;inset-inline-start:calc(-.3rem - 1px);inset-block-end:.15rem;inline-size:.6rem;block-size:.6rem;border-right:2px solid var(--teal);border-bottom:2px solid var(--teal);transform:rotate(45deg)}
+.government-date-event{position:relative;padding-inline-start:1rem;min-width:0}
+.government-date-event::before{content:'';position:absolute;inset-inline-start:calc(-.3125rem - 1px);inset-block-start:1.65rem;inline-size:.625rem;block-size:.625rem;border-radius:50%;background:var(--teal);box-shadow:0 0 0 .25rem var(--cream,#f5f1e8)}
+.government-date-event+.government-date-event{margin-block-start:.25rem}
+.government-date-marker{position:relative;display:grid;grid-template-columns:9rem minmax(0,1fr) auto 1.25rem;align-items:first baseline;gap:1rem;min-height:64px;width:100%;padding:.85rem 1rem;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--ink);font:inherit;text-align:start;cursor:pointer}
+.government-date-marker-label{font-size:1.05rem;line-height:1.6;font-weight:600;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;text-align:match-parent}
+.government-date-preview{display:grid;gap:.2rem;min-width:0;overflow-wrap:anywhere}
+.government-date-preview-title{font-size:1rem;line-height:1.6;text-align:match-parent}
+.government-date-preview-timing{font-size:.8rem;color:var(--muted);line-height:1.5;text-align:match-parent}
+.government-date-indicator{font-size:1.35rem;line-height:1;text-align:center;color:var(--teal-dark)}
+.government-date-undated{margin-block-start:.75rem;border-block-start:1px solid var(--line);padding-block-start:.5rem;padding-inline-start:1.4rem}
+.government-date-undated .government-date-marker-label{font-size:.85rem;font-weight:400;color:var(--muted)}
+.government-date-undated .government-date-preview-title{font-size:.9rem}
+.government-date-marker-count,.government-date-selection-count{display:inline-grid;place-items:center;min-width:24px;min-height:24px;padding:0 6px;border-radius:20px;background:color-mix(in srgb,var(--ink) 7%,var(--white));font-size:.75rem;font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums}
+.government-date-marker[aria-pressed=true]{background:var(--mint);color:var(--teal-dark)}
+.government-date-marker:hover{background:color-mix(in srgb,var(--mint) 60%,transparent)}
+.government-date-marker:focus-visible{outline:2px solid var(--teal-dark);outline-offset:2px}
+.government-date-panel{padding:.75rem 1rem 1rem;margin-block-end:.5rem}
+.government-date-panel[hidden]{display:none}
+.government-date-panel-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem 1rem}
+.government-date-panel-header>h3{display:flex;align-items:center;gap:.6rem;margin:0;font-size:1.05rem;font-weight:500;font-variant-numeric:tabular-nums}
+.government-date-close{background:transparent;border:0;padding:.5rem;color:var(--muted);font:inherit;font-size:.8rem;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.government-date-results{list-style:none;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-block:1rem}
+.government-date-results>li{min-width:0;padding:.75rem 1rem;border-inline-start:2px solid var(--line);background:var(--surface);overflow-wrap:anywhere;align-self:start}
+.government-date-results h4{font-size:1.05rem;line-height:1.6;margin-block:0 .5rem}
+.government-date-results h4 a{color:var(--ink);text-decoration:none}
+.government-date-literal{font-size:.9rem;color:var(--muted);margin-block:.4rem}
+.government-date-entry-details{margin-block-start:.5rem;border-block-start:1px solid var(--line)}
+.government-date-entry-details summary{padding-block:.6rem;min-height:44px;cursor:pointer;color:var(--teal-dark)}
+.government-date-entry-details summary:focus-visible{outline:2px solid var(--teal-dark);outline-offset:3px}
+.government-date-entry-details p{font-size:.9rem;line-height:1.7}
+.government-date-entry-details>.text-link{display:inline-flex;align-items:center;min-height:44px}
+@media(max-width:699px){.government-date-results{grid-template-columns:minmax(0,1fr)}.government-date-explorer{padding-block:1rem}.government-date-header{align-items:center}.government-date-header>h2{font-size:1.1rem}.government-date-marker{grid-template-columns:minmax(0,1fr) auto 1.25rem;gap:.4rem .75rem;padding:.75rem}.government-date-marker-label{grid-column:1;grid-row:1}.government-date-marker-count{grid-column:2;grid-row:1}.government-date-indicator{grid-column:3;grid-row:1}.government-date-preview{grid-column:1/-1;grid-row:2}.government-date-preview-title{font-size:.9rem}.government-date-panel{padding:.5rem 0}.government-date-results>li{padding:.75rem}}
+@media(max-width:599px){.government-topic-bars,.government-baseline-grid{grid-template-columns:minmax(0,1fr)}.government-topic-bar{padding:.6rem .25rem}.government-date-list>li{grid-template-columns:5.5rem minmax(0,1fr);gap:.5rem}.government-timeline{padding:.75rem .25rem}.government-value-label{font-size:.8rem}.government-topic-count{font-size:.75rem}}

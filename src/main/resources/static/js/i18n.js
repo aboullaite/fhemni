@@ -22,6 +22,7 @@
             'common.comingSoon': 'Coming soon',
             'common.admin': 'Admin',
             'common.signOut': 'Sign out',
+            'common.following': 'Following',
             'common.accountUnavailable': 'Account unavailable',
             'common.signOutFailed': 'Sign out failed. Please refresh and try again.',
             'common.footer': '© 2026 Mohammed Aboullaite',
@@ -184,6 +185,7 @@
             'common.comingSoon': 'Bientôt',
             'common.admin': 'Administration',
             'common.signOut': 'Se déconnecter',
+            'common.following': 'Mon suivi',
             'common.accountUnavailable': 'Compte indisponible',
             'common.signOutFailed': 'La déconnexion a échoué. Actualisez la page et réessayez.',
             'common.footer': '© 2026 Mohammed Aboullaite',
@@ -346,6 +348,7 @@
             'common.comingSoon': 'قريباً',
             'common.admin': 'الإدارة',
             'common.signOut': 'خرج',
+            'common.following': 'المتابعة ديالي',
             'common.accountUnavailable': 'الحساب ما متوفرش',
             'common.signOutFailed': 'ما قدرناش نخرّجوك من الحساب. عاود حمّل الصفحة وجرّب مرة خرى.',
             'common.footer': '© 2026 Mohammed Aboullaite',
@@ -497,12 +500,25 @@
     };
 
     Object.assign(messages.en, {
+        'shell.report':'Report an issue', 'shell.legalLanguage':'Legal documents are currently available in English.',
+        'landing.pageTitle':'Fhemni — From promises to delivery',
+        'landing.description':'Follow Moroccan party promises, government commitments and evidence of delivery with Fhemni.',
+        'home.title':'The elections are over. The government is formed. Accountability starts now.', 'home.intro':'Follow party promises, government commitments and what actually changes — with evidence.',
+        'home.programmeIntro':'What has the government promised? Explore the programme, starting with the issues that matter to you.',
+        'home.track':'Track the promises', 'home.mandate':'Government and programme', 'home.retry':'Try again',
+        'home.topics':'What matters to you?', 'home.promises':'Party promises under the lens', 'home.allProgrammes':'All programmes',
+        'home.eyebrow':'Understand. Compare. Follow.', 'home.programmePreview':'Inside the government programme', 'home.exploreProgramme':'Explore the programme', 'home.topicsHint':'Start with an issue close to you', 'home.discover':'Explore Fhemni',
+        'home.teamTitle':'Who’s in government?', 'home.teamText':'Names, responsibilities and terms of office. Meet the team running the government.', 'home.teamAction':'Meet the government',
+        'home.videoTitle':'A long video. A clearer picture.', 'home.videoText':'Want to understand a public statement? Add a video link, read the analysis and ask about the details.', 'home.videoAction':'Try video analysis',
+        'home.archiveTitle':'Elections, in numbers', 'home.archiveText':'Results, representatives and comparisons with previous years.',
+        'government.pageTitle':'Government tracker — Fhemni', 'government.intro':'From party promises to the government programme, and from commitments to delivery.',
+        'government.preparing':'Tracking in preparation', 'government.pending':'Confirmed information will appear here after review. Party programmes are available now.',
+        'member.pageTitle':'Analyse a video — Fhemni', 'member.intro':'Understand claims and context in a YouTube video, with an analysis private to your account.',
+        'member.unavailable':'Personal analysis is not available yet', 'member.unavailableText':'No paid processing has started. You can explore published analyses in the archive.',
         'common.primaryNavigation': 'Primary navigation',
         'common.catalogue': 'Catalogue',
         'common.community': 'Community',
         'common.howItWorks': 'How it works',
-        'landing.pageTitle': 'Fhemni — Check the claim and understand the context',
-        'landing.description': 'Check Morocco’s 2026 party promises and political claims against sources, evidence, and the full conversation.',
         'landing.eyebrow': 'Morocco’s political claims, checked',
         'landing.headline': 'They make the claims.',
         'landing.headlineEmphasis': 'Fhemni checks the evidence.',
@@ -1203,12 +1219,25 @@
     });
 
     Object.assign(messages.fr, {
+        'shell.report':'Signaler un problème', 'shell.legalLanguage':'Les documents juridiques sont actuellement disponibles en anglais.',
+        'landing.pageTitle':'Fhemni — Des promesses aux réalisations',
+        'landing.description':'Suivez les promesses des partis marocains, les engagements du gouvernement et les preuves de leur réalisation avec Fhemni.',
+        'home.title':'Les élections sont terminées. Le gouvernement est formé. Place à la redevabilité.', 'home.intro':'Suivez les promesses des partis, les engagements du gouvernement et ce qui change réellement — avec des sources.',
+        'home.programmeIntro':'Que promet le gouvernement ? Explorez le programme en commençant par les sujets qui vous concernent.',
+        'home.track':'Suivre les promesses', 'home.mandate':'Gouvernement et programme', 'home.retry':'Réessayer',
+        'home.topics':'Qu’est-ce qui compte pour vous ?', 'home.promises':'Les promesses des partis à la loupe', 'home.allProgrammes':'Tous les programmes',
+        'home.eyebrow':'Comprendre. Comparer. Suivre.', 'home.programmePreview':'Dans le programme gouvernemental', 'home.exploreProgramme':'Explorer le programme', 'home.topicsHint':'Commencez par un sujet qui vous touche', 'home.discover':'Explorer Fhemni',
+        'home.teamTitle':'Qui est au gouvernement ?', 'home.teamText':'Noms, responsabilités et mandats. Découvrez l’équipe qui dirige le gouvernement.', 'home.teamAction':'Découvrir les membres',
+        'home.videoTitle':'Une longue vidéo. Des idées plus claires.', 'home.videoText':'Une déclaration à comprendre ? Ajoutez le lien vidéo, lisez l’analyse et posez vos questions.', 'home.videoAction':'Essayer l’analyse vidéo',
+        'home.archiveTitle':'Les élections en chiffres', 'home.archiveText':'Résultats, élus et comparaisons avec les années précédentes.',
+        'government.pageTitle':'Suivi du gouvernement — Fhemni', 'government.intro':'Des promesses des partis au programme gouvernemental, des engagements aux réalisations.',
+        'government.preparing':'Suivi en préparation', 'government.pending':'Les informations confirmées apparaîtront ici après examen. Les programmes des partis sont déjà disponibles.',
+        'member.pageTitle':'Analyser une vidéo — Fhemni', 'member.intro':'Comprenez les affirmations et le contexte d’une vidéo YouTube, avec une analyse privée pour votre compte.',
+        'member.unavailable':'L’analyse personnelle n’est pas encore disponible', 'member.unavailableText':'Aucun traitement payant n’a été lancé. Consultez les analyses publiées dans les archives.',
         'common.primaryNavigation': 'Navigation principale',
         'common.catalogue': 'Catalogue',
         'common.community': 'Communauté',
         'common.howItWorks': 'Comment ça marche',
-        'landing.pageTitle': 'Fhemni — Vérifier l’affirmation et comprendre le contexte',
-        'landing.description': 'Vérifiez les promesses électorales de 2026 et les affirmations politiques au Maroc à partir de sources, de faits et du contexte complet.',
         'landing.eyebrow': 'Les affirmations politiques marocaines, vérifiées',
         'landing.headline': 'Ils font les promesses.',
         'landing.headlineEmphasis': 'Fhemni vérifie les éléments.',
@@ -1909,12 +1938,25 @@
     });
 
     Object.assign(messages.ar, {
+        'shell.report':'بلّغ على مشكل', 'shell.legalLanguage':'الوثائق القانونية متوفرة دابا بالإنجليزية.',
+        'landing.pageTitle':'فهّمني — من الوعد للواقع',
+        'landing.description':'تتبع وعود الأحزاب المغربية، التزامات الحكومة، وشنو تحقق فعلاً بالمصادر مع فهّمني.',
+        'home.title':'الانتخابات سالات، الحكومة تشكّلات، والمحاسبة بدات.', 'home.intro':'نتبعو وعود الأحزاب، التزامات الحكومة، وشنو تحقق فعلاً — بالمصادر.',
+        'home.programmeIntro':'شنو واعدات به الحكومة؟ اكتشف البرنامج وبدا بالمواضيع اللي كتعنيك.',
+        'home.track':'تتبع الوعود', 'home.mandate':'الحكومة وبرنامجها', 'home.retry':'عاود المحاولة',
+        'home.topics':'شنو كيهمّك؟', 'home.promises':'وعود الأحزاب تحت المجهر', 'home.allProgrammes':'جميع البرامج',
+        'home.eyebrow':'فهم. قارن. تتبّع.', 'home.programmePreview':'من البرنامج الحكومي', 'home.exploreProgramme':'استكشف البرنامج', 'home.topicsHint':'بدا بموضوع قريب ليك', 'home.discover':'استكشف فهّمني',
+        'home.teamTitle':'شكون فالحكومة؟', 'home.teamText':'الأسماء، المسؤوليات، ومدة العضوية. تعرّف على الفريق اللي كيسير الحكومة.', 'home.teamAction':'تعرّف على أعضاء الحكومة',
+        'home.videoTitle':'من فيديو طويل لفكرة واضحة', 'home.videoText':'عندك تصريح بغيتي تفهمو؟ زيد رابط الفيديو، قرا التحليل وسول على التفاصيل.', 'home.videoAction':'جرّب تحليل فيديو',
+        'home.archiveTitle':'الانتخابات، بالأرقام', 'home.archiveText':'النتائج، المنتخبون، والمقارنة مع السنوات السابقة.',
+        'government.pageTitle':'تتبع الحكومة — فهّمني', 'government.intro':'من وعود الأحزاب للبرنامج الحكومي، ومن الالتزام للإنجاز.',
+        'government.preparing':'التتبع قيد الإعداد', 'government.pending':'المعطيات المؤكدة غادي تبان هنا من بعد المراجعة. برامج الأحزاب متاحة دابا.',
+        'member.pageTitle':'حلّل فيديو — فهّمني', 'member.intro':'فهم الادعاءات والسياق ففيديو يوتيوب، بتحليل خاص بحسابك.',
+        'member.unavailable':'التحليل الشخصي ما متاحش دابا', 'member.unavailableText':'ما بدينا حتى معالجة مدفوعة. تقدر دابا تقرا التحليلات المنشورة فالأرشيف.',
         'common.primaryNavigation': 'المينيو الرئيسي',
         'common.catalogue': 'الكاتالوغ',
         'common.community': 'اقتراحات الناس',
         'common.howItWorks': 'كيفاش كيخدم',
-        'landing.pageTitle': 'فهّمني — دقق فالادعاء وفهم السياق',
-        'landing.description': 'دقق فوعود الأحزاب ديال 2026 والادعاءات السياسية فالمغرب بالمصادر، الأدلة، والسياق كامل.',
         'landing.eyebrow': 'الوعود والادعاءات السياسية تحت المجهر',
         'landing.headline': 'هما كيوعدو.',
         'landing.headlineEmphasis': 'وفهّمني كيدقق.',
@@ -2614,6 +2656,24 @@
         'promise.verdictDescription.INSUFFICIENT_DATA': 'ما كايناش معطيات كافية باش نعطيو تقييم مسؤول',
     });
 
+    Object.assign(messages.en, {
+        'shell.menu':'Menu', 'shell.home':'Home', 'shell.government':'Government tracker',
+        'shell.analyse':'Analyse a video', 'shell.elections':'Elections', 'shell.electionMenu':'Election sections',
+        'shell.graphs':'Graphs and analysis', 'shell.history':'Compare elections', 'shell.programmes':'Parties and programmes',
+        'shell.representatives':'Who represents me?', 'shell.archive':'Video archive', 'shell.suggest':'Suggest a video'
+    });
+    Object.assign(messages.fr, {
+        'shell.menu':'Menu', 'shell.home':'Accueil', 'shell.government':'Suivi du gouvernement',
+        'shell.analyse':'Analyser une vidéo', 'shell.elections':'Élections', 'shell.electionMenu':'Rubriques électorales',
+        'shell.graphs':'Graphiques et analyses', 'shell.history':'Comparer les élections', 'shell.programmes':'Partis et programmes',
+        'shell.representatives':'Qui me représente ?', 'shell.archive':'Archives vidéo', 'shell.suggest':'Proposer une vidéo'
+    });
+    Object.assign(messages.ar, {
+        'shell.menu':'القائمة', 'shell.home':'الرئيسية', 'shell.government':'تتبع الحكومة',
+        'shell.analyse':'حلّل فيديو', 'shell.elections':'الانتخابات', 'shell.electionMenu':'أقسام الانتخابات',
+        'shell.graphs':'الرسوم والتحليلات', 'shell.history':'مقارنة الانتخابات', 'shell.programmes':'الأحزاب والبرامج',
+        'shell.representatives':'شكون كيمثلني؟', 'shell.archive':'أرشيف الفيديوهات', 'shell.suggest':'اقترح فيديو'
+    });
     let currentLocale = resolveInitialLocale();
 
     function resolveInitialLocale() {
@@ -2698,6 +2758,7 @@
         document.querySelectorAll('[data-site-language]').forEach(select => {
             select.value = currentLocale;
             select.addEventListener('change', event => setLocale(event.currentTarget.value));
+            if (select.hasAttribute('data-shell-language')) return;
             const container = select.closest('.site-language') || select;
             if (container.nextElementSibling?.classList.contains('site-language-options')) return;
 

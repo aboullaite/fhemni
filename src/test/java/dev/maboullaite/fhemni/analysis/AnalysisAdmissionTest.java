@@ -65,7 +65,8 @@ class AnalysisAdmissionTest {
                         cached, "interaction-id", "gemini-test", "prompt-test",
                         "fact-model-test", "fact-prompt-test", "credential-test")));
         AnalysisService service = new AnalysisService(
-                new YouTubeUrlParser(), gateway, events, executor, usage, revisions,
+                new YouTubeUrlParser(), gateway, new VideoAnalysisRunner(gateway, usage),
+                events, executor, usage, revisions,
                 mock(VideoContextRepository.class),
                 10, Duration.ofHours(1), 10, 4, 10);
 
@@ -99,7 +100,8 @@ class AnalysisAdmissionTest {
                 .thenThrow(new AiBudgetExceededException("The daily analysis budget has been reached."));
 
         AnalysisService service = new AnalysisService(
-                new YouTubeUrlParser(), gateway, events, executor, usage, revisions,
+                new YouTubeUrlParser(), gateway, new VideoAnalysisRunner(gateway, usage),
+                events, executor, usage, revisions,
                 mock(VideoContextRepository.class),
                 10, Duration.ofHours(1), 10, 4, 10);
 
@@ -131,7 +133,8 @@ class AnalysisAdmissionTest {
         when(revisions.hasCompleted("n5B3boj2MFM", OutputLanguage.DARIJA, false)).thenReturn(true);
 
         AnalysisService service = new AnalysisService(
-                new YouTubeUrlParser(), gateway, events, executor, usage, revisions,
+                new YouTubeUrlParser(), gateway, new VideoAnalysisRunner(gateway, usage),
+                events, executor, usage, revisions,
                 mock(VideoContextRepository.class),
                 10, Duration.ofHours(1), 10, 4, 10);
 

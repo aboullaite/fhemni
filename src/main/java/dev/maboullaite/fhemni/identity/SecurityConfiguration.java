@@ -57,6 +57,7 @@ public class SecurityConfiguration {
                 PathPatternRequestMatcher.withDefaults().matcher("/admin-episodes.html"),
                 PathPatternRequestMatcher.withDefaults().matcher("/admin-suggestions.html"),
                 PathPatternRequestMatcher.withDefaults().matcher("/admin-programmes.html"),
+                PathPatternRequestMatcher.withDefaults().matcher("/admin-government.html"),
                 PathPatternRequestMatcher.withDefaults().matcher("/admin-people.html"));
         RequestMatcher publicPageFallback = new PublicPageRequestMatcher();
         AuthorizationManager<RequestAuthorizationContext> administrator = (authentication, context) -> {
@@ -68,7 +69,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
                                 "/admin/**", "/admin.html", "/admin-episodes.html",
-                                "/admin-suggestions.html", "/admin-programmes.html", "/admin-people.html",
+                                "/admin-suggestions.html", "/admin-programmes.html", "/admin-people.html", "/admin-government.html",
                                 "/api/admin/**")
                         .access(administrator)
                         .requestMatchers(HttpMethod.POST, "/api/analyses").access(administrator)
@@ -77,6 +78,13 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/analyses/**").access(administrator)
                         .requestMatchers(
                                 "/", "/index.html", "/videos", "/videos/**",
+                                "/government", "/government/", "/government.html",
+                                "/government/ministers", "/government/ministers/", "/government-ministers.html",
+                                "/government/commitments/**", "/commitment.html",
+                                "/government/measures", "/government/measures/**", "/measure.html",
+                                "/following", "/following/", "/following.html",
+                                "/analyse", "/analyse/", "/analyse.html",
+                                "/account/analyses", "/account/analyses/**", "/my-analyses.html", "/member-analysis.html",
                                 "/analyses/**", "/analysis.html",
                                 "/people/**", "/person.html",
                                 "/parties", "/parties/**", "/parties.html", "/party.html", "/compare-programmes.html",
@@ -101,6 +109,9 @@ public class SecurityConfiguration {
                                 "/api/auth/session", "/api/auth/magic-link", "/healthz")
                         .permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/catalog/videos/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/catalog/government/**").permitAll()
+                        // This controller exists only in the isolated, loopback-only research profile. CSRF remains enabled.
+                        .requestMatchers(HttpMethod.POST, "/api/catalog/government/2026-2031/preview/session").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/catalog/parties/*/programme/questions").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/catalog/promises/*/reports").authenticated()
                         .requestMatchers(HttpMethod.GET,
@@ -110,6 +121,9 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/catalog/questionnaires/**").permitAll()
                         .requestMatchers("/api/catalog/elections/**").permitAll()
                         .requestMatchers("/api/account/policy-topics").authenticated()
+                        .requestMatchers("/api/account/digest").authenticated()
+                        .requestMatchers("/api/account/analyses/**").authenticated()
+                        .requestMatchers("/api/account/follows/**", "/api/account/updates", "/api/account/corrections/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/suggestions").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/suggestions/*/votes").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/suggestions").authenticated()

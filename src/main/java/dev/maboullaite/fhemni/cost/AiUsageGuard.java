@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AiUsageGuard {
@@ -93,12 +94,14 @@ public class AiUsageGuard {
         this.maxDailyChatOutputTokensPerUser = maxDailyChatOutputTokensPerUser;
     }
 
+    @Transactional
     public Reservation reserveAnalysis(UUID analysisId, String model) {
         if (!analysisEnabled) {
             throw new AiBudgetExceededException(
                     "ANALYSIS_DISABLED",
                     "Live analysis is disabled until the owner enables its production budget.");
         }
+        repository.lockGlobal();
         synchronized (reservationMonitor) {
             Window window = today();
             if (maxDailyAnalyses > 0
@@ -125,6 +128,7 @@ public class AiUsageGuard {
         return new Reservation(repository.reserve(operation, null, null, model, clock.instant()));
     }
 
+    @Transactional
     public Reservation reserveQuestion(UUID analysisId, UUID userId, AiOperation operation, String model) {
         if (!chatEnabled) {
             throw new AiBudgetExceededException(
@@ -136,6 +140,7 @@ public class AiUsageGuard {
                 && operation != AiOperation.CHAT_PROGRAMME) {
             throw new IllegalArgumentException("A chat operation is required");
         }
+        repository.lockGlobal();
         synchronized (reservationMonitor) {
             Window hourlyWindow = currentHour();
             if (repository.countGlobal(hourlyWindow.from(), hourlyWindow.to(), false)

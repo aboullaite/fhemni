@@ -1,0 +1,877 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "slug": "programme-p026-khenifra",
+      "titleAr": "تنمية قروية بخنيفرة",
+      "sourceAnchor": "مشروع التنمية القروية المندمجة لخنيفرة",
+      "places": [
+        {
+          "regionCode": "beni-mellal-khenifra",
+          "place": {
+            "ar": "خنيفرة",
+            "fr": "Khénifra",
+            "en": "Khenifra"
+          },
+          "sourceExcerpt": "إطلاق جيل جديد من مشاريع التنمية القروية المندمجة: كمشروع التنمية القروية المندمجة لخنيفرة الذي يتم تنفيذه على مدى 7 سنوات",
+          "printedPage": 26
+        }
+      ]
+    },
+    {
+      "slug": "programme-p026-taza-errachidia",
+      "titleAr": "تسريع برامج تازة والراشيدية",
+      "sourceAnchor": "مناطق تازة والراشيدية",
+      "places": [
+        {
+          "regionCode": "fes-meknes",
+          "place": {
+            "ar": "تازة",
+            "fr": "Taza",
+            "en": "Taza"
+          },
+          "sourceExcerpt": "كما سيتم تسريع البرامج التي أطلقت بكل من مناطق تازة والراشيدية.",
+          "printedPage": 26
+        },
+        {
+          "regionCode": "draa-tafilalet",
+          "place": {
+            "ar": "الراشيدية",
+            "fr": "Errachidia",
+            "en": "Errachidia"
+          },
+          "sourceExcerpt": "كما سيتم تسريع البرامج التي أطلقت بكل من مناطق تازة والراشيدية.",
+          "printedPage": 26
+        }
+      ]
+    },
+    {
+      "slug": "programme-p050-aggregation-platforms",
+      "titleAr": "إحداث منصات جهوية لتجميع وتسويق المنتجات",
+      "sourceAnchor": "شركات جهوية أو منصات مهنية",
+      "places": [
+        {
+          "regionCode": "oriental",
+          "place": {
+            "ar": "الشرق",
+            "fr": "L’Oriental",
+            "en": "Oriental"
+          },
+          "sourceExcerpt": "تلتزم الحكومة بإحداث شركات جهوية أو منصات مهنية للتجميع والتسويق، في الأحواض الفلاحية الكبرى بسوس وتادلة والغرب واللوكوس ودكالة عبدة والشرق",
+          "printedPage": 50
+        }
+      ]
+    },
+    {
+      "slug": "programme-p063-four-university-hospitals",
+      "titleAr": "إنجاز أربعة مراكز استشفائية جامعية جهوية",
+      "sourceAnchor": "أربع مراكز استشفائية جامعية",
+      "places": [
+        {
+          "regionCode": "beni-mellal-khenifra",
+          "place": {
+            "ar": "بني ملال",
+            "fr": "Béni Mellal",
+            "en": "Beni Mellal"
+          },
+          "sourceExcerpt": "من خلال إنجاز أربع مراكز استشفائية جامعية جهوية جديدة بكل من بني ملال وكلميم والرشيدية والدار البيضاء",
+          "printedPage": 63
+        },
+        {
+          "regionCode": "guelmim-oued-noun",
+          "place": {
+            "ar": "كلميم",
+            "fr": "Guelmim",
+            "en": "Guelmim"
+          },
+          "sourceExcerpt": "من خلال إنجاز أربع مراكز استشفائية جامعية جهوية جديدة بكل من بني ملال وكلميم والرشيدية والدار البيضاء",
+          "printedPage": 63
+        },
+        {
+          "regionCode": "draa-tafilalet",
+          "place": {
+            "ar": "الراشيدية",
+            "fr": "Errachidia",
+            "en": "Errachidia"
+          },
+          "sourceExcerpt": "من خلال إنجاز أربع مراكز استشفائية جامعية جهوية جديدة بكل من بني ملال وكلميم والرشيدية والدار البيضاء",
+          "printedPage": 63
+        },
+        {
+          "regionCode": "casablanca-settat",
+          "place": {
+            "ar": "الدار البيضاء",
+            "fr": "Casablanca",
+            "en": "Casablanca"
+          },
+          "sourceExcerpt": "من خلال إنجاز أربع مراكز استشفائية جامعية جهوية جديدة بكل من بني ملال وكلميم والرشيدية والدار البيضاء",
+          "printedPage": 63
+        }
+      ]
+    },
+    {
+      "slug": "programme-p080-excellence-universities",
+      "titleAr": "جامعات للتميز والابتكار والريادة",
+      "sourceAnchor": "جامعات للتميز والابتكار والريادة",
+      "places": [
+        {
+          "regionCode": "rabat-sale-kenitra",
+          "place": {
+            "ar": "الرباط",
+            "fr": "Rabat",
+            "en": "Rabat"
+          },
+          "sourceExcerpt": "جامعات للتميز والابتكار والريادة ذات إشعاع دولي، يمكن تعزيزها تدريجيا في عدد محدود من المدن، ولا سيما الرباط والدار البيضاء وبنجرير وفاس وطنجة",
+          "printedPage": 80
+        },
+        {
+          "regionCode": "casablanca-settat",
+          "place": {
+            "ar": "الدار البيضاء",
+            "fr": "Casablanca",
+            "en": "Casablanca"
+          },
+          "sourceExcerpt": "جامعات للتميز والابتكار والريادة ذات إشعاع دولي، يمكن تعزيزها تدريجيا في عدد محدود من المدن، ولا سيما الرباط والدار البيضاء وبنجرير وفاس وطنجة",
+          "printedPage": 80
+        },
+        {
+          "regionCode": "marrakech-safi",
+          "place": {
+            "ar": "بنجرير",
+            "fr": "Benguerir",
+            "en": "Benguerir"
+          },
+          "sourceExcerpt": "جامعات للتميز والابتكار والريادة ذات إشعاع دولي، يمكن تعزيزها تدريجيا في عدد محدود من المدن، ولا سيما الرباط والدار البيضاء وبنجرير وفاس وطنجة",
+          "printedPage": 80
+        },
+        {
+          "regionCode": "fes-meknes",
+          "place": {
+            "ar": "فاس",
+            "fr": "Fès",
+            "en": "Fes"
+          },
+          "sourceExcerpt": "جامعات للتميز والابتكار والريادة ذات إشعاع دولي، يمكن تعزيزها تدريجيا في عدد محدود من المدن، ولا سيما الرباط والدار البيضاء وبنجرير وفاس وطنجة",
+          "printedPage": 80
+        },
+        {
+          "regionCode": "tanger-tetouan-al-hoceima",
+          "place": {
+            "ar": "طنجة",
+            "fr": "Tanger",
+            "en": "Tangier"
+          },
+          "sourceExcerpt": "جامعات للتميز والابتكار والريادة ذات إشعاع دولي، يمكن تعزيزها تدريجيا في عدد محدود من المدن، ولا سيما الرباط والدار البيضاء وبنجرير وفاس وطنجة",
+          "printedPage": 80
+        }
+      ]
+    },
+    {
+      "slug": "programme-p099-generation-plants",
+      "titleAr": "محطات جديدة لإنتاج الطاقة",
+      "sourceAnchor": "محطات جديدة لإنتاج الطاقة",
+      "places": [
+        {
+          "regionCode": "tanger-tetouan-al-hoceima",
+          "place": {
+            "ar": "الوحدة",
+            "fr": "Al Wahda",
+            "en": "Al Wahda"
+          },
+          "sourceExcerpt": "من خلال محطات الوحدة (990 ميغاوات)، تاهدارت 2 و3 (1.400 ميغاوات) والناظور (1.200 ميغاوات)",
+          "printedPage": 99
+        },
+        {
+          "regionCode": "tanger-tetouan-al-hoceima",
+          "place": {
+            "ar": "تاهدارت",
+            "fr": "Tahaddart",
+            "en": "Tahaddart"
+          },
+          "sourceExcerpt": "من خلال محطات الوحدة (990 ميغاوات)، تاهدارت 2 و3 (1.400 ميغاوات) والناظور (1.200 ميغاوات)",
+          "printedPage": 99
+        },
+        {
+          "regionCode": "oriental",
+          "place": {
+            "ar": "الناظور",
+            "fr": "Nador",
+            "en": "Nador"
+          },
+          "sourceExcerpt": "من خلال محطات الوحدة (990 ميغاوات)، تاهدارت 2 و3 (1.400 ميغاوات) والناظور (1.200 ميغاوات)",
+          "printedPage": 99
+        }
+      ]
+    },
+    {
+      "slug": "programme-p099-solar-programme",
+      "titleAr": "تسريع مشاريع الطاقة الشمسية",
+      "sourceAnchor": "نور ميدلت",
+      "places": [
+        {
+          "regionCode": "draa-tafilalet",
+          "place": {
+            "ar": "ميدلت",
+            "fr": "Midelt",
+            "en": "Midelt"
+          },
+          "sourceExcerpt": "من خلال مشاريع نور ميدلت 1 و2 و3، بقدرة إجمالية تبلغ 1.425 ميغاوات، وكذا نور أطلس (305 ميغاوات) و نور متعددة المواقع (450 ميغاوات) والتي تستهدف مختلف مناطق المملكة (سطات، الواليدية، كلميم، قلعة سراغنة، تارودانت)",
+          "printedPage": 99
+        },
+        {
+          "regionCode": "casablanca-settat",
+          "place": {
+            "ar": "سطات",
+            "fr": "Settat",
+            "en": "Settat"
+          },
+          "sourceExcerpt": "من خلال مشاريع نور ميدلت 1 و2 و3، بقدرة إجمالية تبلغ 1.425 ميغاوات، وكذا نور أطلس (305 ميغاوات) و نور متعددة المواقع (450 ميغاوات) والتي تستهدف مختلف مناطق المملكة (سطات، الواليدية، كلميم، قلعة سراغنة، تارودانت)",
+          "printedPage": 99
+        },
+        {
+          "regionCode": "casablanca-settat",
+          "place": {
+            "ar": "الواليدية",
+            "fr": "Oualidia",
+            "en": "Oualidia"
+          },
+          "sourceExcerpt": "من خلال مشاريع نور ميدلت 1 و2 و3، بقدرة إجمالية تبلغ 1.425 ميغاوات، وكذا نور أطلس (305 ميغاوات) و نور متعددة المواقع (450 ميغاوات) والتي تستهدف مختلف مناطق المملكة (سطات، الواليدية، كلميم، قلعة سراغنة، تارودانت)",
+          "printedPage": 99
+        },
+        {
+          "regionCode": "guelmim-oued-noun",
+          "place": {
+            "ar": "كلميم",
+            "fr": "Guelmim",
+            "en": "Guelmim"
+          },
+          "sourceExcerpt": "من خلال مشاريع نور ميدلت 1 و2 و3، بقدرة إجمالية تبلغ 1.425 ميغاوات، وكذا نور أطلس (305 ميغاوات) و نور متعددة المواقع (450 ميغاوات) والتي تستهدف مختلف مناطق المملكة (سطات، الواليدية، كلميم، قلعة سراغنة، تارودانت)",
+          "printedPage": 99
+        },
+        {
+          "regionCode": "marrakech-safi",
+          "place": {
+            "ar": "قلعة سراغنة",
+            "fr": "El Kelaâ des Sraghna",
+            "en": "El Kelaa des Sraghna"
+          },
+          "sourceExcerpt": "من خلال مشاريع نور ميدلت 1 و2 و3، بقدرة إجمالية تبلغ 1.425 ميغاوات، وكذا نور أطلس (305 ميغاوات) و نور متعددة المواقع (450 ميغاوات) والتي تستهدف مختلف مناطق المملكة (سطات، الواليدية، كلميم، قلعة سراغنة، تارودانت)",
+          "printedPage": 99
+        },
+        {
+          "regionCode": "souss-massa",
+          "place": {
+            "ar": "تارودانت",
+            "fr": "Taroudant",
+            "en": "Taroudant"
+          },
+          "sourceExcerpt": "من خلال مشاريع نور ميدلت 1 و2 و3، بقدرة إجمالية تبلغ 1.425 ميغاوات، وكذا نور أطلس (305 ميغاوات) و نور متعددة المواقع (450 ميغاوات) والتي تستهدف مختلف مناطق المملكة (سطات، الواليدية، كلميم، قلعة سراغنة، تارودانت)",
+          "printedPage": 99
+        }
+      ]
+    },
+    {
+      "slug": "programme-p099-storage-programme",
+      "titleAr": "البطاريات ومحطات الضخ والتخزين",
+      "sourceAnchor": "بطاريات التخزين",
+      "places": [
+        {
+          "regionCode": "tanger-tetouan-al-hoceima",
+          "place": {
+            "ar": "إحفصة",
+            "fr": "Ifahsa",
+            "en": "Ifahsa"
+          },
+          "sourceExcerpt": "ومحطات تحويل الطاقة عبر الضخ إحفصة (362 ميغاوات) والمنزل (300 ميغاوات).",
+          "printedPage": 99
+        },
+        {
+          "regionCode": "fes-meknes",
+          "place": {
+            "ar": "المنزل",
+            "fr": "El Menzel",
+            "en": "El Menzel"
+          },
+          "sourceExcerpt": "ومحطات تحويل الطاقة عبر الضخ إحفصة (362 ميغاوات) والمنزل (300 ميغاوات).",
+          "printedPage": 99
+        }
+      ]
+    },
+    {
+      "slug": "programme-p109-kenitra-marrakech",
+      "titleAr": "تمديد القطار فائق السرعة القنيطرة–مراكش",
+      "sourceAnchor": "القنيطرة ومراكش",
+      "places": [
+        {
+          "regionCode": "rabat-sale-kenitra",
+          "place": {
+            "ar": "القنيطرة",
+            "fr": "Kénitra",
+            "en": "Kenitra"
+          },
+          "sourceExcerpt": "تسريع وتيرة الأشغال المتعلقة بتمديد خط القطار الفائق السرعة بين القنيطرة ومراكش؛",
+          "printedPage": 109
+        },
+        {
+          "regionCode": "marrakech-safi",
+          "place": {
+            "ar": "مراكش",
+            "fr": "Marrakech",
+            "en": "Marrakech"
+          },
+          "sourceExcerpt": "تسريع وتيرة الأشغال المتعلقة بتمديد خط القطار الفائق السرعة بين القنيطرة ومراكش؛",
+          "printedPage": 109
+        }
+      ]
+    },
+    {
+      "slug": "programme-p109-rer",
+      "titleAr": "قطارات جهوية في خمس جهات",
+      "sourceAnchor": "خدمة القطارات الجهوية",
+      "places": [
+        {
+          "regionCode": "casablanca-settat",
+          "place": {
+            "ar": "الدار البيضاء - سطات",
+            "fr": "Casablanca-Settat",
+            "en": "Casablanca-Settat"
+          },
+          "sourceExcerpt": "إحداث خدمة القطارات الجهوية (RER) في جهات الدار البيضاء-سطات، والرباط-سلا- قنيطرة، ومراكش-آسفي، وطنجة-تطوان، والشرق؛",
+          "printedPage": 109
+        },
+        {
+          "regionCode": "rabat-sale-kenitra",
+          "place": {
+            "ar": "الرباط - سلا - قنيطرة",
+            "fr": "Rabat-Salé-Kénitra",
+            "en": "Rabat-Sale-Kenitra"
+          },
+          "sourceExcerpt": "إحداث خدمة القطارات الجهوية (RER) في جهات الدار البيضاء-سطات، والرباط-سلا- قنيطرة، ومراكش-آسفي، وطنجة-تطوان، والشرق؛",
+          "printedPage": 109
+        },
+        {
+          "regionCode": "marrakech-safi",
+          "place": {
+            "ar": "مراكش - آسفي",
+            "fr": "Marrakech-Safi",
+            "en": "Marrakech-Safi"
+          },
+          "sourceExcerpt": "إحداث خدمة القطارات الجهوية (RER) في جهات الدار البيضاء-سطات، والرباط-سلا- قنيطرة، ومراكش-آسفي، وطنجة-تطوان، والشرق؛",
+          "printedPage": 109
+        },
+        {
+          "regionCode": "tanger-tetouan-al-hoceima",
+          "place": {
+            "ar": "طنجة - تطوان",
+            "fr": "Tanger-Tétouan",
+            "en": "Tangier-Tetouan"
+          },
+          "sourceExcerpt": "إحداث خدمة القطارات الجهوية (RER) في جهات الدار البيضاء-سطات، والرباط-سلا- قنيطرة، ومراكش-آسفي، وطنجة-تطوان، والشرق؛",
+          "printedPage": 109
+        },
+        {
+          "regionCode": "oriental",
+          "place": {
+            "ar": "الشرق",
+            "fr": "L’Oriental",
+            "en": "Oriental"
+          },
+          "sourceExcerpt": "إحداث خدمة القطارات الجهوية (RER) في جهات الدار البيضاء-سطات، والرباط-سلا- قنيطرة، ومراكش-آسفي، وطنجة-تطوان، والشرق؛",
+          "printedPage": 109
+        }
+      ]
+    },
+    {
+      "slug": "programme-p109-fez-oujda-electric",
+      "titleAr": "كهربة فاس–وجدة",
+      "sourceAnchor": "كهربة الخط السككي",
+      "places": [
+        {
+          "regionCode": "fes-meknes",
+          "place": {
+            "ar": "فاس",
+            "fr": "Fès",
+            "en": "Fes"
+          },
+          "sourceExcerpt": "كهربة الخط السككي فاس-وجدة؛",
+          "printedPage": 109
+        },
+        {
+          "regionCode": "oriental",
+          "place": {
+            "ar": "وجدة",
+            "fr": "Oujda",
+            "en": "Oujda"
+          },
+          "sourceExcerpt": "كهربة الخط السككي فاس-وجدة؛",
+          "printedPage": 109
+        }
+      ]
+    },
+    {
+      "slug": "programme-p109-nador-rail",
+      "titleAr": "استكمال الربط السككي للناظور غرب المتوسط",
+      "sourceAnchor": "الربط السككي لميناء الناظور",
+      "places": [
+        {
+          "regionCode": "oriental",
+          "place": {
+            "ar": "الناظور غرب المتوسط",
+            "fr": "Nador West Med",
+            "en": "Nador West Med"
+          },
+          "sourceExcerpt": "استكمال مشروع الربط السككي لميناء الناظور غرب المتوسط.",
+          "printedPage": 109
+        }
+      ]
+    },
+    {
+      "slug": "programme-p109-agadir-rail",
+      "titleAr": "إطلاق تمديد القطار نحو أكادير وربط الصويرة",
+      "sourceAnchor": "نحو أكادير",
+      "places": [
+        {
+          "regionCode": "souss-massa",
+          "place": {
+            "ar": "أكادير",
+            "fr": "Agadir",
+            "en": "Agadir"
+          },
+          "sourceExcerpt": "إطلاق أشغال تمديد الخط الفائق السرعة نحو أكادير، مع ربط مدينة الصويرة بهذه الشبكة؛",
+          "printedPage": 109
+        },
+        {
+          "regionCode": "marrakech-safi",
+          "place": {
+            "ar": "الصويرة",
+            "fr": "Essaouira",
+            "en": "Essaouira"
+          },
+          "sourceExcerpt": "إطلاق أشغال تمديد الخط الفائق السرعة نحو أكادير، مع ربط مدينة الصويرة بهذه الشبكة؛",
+          "printedPage": 109
+        }
+      ]
+    },
+    {
+      "slug": "programme-p109-beni-mellal-rail",
+      "titleAr": "تأهيل محور خريبكة وربط بني ملال",
+      "sourceAnchor": "واد زم وبني ملال",
+      "places": [
+        {
+          "regionCode": "casablanca-settat",
+          "place": {
+            "ar": "الدار البيضاء",
+            "fr": "Casablanca",
+            "en": "Casablanca"
+          },
+          "sourceExcerpt": "إعادة تأهيل الخط الرابط بين الدار البيضاء وخريبكة ووادي زم، وإحداث خط جديد بين وادي زم وبني ملال، يمر بمدينة أبي الجعد، مع إحداث تفرع نحو الفقيه بن صالح؛",
+          "printedPage": 109
+        },
+        {
+          "regionCode": "beni-mellal-khenifra",
+          "place": {
+            "ar": "خريبكة",
+            "fr": "Khouribga",
+            "en": "Khouribga"
+          },
+          "sourceExcerpt": "إعادة تأهيل الخط الرابط بين الدار البيضاء وخريبكة ووادي زم، وإحداث خط جديد بين وادي زم وبني ملال، يمر بمدينة أبي الجعد، مع إحداث تفرع نحو الفقيه بن صالح؛",
+          "printedPage": 109
+        },
+        {
+          "regionCode": "beni-mellal-khenifra",
+          "place": {
+            "ar": "وادي زم",
+            "fr": "Oued Zem",
+            "en": "Oued Zem"
+          },
+          "sourceExcerpt": "إعادة تأهيل الخط الرابط بين الدار البيضاء وخريبكة ووادي زم، وإحداث خط جديد بين وادي زم وبني ملال، يمر بمدينة أبي الجعد، مع إحداث تفرع نحو الفقيه بن صالح؛",
+          "printedPage": 109
+        },
+        {
+          "regionCode": "beni-mellal-khenifra",
+          "place": {
+            "ar": "بني ملال",
+            "fr": "Béni Mellal",
+            "en": "Beni Mellal"
+          },
+          "sourceExcerpt": "إعادة تأهيل الخط الرابط بين الدار البيضاء وخريبكة ووادي زم، وإحداث خط جديد بين وادي زم وبني ملال، يمر بمدينة أبي الجعد، مع إحداث تفرع نحو الفقيه بن صالح؛",
+          "printedPage": 109
+        },
+        {
+          "regionCode": "beni-mellal-khenifra",
+          "place": {
+            "ar": "أبي الجعد",
+            "fr": "Boujaâd",
+            "en": "Boujad"
+          },
+          "sourceExcerpt": "إعادة تأهيل الخط الرابط بين الدار البيضاء وخريبكة ووادي زم، وإحداث خط جديد بين وادي زم وبني ملال، يمر بمدينة أبي الجعد، مع إحداث تفرع نحو الفقيه بن صالح؛",
+          "printedPage": 109
+        },
+        {
+          "regionCode": "beni-mellal-khenifra",
+          "place": {
+            "ar": "الفقيه بن صالح",
+            "fr": "Fquih Ben Salah",
+            "en": "Fquih Ben Salah"
+          },
+          "sourceExcerpt": "إعادة تأهيل الخط الرابط بين الدار البيضاء وخريبكة ووادي زم، وإحداث خط جديد بين وادي زم وبني ملال، يمر بمدينة أبي الجعد، مع إحداث تفرع نحو الفقيه بن صالح؛",
+          "printedPage": 109
+        }
+      ]
+    },
+    {
+      "slug": "programme-p109-ben-guerir-safi",
+      "titleAr": "تثنية وتأهيل بنجرير–آسفي",
+      "sourceAnchor": "140 كلم",
+      "places": [
+        {
+          "regionCode": "marrakech-safi",
+          "place": {
+            "ar": "بنجرير",
+            "fr": "Benguerir",
+            "en": "Benguerir"
+          },
+          "sourceExcerpt": "تثنية وتأهيل الخط الرابط بين بن جرير وآسفي على طول 140 كلم؛",
+          "printedPage": 109
+        },
+        {
+          "regionCode": "marrakech-safi",
+          "place": {
+            "ar": "آسفي",
+            "fr": "Safi",
+            "en": "Safi"
+          },
+          "sourceExcerpt": "تثنية وتأهيل الخط الرابط بين بن جرير وآسفي على طول 140 كلم؛",
+          "printedPage": 109
+        }
+      ]
+    },
+    {
+      "slug": "programme-p109-fez-oujda-capacity",
+      "titleAr": "تقوية طاقة خط فاس–وجدة",
+      "sourceAnchor": "الطاقة الاستيعابية للخط",
+      "places": [
+        {
+          "regionCode": "fes-meknes",
+          "place": {
+            "ar": "فاس",
+            "fr": "Fès",
+            "en": "Fes"
+          },
+          "sourceExcerpt": "تعزيز الطاقة الاستيعابية للخط الرابط بين فاس ووجدة.",
+          "printedPage": 109
+        },
+        {
+          "regionCode": "oriental",
+          "place": {
+            "ar": "وجدة",
+            "fr": "Oujda",
+            "en": "Oujda"
+          },
+          "sourceExcerpt": "تعزيز الطاقة الاستيعابية للخط الرابط بين فاس ووجدة.",
+          "printedPage": 109
+        }
+      ]
+    },
+    {
+      "slug": "programme-p110-motorways",
+      "titleAr": "توسيع الطرق السيارة",
+      "sourceAnchor": "1000 كيلومتر إضافية",
+      "places": [
+        {
+          "regionCode": "rabat-sale-kenitra",
+          "place": {
+            "ar": "الرباط",
+            "fr": "Rabat",
+            "en": "Rabat"
+          },
+          "sourceExcerpt": "استكمال أشغال الطريق السيار القاري الرابط بين الرباط والدار البيضاء (Continental)، وإطلاق الدراسات الخاصة بالطريق السيار المحوري (Dorsale) الرابط بين فاس ومراكش مرورا ببني ملال.",
+          "printedPage": 110
+        },
+        {
+          "regionCode": "casablanca-settat",
+          "place": {
+            "ar": "الدار البيضاء",
+            "fr": "Casablanca",
+            "en": "Casablanca"
+          },
+          "sourceExcerpt": "استكمال أشغال الطريق السيار القاري الرابط بين الرباط والدار البيضاء (Continental)، وإطلاق الدراسات الخاصة بالطريق السيار المحوري (Dorsale) الرابط بين فاس ومراكش مرورا ببني ملال.",
+          "printedPage": 110
+        },
+        {
+          "regionCode": "fes-meknes",
+          "place": {
+            "ar": "فاس",
+            "fr": "Fès",
+            "en": "Fes"
+          },
+          "sourceExcerpt": "استكمال أشغال الطريق السيار القاري الرابط بين الرباط والدار البيضاء (Continental)، وإطلاق الدراسات الخاصة بالطريق السيار المحوري (Dorsale) الرابط بين فاس ومراكش مرورا ببني ملال.",
+          "printedPage": 110
+        },
+        {
+          "regionCode": "marrakech-safi",
+          "place": {
+            "ar": "مراكش",
+            "fr": "Marrakech",
+            "en": "Marrakech"
+          },
+          "sourceExcerpt": "استكمال أشغال الطريق السيار القاري الرابط بين الرباط والدار البيضاء (Continental)، وإطلاق الدراسات الخاصة بالطريق السيار المحوري (Dorsale) الرابط بين فاس ومراكش مرورا ببني ملال.",
+          "printedPage": 110
+        },
+        {
+          "regionCode": "beni-mellal-khenifra",
+          "place": {
+            "ar": "بني ملال",
+            "fr": "Béni Mellal",
+            "en": "Beni Mellal"
+          },
+          "sourceExcerpt": "استكمال أشغال الطريق السيار القاري الرابط بين الرباط والدار البيضاء (Continental)، وإطلاق الدراسات الخاصة بالطريق السيار المحوري (Dorsale) الرابط بين فاس ومراكش مرورا ببني ملال.",
+          "printedPage": 110
+        }
+      ]
+    },
+    {
+      "slug": "programme-p110-expressways",
+      "titleAr": "طرق عين عودة–وادي زم وفاس–تاونات وربط الناظور",
+      "sourceAnchor": "عين عودة",
+      "places": [
+        {
+          "regionCode": "rabat-sale-kenitra",
+          "place": {
+            "ar": "عين عودة",
+            "fr": "Aïn Aouda",
+            "en": "Ain Aouda"
+          },
+          "sourceExcerpt": "لا سيما الطريق السريع عين عودة-وادي زم على طول 127 كلم، والطريق السريع فاس-تاونات على طول 73 كلم، إلى جانب تسريع ورش الربط الطرقي لميناء الناظور غرب المتوسط.",
+          "printedPage": 110
+        },
+        {
+          "regionCode": "beni-mellal-khenifra",
+          "place": {
+            "ar": "وادي زم",
+            "fr": "Oued Zem",
+            "en": "Oued Zem"
+          },
+          "sourceExcerpt": "لا سيما الطريق السريع عين عودة-وادي زم على طول 127 كلم، والطريق السريع فاس-تاونات على طول 73 كلم، إلى جانب تسريع ورش الربط الطرقي لميناء الناظور غرب المتوسط.",
+          "printedPage": 110
+        },
+        {
+          "regionCode": "fes-meknes",
+          "place": {
+            "ar": "فاس",
+            "fr": "Fès",
+            "en": "Fes"
+          },
+          "sourceExcerpt": "لا سيما الطريق السريع عين عودة-وادي زم على طول 127 كلم، والطريق السريع فاس-تاونات على طول 73 كلم، إلى جانب تسريع ورش الربط الطرقي لميناء الناظور غرب المتوسط.",
+          "printedPage": 110
+        },
+        {
+          "regionCode": "fes-meknes",
+          "place": {
+            "ar": "تاونات",
+            "fr": "Taounate",
+            "en": "Taounate"
+          },
+          "sourceExcerpt": "لا سيما الطريق السريع عين عودة-وادي زم على طول 127 كلم، والطريق السريع فاس-تاونات على طول 73 كلم، إلى جانب تسريع ورش الربط الطرقي لميناء الناظور غرب المتوسط.",
+          "printedPage": 110
+        },
+        {
+          "regionCode": "oriental",
+          "place": {
+            "ar": "الناظور غرب المتوسط",
+            "fr": "Nador West Med",
+            "en": "Nador West Med"
+          },
+          "sourceExcerpt": "لا سيما الطريق السريع عين عودة-وادي زم على طول 127 كلم، والطريق السريع فاس-تاونات على طول 73 كلم، إلى جانب تسريع ورش الربط الطرقي لميناء الناظور غرب المتوسط.",
+          "printedPage": 110
+        }
+      ]
+    },
+    {
+      "slug": "programme-p110-airports",
+      "titleAr": "80 مليون مسافر طاقة استيعابية للمطارات",
+      "sourceAnchor": "80 مليون مسافر",
+      "places": [
+        {
+          "regionCode": "casablanca-settat",
+          "place": {
+            "ar": "الدار البيضاء",
+            "fr": "Casablanca",
+            "en": "Casablanca"
+          },
+          "sourceExcerpt": "بناء محطة جوية تعمل كقطب (HUB) بالدار البيضاء مع مدرج وبرج مراقبة جديدين، وتعزيز القدرة الاستيعابية والتنافسية لمطارات المنارة بمراكش، وفاس سايس، والمسيرة بأكادير، وابن بطوطة بطنجة.",
+          "printedPage": 110
+        },
+        {
+          "regionCode": "marrakech-safi",
+          "place": {
+            "ar": "مراكش",
+            "fr": "Marrakech",
+            "en": "Marrakech"
+          },
+          "sourceExcerpt": "بناء محطة جوية تعمل كقطب (HUB) بالدار البيضاء مع مدرج وبرج مراقبة جديدين، وتعزيز القدرة الاستيعابية والتنافسية لمطارات المنارة بمراكش، وفاس سايس، والمسيرة بأكادير، وابن بطوطة بطنجة.",
+          "printedPage": 110
+        },
+        {
+          "regionCode": "fes-meknes",
+          "place": {
+            "ar": "فاس",
+            "fr": "Fès",
+            "en": "Fes"
+          },
+          "sourceExcerpt": "بناء محطة جوية تعمل كقطب (HUB) بالدار البيضاء مع مدرج وبرج مراقبة جديدين، وتعزيز القدرة الاستيعابية والتنافسية لمطارات المنارة بمراكش، وفاس سايس، والمسيرة بأكادير، وابن بطوطة بطنجة.",
+          "printedPage": 110
+        },
+        {
+          "regionCode": "souss-massa",
+          "place": {
+            "ar": "أكادير",
+            "fr": "Agadir",
+            "en": "Agadir"
+          },
+          "sourceExcerpt": "بناء محطة جوية تعمل كقطب (HUB) بالدار البيضاء مع مدرج وبرج مراقبة جديدين، وتعزيز القدرة الاستيعابية والتنافسية لمطارات المنارة بمراكش، وفاس سايس، والمسيرة بأكادير، وابن بطوطة بطنجة.",
+          "printedPage": 110
+        },
+        {
+          "regionCode": "tanger-tetouan-al-hoceima",
+          "place": {
+            "ar": "طنجة",
+            "fr": "Tanger",
+            "en": "Tangier"
+          },
+          "sourceExcerpt": "بناء محطة جوية تعمل كقطب (HUB) بالدار البيضاء مع مدرج وبرج مراقبة جديدين، وتعزيز القدرة الاستيعابية والتنافسية لمطارات المنارة بمراكش، وفاس سايس، والمسيرة بأكادير، وابن بطوطة بطنجة.",
+          "printedPage": 110
+        }
+      ]
+    },
+    {
+      "slug": "programme-p111-casablanca-port",
+      "titleAr": "تقليص انتظار السفن بالدار البيضاء إلى النصف",
+      "sourceAnchor": "خفض زمن الانتظار بنسبة",
+      "places": [
+        {
+          "regionCode": "casablanca-settat",
+          "place": {
+            "ar": "الدار البيضاء",
+            "fr": "Casablanca",
+            "en": "Casablanca"
+          },
+          "sourceExcerpt": "اتخاذ تدابير استعجالية لفك الاختناق على مستوى ميناء الدار البيضاء",
+          "printedPage": 111
+        }
+      ]
+    },
+    {
+      "slug": "programme-p111-nador-dakhla",
+      "titleAr": "تشغيل الناظور واستكمال الداخلة الأطلسي",
+      "sourceAnchor": "ميناء الداخلة الأطلسي",
+      "places": [
+        {
+          "regionCode": "oriental",
+          "place": {
+            "ar": "الناظور غرب المتوسط",
+            "fr": "Nador West Med",
+            "en": "Nador West Med"
+          },
+          "sourceExcerpt": "مواكبة رفع مستوى الاستغلال التدريجي لميناء الناظور غرب المتوسط الجديد، وتسريع أشغال إنجاز ميناء الداخلة الأطلسي الجديد",
+          "printedPage": 111
+        },
+        {
+          "regionCode": "dakhla-oued-ed-dahab",
+          "place": {
+            "ar": "الداخلة الأطلسي",
+            "fr": "Dakhla Atlantique",
+            "en": "Dakhla Atlantic"
+          },
+          "sourceExcerpt": "مواكبة رفع مستوى الاستغلال التدريجي لميناء الناظور غرب المتوسط الجديد، وتسريع أشغال إنجاز ميناء الداخلة الأطلسي الجديد",
+          "printedPage": 111
+        }
+      ]
+    },
+    {
+      "slug": "programme-p111-jorf-lasfar",
+      "titleAr": "توسعة الجرف الأصفر وتحسين المردودية",
+      "sourceAnchor": "توسعة ميناء الجرف الأصفر",
+      "places": [
+        {
+          "regionCode": "casablanca-settat",
+          "place": {
+            "ar": "الجرف الأصفر",
+            "fr": "Jorf Lasfar",
+            "en": "Jorf Lasfar"
+          },
+          "sourceExcerpt": "تسريع أشغال توسعة ميناء الجرف الأصفر",
+          "printedPage": 111
+        }
+      ]
+    },
+    {
+      "slug": "programme-p111-tantan-port",
+      "titleAr": "إطلاق ميناء طانطان للهيدروجين الأخضر",
+      "sourceAnchor": "ميناء طانطان",
+      "places": [
+        {
+          "regionCode": "guelmim-oued-noun",
+          "place": {
+            "ar": "طانطان",
+            "fr": "Tan-Tan",
+            "en": "Tan-Tan"
+          },
+          "sourceExcerpt": "بالإضافة إلى إطلاق مشروع ميناء طانطان لمواكبة مشاريع الهيدروجين الأخضر.",
+          "printedPage": 111
+        }
+      ]
+    },
+    {
+      "slug": "programme-p111-jorf-offshore-wait",
+      "titleAr": "انتظار أقل من يوم بالجرف الأصفر",
+      "sourceAnchor": "أقل من يوم واحد",
+      "places": [
+        {
+          "regionCode": "casablanca-settat",
+          "place": {
+            "ar": "الجرف الأصفر",
+            "fr": "Jorf Lasfar",
+            "en": "Jorf Lasfar"
+          },
+          "sourceExcerpt": "توسعة ميناء الجرف الأصفر، الذي سيمكن من خفض زمن الانتظار في عرض البحر، من 4 أيام إلى أقل من يوم واحد",
+          "printedPage": 111
+        }
+      ]
+    },
+    {
+      "slug": "programme-p111-jorf-berth-stay",
+      "titleAr": "يومان للرسو بالجرف الأصفر",
+      "sourceAnchor": "يومين لكل سفينة",
+      "places": [
+        {
+          "regionCode": "casablanca-settat",
+          "place": {
+            "ar": "الجرف الأصفر",
+            "fr": "Jorf Lasfar",
+            "en": "Jorf Lasfar"
+          },
+          "sourceExcerpt": "توسعة ميناء الجرف الأصفر، الذي سيمكن من خفض زمن الانتظار في عرض البحر، من 4 أيام إلى أقل من يوم واحد، وتقليص مدة الرسو بالرصيف من 3,3 إلى يومين لكل سفينة",
+          "printedPage": 111
+        }
+      ]
+    },
+    {
+      "slug": "programme-p111-jorf-capacity",
+      "titleAr": "90 مليون طن سنويا طاقة الجرف الأصفر",
+      "sourceAnchor": "90 مليون طن سنويا",
+      "places": [
+        {
+          "regionCode": "casablanca-settat",
+          "place": {
+            "ar": "الجرف الأصفر",
+            "fr": "Jorf Lasfar",
+            "en": "Jorf Lasfar"
+          },
+          "sourceExcerpt": "توسعة ميناء الجرف الأصفر، الذي سيمكن من خفض زمن الانتظار في عرض البحر، من 4 أيام إلى أقل من يوم واحد، وتقليص مدة الرسو بالرصيف من 3,3 إلى يومين لكل سفينة، ورفع الطاقة الاستيعابية للميناء من 50 إلى 90 مليون طن سنويا.",
+          "printedPage": 111
+        }
+      ]
+    }
+  ]
+}

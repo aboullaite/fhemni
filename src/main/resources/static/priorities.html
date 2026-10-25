@@ -7,16 +7,39 @@
     <meta name="description" content="18 questions to explore the public priorities and trade-offs that matter to you in Morocco." id="priorityMetaDescription">
     <title>بوصلة الأولويات — فهّمني</title>
     <link rel="icon" href="/favicon.ico?v=20260911" sizes="32x32">
-    <link rel="stylesheet" href="/css/dist.css?v=20260917-9">
+    <link rel="stylesheet" href="/css/dist.css?v=20261025-5">
 </head>
-<body class="public-page priorities-page">
+<body data-public-shell class="public-page priorities-page">
 <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
 
-<header class="site-header public-header">
-    <a class="brand" href="/" aria-label="Fhemni home" data-i18n-aria-label="common.brandHome"><img class="brand-logo brand-logo-full" src="/assets/brand/fhemni-logo.png" alt=""><img class="brand-logo brand-logo-icon" src="/assets/brand/fhemni-icon.png" alt=""></a>
-    <nav class="primary-nav" aria-label="Primary navigation" data-i18n-aria-label="common.primaryNavigation"><a href="/elections/2026" data-i18n="common.electionResults">Election results</a><a href="/videos" data-i18n="common.catalogue">Catalogue</a><a href="/parties" data-i18n="common.parties">Parties</a><a href="/priorities" class="active" data-i18n="common.prioritiesQuiz">Your priorities</a></nav>
-    <div class="header-actions"><label class="site-language"><span class="sr-only" data-i18n="common.siteLanguage">Website language</span><select data-site-language data-i18n-aria-label="common.siteLanguage" aria-label="Website language"><option value="en">EN</option><option value="fr">FR</option><option value="ar">الدارجة</option></select></label><div id="authNav"></div></div>
+<!-- public-shell:header:start -->
+<header class="site-header public-header shared-header">
+    <a class="brand" href="/" aria-label="Fhemni home" data-i18n-aria-label="common.brandHome">
+        <img class="brand-logo brand-logo-full" src="/assets/brand/fhemni-logo.png" alt="">
+        <img class="brand-logo brand-logo-icon" src="/assets/brand/fhemni-icon.png" alt="">
+    </a>
+    <button class="shell-mobile-toggle" type="button" data-shell-toggle aria-controls="shellPrimaryNav" aria-expanded="false" hidden><span data-i18n="shell.menu">القائمة</span><span aria-hidden="true">☰</span></button>
+    <nav class="primary-nav" id="shellPrimaryNav" aria-label="Primary navigation" data-i18n-aria-label="common.primaryNavigation">
+        <a href="/" data-i18n="shell.home">الرئيسية</a>
+        <a href="/government" data-i18n="shell.government">تتبع الحكومة</a>
+        <a href="/analyse" data-i18n="shell.analyse">حلّل فيديو</a>
+        <div class="shell-election-group">
+            <div class="shell-election-heading" data-active-area="true"><a href="/elections/2026" data-i18n="shell.elections">الانتخابات</a><button class="shell-election-trigger" type="button" data-shell-toggle aria-controls="shellElectionLinks" aria-expanded="false" aria-label="أقسام الانتخابات" data-i18n-aria-label="shell.electionMenu" hidden><span aria-hidden="true">⋯</span></button></div>
+            <div id="shellElectionLinks" class="shell-election-links">
+                <a href="/elections/2026" data-i18n="common.electionResults">نتائج الانتخابات</a>
+                <a href="/elections/2026#graphs" data-i18n="shell.graphs">الرسوم والتحليلات</a>
+                <a href="/elections/history" data-i18n="shell.history">مقارنة الانتخابات</a>
+                <a href="/parties" data-i18n="shell.programmes">الأحزاب والبرامج</a>
+                <a href="/elections/2026#electionGraphRepresentatives" data-i18n="shell.representatives">شكون كيمثلني؟</a>
+            </div>
+        </div>
+    </nav>
+    <div class="header-actions">
+        <label class="site-language"><span class="sr-only" data-i18n="common.siteLanguage">لغة الموقع</span><select data-site-language data-shell-language aria-label="لغة الموقع" data-i18n-aria-label="common.siteLanguage"><option value="ar">الدارجة</option><option value="fr">FR</option><option value="en">EN</option></select></label>
+        <div id="authNav"></div>
+    </div>
 </header>
+<!-- public-shell:header:end -->
 
 <main class="priorities-main">
     <section id="priorityLoading" class="priority-state-card priority-loading" aria-live="polite">
@@ -194,7 +217,15 @@
     </div>
 </dialog>
 
-<footer><img class="footer-logo" src="/assets/brand/fhemni-logo.png" alt="Fhemni — فهّمني"><a href="https://x.com/laytoun" target="_blank" rel="me noopener noreferrer" title="@laytoun on X" data-i18n="common.footer">© 2026 Mohammed Aboullaite</a><a class="footer-feedback-link" href="https://github.com/aboullaite/fhemni/issues" target="_blank" rel="noopener noreferrer" data-i18n="common.suggestFeature">Suggest a feature</a></footer>
-<script src="/js/i18n.js?v=20260915-1" defer></script><script src="/js/auth.js?v=20260911-2" defer></script><script src="/webjars/html-to-image/1.11.13/dist/html-to-image.js" defer></script><script src="/js/priorities.js?v=20260917-16" defer></script>
+<!-- public-shell:footer:start -->
+<footer class="shared-footer">
+    <a href="/" class="footer-brand"><img class="footer-logo" src="/assets/brand/fhemni-logo.png" alt="Fhemni — فهّمني"></a>
+    <div class="footer-navigation"><a href="/methodology" data-i18n="common.methodology">المنهجية</a><a href="/videos" data-i18n="shell.archive">أرشيف الفيديوهات</a><a href="/community" data-i18n="shell.suggest">اقترح فيديو</a><a href="https://github.com/aboullaite/fhemni/issues" data-i18n="shell.report">بلّغ على مشكل</a></div>
+    <span class="footer-legal-links" data-legal-links><a href="/terms" data-i18n="common.terms">شروط الاستخدام</a><a href="/privacy" data-i18n="common.privacyPolicy">الخصوصية</a></span>
+    <a href="https://x.com/laytoun" target="_blank" rel="me noopener noreferrer" data-i18n="common.footer">© 2026 Mohammed Aboullaite</a>
+</footer>
+<!-- public-shell:footer:end -->
+<script src="/js/i18n.js?v=20261004-1" defer></script><script src="/js/auth.js?v=20261005-1" defer></script><script src="/webjars/html-to-image/1.11.13/dist/html-to-image.js" defer></script><script src="/js/priorities.js?v=20260917-16" defer></script>
+<script src="/js/site-shell.js?v=20261025-1" defer></script>
 </body>
 </html>

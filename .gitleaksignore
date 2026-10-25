@@ -1,0 +1,6 @@
+# Reviewed false positives in historical test fixtures only.
+# Dummy idempotency key used to exercise submission retry/reload behavior.
+3fd0e0dc93a317fcf8460ac54216d7ccc1ad6f70:src/test/js/member-analysis-ui.test.js:generic-api-key:12
+# Public methodology identifier (hospital-bed-v1), not an authentication key.
+d49c9253e5fe0cf6669755842482b3c36087a629:src/test/js/government-model.test.js:generic-api-key:4
+d49c9253e5fe0cf6669755842482b3c36087a629:src/test/js/government-model.test.js:generic-api-key:5

@@ -503,9 +503,6 @@
             location.searchParams.set('view', selected);
             window.history.pushState({}, '', `${location.pathname}${location.search}${location.hash}`);
         }
-        if (selected === 'ask') {
-            window.requestAnimationFrame(() => document.querySelector('#programmeQuestion')?.focus());
-        }
     }
 
     function setupProgrammeMediaPlayer() {

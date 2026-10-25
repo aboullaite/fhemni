@@ -1,0 +1,274 @@
+{
+  "version": 1,
+  "mandate": "2026-2031",
+  "entries": [
+    {
+      "slug": "programme-p055-assistance-minimum",
+      "proposal": {
+        "kind": "PROPOSED_MEASURE",
+        "reviewedOn": "2026-10-25",
+        "summary": {
+          "ar": "الحد الأدنى للدعم: من 500 لـ600 درهم فالشهر فـ2027",
+          "fr": "Aide minimale : de 500 à 600 DH par mois en 2027",
+          "en": "Minimum assistance: DH 500 → 600 per month in 2027"
+        },
+        "detail": {
+          "ar": "المذكرة كتقترح 600 درهم كخطوة أولى نحو هدف البرنامج: 1,000 درهم فالشهر. هاد الزيادة مقترحة، وماشي إثبات أن المستفيدين توصلو بها.",
+          "fr": "La note propose 600 DH comme première étape vers l’objectif du programme de 1 000 DH par mois. Ce n’est pas une preuve de versement aux bénéficiaires.",
+          "en": "The note proposes DH 600 as a first step towards the programme’s DH 1,000 monthly minimum. This is not evidence of payments to beneficiaries."
+        },
+        "source": {
+          "title": {
+            "ar": "مذكرة تقديم مشروع قانون المالية 2027",
+            "fr": "Note de présentation du PLF 2027",
+            "en": "2027 Finance Bill presentation note"
+          },
+          "url": "https://medias24.com/content/uploads/2026/10/02-Note-de-presentation_Fr_0.pdf",
+          "sha256": "8b5653939c7f0ad6ffebd2e7f697b9a2620ec0f03598aae64828c53ceabc2459",
+          "publishedOn": "2026-10-23",
+          "printedPages": [
+            42
+          ],
+          "pdfPages": [
+            52
+          ]
+        }
+      }
+    },
+    {
+      "slug": "programme-p057-minimum-pensions",
+      "proposal": {
+        "kind": "PROPOSED_MEASURE",
+        "reviewedOn": "2026-10-25",
+        "summary": {
+          "ar": "المعاش الرئيسي الأدنى: 1,700 درهم مقترحة فـ2027",
+          "fr": "Pension principale minimale : 1 700 DH proposés en 2027",
+          "en": "Minimum principal pension: DH 1,700 proposed in 2027"
+        },
+        "detail": {
+          "ar": "مرحلة أولى نحو 3,000 درهم. التطبيق مرتبط بالتدرج وبشروط وتوازنات أنظمة التقاعد؛ ماشي دليل أن جميع المتقاعدين خداو هاد المبلغ.",
+          "fr": "Première étape vers 3 000 DH. L’application reste progressive et soumise aux conditions et équilibres des régimes de retraite ; aucun versement généralisé n’est établi ici.",
+          "en": "A first phase towards DH 3,000, subject to phasing and pension-scheme conditions and financial balance. This does not establish payment to all pensioners."
+        },
+        "source": {
+          "title": {
+            "ar": "مذكرة تقديم مشروع قانون المالية 2027",
+            "fr": "Note de présentation du PLF 2027",
+            "en": "2027 Finance Bill presentation note"
+          },
+          "url": "https://medias24.com/content/uploads/2026/10/02-Note-de-presentation_Fr_0.pdf",
+          "sha256": "8b5653939c7f0ad6ffebd2e7f697b9a2620ec0f03598aae64828c53ceabc2459",
+          "publishedOn": "2026-10-23",
+          "printedPages": [
+            38
+          ],
+          "pdfPages": [
+            48
+          ]
+        }
+      }
+    },
+    {
+      "slug": "programme-p057-widow-pensions",
+      "proposal": {
+        "kind": "PROPOSED_MEASURE",
+        "reviewedOn": "2026-10-25",
+        "summary": {
+          "ar": "معاش الأرامل: رفع مقترح من 50% لـ100%",
+          "fr": "Pension de réversion : hausse proposée de 50 % à 100 %",
+          "en": "Widow’s pension: proposed increase from 50% to 100%"
+        },
+        "detail": {
+          "ar": "النسبة كتخص المعاش الرئيسي ديال الزوج المتوفى. المذكرة كتذكر الرفع مع التدرج وشروط أنظمة التقاعد، وما كتثبتش أن الأداء بدا.",
+          "fr": "La proportion concerne la pension principale du conjoint décédé. La note prévoit la hausse avec un déploiement progressif et les conditions des régimes ; elle ne prouve pas le début des paiements.",
+          "en": "The percentage refers to the deceased spouse’s principal pension. The note includes the increase, subject to phasing and scheme conditions; it does not establish that payments have started."
+        },
+        "source": {
+          "title": {
+            "ar": "مذكرة تقديم مشروع قانون المالية 2027",
+            "fr": "Note de présentation du PLF 2027",
+            "en": "2027 Finance Bill presentation note"
+          },
+          "url": "https://medias24.com/content/uploads/2026/10/02-Note-de-presentation_Fr_0.pdf",
+          "sha256": "8b5653939c7f0ad6ffebd2e7f697b9a2620ec0f03598aae64828c53ceabc2459",
+          "publishedOn": "2026-10-23",
+          "printedPages": [
+            38
+          ],
+          "pdfPages": [
+            48
+          ]
+        }
+      }
+    },
+    {
+      "slug": "programme-p052-electricity-bill-compensation",
+      "proposal": {
+        "kind": "PROPOSED_MEASURE",
+        "reviewedOn": "2026-10-25",
+        "summary": {
+          "ar": "تكفّل مقترح بفواتير الكهرباء الشهرية اللي ما كتفوتش 100 درهم",
+          "fr": "Prise en charge proposée des factures mensuelles d’électricité ≤ 100 DH",
+          "en": "Proposed coverage of monthly electricity bills ≤ DH 100"
+        },
+        "detail": {
+          "ar": "البرنامج كيربط الدعم بالسكن الرئيسي والدخل الفعلي وخصم تلقائي فالفاتورة. المذكرة كتذكر التكفّل بالفواتير حتى 100 درهم، ولكن ما كتفصّلش هنا شروط الاستفادة والتنفيذ. ماشي منحة نقدية للجميع.",
+          "fr": "Le programme lie l’aide à la résidence principale, au revenu réel et à une déduction automatique sur facture. La note prévoit la prise en charge jusqu’à 100 DH sans établir ici toutes les modalités d’éligibilité et d’exécution. Ce n’est pas une allocation universelle en espèces.",
+          "en": "The programme links support to the principal residence, actual income and an automatic bill discount. The note proposes covering bills up to DH 100, but does not establish the detailed eligibility and operating rules here. This is not a universal cash payment."
+        },
+        "source": {
+          "title": {
+            "ar": "مذكرة تقديم مشروع قانون المالية 2027",
+            "fr": "Note de présentation du PLF 2027",
+            "en": "2027 Finance Bill presentation note"
+          },
+          "url": "https://medias24.com/content/uploads/2026/10/02-Note-de-presentation_Fr_0.pdf",
+          "sha256": "8b5653939c7f0ad6ffebd2e7f697b9a2620ec0f03598aae64828c53ceabc2459",
+          "publishedOn": "2026-10-23",
+          "printedPages": [
+            38
+          ],
+          "pdfPages": [
+            48
+          ]
+        }
+      }
+    },
+    {
+      "slug": "programme-p063-primary-care-1600",
+      "proposal": {
+        "kind": "PROPOSED_FUNDING",
+        "reviewedOn": "2026-10-25",
+        "summary": {
+          "ar": "1.8 مليار درهم مقترحة لتأهيل 1,600 مركز صحي إضافي",
+          "fr": "1,8 milliard de DH proposés pour réhabiliter 1 600 centres supplémentaires",
+          "en": "DH 1.8 billion proposed to rehabilitate 1,600 additional health centres"
+        },
+        "detail": {
+          "ar": "اعتماد مقترح فـ2027 للمرحلة الثانية من تأهيل مؤسسات الرعاية الصحية الأولية. 1,600 هو نطاق البرنامج، ماشي عدد المراكز اللي تسالا تأهيلها؛ وما كنجمعوش المرحلتين باش نقولو 3,200.",
+          "fr": "Crédit proposé pour 2027 au titre de la deuxième phase de réhabilitation des soins de santé primaires. Les 1 600 centres désignent le périmètre prévu, pas des rénovations achevées ; les phases ne sont pas additionnées pour annoncer 3 200.",
+          "en": "Proposed 2027 funding for the second phase of primary-care rehabilitation. The 1,600 centres describe the planned scope, not completed renovations; the phases are not added together to claim 3,200."
+        },
+        "source": {
+          "title": {
+            "ar": "مذكرة تقديم مشروع قانون المالية 2027",
+            "fr": "Note de présentation du PLF 2027",
+            "en": "2027 Finance Bill presentation note"
+          },
+          "url": "https://medias24.com/content/uploads/2026/10/02-Note-de-presentation_Fr_0.pdf",
+          "sha256": "8b5653939c7f0ad6ffebd2e7f697b9a2620ec0f03598aae64828c53ceabc2459",
+          "publishedOn": "2026-10-23",
+          "printedPages": [
+            51
+          ],
+          "pdfPages": [
+            61
+          ]
+        }
+      }
+    },
+    {
+      "slug": "programme-p063-hospital-rehabilitation",
+      "proposal": {
+        "kind": "PROPOSED_FUNDING",
+        "reviewedOn": "2026-10-25",
+        "summary": {
+          "ar": "1.5 مليار درهم مقترحة لتأهيل 90 مستشفى",
+          "fr": "1,5 milliard de DH proposés pour réhabiliter 90 hôpitaux",
+          "en": "DH 1.5 billion proposed to rehabilitate 90 hospitals"
+        },
+        "detail": {
+          "ar": "المذكرة كتخصّص فالمقترح ديال 2027 هاد المبلغ لتأهيل 90 مستشفى إقليمي وجهوي. تخصيص التمويل ما كيثبتش بدء الأشغال أو اكتمالها.",
+          "fr": "La note prévoit ce crédit en 2027 pour la réhabilitation de 90 hôpitaux provinciaux et régionaux. Un financement proposé ne prouve ni le démarrage ni l’achèvement des travaux.",
+          "en": "The note proposes this 2027 allocation for 90 provincial and regional hospitals. Proposed funding does not establish that works have started or finished."
+        },
+        "source": {
+          "title": {
+            "ar": "مذكرة تقديم مشروع قانون المالية 2027",
+            "fr": "Note de présentation du PLF 2027",
+            "en": "2027 Finance Bill presentation note"
+          },
+          "url": "https://medias24.com/content/uploads/2026/10/02-Note-de-presentation_Fr_0.pdf",
+          "sha256": "8b5653939c7f0ad6ffebd2e7f697b9a2620ec0f03598aae64828c53ceabc2459",
+          "publishedOn": "2026-10-23",
+          "printedPages": [
+            51
+          ],
+          "pdfPages": [
+            61
+          ]
+        }
+      }
+    },
+    {
+      "slug": "programme-p052-ir-exempt-threshold",
+      "proposal": {
+        "kind": "PROPOSED_MEASURE",
+        "reviewedOn": "2026-10-25",
+        "summary": {
+          "ar": "إعفاء الدخل الصافي السنوي حتى 60,000 درهم مقترح من 2027",
+          "fr": "Exonération proposée jusqu’à 60 000 DH de revenu net annuel dès 2027",
+          "en": "Proposed net annual income exemption up to DH 60,000 from 2027"
+        },
+        "detail": {
+          "ar": "المادة 7 كتقترح تعديل المادة 247-XXXXVII من المدونة العامة للضرائب: رفع الحد من 40,000 لـ60,000 درهم. هادشي دخل صافي خاضع للضريبة فالسنة، ماشي إعفاء عام لكل أجر شهري أقل من 10,000 درهم.",
+          "fr": "L’article 7 propose de modifier l’article 247-XXXXVII du CGI et de relever le seuil de 40 000 à 60 000 DH. Il s’agit du revenu net imposable annuel, pas d’une exonération générale de tout salaire mensuel inférieur à 10 000 DH.",
+          "en": "Article 7 proposes amending CGI Article 247-XXXXVII to raise the threshold from DH 40,000 to DH 60,000. This concerns annual net taxable income, not a blanket exemption for monthly salaries below DH 10,000."
+        },
+        "source": {
+          "title": {
+            "ar": "مشروع قانون المالية 2027 — المادة 7",
+            "fr": "PLF 2027 — article 7",
+            "en": "2027 Finance Bill — Article 7"
+          },
+          "url": "https://medias24.com/content/uploads/2026/10/01-Projet-loi-de-Finances-2027_Fr-1.pdf",
+          "sha256": "5794a1cca7423fd0107f8d7ff4fbfd3137aa67b8dc99a4adf57e0c045171dc4a",
+          "publishedOn": "2026-10-23",
+          "printedPages": [
+            14
+          ],
+          "pdfPages": [
+            15
+          ]
+        }
+      }
+    },
+    {
+      "slug": "programme-p052-ir-brackets",
+      "proposal": {
+        "kind": "PROPOSED_MEASURE",
+        "reviewedOn": "2026-10-25",
+        "summary": {
+          "ar": "أشطر الضريبة على الدخل: مسار مقترح من 2027 حتى 2031",
+          "fr": "Barème de l’IR : transition proposée de 2027 à 2031",
+          "en": "Income-tax bands: proposed transition from 2027 to 2031"
+        },
+        "detail": {
+          "ar": "المادة 7 كتقترح تعديل المادتين 73 و247-XXXXVII. الإعفاء حتى 60,000 درهم سنوياً. فـ2027: 10% حتى 80,000، 20% حتى 100,000، 34% حتى 180,000 و37% فوقها. فـ2028: 10% حتى 100,000، 25% حتى 200,000 و37% فوقها. فـ2029: 10% حتى 130,000، 20% حتى 200,000 و35% فوقها. فـ2030: 10% حتى 150,000، 20% حتى 200,000 و30% فوقها. فـ2031: 10% حتى 150,000، 20% حتى 500,000 و30% فوقها. كل نسبة كتطبق على الجزء اللي داخل الشطر، ماشي على الدخل كامل. هادو أشطر مقترحة، ماشي ضريبة دخلات حيز التنفيذ.",
+          "fr": "L’article 7 propose de modifier les articles 73 et 247-XXXXVII du CGI. Exonération jusqu’à 60 000 DH par an. En 2027 : 10 % jusqu’à 80 000, 20 % jusqu’à 100 000, 34 % jusqu’à 180 000, puis 37 %. En 2028 : 10 % jusqu’à 100 000, 25 % jusqu’à 200 000, puis 37 %. En 2029 : 10 % jusqu’à 130 000, 20 % jusqu’à 200 000, puis 35 %. En 2030 : 10 % jusqu’à 150 000, 20 % jusqu’à 200 000, puis 30 %. En 2031 : 10 % jusqu’à 150 000, 20 % jusqu’à 500 000, puis 30 %. Chaque taux s’applique à la fraction du revenu dans la tranche, pas au revenu total. Il s’agit d’un calendrier proposé, pas de règles déjà entrées en vigueur.",
+          "en": "Article 7 proposes amending CGI Articles 73 and 247-XXXXVII. Annual income up to DH 60,000 is exempt. In 2027: 10% up to 80,000, 20% up to 100,000, 34% up to 180,000, then 37%. In 2028: 10% up to 100,000, 25% up to 200,000, then 37%. In 2029: 10% up to 130,000, 20% up to 200,000, then 35%. In 2030: 10% up to 150,000, 20% up to 200,000, then 30%. In 2031: 10% up to 150,000, 20% up to 500,000, then 30%. Each rate applies only to income within its band, not total income. These are proposed phases, not rules already in force."
+        },
+        "source": {
+          "title": {
+            "ar": "مشروع قانون المالية 2027 — المادة 7",
+            "fr": "PLF 2027 — article 7",
+            "en": "2027 Finance Bill — Article 7"
+          },
+          "url": "https://medias24.com/content/uploads/2026/10/01-Projet-loi-de-Finances-2027_Fr-1.pdf",
+          "sha256": "5794a1cca7423fd0107f8d7ff4fbfd3137aa67b8dc99a4adf57e0c045171dc4a",
+          "publishedOn": "2026-10-23",
+          "printedPages": [
+            8,
+            14,
+            24
+          ],
+          "pdfPages": [
+            9,
+            15,
+            25
+          ]
+        }
+      }
+    }
+  ]
+}

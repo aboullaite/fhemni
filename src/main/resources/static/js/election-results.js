@@ -438,7 +438,9 @@
         if (state === 'content' && pendingAtlasSectionLink && !byId('electionGraphsPanel').hidden) {
             const section = byId(pendingAtlasSectionLink);
             pendingAtlasSectionLink = undefined;
+            section.tabIndex = -1;
             section.scrollIntoView({ block: 'start' });
+            section.focus({ preventScroll: true });
         }
     }
 
@@ -2249,11 +2251,16 @@
             activateTab(next.dataset.electionTab, true);
             next.focus();
         });
-        const requested = window.location.hash.replace('#', '');
-        const sectionLink = ATLAS_SECTION_IDS.has(requested);
-        pendingAtlasSectionLink = sectionLink ? requested : undefined;
-        const target = sectionLink ? 'graphs' : requested;
-        activateTab(['map', 'national', 'graphs', 'coalition'].includes(target) ? target : 'map', false, sectionLink);
+        const applyHash = () => {
+            const requested = window.location.hash.replace('#', '');
+            const sectionLink = ATLAS_SECTION_IDS.has(requested);
+            pendingAtlasSectionLink = sectionLink ? requested : undefined;
+            const target = sectionLink ? 'graphs' : requested;
+            activateTab(['map', 'national', 'graphs', 'coalition'].includes(target) ? target : 'map', false, sectionLink);
+            if (!byId('electionContent').hidden) showState('content');
+        };
+        applyHash();
+        window.addEventListener?.('hashchange', applyHash);
     }
 
     function activateTab(name, report, preserveHash = false) {

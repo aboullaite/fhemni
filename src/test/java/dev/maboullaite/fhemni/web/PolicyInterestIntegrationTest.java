@@ -35,12 +35,13 @@ class PolicyInterestIntegrationTest {
     private UserAccountRepository users;
 
     @Test
-    void exposesTenPublicBroadTopicsAndKeepsNuanceTopicsReadOnly() throws Exception {
+    void exposesExpandedPublicTopicsAndKeepsNuanceTopicsReadOnly() throws Exception {
         mvc.perform(get("/api/catalog/policy-topics"))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("max-age=3600")))
                 .andExpect(jsonPath("$.maxSelections").value(3))
-                .andExpect(jsonPath("$.topics[?(@.selectable == true)]", hasSize(10)))
+                .andExpect(jsonPath("$.topics[?(@.selectable == true)]", hasSize(29)))
+                .andExpect(jsonPath("$.topics[?(@.code == 'WATER')].selectable").value(contains(true)))
                 .andExpect(jsonPath("$.topics[?(@.code == 'EDUCATION_RESEARCH')].parentCode")
                         .value(contains("EDUCATION")))
                 .andExpect(jsonPath("$.topics[?(@.code == 'EMPLOYMENT_FIRST_JOB')].selectable")

@@ -65,7 +65,7 @@ class AnalysisCredentialVersionTest {
                 .thenReturn(Optional.empty());
 
         AnalysisService service = new AnalysisService(
-                new YouTubeUrlParser(), gateway, mock(AnalysisEventHub.class),
+                new YouTubeUrlParser(), gateway, mock(VideoAnalysisRunner.class), mock(AnalysisEventHub.class),
                 mock(ExecutorService.class), mock(AiUsageGuard.class), revisions,
                 videoContexts,
                 10, Duration.ofHours(1), 10, 4, 10);

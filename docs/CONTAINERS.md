@@ -3,6 +3,45 @@
 The included Compose file runs the Spring Boot application with PostgreSQL. It
 does not include a public reverse proxy or provider credentials.
 
+Member video submissions are opt-in. Both `fhemni.member-analysis.enabled` and
+`fhemni.member-analysis.worker-enabled` default to `false`; enable both on an
+instance intended to accept and process member jobs. Provider availability and
+the analysis spending controls must also allow processing. A disabled worker
+now makes submissions unavailable before a job or monthly allowance is consumed.
+These switches describe configuration, not a worker-health probe.
+
+Public analysis recovery runs at startup and on its own 30-second schedule.
+Lease renewal has a dedicated scheduler, separate from the three-thread general
+maintenance pool (`spring.task.scheduling.pool.size`, minimum two). Only admitted
+executor tasks, including queued tasks, renew leases; each task is removed in
+`finally`, even if persisting its failure throws. Recovery uses a batched lookup
+and never blocks renewal on session locks or live-event delivery.
+Unfinished legacy rows without a lease are failed;
+leased work from a crashed instance is failed once its five-minute lease expires.
+Healthy leases and completed reports are retained. Failed interrupted analyses
+cannot be revived by late worker progress or completion. Worker updates must
+first succeed in the database before cached state or progress events change;
+both failed and completed results are final. Failed interrupted analyses
+require an explicit retry rather than automatically repeating paid work.
+Rejected progress stops the worker before its next provider stage; a provider
+request already in flight cannot be cancelled by this check.
+
+Live analysis updates use an independent virtual-thread writer per browser and
+one pending progress snapshot per listener. A newer snapshot replaces queued
+progress; terminal results remain final and replayable. Network sends and final
+flushes never run on the analysis worker or under the channel lock. After
+`fhemni.sessions.sse-send-timeout-ms` (default 30000), the listener stops accepting
+updates and its writer is interrupted. This is not a guaranteed socket-close
+deadline: servlet transports can ignore interruption. The listener continues to
+count against the per-analysis limit until its writer and final flush actually
+exit, preventing repeated reconnects from bypassing the resource cap.
+
+Digest delivery commits its consent check and `SENDING` transition before
+contacting the email provider, then releases the database lock. Unsubscribing
+before that transition cancels the attempt; unsubscribing afterwards stops
+future attempts but cannot retract an email already in flight. An ambiguous
+send is recorded as `UNKNOWN` and is not retried automatically.
+
 Flyway also creates the Spring Session tables in PostgreSQL. Login sessions
 therefore survive application-container replacement without requiring Redis.
 The first upgrade from in-memory sessions signs existing users out once because

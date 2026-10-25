@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ar" dir="rtl" data-theme="fhemni">
+<head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>حلّل فيديو — فهّمني</title><link rel="canonical" href="https://fhemni.ma/analyse">
+    <link rel="icon" href="/favicon.ico?v=20260911"><link rel="stylesheet" href="/css/dist.css?v=20261025-5">
+</head>
+<body data-public-shell data-i18n-page-title="member.pageTitle">
+<!-- public-shell:header:start -->
+<header class="site-header public-header shared-header">
+    <a class="brand" href="/" aria-label="Fhemni home" data-i18n-aria-label="common.brandHome">
+        <img class="brand-logo brand-logo-full" src="/assets/brand/fhemni-logo.png" alt="">
+        <img class="brand-logo brand-logo-icon" src="/assets/brand/fhemni-icon.png" alt="">
+    </a>
+    <button class="shell-mobile-toggle" type="button" data-shell-toggle aria-controls="shellPrimaryNav" aria-expanded="false" hidden><span data-i18n="shell.menu">القائمة</span><span aria-hidden="true">☰</span></button>
+    <nav class="primary-nav" id="shellPrimaryNav" aria-label="Primary navigation" data-i18n-aria-label="common.primaryNavigation">
+        <a href="/" data-i18n="shell.home">الرئيسية</a>
+        <a href="/government" data-i18n="shell.government">تتبع الحكومة</a>
+        <a href="/analyse" data-i18n="shell.analyse" aria-current="page">حلّل فيديو</a>
+        <div class="shell-election-group">
+            <div class="shell-election-heading"><a href="/elections/2026" data-i18n="shell.elections">الانتخابات</a><button class="shell-election-trigger" type="button" data-shell-toggle aria-controls="shellElectionLinks" aria-expanded="false" aria-label="أقسام الانتخابات" data-i18n-aria-label="shell.electionMenu" hidden><span aria-hidden="true">⋯</span></button></div>
+            <div id="shellElectionLinks" class="shell-election-links">
+                <a href="/elections/2026" data-i18n="common.electionResults">نتائج الانتخابات</a>
+                <a href="/elections/2026#graphs" data-i18n="shell.graphs">الرسوم والتحليلات</a>
+                <a href="/elections/history" data-i18n="shell.history">مقارنة الانتخابات</a>
+                <a href="/parties" data-i18n="shell.programmes">الأحزاب والبرامج</a>
+                <a href="/elections/2026#electionGraphRepresentatives" data-i18n="shell.representatives">شكون كيمثلني؟</a>
+            </div>
+        </div>
+    </nav>
+    <div class="header-actions">
+        <label class="site-language"><span class="sr-only" data-i18n="common.siteLanguage">لغة الموقع</span><select data-site-language data-shell-language aria-label="لغة الموقع" data-i18n-aria-label="common.siteLanguage"><option value="ar">الدارجة</option><option value="fr">FR</option><option value="en">EN</option></select></label>
+        <div id="authNav"></div>
+    </div>
+</header>
+<!-- public-shell:header:end -->
+<main class="public-stack" id="memberLibraryPage">
+    <p id="memberPageStatus" role="status" aria-live="polite"></p><button id="memberPageRetry" class="secondary-button" type="button" data-member-copy="retry" hidden></button>
+    <section id="memberPitch" class="public-stack">
+      <div class="member-pitch-hero">
+        <header class="accountability-page-heading public-stack">
+          <h1 data-member-copy="hero">فهم الفيديو، بلا ما يضيع ليك المهم.</h1>
+          <p data-member-copy="pitch">عندك خطاب، حوار ولا تصريح بغيتي تفهمو مزيان؟ زيد رابط يوتيوب وخلي فهّمني يعاونك توصل للمهم، وتراجع الادعاءات وتسول على التفاصيل.</p>
+          <a id="memberPitchLogin" class="primary-button button-link" href="/login?continue=%2Fanalyse" data-member-copy="loginCta">دخل لحسابك وحلّل فيديو</a>
+          <a href="/videos" data-member-copy="archive">أرشيف الفيديوهات</a>
+        </header>
+        <dl class="member-plan-facts">
+          <div><dt data-member-copy="capacityVideos">فيديوهات فالشهر</dt><dd>10</dd></div>
+          <div><dt data-member-copy="capacityChat">سؤال فالشهر</dt><dd>20</dd></div>
+          <div><dt data-member-copy="capacityRetention">يوم لحفظ التحليل</dt><dd>30</dd></div>
+        </dl>
+      </div>
+      <div class="member-benefits">
+        <article><span aria-hidden="true">01</span><h2 data-member-copy="benefitSummary">المهم، بلا تطويل</h2><p data-member-copy="benefitSummaryText">خلاصة منظمة ومقاطع ترجع ليها فالفيديو الأصلي.</p></article>
+        <article><span aria-hidden="true">02</span><h2 data-member-copy="benefitClaims">راجع شنو تقال</h2><p data-member-copy="benefitClaimsText">شوف الادعاءات والسياق والمصادر اللي توفّرات للتحقق.</p></article>
+        <article><span aria-hidden="true">03</span><h2 data-member-copy="benefitChat">كمّل بالسؤال</h2><p data-member-copy="benefitChatText">سول على نقطة ما فهمتيهاش، والجواب يبقى مع التحليل.</p></article>
+      </div>
+    </section>
+    <section id="memberWorkspace" class="public-stack" hidden>
+      <header class="accountability-page-heading"><h1 data-member-copy="libraryTitle">الفيديوهات ديالي</h1><p data-member-copy="retentionNote"></p></header>
+      <section class="public-panel member-library-submit">
+        <h2 data-member-copy="newAnalysis">حلّل فيديو جديد</h2>
+        <div class="member-allowances"><p id="memberLimits"></p><p id="memberChatLimits"></p></div>
+        <form id="memberSubmitForm" class="member-submit-grid public-stack">
+          <label><span data-member-copy="url">رابط فيديو يوتيوب</span><input id="memberUrl" type="url" dir="ltr" required maxlength="2048" placeholder="https://www.youtube.com/watch?v=…" autocomplete="url"></label>
+          <label><span data-member-copy="language">لغة التحليل</span><select id="memberLanguage"><option value="ary">الدارجة</option><option value="fr">Français</option><option value="en">English</option></select></label>
+          <button id="memberSubmitButton" class="primary-button" type="submit" data-member-copy="submit">حلّل الفيديو</button>
+        </form>
+        <p id="memberSubmitStatus" class="government-meta" role="status" aria-live="polite"></p>
+      </section>
+      <div id="memberLibraryEmpty" class="member-library-empty" hidden><h2 data-member-copy="emptyTitle"></h2><p data-member-copy="emptyText"></p></div>
+      <div id="memberLibraryRows" class="member-library-grid"></div><div id="memberLibraryPager"></div>
+    </section>
+    <p class="government-meta" data-member-copy="aiNote">تحليل بالذكاء الاصطناعي، يقدر يخطأ. رجع للفيديو والمصادر قبل ما تعتمد على النتيجة.</p>
+    <details class="member-library-terms"><summary data-member-copy="termsTitle">كيفاش كيخدم الرصيد والحفظ؟</summary><p data-member-copy="termsText"></p></details>
+</main>
+<!-- public-shell:footer:start -->
+<footer class="shared-footer">
+    <a href="/" class="footer-brand"><img class="footer-logo" src="/assets/brand/fhemni-logo.png" alt="Fhemni — فهّمني"></a>
+    <div class="footer-navigation"><a href="/methodology" data-i18n="common.methodology">المنهجية</a><a href="/videos" data-i18n="shell.archive">أرشيف الفيديوهات</a><a href="/community" data-i18n="shell.suggest">اقترح فيديو</a><a href="https://github.com/aboullaite/fhemni/issues" data-i18n="shell.report">بلّغ على مشكل</a></div>
+    <span class="footer-legal-links" data-legal-links><a href="/terms" data-i18n="common.terms">شروط الاستخدام</a><a href="/privacy" data-i18n="common.privacyPolicy">الخصوصية</a></span>
+    <a href="https://x.com/laytoun" target="_blank" rel="me noopener noreferrer" data-i18n="common.footer">© 2026 Mohammed Aboullaite</a>
+</footer>
+<!-- public-shell:footer:end -->
+<script src="/js/i18n.js?v=20261004-1" defer></script><script src="/js/auth.js?v=20261005-1" defer></script>
+<script src="/js/site-shell.js?v=20261025-1" defer></script><script src="/js/public-ui.js?v=20261004-1" defer></script>
+<script src="/js/member-analysis-api.js?v=20261005-1" defer></script><script src="/js/member-library.js?v=20261005-1" defer></script>
+</body></html>

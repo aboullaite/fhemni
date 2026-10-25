@@ -31,6 +31,7 @@ public class PolicyInterestService {
 
     @Transactional
     public List<String> replacePreferences(UUID userId, List<String> requestedCodes) {
+        topics.lockPreferenceOwner(userId);
         List<String> codes = normalize(requestedCodes);
         if (codes.size() > MAX_SELECTED_TOPICS) {
             throw new IllegalArgumentException("Choose no more than three policy topics.");
