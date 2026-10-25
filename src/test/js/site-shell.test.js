@@ -33,16 +33,16 @@ test('shared legacy-page rules preserve touch targets, focus clearance and long 
     assert.match(css,/\.party-badge\s*>\s*span\s*\{[^}]*white-space:\s*normal[^}]*overflow-wrap:\s*anywhere/s);
 });
 
-test('all navigation remains real links without JavaScript; elections has a separate disclosure', async () => {
+test('elections uses one direct navigation link with no extra icon control', async () => {
     const {renderPublicShell} = await shell();
     const {header, footer} = renderPublicShell({pagePath:'/elections/2026', area:'elections'});
     for (const href of ['/', '/government', '/analyse', '/elections/2026', '/elections/history', '/parties']) {
         assert.ok(header.includes(`href="${href}"`), href);
     }
-    assert.match(header, /<button[^>]+aria-controls="shellElectionLinks"[^>]+aria-expanded="false"/);
-    assert.match(header, /<button[^>]+class="shell-election-trigger"[^>]*aria-label="أقسام الانتخابات"/);
+    assert.match(header, /<a[^>]+href="\/elections\/2026"[^>]+aria-controls="shellElectionLinks"[^>]+aria-expanded="false"/);
+    assert.doesNotMatch(header, /<button[^>]+aria-controls="shellElectionLinks"/);
     assert.match(header, /<a href="\/elections\/2026"[^>]*data-i18n="shell.elections">الانتخابات<\/a>/);
-    assert.doesNotMatch(header.match(/<div class="shell-election-heading"[\s\S]*?<\/div>/)[0],/⌄/);
+    assert.doesNotMatch(header.match(/<div class="shell-election-heading"[\s\S]*?<\/div>/)[0],/⌄|⋯|…/);
     assert.match(header, /id="shellElectionLinks"/);
     assert.match(header, /href="\/elections\/2026#electionGraphRepresentatives"/);
     assert.match(footer, /data-legal-links/);
@@ -106,7 +106,7 @@ function electionDisclosure(hover=true){
     const toggle=element({'aria-controls':'shellElectionLinks','aria-expanded':'false'}),panel=element(),group=element(),link=element(),fallback=element();
     let pending;const media={matches:hover,addEventListener(type,fn){this.changed=fn;}};
     const doc={querySelectorAll:()=>[toggle],getElementById:()=>panel,activeElement:null,listeners:{},addEventListener(type,fn){this.listeners[type]=fn;},defaultView:{matchMedia:()=>media,setTimeout(fn){pending=fn;return 1;},clearTimeout(){pending=null;}}};
-    toggle.closest=()=>group;group.querySelector=()=>fallback;group.contains=node=>[toggle,panel,link].includes(node);panel.contains=node=>node===link;
+    toggle.tagName='A';toggle.closest=()=>group;group.querySelector=()=>fallback;group.contains=node=>[toggle,panel,link].includes(node);panel.contains=node=>node===link;panel.querySelector=()=>link;
     require(path.join(root,'src/main/resources/static/js/site-shell.js')).initSiteShell(doc);
     return {toggle,panel,group,link,fallback,doc,media,flush(){const fn=pending;pending=null;fn?.();}};
 }
@@ -118,24 +118,33 @@ test('desktop elections opens on hover and stays open while crossing into its su
     assert.equal(panel.hidden,false);
     group.listeners.pointerleave?.({pointerType:'mouse'});flush();assert.equal(panel.hidden,true);
 });
-test('touch and narrow screens retain explicit tap disclosure rather than sticky hover',()=>{
-    for(const [hover,pointerType]of [[false,'mouse'],[true,'touch']]){
-        const {group,panel,toggle,fallback}=electionDisclosure(hover);group.listeners.pointerenter?.({pointerType});
-        assert.equal(fallback.hidden,false,'the Elections label remains a navigable link');assert.equal(toggle.hidden,false);
-        assert.equal(panel.hidden,true);toggle.listeners.click();assert.equal(panel.hidden,false);
-        toggle.listeners.click();assert.equal(panel.hidden,true);
-    }
+test('touch and narrow menus expose submenu links without intercepting election navigation',()=>{
+    const {group,panel,toggle,doc}=electionDisclosure(false);
+    assert.equal(toggle.hidden,false);assert.equal(panel.hidden,false);
+    assert.equal(toggle.listeners.click,undefined,'click must navigate normally');
+    group.listeners.pointerenter?.({pointerType:'touch'});
+    doc.listeners.pointerdown?.({target:{}});
+    assert.equal(panel.hidden,false,'submenu remains available inside the mobile navigation');
+});
+test('desktop election link navigates normally and ArrowDown opens and focuses submenu',()=>{
+    const {panel,toggle,link}=electionDisclosure();
+    assert.equal(toggle.listeners.click,undefined);
+    let prevented=false;
+    toggle.listeners.keydown({key:'ArrowDown',preventDefault(){prevented=true;}});
+    assert.equal(prevented,true);assert.equal(panel.hidden,false);assert.equal(link.focusCount,1);
 });
 test('hover submenu respects keyboard focus and closes on Escape or leaving the group',()=>{
     const {group,panel,toggle,doc,link,flush}=electionDisclosure();
-    toggle.listeners.click();doc.activeElement=link;group.listeners.pointerleave?.({pointerType:'mouse'});flush();assert.equal(panel.hidden,false);
+    group.listeners.pointerenter({pointerType:'mouse'});doc.activeElement=link;group.listeners.pointerleave?.({pointerType:'mouse'});flush();assert.equal(panel.hidden,false);
     panel.listeners.keydown({key:'Escape',preventDefault(){},stopPropagation(){}});assert.equal(panel.hidden,true);assert.equal(toggle.focusCount,1);
     group.listeners.pointerenter?.({pointerType:'mouse'});group.listeners.focusout?.({relatedTarget:{}});assert.equal(panel.hidden,true);
 });
 test('elections closes on outside press and capability changes without leaving focus hidden',()=>{
     const {group,panel,toggle,doc,media,link}=electionDisclosure();
     group.listeners.pointerenter?.({pointerType:'mouse'});doc.listeners.pointerdown?.({target:{}});assert.equal(panel.hidden,true);
-    toggle.listeners.click();doc.activeElement=link;media.matches=false;media.changed?.();
+    group.listeners.pointerenter({pointerType:'mouse'});doc.activeElement=link;media.matches=false;media.changed?.();
+    assert.equal(panel.hidden,false,'mobile submenu stays visible');assert.equal(toggle.focusCount,0);
+    media.matches=true;media.changed?.();
     assert.equal(panel.hidden,true);assert.equal(toggle.focusCount,1);
 });
 

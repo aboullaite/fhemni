@@ -12,21 +12,30 @@
                 panel.hidden=!open;
             };
             setOpen(false);
-            toggle.addEventListener('click',()=>setOpen(toggle.getAttribute('aria-expanded')!=='true'));
+            const electionLink=toggle.tagName==='A' && toggle.getAttribute('aria-controls')==='shellElectionLinks';
+            let canCollapse=()=>true;
+            if(!electionLink) toggle.addEventListener('click',()=>setOpen(toggle.getAttribute('aria-expanded')!=='true'));
             const escape=event=>{
-                if(event.key!=='Escape' || toggle.hidden || toggle.getAttribute('aria-expanded')!=='true') return;
+                if(event.key!=='Escape' || !canCollapse() || toggle.hidden || toggle.getAttribute('aria-expanded')!=='true') return;
                 event.preventDefault(); event.stopPropagation(); setOpen(false); toggle.focus();
             };
             panel.addEventListener('keydown',escape);
-            toggle.addEventListener('keydown',escape);
+            toggle.addEventListener('keydown',event=>{
+                if(electionLink && event.key==='ArrowDown') {
+                    event.preventDefault();setOpen(true);panel.querySelector('a')?.focus();
+                } else escape(event);
+            });
             if (toggle.getAttribute('aria-controls')==='shellElectionLinks') {
                 const group=toggle.closest('.shell-election-group');
                 const view=doc.defaultView;
                 const hover=view?.matchMedia('(min-width: 1100px) and (hover: hover) and (pointer: fine)');
                 if(group && view) {
+                    group.setAttribute('data-shell-enhanced','true');
+                    canCollapse=()=>Boolean(hover?.matches);
+                    setOpen(!hover?.matches);
                     let closeTimer;
                     const cancelClose=()=>view.clearTimeout(closeTimer);
-                    const close=()=>{cancelClose();setOpen(false);};
+                    const close=()=>{cancelClose();setOpen(!hover?.matches);};
                     group.addEventListener('pointerenter',event=>{
                         cancelClose();
                         if(hover?.matches && event.pointerType==='mouse') setOpen(true);
@@ -39,7 +48,7 @@
                     group.addEventListener('focusout',event=>{if(!group.contains(event.relatedTarget))close();});
                     doc.addEventListener('pointerdown',event=>{if(!group.contains(event.target))close();});
                     hover?.addEventListener('change',()=>{
-                        if(panel.contains(doc.activeElement)) toggle.focus();
+                        if(hover?.matches && panel.contains(doc.activeElement)) toggle.focus();
                         close();
                     });
                 }
